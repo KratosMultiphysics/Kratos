@@ -37,7 +37,7 @@ void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateStressDisplac
         const SizeType num_dofs = num_nodes * dimension;
         const SizeType num_GP = (this->mpPrimalElement->GetGeometry().IntegrationPoints()).size();
         if ( (rOutput.size1() != num_dofs) || (rOutput.size2() != num_GP ) )
-            rOutput.resize(num_dofs, num_GP);
+            rOutput.resize(num_dofs, num_GP, false);
 
         double derivative_pre_factor;
         this->GetDerivativePreFactor(derivative_pre_factor, rCurrentProcessInfo);

@@ -133,7 +133,7 @@ void SymmetryUtility::Update()
 }
 
 void SymmetryUtility::GetRotationMatrix(double angle, Matrix& rRotMat){
-    rRotMat.resize(3,3);
+    rRotMat.resize(3,3, false);
     rRotMat = ZeroMatrix(3,3);
 
     const double c=cos(angle*Globals::Pi/180);

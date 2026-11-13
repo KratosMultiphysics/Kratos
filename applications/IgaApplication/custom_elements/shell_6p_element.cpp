@@ -171,7 +171,7 @@ namespace Kratos
         noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
         if (rLeftHandSideMatrix.size1() != mat_size)
-            rLeftHandSideMatrix.resize(mat_size, mat_size);
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
@@ -185,7 +185,7 @@ namespace Kratos
         const IndexType mat_size = GetGeometry().size() * 6;
         
         if (rLeftHandSideMatrix.size1() != mat_size)
-            rLeftHandSideMatrix.resize(mat_size, mat_size);
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
         VectorType right_hand_side_vector;
@@ -691,7 +691,7 @@ namespace Kratos
         
         // Transformation matrix 
         if (rTransformationMatrix.size1() != 6 && rTransformationMatrix.size2() != 6)                                                                 
-            rTransformationMatrix.resize(6, 6);
+            rTransformationMatrix.resize(6, 6, false);
         noalias(rTransformationMatrix) = ZeroMatrix(6, 6);
 
         for (IndexType i = 0; i < 3; ++i)
@@ -849,7 +849,7 @@ namespace Kratos
         const double d_zeta_dz = rJacobianInv(2,2);
 
         if (rBOperator.size1() != 6 || rBOperator.size2() != mat_size)
-            rBOperator.resize(6, mat_size);
+            rBOperator.resize(6, mat_size, false);
         noalias(rBOperator) = ZeroMatrix(6, mat_size);
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
@@ -956,7 +956,7 @@ namespace Kratos
         shape_functions_derivatives_global = trans(prod(rJacobianInv, trans(shape_functions_derivatives_local)));
 
         if (rBDrilling.size1() != 1|| rBDrilling.size2() != mat_size)                                 
-            rBDrilling.resize(1, mat_size);                                                     
+            rBDrilling.resize(1, mat_size, false);                                                     
         noalias(rBDrilling) = ZeroMatrix(1, mat_size);                                          
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
@@ -1014,7 +1014,7 @@ namespace Kratos
         const double d_zeta_dz = rJacobianInv(2,2);
 
         if (rBGeometric.size1() != 9 || rBGeometric.size2() != mat_size)
-            rBGeometric.resize(9, mat_size);
+            rBGeometric.resize(9, mat_size, false);
         noalias(rBGeometric) = ZeroMatrix(9, mat_size);
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
@@ -1068,7 +1068,7 @@ namespace Kratos
     ) const
     {
         if (rStressMatrix.size1() != 9 || rStressMatrix.size2() != 9)
-            rStressMatrix.resize(9, 9);
+            rStressMatrix.resize(9, 9, false);
         noalias(rStressMatrix) = ZeroMatrix(9, 9);
 
         // Fill the 3x3 symmetric stress block

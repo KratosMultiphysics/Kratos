@@ -846,7 +846,7 @@ public:
 
             integration_points[0] = rIntegrationPoints;
             shape_function_gradients[0].resize(rIntegrationPoints.size(), false);
-            shape_function_values[0].resize(rIntegrationPoints.size(), num_nonzero_cps);
+            shape_function_values[0].resize(rIntegrationPoints.size(), num_nonzero_cps, false);
 
             for( IndexType i_point = 0; i_point < num_points; ++i_point){
                 shape_function_gradients[0][i_point].resize(num_nonzero_cps, 3);
@@ -1162,7 +1162,7 @@ public:
 
         if (rResult.size1() != shape_function_container.NumberOfNonzeroControlPoints()
             && rResult.size2() != 3)
-            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints(), 3);
+            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints(), 3, false);
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); ++i) {
             rResult(i, 0) = shape_function_container(i, 1);
