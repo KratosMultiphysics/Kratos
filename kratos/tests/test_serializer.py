@@ -1,4 +1,5 @@
 import os
+import pickle
 import numpy
 
 # Importing the Kratos Library
@@ -341,6 +342,75 @@ class TestSerializer(KratosUnittest.TestCase):
         self.assertVectorAlmostEqual(variable_ta.data, [1.0, 2.0, 3.0])
         self.assertVectorAlmostEqual(np_array, [4.0, 5.0, 6.0])
         self.assertVectorAlmostEqual(nd_data_ta.data, [4.0, 5.0, 6.0])
+
+    def test_TensorAdaptorRepeatedLoadIntoSameAdaptor(self):
+        # A non-DataOnly load into a container-bound adaptor reloads its nodes' historical and
+        # non-historical data in place, so every repeated load must restore the saved state.
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.SetBufferSize(2)
+        for i in range(3):
+            node = model_part.CreateNewNode(i + 1, float(i), 0.0, 0.0)
+            node.SetValue(KratosMultiphysics.PRESSURE, i + 1.0)
+            node.SetValue(KratosMultiphysics.VELOCITY, KratosMultiphysics.Array3([i, 2.0 * i, 3.0 * i]))
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, 10.0 * (i + 1))
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, 20.0 * (i + 1))
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, KratosMultiphysics.Array3([i, -i, 0.5 * i]))
+
+        def GetNodalState():
+            return [(node.GetValue(KratosMultiphysics.PRESSURE), list(node.GetValue(KratosMultiphysics.VELOCITY)),
+                     node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0), node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1),
+                     list(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0))) for node in model_part.Nodes]
+
+        ta = KratosMultiphysics.TensorAdaptors
+        variable_ta = ta.VariableTensorAdaptor(model_part.Nodes, KratosMultiphysics.VELOCITY)
+        variable_ta.CollectData()
+        original_data = numpy.array(variable_ta.data)
+        original_state = GetNodalState()
+
+        saved = KratosMultiphysics.StreamSerializer()
+        saved.Save("Variable", variable_ta)
+
+        for _ in range(3):
+            variable_ta.data[:] = 0.0
+            for node in model_part.Nodes:
+                node.SetValue(KratosMultiphysics.PRESSURE, -1.0)
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, -1.0)
+            pickle.loads(pickle.dumps(saved)).Load("Variable", variable_ta) # a fresh copy of the saved stream
+            self.assertVectorAlmostEqual(variable_ta.data.ravel(), original_data.ravel())
+            self.assertEqual(GetNodalState(), original_state)
+
+        # the adaptor still points to the model part's nodes
+        self.assertEqual(model_part.NumberOfNodes(), 3)
+        variable_ta.data[:] = 7.0
+        variable_ta.StoreData()
+        self.assertEqual([list(node.GetValue(KratosMultiphysics.VELOCITY)) for node in model_part.Nodes], [[7.0] * 3] * 3)
+
+    def test_TensorAdaptorLoadIntoNodesWithoutHistoricalVariables(self):
+        # The nodes of a model part without historical variables share an empty variables list. An in-place load of
+        # nodes with historical variables must raise without adding them to it, as the other nodes can't hold them.
+        model = KratosMultiphysics.Model()
+        saved_model_part = model.CreateModelPart("Saved")
+        saved_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        saved_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LOCAL_AXES_MATRIX)
+        model_part = model.CreateModelPart("Test")
+        sub_model_part = model_part.CreateSubModelPart("Sub")
+        for i in range(3):
+            node = saved_model_part.CreateNewNode(i + 1, float(i), 0.0, 0.0)
+            node.SetSolutionStepValue(KratosMultiphysics.LOCAL_AXES_MATRIX, KratosMultiphysics.Matrix(3, 3, 1.0))
+            sub_model_part.CreateNewNode(i + 1, float(i), 0.0, 0.0)
+            model_part.CreateNewNode(i + 4, float(i), 1.0, 0.0) # not in the archive
+
+        ta = KratosMultiphysics.TensorAdaptors
+        serializer = KratosMultiphysics.StreamSerializer()
+        serializer.Save("Variable", ta.VariableTensorAdaptor(saved_model_part.Nodes, KratosMultiphysics.VELOCITY))
+        with self.assertRaisesRegex(RuntimeError, "The archive does not match this VariablesList"):
+            serializer.Load("Variable", ta.VariableTensorAdaptor(sub_model_part.Nodes, KratosMultiphysics.VELOCITY))
+        self.assertFalse(model_part.HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
+        self.assertFalse(model_part.HasNodalSolutionStepVariable(KratosMultiphysics.LOCAL_AXES_MATRIX))
+        model.DeleteModelPart("Test") # destructs every node's data with the (unchanged) empty list
 
     def test_UninitializedTensorAdaptor(self):
         # A default-constructed TA is only a load target: its default storage's PointerWrapper
