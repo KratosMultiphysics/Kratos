@@ -16,6 +16,7 @@
 
 // Project includes
 #include "generate_stl_intersection_with_cells.h"
+#include <utility>
 
 namespace Kratos {
 
@@ -54,8 +55,8 @@ void GenerateStlIntersectionWithCells::Generate(ModelPart& rModelPart, Parameter
         parameters["generated_entity"].GetString());
     const SkinIntersection& r_intersections = GetIntersections(inside_color);
 
-    ModelPart::NodesContainerType new_nodes;
-    ModelPart::ElementsContainerType new_elements;
+    std::vector<ModelPart::NodeType::Pointer> new_nodes;
+    std::vector<ModelPart::ElementType::Pointer> new_elements;
 
     array_1d<std::size_t, 3> number_of_cells = GetNumberOfCells();
 
@@ -82,8 +83,8 @@ void GenerateStlIntersectionWithCells::Generate(ModelPart& rModelPart, Parameter
         }
     }
 
-    AddNodesToModelPart(rModelPart, new_nodes);
-    rModelPart.AddElements(new_elements.begin(), new_elements.end());
+    rModelPart.AddNodes(std::move(new_nodes));
+    rModelPart.AddElements(std::move(new_elements));
 }
 
 PointerVector<Node> GenerateStlIntersectionWithCells::GenerateCutGeometryNodes(
