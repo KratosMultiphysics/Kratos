@@ -1,4 +1,5 @@
 from math import sqrt
+from random import Random
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
@@ -564,6 +565,122 @@ class TestStrainSensorSolids(UnitTest.TestCase):
                 sensitivity = (perturbed_value - ref_value) / delta
                 self.assertAlmostEqual(sensitivity, response_sensitivities[j * 3 + 2], 4)
                 node.SetSolutionStepValue(Kratos.DISPLACEMENT_Z, node.GetSolutionStepValue(Kratos.DISPLACEMENT_Z) - delta)
+
+
+class TestStrainSensorThreadSafety(UnitTest.TestCase):
+    """Strain-sensor gradients assembled by the parallel block builder with the adjoint scheme must not depend on the
+    number of threads. StrainSensor::CalculateGradient used to perturb the shared nodal DISPLACEMENT in place, so
+    elements assembled at the same time by other threads read perturbed values (and concurrent +=/-= could leave the
+    nodes shifted). Every element carries a strain sensor, and the element ids are shuffled so that neighbouring
+    elements fall into different chunks of the builder's parallel loop (schedule(guided, 512)) and run concurrently."""
+
+    @staticmethod
+    def _AssembleAdjointRhs(num_threads: int, num_assemblies: int):
+        # before the response is created: MeasurementResidualResponseFunction sizes its per-thread buffers
+        Kratos.ParallelUtilities.SetNumThreads(num_threads)
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("Test")
+        adjoint_model_part = model.CreateModelPart("TestAdjoint")
+        for mp in (model_part, adjoint_model_part):
+            mp.AddNodalSolutionStepVariable(Kratos.DISPLACEMENT)
+            mp.AddNodalSolutionStepVariable(KratosStruct.ADJOINT_DISPLACEMENT)
+            mp.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
+            mp.ProcessInfo[KratosStruct.PERTURBATION_SIZE] = 1e-8
+
+        domain = Kratos.Hexahedra3D8(
+            Kratos.Node(1, 0.0, 0.0, 0.0), Kratos.Node(2, 4.0, 0.0, 0.0),
+            Kratos.Node(3, 4.0, 1.0, 0.0), Kratos.Node(4, 0.0, 1.0, 0.0),
+            Kratos.Node(5, 0.0, 0.0, 1.0), Kratos.Node(6, 4.0, 0.0, 1.0),
+            Kratos.Node(7, 4.0, 1.0, 1.0), Kratos.Node(8, 0.0, 1.0, 1.0))
+        mesher_parameters = Kratos.Parameters("""{
+            "element_name": "SmallDisplacementElement3D4N", "condition_name": "SurfaceCondition3D3N",
+            "create_skin_sub_model_part": false, "number_of_divisions": 10}""")
+        mesh = model.CreateModelPart("Mesh")
+        mesh.AddNodalSolutionStepVariable(Kratos.DISPLACEMENT)
+        Kratos.StructuredMeshGeneratorProcess(domain, mesh, mesher_parameters).Execute()
+        for node in mesh.Nodes:
+            model_part.CreateNewNode(node.Id, node.X, node.Y, node.Z)
+        properties = model_part.CreateNewProperties(1)
+        new_ids = list(range(1, mesh.NumberOfElements() + 1))
+        Random(0).shuffle(new_ids)
+        for new_id, element in zip(new_ids, mesh.Elements):
+            model_part.CreateNewElement(
+                "SmallDisplacementElement3D4N", new_id, [n.Id for n in element.GetGeometry()], properties)
+        properties[Kratos.YOUNG_MODULUS] = 30e9
+        properties[Kratos.POISSON_RATIO] = 0.2
+        properties[Kratos.CONSTITUTIVE_LAW] = KratosStruct.LinearElastic3DLaw()
+        for node in model_part.Nodes:      # smooth, non-rigid field
+            node.SetSolutionStepValue(
+                Kratos.DISPLACEMENT, [1e-3 * node.X * node.Y, 2e-3 * node.Z * node.X ** 2, -1e-3 * node.Y * node.Z])
+
+        Kratos.ConnectivityPreserveModeler().GenerateModelPart(
+            model_part, adjoint_model_part, "AdjointFiniteDifferencingSmallDisplacementElement3D4N")
+        for mp in (model_part, adjoint_model_part):
+            for element in mp.Elements:
+                element.Initialize(mp.ProcessInfo)
+        for variable in (KratosStruct.ADJOINT_DISPLACEMENT_X, KratosStruct.ADJOINT_DISPLACEMENT_Y,
+                         KratosStruct.ADJOINT_DISPLACEMENT_Z):
+            Kratos.VariableUtils().AddDof(variable, adjoint_model_part)
+
+        sensor_parameters = []
+        for element in model_part.Elements:
+            centre = element.GetGeometry().Center()
+            sensor_parameters.append(Kratos.Parameters(f"""{{
+                "type": "strain_sensor", "name": "strain_{element.Id}", "value": 0,
+                "location": [{centre.X}, {centre.Y}, {centre.Z}], "strain_type": "strain_xx",
+                "strain_variable": "GREEN_LAGRANGE_STRAIN_TENSOR", "weight": 1.0, "variable_data": {{}}}}"""))
+        sensors = CreateSensors(model.CreateModelPart("Sensors"), model_part, sensor_parameters)
+        response = KratosSI.Responses.MeasurementResidualResponseFunction(1.0)
+        for sensor in sensors:
+            sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, 1e-3)
+            sensor.GetNode().SetValue(KratosSI.SENSOR_NORMALIZATION_FACTOR, 1.0)
+            response.AddSensor(sensor)
+        response.Initialize()
+        response.CalculateValue(model_part)
+
+        displacement_before = [list(node.GetSolutionStepValue(Kratos.DISPLACEMENT)) for node in model_part.Nodes]
+        scheme = Kratos.ResidualBasedAdjointStaticScheme(response)
+        builder = Kratos.ResidualBasedBlockBuilderAndSolver(Kratos.SkylineLUFactorizationSolver())
+        space = Kratos.SparseSpace()
+        A, Dx, b = space.CreateEmptyMatrixPointer(), space.CreateEmptyVectorPointer(), space.CreateEmptyVectorPointer()
+        scheme.Initialize(adjoint_model_part)
+        builder.SetUpDofSet(scheme, adjoint_model_part)
+        builder.SetUpSystem(adjoint_model_part)
+        builder.ResizeAndInitializeVectors(scheme, A, Dx, b, adjoint_model_part)
+        assemblies = []
+        for _ in range(num_assemblies):
+            rhs = Kratos.Vector(builder.GetEquationSystemSize())
+            space.SetToZeroVector(rhs)
+            builder.BuildRHS(scheme, adjoint_model_part, rhs)
+            assemblies.append(
+                {(dof.Id(), dof.GetVariable().Name()): rhs[dof.EquationId] for dof in builder.GetDofSet()})
+        displacement_after = [list(node.GetSolutionStepValue(Kratos.DISPLACEMENT)) for node in model_part.Nodes]
+        # FD swaps node copies into the element geometries: they must hold the model part's own nodes again
+        for node in adjoint_model_part.Nodes:
+            node.SetValue(Kratos.NODAL_MASS, float(node.Id))
+        original_nodes_restored = all(
+            node.GetValue(Kratos.NODAL_MASS) == float(node.Id)
+            for element in adjoint_model_part.Elements for node in element.GetGeometry())
+        return assemblies, displacement_before, displacement_after, original_nodes_restored
+
+    def test_CalculateGradientThreadCount(self):
+        initial_threads = Kratos.ParallelUtilities.GetNumThreads()
+        try:
+            serial, _, _, restored_serial = self._AssembleAdjointRhs(1, 1)
+            parallel, before, after, restored_parallel = self._AssembleAdjointRhs(max(8, initial_threads), 3)
+        finally:
+            Kratos.ParallelUtilities.SetNumThreads(initial_threads)
+        self.assertTrue(restored_serial, msg="1-thread run left a node copy in a geometry")
+        self.assertTrue(restored_parallel, msg="parallel run left a node copy in a geometry")
+        self.assertEqual(before, after)      # the shared nodal displacements are untouched
+        reference = serial[0]
+        scale = max(abs(v) for v in reference.values())
+        self.assertGreater(scale, 0.0)
+        for assembly in parallel:
+            self.assertEqual(reference.keys(), assembly.keys())
+            worst = max(abs(reference[k] - assembly[k]) for k in reference)
+            self.assertLess(worst, 1e-10 * scale)
+
 
 if __name__ == '__main__':
     UnitTest.main()
