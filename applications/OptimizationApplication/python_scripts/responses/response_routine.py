@@ -121,6 +121,14 @@ class ResponseRoutine:
 
         return self.__response_value
 
+    def ResetCachedValue(self) -> None:
+        """Drops the cached response value, so the next CalculateValue re-evaluates the response even for an unchanged control field.
+
+        Needed when something else (e.g. another response sharing the model, or trial evaluations) changed the
+        state the cached value and the upcoming gradient depend on.
+        """
+        self.__response_value = None
+
     def CalculateGradient(self) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
         """Returns CombinedTensorAdaptor containing all the control space gradients for all control variable types (fields).
 
