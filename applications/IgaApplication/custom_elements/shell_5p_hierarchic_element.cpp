@@ -474,7 +474,7 @@ namespace Kratos
         double& rdetF)
     {
         // Initialization
-        rF.resize(3, 3);
+        rF.resize(3, 3, false);
         rF = ZeroMatrix(3, 3);
         rdetF = 0.0;
 
@@ -1228,7 +1228,7 @@ namespace Kratos
     {
         const SizeType number_of_points = GetGeometry().size();
         const SizeType working_space_dimension = 3;
-        Hessian.resize(working_space_dimension, working_space_dimension);
+        Hessian.resize(working_space_dimension, working_space_dimension, false);
         Hessian = ZeroMatrix(working_space_dimension, working_space_dimension);
 
         for (IndexType k = 0; k < number_of_points; k++)

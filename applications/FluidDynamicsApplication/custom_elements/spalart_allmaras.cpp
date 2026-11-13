@@ -322,7 +322,7 @@ void SpalartAllmaras::InitializeElementData()
         MathUtils<double>::InvertMatrix( J[g], InvJ, mDetJ );
 
         //calculating the shape function derivatives in global coordinates
-        mDN_DX[g].resize(NumNodes,Dim);
+        mDN_DX[g].resize(NumNodes,Dim, false);
         noalias( mDN_DX[g] ) = prod( DN_De[g], InvJ );
     }
 }

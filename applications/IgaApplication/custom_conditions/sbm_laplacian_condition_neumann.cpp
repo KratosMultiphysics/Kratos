@@ -47,7 +47,7 @@ void SbmLaplacianConditionNeumann::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
-        rLeftHandSideMatrix.resize(mat_size, mat_size);
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
@@ -258,7 +258,7 @@ void SbmLaplacianConditionNeumann::ComputeGradientTaylorExpansionContribution(Ma
 
     if (grad_H_sum.size1() != 3 || grad_H_sum.size2() != number_of_nodes)
     {
-        grad_H_sum.resize(3, number_of_nodes);
+        grad_H_sum.resize(3, number_of_nodes, false);
     }
 
     // Neumann (Taylor expansion of the gradient)
