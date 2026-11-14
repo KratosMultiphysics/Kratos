@@ -313,7 +313,7 @@ protected:
     ///@{
 
     Vector mPlasticStrain; /// The previous plastic strain (one for each of the strain components)
-    double mAccumulatedPlasticStrain; /// The previous accumulated plastic strain
+    double mAccumulatedPlasticStrain = 0.0; /// The previous accumulated plastic strain
 
     ///@}
     ///@name Protected Operators
