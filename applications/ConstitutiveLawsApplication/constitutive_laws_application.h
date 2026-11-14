@@ -41,6 +41,7 @@
 #include "custom_constitutive/small_strains/linear/linear_elastic_orthotropic_2D_law.h"
 #include "custom_constitutive/small_strains/plasticity/small_strain_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/small_strains/plasticity/small_strain_j2_plasticity_3d.h"
+#include "custom_constitutive/small_strains/plasticity/small_strain_swift_j2_plasticity_3d.h"
 #include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_3d.h"
 #include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_implex_3d.h"
 #include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_plane_strain_2d.h"
@@ -297,6 +298,7 @@ private:
     const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
 
     const SmallStrainJ2Plasticity3D mSmallStrainJ2Plasticity3D;
+    const SmallStrainSwiftJ2Plasticity3D mSmallStrainSwiftJ2Plasticity3D;
     const SmallStrainJ2PlasticityPlaneStrain2D mSmallStrainJ2PlasticityPlaneStrain2D;
     const SmallStrainIsotropicDamage3D mSmallStrainIsotropicDamage3D;
     const SmallStrainIsotropicDamageImplex3D mSmallStrainIsotropicDamageImplex3D;
