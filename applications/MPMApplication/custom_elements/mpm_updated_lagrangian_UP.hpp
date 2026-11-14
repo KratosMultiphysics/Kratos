@@ -376,7 +376,7 @@ protected:
     /**
      * Calculation of the linearization factor of the volumetric strain function
      */
-    virtual double CalculateFunctionFromLinearizationOfVolumetricStrain(GeneralVariables & rVariables);
+    virtual double CalculateVolumetricStrainLinearization(GeneralVariables & rVariables);
 
 
     /**
@@ -408,16 +408,17 @@ protected:
     ///@{
     ///@}
 
-private:
-
-    ///@name Static Member Variables
-    ///@{
-    ///@}
     ///@name Member Variables
     ///@{
 
     double m_mp_pressure;
 
+    ///@}
+
+private:
+
+    ///@name Static Member Variables
+    ///@{
     ///@}
     ///@name Private Operators
     ///@{
