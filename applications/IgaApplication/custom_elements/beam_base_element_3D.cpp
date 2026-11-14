@@ -796,10 +796,10 @@ namespace Kratos
                         ++dof_index)
                     {
                         const size_t dof_component =
-                            dof_index % mNumberOfDofs;
+                            dof_index % mDofsPerNode;
 
                         const size_t second_dof_component =
-                            second_dof_index % mNumberOfDofs;
+                            second_dof_index % mDofsPerNode;
 
                         if (
                             dof_component > 2 ||

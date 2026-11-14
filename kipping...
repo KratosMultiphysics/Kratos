@@ -1,0 +1,1893 @@
+[1mdiff --git a/applications/IgaApplication/custom_elements/non_linear_bernoulli_beam_element_3D.cpp b/applications/IgaApplication/custom_elements/non_linear_bernoulli_beam_element_3D.cpp[m
+[1mnew file mode 100644[m
+[1mindex 00000000000..d4417883cac[m
+[1m--- /dev/null[m
+[1m+++ b/applications/IgaApplication/custom_elements/non_linear_bernoulli_beam_element_3D.cpp[m
+[36m@@ -0,0 +1,1886 @@[m
+[32m+[m[32m//  KRATOS  _____________[m
+[32m+[m[32m//         /  _/ ____/   |[m
+[32m+[m[32m//         / // / __/ /| |[m
+[32m+[m[32m//       _/ // /_/ / ___ |[m
+[32m+[m[32m//      /___/\____/_/  |_| Application[m
+[32m+[m[32m//[m
+[32m+[m[32m//  License:         BSD License[m
+[32m+[m[32m//                   Kratos default license: kratos/license.txt[m
+[32m+[m[32m//[m
+[32m+[m[32m//  Main authors:    Max Friedrichs Dachale, Juan Ignacio Camarotti, Ricky Aristio[m
+[32m+[m[32m//[m
+[32m+[m
+[32m+[m[32m// System includes[m
+[32m+[m
+[32m+[m[32m// External includes[m
+[32m+[m
+[32m+[m[32m// Project includes[m
+[32m+[m
+[32m+[m[32m// Application includes[m
+[32m+[m[32m#include "custom_elements/non_linear_bernoulli_beam_element_3D.h"[m
+[32m+[m[32m#include "utilities/math_utils.h"[m
+[32m+[m
+[32m+[m[32mnamespace Kratos[m
+[32m+[m[32m{[m
+[32m+[m[32m    void NonLinearBernoulliBeamElement3D::Initialize(const ProcessInfo& rCurrentProcessInfo)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        KRATOS_TRY[m
+[32m+[m[32m        InitializeMaterial();[m
+[32m+[m
+[32m+[m
+[32m+[m[32m        mDofsPerNode = 4;[m
+[32m+[m[32m        mNumberOfDofs  = this->GetGeometry().size() * mDofsPerNode;[m
+[32m+[m[32m        mSMatrixRodriguesVariation.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixLambdaVariation.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixLambdaVariationRodriguesLambda.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesLambdaVariationRodriguesLambda.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesVariationLambdaRodriguesLambda.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesLambdaRodriguesLambdaVariation.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesDerivativeVariation.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixLambdaDerivativeVariation.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixLambdaDerivativeVariationRodriguesLambda.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixLambdaVariationRodriguesDerivativeLambda.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixLambdaVariationRodriguesLambdaDerivative.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation.resize(mNumberOfDofs * 3, 3);[m
+[32m+[m[32m        mSMatrixRodriguesSecondVariation.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);[m
+[32m+[m[32m        mSMatrixLambdaSecondVariation.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);[m
+[32m+[m[32m        mSMatrixLambdaSecondVariationRodriguesLambda.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);[m
+[32m+[m[32m        mSMatrixRodriguesDerivativeSecondVariation.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);[m
+[32m+[m[32m        mSMatrixLambdaDerivativeSecondVariation.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);[m
+[32m+[m[32m        mSMatrixLambdaDerivativeSecondVariationRodriguesLambda.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);[m
+[32m+[m[32m        mSMatrixLambdaSecondVariationRodriguesDerivativeLambda.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);[m
+[32m+[m[32m        mSMatrixLambdaSecondVariationRodriguesLambdaDerivative.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);[m
+[32m+[m[32m        KRATOS_CATCH("")[m
+[32m+[m[41m        [m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m[32m    void NonLinearBernoulliBeamElement3D::CalculateKinematics([m
+[32m+[m[32m        const IndexType IntegrationPointIndex,[m
+[32m+[m[32m        KinematicVariables& rKinematicVariables)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        const auto& r_geometry = GetGeometry();[m
+[32m+[m
+[32m+[m[32m        // Get shape functions and derivatives[m
+[32m+[m[32m        const Matrix& r_shape_functions =[m
+[32m+[m[32m            r_geometry.ShapeFunctionsValues();[m
+[32m+[m
+[32m+[m[32m        const Matrix& r_shape_function_derivatives =[m
+[32m+[m[32m            r_geometry.ShapeFunctionDerivatives([m
+[32m+[m[32m                1,[m
+[32m+[m[32m                IntegrationPointIndex);[m
+[32m+[m
+[32m+[m[32m        const Matrix& r_shape_function_second_derivatives =[m
+[32m+[m[32m            r_geometry.ShapeFunctionDerivatives([m
+[32m+[m[32m                2,[m
+[32m+[m[32m                IntegrationPointIndex);[m
+[32m+[m
+[32m+[m[32m        // Clear variables[m
+[32m+[m[32m        rKinematicVariables.R1.clear();[m
+[32m+[m[32m        rKinematicVariables.R2.clear();[m
+[32m+[m[32m        rKinematicVariables.r1.clear();[m
+[32m+[m[32m        rKinematicVariables.r2.clear();[m
+[32m+[m
+[32m+[m[32m        // Calculate reference and current configurations[m
+[32m+[m[32m        for (IndexType i = 0; i < r_geometry.size(); ++i) {[m
+[32m+[m[32m            const array_1d<double, 3>& r_initial_position =[m
+[32m+[m[32m                r_geometry[i].GetInitialPosition();[m
+[32m+[m
+[32m+[m[32m            const array_1d<double, 3>& r_displacement =[m
+[32m+[m[32m                r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);[m
+[32m+[m
+[32m+[m[32m            // Reference configuration[m
+[32m+[m[32m            rKinematicVariables.R1 +=[m
+[32m+[m[32m                r_shape_function_derivatives(i, 0) *[m
+[32m+[m[32m                r_initial_position;[m
+[32m+[m
+[32m+[m[32m            rKinematicVariables.R2 +=[m
+[32m+[m[32m                r_shape_function_second_derivatives(i, 0) *[m
+[32m+[m[32m                r_initial_position;[m
+[32m+[m
+[32m+[m[32m            // Current configuration[m
+[32m+[m[32m            const array_1d<double, 3> current_position =[m
+[32m+[m[32m                r_initial_position + r_displacement;[m
+[32m+[m
+[32m+[m[32m            rKinematicVariables.r1 +=[m
+[32m+[m[32m                r_shape_function_derivatives(i, 0) *[m
+[32m+[m[32m                current_position;[m
+[32m+[m
+[32m+[m[32m            rKinematicVariables.r2 +=[m
+[32m+[m[32m                r_shape_function_second_derivatives(i, 0) *[m
+[32m+[m[32m                current_position;[m
+[32m+[m
+[32m+[m[32m            // Rotations[m
+[32m+[m[32m            const double rotation =[m
+[32m+[m[32m                r_geometry[i].FastGetSolutionStepValue(ROTATION_X);[m
+[32m+[m
+[32m+[m[32m            rKinematicVariables.phi +=[m
+[32m+[m[32m                r_shape_functions(IntegrationPointIndex, i) *[m
+[32m+[m[32m                rotation;[m
+[32m+[m
+[32m+[m[32m            rKinematicVariables.phi_der +=[m
+[32m+[m[32m                r_shape_function_derivatives(i, 0) *[m
+[32m+[m[32m                rotation;[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        // Calculate length measures[m
+[32m+[m[32m        rKinematicVariables.A =[m
+[32m+[m[32m            norm_2(rKinematicVariables.R1);[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.a =[m
+[32m+[m[32m            norm_2(rKinematicVariables.r1);[m
+[32m+[m
+[32m+[m[32m        // Calculate curvature measures[m
+[32m+[m[32m        const double reference_base_vector_product =[m
+[32m+[m[32m            inner_prod([m
+[32m+[m[32m                rKinematicVariables.R1,[m
+[32m+[m[32m                rKinematicVariables.R2);[m
+[32m+[m
+[32m+[m[32m        const double current_base_vector_product =[m
+[32m+[m[32m            inner_prod([m
+[32m+[m[32m                rKinematicVariables.r1,[m
+[32m+[m[32m                rKinematicVariables.r2);[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.B = sqrt([m
+[32m+[m[32m            inner_prod([m
+[32m+[m[32m                rKinematicVariables.R2,[m
+[32m+[m[32m                rKinematicVariables.R2)[m
+[32m+[m[32m            - pow([m
+[32m+[m[32m                reference_base_vector_product /[m
+[32m+[m[32m                    rKinematicVariables.A,[m
+[32m+[m[32m                2));[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.b = sqrt([m
+[32m+[m[32m            inner_prod([m
+[32m+[m[32m                rKinematicVariables.r2,[m
+[32m+[m[32m                rKinematicVariables.r2)[m
+[32m+[m[32m            - pow([m
+[32m+[m[32m                current_base_vector_product /[m
+[32m+[m[32m                    rKinematicVariables.a,[m
+[32m+[m[32m                2));[m
+[32m+[m
+[32m+[m[32m        // Compute reference cross-section geometry[m
+[32m+[m[32m        ComputeReferenceCrossSectionGeometry([m
+[32m+[m[32m            rKinematicVariables);[m
+[32m+[m
+[32m+[m[32m        // Compute current cross-section geometry[m
+[32m+[m[32m        ComputeCurrentCrossSectionGeometry([m
+[32m+[m[32m            rKinematicVariables);[m
+[32m+[m[32m    }[m
+[32m+[m[41m        [m
+[32m+[m
+[32m+[m[32m    void NonLinearBernoulliBeamElement3D::CalculateAll([m
+[32m+[m[32m        MatrixType& rLeftHandSideMatrix,[m
+[32m+[m[32m        VectorType& rRightHandSideVector,[m
+[32m+[m[32m        const ProcessInfo& rCurrentProcessInfo,[m
+[32m+[m[32m        const bool CalculateStiffnessMatrixFlag,[m
+[32m+[m[32m        const bool CalculateResidualVectorFlag)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        KRATOS_TRY[m
+[32m+[m
+[32m+[m[32m        const auto& r_geometry = GetGeometry();[m
+[32m+[m[32m        const auto& r_integration_points =[m
+[32m+[m[32m            r_geometry.IntegrationPoints();[m
+[32m+[m
+[32m+[m[32m        Vector stress_axial = ZeroVector(5);[m
+[32m+[m[32m        Vector stress_bending_1 = ZeroVector(5);[m
+[32m+[m[32m        Vector stress_bending_2 = ZeroVector(5);[m
+[32m+[m[32m        Vector stress_torsion_1 = ZeroVector(5);[m
+[32m+[m[32m        Vector stress_torsion_2 = ZeroVector(5);[m
+[32m+[m
+[32m+[m[32m        for ([m
+[32m+[m[32m            IndexType point_number = 0;[m
+[32m+[m[32m            point_number < r_integration_points.size();[m
+[32m+[m[32m            ++point_number)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            // Compute kinematics and metric[m
+[32m+[m[32m            KinematicVariables kinematic_variables([m
+[32m+[m[32m                GetGeometry().WorkingSpaceDimension());[m
+[32m+[m
+[32m+[m[32m            CalculateKinematics([m
+[32m+[m[32m                point_number,[m
+[32m+[m[32m                kinematic_variables);[m
+[32m+[m
+[32m+[m[32m            // Create constitutive law parameters[m
+[32m+[m[32m            ConstitutiveLaw::Parameters constitutive_law_parameters([m
+[32m+[m[32m                GetGeometry(),[m
+[32m+[m[32m                GetProperties(),[m
+[32m+[m[32m                rCurrentProcessInfo);[m
+[32m+[m
+[32m+[m[32m            ConstitutiveVariables constitutive_variables(5);[m
+[32m+[m
+[32m+[m[32m            CalculateConstitutiveVariables([m
+[32m+[m[32m                point_number,[m
+[32m+[m[32m                kinematic_variables,[m
+[32m+[m[32m                constitutive_variables,[m
+[32m+[m[32m                constitutive_law_parameters,[m
+[32m+[m[32m                ConstitutiveLaw::StressMeasure_PK2);[m
+[32m+[m
+[32m+[m[32m            Matrix b_axial;[m
+[32m+[m[32m            Matrix b_bending_1;[m
+[32m+[m[32m            Matrix b_bending_2;[m
+[32m+[m[32m            Matrix b_torsion_1;[m
+[32m+[m[32m            Matrix b_torsion_2;[m
+[32m+[m
+[32m+[m[32m            ComputeBMatrices([m
+[32m+[m[32m                point_number,[m
+[32m+[m[32m                kinematic_variables,[m
+[32m+[m[32m                b_axial,[m
+[32m+[m[32m                b_bending_1,[m
+[32m+[m[32m                b_bending_2,[m
+[32m+[m[32m                b_torsion_1,[m
+[32m+[m[32m                b_torsion_2);[m
+[32m+[m
+[32m+[m[32m            Matrix g_axial;[m
+[32m+[m[32m            Matrix g_bending_1;[m
+[32m+[m[32m            Matrix g_bending_2;[m
+[32m+[m[32m            Matrix g_torsion_1;[m
+[32m+[m[32m            Matrix g_torsion_2;[m
+[32m+[m
+[32m+[m[32m            ComputeGMatrices([m
+[32m+[m[32m                point_number,[m
+[32m+[m[32m                kinematic_variables,[m
+[32m+[m[32m                g_axial,[m
+[32m+[m[32m                g_bending_1,[m
+[32m+[m[32m                g_bending_2,[m
+[32m+[m[32m                g_torsion_1,[m
+[32m+[m[32m                g_torsion_2);[m
+[32m+[m
+[32m+[m[32m            // Assemble stiffness with cross-sectional scaling[m
+[32m+[m[32m            const double integration_weight =[m
+[32m+[m[32m                r_integration_points[point_number].Weight() *[m
+[32m+[m[32m                kinematic_variables.A;[m
+[32m+[m
+[32m+[m[32m            const double inverse_a2 =[m
+[32m+[m[32m                1.0 /[m
+[32m+[m[32m                (kinematic_variables.A *[m
+[32m+[m[32m                kinematic_variables.A);[m
+[32m+[m
+[32m+[m[32m            const double inverse_a4 =[m
+[32m+[m[32m                inverse_a2 * inverse_a2;[m
+[32m+[m
+[32m+[m[32m            if (CalculateStiffnessMatrixFlag == true) {[m
+[32m+[m[32m                // Material stiffness[m
+[32m+[m[32m                rLeftHandSideMatrix +=[m
+[32m+[m[32m                    inverse_a4 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    prod([m
+[32m+[m[32m                        trans(b_axial),[m
+[32m+[m[32m                        Matrix(prod([m
+[32m+[m[32m                            constitutive_variables.ConstitutiveMatrix,[m
+[32m+[m[32m                            b_axial)));[m
+[32m+[m
+[32m+[m[32m                rLeftHandSideMatrix +=[m
+[32m+[m[32m                    inverse_a4 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    prod([m
+[32m+[m[32m                        trans(b_bending_1),[m
+[32m+[m[32m                        Matrix(prod([m
+[32m+[m[32m                            constitutive_variables.ConstitutiveMatrix,[m
+[32m+[m[32m                            b_bending_1)));[m
+[32m+[m
+[32m+[m[32m                rLeftHandSideMatrix +=[m
+[32m+[m[32m                    inverse_a4 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    prod([m
+[32m+[m[32m                        trans(b_bending_2),[m
+[32m+[m[32m                        Matrix(prod([m
+[32m+[m[32m                            constitutive_variables.ConstitutiveMatrix,[m
+[32m+[m[32m                            b_bending_2)));[m
+[32m+[m
+[32m+[m[32m                rLeftHandSideMatrix +=[m
+[32m+[m[32m                    inverse_a2 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    prod([m
+[32m+[m[32m                        trans(b_torsion_1),[m
+[32m+[m[32m                        Matrix(prod([m
+[32m+[m[32m                            constitutive_variables.ConstitutiveMatrix,[m
+[32m+[m[32m                            b_torsion_1)));[m
+[32m+[m
+[32m+[m[32m                rLeftHandSideMatrix +=[m
+[32m+[m[32m                    inverse_a2 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    prod([m
+[32m+[m[32m                        trans(b_torsion_2),[m
+[32m+[m[32m                        Matrix(prod([m
+[32m+[m[32m                            constitutive_variables.ConstitutiveMatrix,[m
+[32m+[m[32m                            b_torsion_2)));[m
+[32m+[m
+[32m+[m[32m                // Geometrical stiffness[m
+[32m+[m[32m                rLeftHandSideMatrix +=[m
+[32m+[m[32m                    inverse_a4 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    g_axial *[m
+[32m+[m[32m                    constitutive_variables.StressVector[0];[m
+[32m+[m
+[32m+[m[32m                rLeftHandSideMatrix +=[m
+[32m+[m[32m                    inverse_a4 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    g_bending_1 *[m
+[32m+[m[32m                    constitutive_variables.StressVector[1];[m
+[32m+[m
+[32m+[m[32m                rLeftHandSideMatrix +=[m
+[32m+[m[32m                    inverse_a4 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    g_bending_2 *[m
+[32m+[m[32m                    constitutive_variables.StressVector[2];[m
+[32m+[m
+[32m+[m[32m                rLeftHandSideMatrix +=[m
+[32m+[m[32m                    inverse_a2 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    g_torsion_1 *[m
+[32m+[m[32m                    constitutive_variables.StressVector[3];[m
+[32m+[m
+[32m+[m[32m                rLeftHandSideMatrix +=[m
+[32m+[m[32m                    inverse_a2 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    g_torsion_2 *[m
+[32m+[m[32m                    constitutive_variables.StressVector[4];[m
+[32m+[m[32m            }[m
+[32m+[m
+[32m+[m[32m            if (CalculateResidualVectorFlag == true) {[m
+[32m+[m[32m                // Map stress components to different behaviors[m
+[32m+[m[32m                stress_axial[0] =[m
+[32m+[m[32m                    constitutive_variables.StressVector[0];[m
+[32m+[m
+[32m+[m[32m                stress_bending_1[1] =[m
+[32m+[m[32m                    constitutive_variables.StressVector[1];[m
+[32m+[m
+[32m+[m[32m                stress_bending_2[2] =[m
+[32m+[m[32m                    constitutive_variables.StressVector[2];[m
+[32m+[m
+[32m+[m[32m                stress_torsion_1[3] =[m
+[32m+[m[32m                    constitutive_variables.StressVector[3];[m
+[32m+[m
+[32m+[m[32m                stress_torsion_2[4] =[m
+[32m+[m[32m                    constitutive_variables.StressVector[4];[m
+[32m+[m
+[32m+[m[32m                // Assemble internal forces[m
+[32m+[m[32m                rRightHandSideVector -=[m
+[32m+[m[32m                    inverse_a4 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    prod([m
+[32m+[m[32m                        trans(b_axial),[m
+[32m+[m[32m                        stress_axial);[m
+[32m+[m
+[32m+[m[32m                rRightHandSideVector -=[m
+[32m+[m[32m                    inverse_a4 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    prod([m
+[32m+[m[32m                        trans(b_bending_1),[m
+[32m+[m[32m                        stress_bending_1);[m
+[32m+[m
+[32m+[m[32m                rRightHandSideVector -=[m
+[32m+[m[32m                    inverse_a4 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    prod([m
+[32m+[m[32m                        trans(b_bending_2),[m
+[32m+[m[32m                        stress_bending_2);[m
+[32m+[m
+[32m+[m[32m                rRightHandSideVector -=[m
+[32m+[m[32m                    inverse_a2 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    prod([m
+[32m+[m[32m                        trans(b_torsion_1),[m
+[32m+[m[32m                        stress_torsion_1);[m
+[32m+[m
+[32m+[m[32m                rRightHandSideVector -=[m
+[32m+[m[32m                    inverse_a2 *[m
+[32m+[m[32m                    integration_weight *[m
+[32m+[m[32m                    prod([m
+[32m+[m[32m                        trans(b_torsion_2),[m
+[32m+[m[32m                        stress_torsion_2);[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        KRATOS_CATCH("")[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[41m        [m
+[32m+[m[32m    int NonLinearBernoulliBeamElement3D::Check([m
+[32m+[m[32m        const ProcessInfo& rCurrentProcessInfo) const[m
+[32m+[m[32m    {[m
+[32m+[m[32m        KRATOS_TRY[m
+[32m+[m
+[32m+[m[32m        Check(rCurrentProcessInfo);[m
+[32m+[m
+[32m+[m[32m        const double numerical_limit =[m
+[32m+[m[32m            std::numeric_limits<double>::epsilon();[m
+[32m+[m
+[32m+[m[32m        KRATOS_ERROR_IF([m
+[32m+[m[32m            !GetProperties().Has(I_T) ||[m
+[32m+[m[32m            GetProperties()[I_T] <= numerical_limit)[m
+[32m+[m[32m            << "Please provide a reasonable value for \"I_T\" "[m
+[32m+[m[32m            << "(torsional moment of inertia) for element #"[m
+[32m+[m[32m            << Id() << std::endl;[m
+[32m+[m
+[32m+[m[32m        KRATOS_ERROR_IF([m
+[32m+[m[32m            !GetProperties().Has(I_N) ||[m
+[32m+[m[32m            GetProperties()[I_N] <= numerical_limit)[m
+[32m+[m[32m            << "Please provide a reasonable value for \"I_N\" "[m
+[32m+[m[32m            << "(bending moment of inertia about N axis) for element #"[m
+[32m+[m[32m            << Id() << std::endl;[m
+[32m+[m
+[32m+[m[32m        KRATOS_ERROR_IF([m
+[32m+[m[32m            !GetProperties().Has(I_V) ||[m
+[32m+[m[32m            GetProperties()[I_V] <= numerical_limit)[m
+[32m+[m[32m            << "Please provide a reasonable value for \"I_V\" "[m
+[32m+[m[32m            << "(bending moment of inertia about V axis) for element #"[m
+[32m+[m[32m            << Id() << std::endl;[m
+[32m+[m
+[32m+[m[32m        KRATOS_ERROR_IF([m
+[32m+[m[32m            !GetProperties().Has(LOCAL_AXIS_ORIENTATION))[m
+[32m+[m[32m            << "\"LOCAL_AXIS_ORIENTATION\" not provided for element #"[m
+[32m+[m[32m            << Id() << std::endl;[m
+[32m+[m
+[32m+[m[32m        if (GetProperties().Has(T_0)) {[m
+[32m+[m[32m            const Vector3d& r_reference_tangent =[m
+[32m+[m[32m                GetProperties()[T_0];[m
+[32m+[m
+[32m+[m[32m            KRATOS_ERROR_IF([m
+[32m+[m[32m                norm_2(r_reference_tangent) <= numerical_limit)[m
+[32m+[m[32m                << "\"T_0\" reference director vector must have "[m
+[32m+[m[32m                << "non-zero magnitude for element #"[m
+[32m+[m[32m                << Id() << std::endl;[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        if (GetProperties().Has(N_0)) {[m
+[32m+[m[32m            const Vector3d& r_reference_normal =[m
+[32m+[m[32m                GetProperties()[N_0];[m
+[32m+[m
+[32m+[m[32m            KRATOS_ERROR_IF([m
+[32m+[m[32m                norm_2(r_reference_normal) <= numerical_limit)[m
+[32m+[m[32m                << "\"N_0\" reference director vector must have "[m
+[32m+[m[32m                << "non-zero magnitude for element #"[m
+[32m+[m[32m                << Id() << std::endl;[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        return 0;[m
+[32m+[m
+[32m+[m[32m        KRATOS_CATCH("")[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m
+[32m+[m[32m    void NonLinearBernoulliBeamElement3D::CalculateConstitutiveVariables([m
+[32m+[m[32m        const IndexType IntegrationPointIndex,[m
+[32m+[m[32m        const KinematicVariables& rKinematicVariables,[m
+[32m+[m[32m        ConstitutiveVariables& rConstitutiveVariables,[m
+[32m+[m[32m        ConstitutiveLaw::Parameters& rConstitutiveLawParameters,[m
+[32m+[m[32m        const ConstitutiveLaw::StressMeasure StressMeasure)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        rConstitutiveLawParameters.GetOptions().Set([m
+[32m+[m[32m            ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN,[m
+[32m+[m[32m            true);[m
+[32m+[m
+[32m+[m[32m        rConstitutiveLawParameters.GetOptions().Set([m
+[32m+[m[32m            ConstitutiveLaw::COMPUTE_STRESS);[m
+[32m+[m
+[32m+[m[32m        rConstitutiveLawParameters.GetOptions().Set([m
+[32m+[m[32m            ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);[m
+[32m+[m
+[32m+[m[32m        rConstitutiveVariables.StrainVector[0] =[m
+[32m+[m[32m            0.5 * ([m
+[32m+[m[32m                rKinematicVariables.a * rKinematicVariables.a -[m
+[32m+[m[32m                rKinematicVariables.A * rKinematicVariables.A);[m
+[32m+[m
+[32m+[m[32m        rConstitutiveVariables.StrainVector[1] =[m
+[32m+[m[32m            rKinematicVariables.b_n -[m
+[32m+[m[32m            rKinematicVariables.B_n;[m
+[32m+[m
+[32m+[m[32m        rConstitutiveVariables.StrainVector[2] =[m
+[32m+[m[32m            rKinematicVariables.b_v -[m
+[32m+[m[32m            rKinematicVariables.B_v;[m
+[32m+[m
+[32m+[m[32m        rConstitutiveVariables.StrainVector[3] =[m
+[32m+[m[32m            rKinematicVariables.c_12 -[m
+[32m+[m[32m            rKinematicVariables.C_12;[m
+[32m+[m
+[32m+[m[32m        rConstitutiveVariables.StrainVector[4] =[m
+[32m+[m[32m            rKinematicVariables.c_13 -[m
+[32m+[m[32m            rKinematicVariables.C_13;[m
+[32m+[m
+[32m+[m[32m        rConstitutiveLawParameters.SetStrainVector([m
+[32m+[m[32m            rConstitutiveVariables.StrainVector);[m
+[32m+[m
+[32m+[m[32m        rConstitutiveLawParameters.SetStressVector([m
+[32m+[m[32m            rConstitutiveVariables.StressVector);[m
+[32m+[m
+[32m+[m[32m        rConstitutiveLawParameters.SetConstitutiveMatrix([m
+[32m+[m[32m            rConstitutiveVariables.ConstitutiveMatrix);[m
+[32m+[m
+[32m+[m[32m        mConstitutiveLawVector[IntegrationPointIndex][m
+[32m+[m[32m            ->CalculateMaterialResponse([m
+[32m+[m[32m                rConstitutiveLawParameters,[m
+[32m+[m[32m                StressMeasure);[m
+[32m+[m
+[32m+[m[32m        noalias(rConstitutiveVariables.StressVector) =[m
+[32m+[m[32m            prod([m
+[32m+[m[32m                trans(rConstitutiveVariables.ConstitutiveMatrix),[m
+[32m+[m[32m                rConstitutiveVariables.StrainVector);[m
+[32m+[m[32m    }[m[41m [m
+[32m+[m
+[32m+[m
+[32m+[m[32m    void NonLinearBernoulliBeamElement3D::ComputeReferenceTwistAngleAndDerivative([m
+[32m+[m[32m        const KinematicVariables& rKinematicVariables,[m
+[32m+[m[32m        double& rPhi,[m
+[32m+[m[32m        double& rPhiDerivative)[m
+[32m+[m[32m    {[m
+[32m+[m
+[32m+[m[32m            const auto& r_geometry = GetGeometry();[m
+[32m+[m[32m            const double integration_point_coordinate = r_geometry.IntegrationPoints()[0].Coordinates()[0];[m
+[32m+[m
+[32m+[m[32m            double lower_twist_angle;[m
+[32m+[m[32m            double upper_twist_angle;[m
+[32m+[m[32m            double twist_angle_difference;[m
+[32m+[m[32m            double lower_parameter_coordinate;[m
+[32m+[m[32m            double upper_parameter_coordinate;[m
+[32m+[m[32m            int number_of_orientation_points;[m
+[32m+[m
+[32m+[m[32m            Matrix local_axis_orientation = GetProperties()[LOCAL_AXIS_ORIENTATION];[m
+[32m+[m[32m            number_of_orientation_points = local_axis_orientation.size1();[m
+[32m+[m
+[32m+[m[32m            lower_parameter_coordinate = local_axis_orientation(0, 0);[m
+[32m+[m[32m            upper_parameter_coordinate = local_axis_orientation(number_of_orientation_points - 1, 0);[m
+[32m+[m[41m            [m
+[32m+[m[32m            // Extract normal vector components for start and end[m
+[32m+[m[32m            Vector3d lower_normal;[m
+[32m+[m[32m            lower_normal[0] = local_axis_orientation(0, 1);[m
+[32m+[m[32m            lower_normal[1] = local_axis_orientation(0, 2);[m
+[32m+[m[32m            lower_normal[2] = local_axis_orientation(0, 3);[m
+[32m+[m[41m            [m
+[32m+[m[32m            Vector3d upper_normal;[m
+[32m+[m[32m            upper_normal[0] = local_axis_orientation(number_of_orientation_points - 1, 1);[m
+[32m+[m[32m            upper_normal[1] = local_axis_orientation(number_of_orientation_points - 1, 2);[m
+[32m+[m[32m            upper_normal[2] = local_axis_orientation(number_of_orientation_points - 1, 3);[m
+[32m+[m[41m            [m
+[32m+[m[32m            // Convert normal vectors to rotation angles (phi) for backward compatibility[m
+[32m+[m[32m            lower_twist_angle = CalculateDeltaPhi(rKinematicVariables, lower_normal);[m
+[32m+[m[32m            upper_twist_angle = CalculateDeltaPhi(rKinematicVariables, upper_normal);[m
+[32m+[m
+[32m+[m[32m            for (int i = 1; i < number_of_orientation_points; i++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                if (local_axis_orientation(i, 0) > integration_point_coordinate)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    lower_parameter_coordinate = local_axis_orientation(i - 1, 0);[m
+[32m+[m[32m                    Vector3d interpolated_normal(3);[m
+[32m+[m[32m                    interpolated_normal[0] = local_axis_orientation(i - 1, 1);[m
+[32m+[m[32m                    interpolated_normal[1] = local_axis_orientation(i - 1, 2);[m
+[32m+[m[32m                    interpolated_normal[2] = local_axis_orientation(i - 1, 3);[m
+[32m+[m[32m                    lower_twist_angle = CalculateDeltaPhi(rKinematicVariables, interpolated_normal);[m
+[32m+[m[32m                    break;[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m
+[32m+[m[32m            for (int i = 1; i < number_of_orientation_points; i++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                if (local_axis_orientation(number_of_orientation_points - i - 1, 0) <= integration_point_coordinate)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    upper_parameter_coordinate = local_axis_orientation(number_of_orientation_points - i, 0);[m
+[32m+[m[32m                    Vector3d interpolated_normal(3);[m
+[32m+[m[32m                    interpolated_normal[0] = local_axis_orientation(number_of_orientation_points - i, 1);[m
+[32m+[m[32m                    interpolated_normal[1] = local_axis_orientation(number_of_orientation_points - i, 2);[m
+[32m+[m[32m                    interpolated_normal[2] = local_axis_orientation(number_of_orientation_points - i, 3);[m
+[32m+[m[32m                    upper_twist_angle = CalculateDeltaPhi(rKinematicVariables, interpolated_normal);[m
+[32m+[m[32m                    break;[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m            const double pi = 4.0 * std::atan(1.0);[m
+[32m+[m
+[32m+[m[32m            twist_angle_difference = (upper_twist_angle - lower_twist_angle);[m
+[32m+[m[32m            if (std::abs(upper_twist_angle - lower_twist_angle) > pi)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                twist_angle_difference = twist_angle_difference - (twist_angle_difference) / std::abs(twist_angle_difference) * 2 * pi;[m
+[32m+[m[32m            }[m
+[32m+[m
+[32m+[m[32m            rPhi += lower_twist_angle + (integration_point_coordinate - lower_parameter_coordinate) / (upper_parameter_coordinate - lower_parameter_coordinate) * twist_angle_difference;[m
+[32m+[m[32m            rPhiDerivative += twist_angle_difference / (upper_parameter_coordinate - lower_parameter_coordinate);[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m    double NonLinearBernoulliBeamElement3D::CalculateDeltaPhi([m
+[32m+[m[32m        const KinematicVariables& rKinematicVariables,[m
+[32m+[m[32m        const Vector3d& rNormal)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        const Vector3d initial_tangent = GetProperties()[T_0];[m
+[32m+[m[32m        const Vector3d reference_base_vector = rKinematicVariables.R1;[m
+[32m+[m
+[32m+[m[32m        const Vector3d current_reference_tangent =[m
+[32m+[m[32m            reference_base_vector / norm_2(reference_base_vector);[m
+[32m+[m
+[32m+[m[32m        const Vector3d normalized_initial_tangent =[m
+[32m+[m[32m            initial_tangent / norm_2(initial_tangent);[m
+[32m+[m
+[32m+[m[32m        Vector3d normal = rNormal;[m
+[32m+[m
+[32m+[m[32m        const double tangent_normal_projection =[m
+[32m+[m[32m            inner_prod(current_reference_tangent, normal);[m
+[32m+[m
+[32m+[m[32m        // Project the normal onto the plane normal to the reference tangent.[m
+[32m+[m[32m        normal -= tangent_normal_projection * current_reference_tangent;[m
+[32m+[m[32m        normal /= norm_2(normal);[m
+[32m+[m
+[32m+[m[32m        const Vector3d reference_principal_axis = normal;[m
+[32m+[m
+[32m+[m[32m        Matrix3d lambda_matrix;[m
+[32m+[m[32m        ComputeLambdaMatrix([m
+[32m+[m[32m            normalized_initial_tangent,[m
+[32m+[m[32m            current_reference_tangent,[m
+[32m+[m[32m            lambda_matrix);[m
+[32m+[m
+[32m+[m[32m        const Vector3d rotated_reference_axis =[m
+[32m+[m[32m            prod(lambda_matrix, reference_principal_axis);[m
+[32m+[m
+[32m+[m[32m        const Vector3d orientation_reference =[m
+[32m+[m[32m            MathUtils<double>::CrossProduct(reference_base_vector, rotated_reference_axis);[m
+[32m+[m
+[32m+[m[32m        const double axis_dot_product =[m
+[32m+[m[32m            inner_prod(rotated_reference_axis, normal);[m
+[32m+[m
+[32m+[m[32m        const double orientation_dot_product =[m
+[32m+[m[32m            inner_prod(normal, orientation_reference);[m
+[32m+[m
+[32m+[m[32m        double cos_theta =[m
+[32m+[m[32m            axis_dot_product /[m
+[32m+[m[32m            (norm_2(rotated_reference_axis) * norm_2(normal));[m
+[32m+[m
+[32m+[m[32m        if (std::abs(1.0 - std::abs(cos_theta)) < 1e-9) {[m
+[32m+[m[32m            cos_theta = MathUtils<double>::Sign(cos_theta);[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        double phi = std::acos(cos_theta);[m
+[32m+[m
+[32m+[m[32m        const double pi = 4.0 * std::atan(1.0);[m
+[32m+[m
+[32m+[m[32m        if (orientation_dot_product < -1e-12) {[m
+[32m+[m[32m            phi = 2.0 * pi - phi;[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        return phi;[m
+[32m+[m[32m    }[m
+[32m+[m[41m            [m
+[32m+[m
+[32m+[m[32m    void NonLinearBernoulliBeamElement3D::ComputeReferenceCrossSectionGeometry([m
+[32m+[m[32m        KinematicVariables& rKinematicVariables)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        const Vector3d reference_first_base_vector = rKinematicVariables.R1;[m
+[32m+[m[32m        const Vector3d reference_second_base_vector = rKinematicVariables.R2;[m
+[32m+[m[32m        const Vector3d initial_reference_tangent = GetProperties()[T_0];[m
+[32m+[m
+[32m+[m[32m        ComputeReferenceTwistAngleAndDerivative([m
+[32m+[m[32m            rKinematicVariables,[m
+[32m+[m[32m            rKinematicVariables.Phi,[m
+[32m+[m[32m            rKinematicVariables.Phi_der);[m
+[32m+[m
+[32m+[m[32m        Matrix3d reference_lambda_matrix;[m
+[32m+[m[32m        Matrix3d reference_lambda_matrix_derivative;[m
+[32m+[m[32m        Matrix3d reference_rodrigues_matrix;[m
+[32m+[m[32m        Matrix3d reference_rodrigues_matrix_derivative;[m
+[32m+[m[32m        Matrix3d cross_section_transformation_derivative;[m
+[32m+[m[32m        cross_section_transformation_derivative.clear();[m
+[32m+[m
+[32m+[m[32m        const double reference_first_base_vector_norm =[m
+[32m+[m[32m            norm_2(reference_first_base_vector);[m
+[32m+[m
+[32m+[m[32m        const Vector3d reference_tangent =[m
+[32m+[m[32m            reference_first_base_vector / reference_first_base_vector_norm;[m
+[32m+[m
+[32m+[m[32m        const Vector3d reference_tangent_derivative =[m
+[32m+[m[32m            reference_second_base_vector / reference_first_base_vector_norm[m
+[32m+[m[32m            - inner_prod(reference_first_base_vector, reference_second_base_vector)[m
+[32m+[m[32m                / pow(reference_first_base_vector_norm, 3)[m
+[32m+[m[32m                * reference_first_base_vector;[m
+[32m+[m
+[32m+[m[32m        Vector3d initial_reference_tangent_derivative;[m
+[32m+[m[32m        initial_reference_tangent_derivative.clear();[m
+[32m+[m
+[32m+[m[32m        ComputeLambdaMatrix([m
+[32m+[m[32m            initial_reference_tangent,[m
+[32m+[m[32m            reference_tangent,[m
+[32m+[m[32m            reference_lambda_matrix);[m
+[32m+[m
+[32m+[m[32m        ComputeLambdaMatrixDerivative([m
+[32m+[m[32m            initial_reference_tangent,[m
+[32m+[m[32m            reference_tangent,[m
+[32m+[m[32m            initial_reference_tangent_derivative,[m
+[32m+[m[32m            reference_tangent_derivative,[m
+[32m+[m[32m            reference_lambda_matrix_derivative);[m
+[32m+[m
+[32m+[m[32m        ComputeRodriguesMatrix([m
+[32m+[m[32m            reference_tangent,[m
+[32m+[m[32m            rKinematicVariables.Phi,[m
+[32m+[m[32m            reference_rodrigues_matrix);[m
+[32m+[m
+[32m+[m[32m        ComputeRodriguesMatrixDerivative([m
+[32m+[m[32m            reference_tangent,[m
+[32m+[m[32m            reference_tangent_derivative,[m
+[32m+[m[32m            rKinematicVariables.Phi,[m
+[32m+[m[32m            rKinematicVariables.Phi_der,[m
+[32m+[m[32m            reference_rodrigues_matrix_derivative);[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.n.clear();[m
+[32m+[m[32m        rKinematicVariables.N0 = GetProperties()[N_0];[m
+[32m+[m
+[32m+[m[32m        const double initial_reference_tangent_norm =[m
+[32m+[m[32m            norm_2(initial_reference_tangent);[m
+[32m+[m
+[32m+[m[32m        const Vector3d normalized_initial_reference_tangent =[m
+[32m+[m[32m            initial_reference_tangent / initial_reference_tangent_norm;[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.N0 -=[m
+[32m+[m[32m            inner_prod([m
+[32m+[m[32m                normalized_initial_reference_tangent,[m
+[32m+[m[32m                rKinematicVariables.N0)[m
+[32m+[m[32m            * normalized_initial_reference_tangent;[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.V0 =[m
+[32m+[m[32m            MathUtils<double>::CrossProduct([m
+[32m+[m[32m                normalized_initial_reference_tangent,[m
+[32m+[m[32m                rKinematicVariables.N0);[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.N0 /=[m
+[32m+[m[32m            norm_2(rKinematicVariables.N0);[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.V0 /=[m
+[32m+[m[32m            norm_2(rKinematicVariables.V0);[m
+[32m+[m
+[32m+[m[32m        Vector3d transformed_reference_normal;[m
+[32m+[m[32m        transformed_reference_normal.clear();[m
+[32m+[m
+[32m+[m[32m        for (IndexType i = 0; i < 3; ++i) {[m
+[32m+[m[32m            for (IndexType j = 0; j < 3; ++j) {[m
+[32m+[m[32m                transformed_reference_normal[i] +=[m
+[32m+[m[32m                    reference_lambda_matrix(i, j)[m
+[32m+[m[32m                    * rKinematicVariables.N0[j];[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        for (IndexType i = 0; i < 3; ++i) {[m
+[32m+[m[32m            for (IndexType j = 0; j < 3; ++j) {[m
+[32m+[m[32m                rKinematicVariables.n(i) +=[m
+[32m+[m[32m                    reference_rodrigues_matrix(i, j)[m
+[32m+[m[32m                    * transformed_reference_normal[j];[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.n /=[m
+[32m+[m[32m            norm_2(rKinematicVariables.n);[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.v =[m
+[32m+[m[32m            MathUtils<double>::CrossProduct(reference_tangent, rKinematicVariables.n);[m
+[32m+[m
+[32m+[m[32m        for (IndexType i = 0; i < 3; ++i) {[m
+[32m+[m[32m            for (IndexType j = 0; j < 3; ++j) {[m
+[32m+[m[32m                for (IndexType k = 0; k < 3; ++k) {[m
+[32m+[m[32m                    cross_section_transformation_derivative(i, j) +=[m
+[32m+[m[32m                        reference_rodrigues_matrix_derivative(i, k)[m
+[32m+[m[32m                        * reference_lambda_matrix(k, j);[m
+[32m+[m
+[32m+[m[32m                    cross_section_transformation_derivative(i, j) +=[m
+[32m+[m[32m                        reference_rodrigues_matrix(i, k)[m
+[32m+[m[32m                        * reference_lambda_matrix_derivative(k, j);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Vector3d a21_vector;[m
+[32m+[m[32m        Vector3d a31_vector;[m
+[32m+[m[32m        a21_vector.clear();[m
+[32m+[m[32m        a31_vector.clear();[m
+[32m+[m
+[32m+[m[32m        for (IndexType i = 0; i < 3; ++i) {[m
+[32m+[m[32m            for (IndexType j = 0; j < 3; ++j) {[m
+[32m+[m[32m                a21_vector[i] +=[m
+[32m+[m[32m                    cross_section_transformation_derivative(i, j)[m
+[32m+[m[32m                    * rKinematicVariables.N0[j];[m
+[32m+[m
+[32m+[m[32m                a31_vector[i] +=[m
+[32m+[m[32m                    cross_section_transformation_derivative(i, j)[m
+[32m+[m[32m                    * rKinematicVariables.V0[j];[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.B_n =[m
+[32m+[m[32m            inner_prod(a21_vector, reference_first_base_vector);[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.B_v =[m
+[32m+[m[32m            inner_prod(a31_vector, reference_first_base_vector);[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.C_12 =[m
+[32m+[m[32m            inner_prod(a31_vector, rKinematicVariables.n);[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.C_13 =[m
+[32m+[m[32m            inner_prod(a21_vector, rKinematicVariables.v);[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    void NonLinearBernoulliBeamElement3D::ComputeCurrentCrossSectionGeometry([m
+[32m+[m[32m        KinematicVariables& rKinematicVariables)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        const Vector3d current_first_base_vector = rKinematicVariables.r1;[m
+[32m+[m[32m        const Vector3d current_second_base_vector = rKinematicVariables.r2;[m
+[32m+[m[32m        const Vector3d reference_first_base_vector = rKinematicVariables.R1;[m
+[32m+[m[32m        const Vector3d reference_second_base_vector = rKinematicVariables.R2;[m
+[32m+[m[32m        const Vector3d initial_reference_tangent = GetProperties()[T_0];[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.n.clear();[m
+[32m+[m[32m        rKinematicVariables.v.clear();[m
+[32m+[m
+[32m+[m[32m        Matrix3d current_lambda_matrix;[m
+[32m+[m[32m        Matrix3d current_lambda_matrix_derivative;[m
+[32m+[m[32m        Matrix3d reference_lambda_matrix;[m
+[32m+[m[32m        Matrix3d reference_lambda_matrix_derivative;[m
+[32m+[m[32m        Matrix3d current_rodrigues_matrix;[m
+[32m+[m[32m        Matrix3d current_rodrigues_matrix_derivative;[m
+[32m+[m[32m        Matrix3d reference_rodrigues_matrix;[m
+[32m+[m[32m        Matrix3d reference_rodrigues_matrix_derivative;[m
+[32m+[m
+[32m+[m[32m        const double current_first_base_vector_norm =[m
+[32m+[m[32m            norm_2(current_first_base_vector);[m
+[32m+[m
+[32m+[m[32m        const double reference_first_base_vector_norm =[m
+[32m+[m[32m            norm_2(reference_first_base_vector);[m
+[32m+[m
+[32m+[m[32m        const Vector3d current_tangent =[m
+[32m+[m[32m            current_first_base_vector / current_first_base_vector_norm;[m
+[32m+[m
+[32m+[m[32m        const Vector3d current_tangent_derivative =[m
+[32m+[m[32m            current_second_base_vector / current_first_base_vector_norm[m
+[32m+[m[32m            - inner_prod(current_first_base_vector, current_second_base_vector)[m
+[32m+[m[32m                / pow(current_first_base_vector_norm, 3)[m
+[32m+[m[32m                * current_first_base_vector;[m
+[32m+[m
+[32m+[m[32m        const Vector3d reference_tangent =[m
+[32m+[m[32m            reference_first_base_vector / reference_first_base_vector_norm;[m
+[32m+[m
+[32m+[m[32m        const Vector3d reference_tangent_derivative =[m
+[32m+[m[32m            reference_second_base_vector / reference_first_base_vector_norm[m
+[32m+[m[32m            - inner_prod(reference_first_base_vector, reference_second_base_vector)[m
+[32m+[m[32m                / pow(reference_first_base_vector_norm, 3)[m
+[32m+[m[32m                * reference_first_base_vector;[m
+[32m+[m
+[32m+[m[32m        Vector3d initial_reference_tangent_derivative;[m
+[32m+[m[32m        initial_reference_tangent_derivative.clear();[m
+[32m+[m
+[32m+[m[32m        ComputeLambdaMatrix([m
+[32m+[m[32m            reference_tangent,[m
+[32m+[m[32m            current_tangent,[m
+[32m+[m[32m            current_lambda_matrix);[m
+[32m+[m
+[32m+[m[32m        ComputeLambdaMatrixDerivative([m
+[32m+[m[32m            reference_tangent,[m
+[32m+[m[32m            current_tangent,[m
+[32m+[m[32m            reference_tangent_derivative,[m
+[32m+[m[32m            current_tangent_derivative,[m
+[32m+[m[32m            current_lambda_matrix_derivative);[m
+[32m+[m
+[32m+[m[32m        ComputeLambdaMatrix([m
+[32m+[m[32m            initial_reference_tangent,[m
+[32m+[m[32m            reference_tangent,[m
+[32m+[m[32m            reference_lambda_matrix);[m
+[32m+[m
+[32m+[m[32m        ComputeLambdaMatrixDerivative([m
+[32m+[m[32m            initial_reference_tangent,[m
+[32m+[m[32m            reference_tangent,[m
+[32m+[m[32m            initial_reference_tangent_derivative,[m
+[32m+[m[32m            reference_tangent_derivative,[m
+[32m+[m[32m            reference_lambda_matrix_derivative);[m
+[32m+[m
+[32m+[m[32m        ComputeRodriguesMatrix([m
+[32m+[m[32m            current_tangent,[m
+[32m+[m[32m            rKinematicVariables.phi,[m
+[32m+[m[32m            current_rodrigues_matrix);[m
+[32m+[m
+[32m+[m[32m        ComputeRodriguesMatrixDerivative([m
+[32m+[m[32m            current_tangent,[m
+[32m+[m[32m            current_tangent_derivative,[m
+[32m+[m[32m            rKinematicVariables.phi,[m
+[32m+[m[32m            rKinematicVariables.phi_der,[m
+[32m+[m[32m            current_rodrigues_matrix_derivative);[m
+[32m+[m
+[32m+[m[32m        ComputeRodriguesMatrix([m
+[32m+[m[32m            reference_tangent,[m
+[32m+[m[32m            rKinematicVariables.Phi,[m
+[32m+[m[32m            reference_rodrigues_matrix);[m
+[32m+[m
+[32m+[m[32m        ComputeRodriguesMatrixDerivative([m
+[32m+[m[32m            reference_tangent,[m
+[32m+[m[32m            reference_tangent_derivative,[m
+[32m+[m[32m            rKinematicVariables.Phi,[m
+[32m+[m[32m            rKinematicVariables.Phi_der,[m
+[32m+[m[32m            reference_rodrigues_matrix_derivative);[m
+[32m+[m
+[32m+[m[32m        Matrix3d reference_rodrigues_lambda_product;[m
+[32m+[m[32m        Matrix3d reference_rodrigues_lambda_derivative_product;[m
+[32m+[m[32m        Matrix3d reference_rodrigues_derivative_lambda_product;[m
+[32m+[m[32m        reference_rodrigues_lambda_product.clear();[m
+[32m+[m[32m        reference_rodrigues_lambda_derivative_product.clear();[m
+[32m+[m[32m        reference_rodrigues_derivative_lambda_product.clear();[m
+[32m+[m
+[32m+[m[32m        for (IndexType i = 0; i < 3; ++i) {[m
+[32m+[m[32m            for (IndexType j = 0; j < 3; ++j) {[m
+[32m+[m[32m                for (IndexType k = 0; k < 3; ++k) {[m
+[32m+[m[32m                    reference_rodrigues_lambda_product(i, j) +=[m
+[32m+[m[32m                        reference_rodrigues_matrix(i, k)[m
+[32m+[m[32m                        * reference_lambda_matrix(k, j);[m
+[32m+[m
+[32m+[m[32m                    reference_rodrigues_lambda_derivative_product(i, j) +=[m
+[32m+[m[32m                        reference_rodrigues_matrix(i, k)[m
+[32m+[m[32m                        * reference_lambda_matrix_derivative(k, j);[m
+[32m+[m
+[32m+[m[32m                    reference_rodrigues_derivative_lambda_product(i, j) +=[m
+[32m+[m[32m                        reference_rodrigues_matrix_derivative(i, k)[m
+[32m+[m[32m                        * reference_lambda_matrix(k, j);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Matrix3d current_lambda_reference_rodrigues_lambda_product;[m
+[32m+[m[32m        Matrix3d current_lambda_reference_rodrigues_lambda_derivative_product;[m
+[32m+[m[32m        Matrix3d current_lambda_reference_rodrigues_derivative_lambda_product;[m
+[32m+[m[32m        Matrix3d current_lambda_derivative_reference_rodrigues_lambda_product;[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_product.clear();[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_derivative_product.clear();[m
+[32m+[m[32m        current_lambda_reference_rodrigues_derivative_lambda_product.clear();[m
+[32m+[m[32m        current_lambda_derivative_reference_rodrigues_lambda_product.clear();[m
+[32m+[m
+[32m+[m[32m        for (IndexType i = 0; i < 3; ++i) {[m
+[32m+[m[32m            for (IndexType j = 0; j < 3; ++j) {[m
+[32m+[m[32m                for (IndexType k = 0; k < 3; ++k) {[m
+[32m+[m[32m                    current_lambda_reference_rodrigues_lambda_product(i, j) +=[m
+[32m+[m[32m                        current_lambda_matrix(i, k)[m
+[32m+[m[32m                        * reference_rodrigues_lambda_product(k, j);[m
+[32m+[m
+[32m+[m[32m                    current_lambda_reference_rodrigues_lambda_derivative_product(i, j) +=[m
+[32m+[m[32m                        current_lambda_matrix(i, k)[m
+[32m+[m[32m                        * reference_rodrigues_lambda_derivative_product(k, j);[m
+[32m+[m
+[32m+[m[32m                    current_lambda_reference_rodrigues_derivative_lambda_product(i, j) +=[m
+[32m+[m[32m                        current_lambda_matrix(i, k)[m
+[32m+[m[32m                        * reference_rodrigues_derivative_lambda_product(k, j);[m
+[32m+[m
+[32m+[m[32m                    current_lambda_derivative_reference_rodrigues_lambda_product(i, j) +=[m
+[32m+[m[32m                        current_lambda_matrix_derivative(i, k)[m
+[32m+[m[32m                        * reference_rodrigues_lambda_product(k, j);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Matrix3d current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term;[m
+[32m+[m[32m        Matrix3d current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term;[m
+[32m+[m[32m        Matrix3d current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        Matrix3d current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        Matrix3d cross_section_transformation;[m
+[32m+[m
+[32m+[m[32m        current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term.clear();[m
+[32m+[m[32m        current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term.clear();[m
+[32m+[m[32m        current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        cross_section_transformation.clear();[m
+[32m+[m
+[32m+[m[32m        for (IndexType i = 0; i < 3; ++i) {[m
+[32m+[m[32m            for (IndexType j = 0; j < 3; ++j) {[m
+[32m+[m[32m                for (IndexType k = 0; k < 3; ++k) {[m
+[32m+[m[32m                    current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term(i, j) +=[m
+[32m+[m[32m                        current_rodrigues_matrix(i, k)[m
+[32m+[m[32m                        * current_lambda_reference_rodrigues_lambda_derivative_product(k, j);[m
+[32m+[m
+[32m+[m[32m                    current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term(i, j) +=[m
+[32m+[m[32m                        current_rodrigues_matrix(i, k)[m
+[32m+[m[32m                        * current_lambda_reference_rodrigues_derivative_lambda_product(k, j);[m
+[32m+[m
+[32m+[m[32m                    current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term(i, j) +=[m
+[32m+[m[32m                        current_rodrigues_matrix(i, k)[m
+[32m+[m[32m                        * current_lambda_derivative_reference_rodrigues_lambda_product(k, j);[m
+[32m+[m
+[32m+[m[32m                    current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term(i, j) +=[m
+[32m+[m[32m                        current_rodrigues_matrix_derivative(i, k)[m
+[32m+[m[32m                        * current_lambda_reference_rodrigues_lambda_product(k, j);[m
+[32m+[m
+[32m+[m[32m                    cross_section_transformation(i, j) +=[m
+[32m+[m[32m                        current_rodrigues_matrix(i, k)[m
+[32m+[m[32m                        * current_lambda_reference_rodrigues_lambda_product(k, j);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        const Matrix3d cross_section_transformation_derivative =[m
+[32m+[m[32m            current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term[m
+[32m+[m[32m            + current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term[m
+[32m+[m[32m            + current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term[m
+[32m+[m[32m            + current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term;[m
+[32m+[m
+[32m+[m[32m        Vector3d a21_vector;[m
+[32m+[m[32m        Vector3d a31_vector;[m
+[32m+[m[32m        a21_vector.clear();[m
+[32m+[m[32m        a31_vector.clear();[m
+[32m+[m
+[32m+[m[32m        for (IndexType i = 0; i < 3; ++i) {[m
+[32m+[m[32m            for (IndexType j = 0; j < 3; ++j) {[m
+[32m+[m[32m                a21_vector[i] +=[m
+[32m+[m[32m                    cross_section_transformation_derivative(i, j)[m
+[32m+[m[32m                    * rKinematicVariables.N0[j];[m
+[32m+[m
+[32m+[m[32m                a31_vector[i] +=[m
+[32m+[m[32m                    cross_section_transformation_derivative(i, j)[m
+[32m+[m[32m                    * rKinematicVariables.V0[j];[m
+[32m+[m
+[32m+[m[32m                rKinematicVariables.n[i] +=[m
+[32m+[m[32m                    cross_section_transformation(i, j)[m
+[32m+[m[32m                    * rKinematicVariables.N0[j];[m
+[32m+[m
+[32m+[m[32m                rKinematicVariables.v[i] +=[m
+[32m+[m[32m                    cross_section_transformation(i, j)[m
+[32m+[m[32m                    * rKinematicVariables.V0[j];[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.b_n =[m
+[32m+[m[32m            inner_prod(a21_vector, current_first_base_vector);[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.b_v =[m
+[32m+[m[32m            inner_prod(a31_vector, current_first_base_vector);[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.c_12 =[m
+[32m+[m[32m            inner_prod(a31_vector, rKinematicVariables.n);[m
+[32m+[m
+[32m+[m[32m        rKinematicVariables.c_13 =[m
+[32m+[m[32m            inner_prod(a21_vector, rKinematicVariables.v);[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m
+[32m+[m[32m    void NonLinearBernoulliBeamElement3D::ComputeBMatrices([m
+[32m+[m[32m        const IndexType IntegrationPointIndex,[m
+[32m+[m[32m        const KinematicVariables& rKinematicVariables,[m
+[32m+[m[32m        Matrix& rBAxial,[m
+[32m+[m[32m        Matrix& rBBending1,[m
+[32m+[m[32m        Matrix& rBBending2,[m
+[32m+[m[32m        Matrix& rBTorsion1,[m
+[32m+[m[32m        Matrix& rBTorsion2)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        KRATOS_TRY[m
+[32m+[m[32m        const auto& r_geometry = GetGeometry();[m
+[32m+[m
+[32m+[m[32m        // Get shape functions and derivatives at integration point[m
+[32m+[m[32m        Vector shape_functions = row(r_geometry.ShapeFunctionsValues(GetIntegrationMethod()), IntegrationPointIndex);[m
+[32m+[m[32m        Vector shape_function_derivatives = column(r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex, GetIntegrationMethod()), 0);[m
+[32m+[m[32m        Vector shape_function_second_derivatives = column(r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, GetIntegrationMethod()), 0);[m
+[32m+[m[41m        [m
+[32m+[m[32m        // Extract kinematic variables[m
+[32m+[m[32m        Vector3d current_first_base_vector = rKinematicVariables.r1;[m
+[32m+[m[32m        Vector3d current_second_base_vector = rKinematicVariables.r2;[m
+[32m+[m[32m        Vector3d reference_first_base_vector = rKinematicVariables.R1;[m
+[32m+[m[32m        Vector3d reference_second_base_vector = rKinematicVariables.R2;[m
+[32m+[m[32m        Vector3d reference_normal = rKinematicVariables.N0;[m
+[32m+[m[32m        Vector3d reference_binormal = rKinematicVariables.V0;[m
+[32m+[m[32m        double current_twist_angle = rKinematicVariables.phi;[m
+[32m+[m[32m        double current_twist_angle_derivative = rKinematicVariables.phi_der;[m
+[32m+[m[32m        double reference_twist_angle = rKinematicVariables.Phi;[m
+[32m+[m[32m        double reference_twist_angle_derivative = rKinematicVariables.Phi_der;[m
+[32m+[m[32m        Vector3d initial_reference_tangent = GetProperties()[T_0];[m
+[32m+[m
+[32m+[m[32m        // Compute curvature and torsion variations[m
+[32m+[m[32m        Vector axial_variation(mNumberOfDofs);[m
+[32m+[m[32m        Vector normal_curvature_variation(mNumberOfDofs);[m
+[32m+[m[32m        Vector binormal_curvature_variation(mNumberOfDofs);[m
+[32m+[m[32m        Vector normal_torsion_variation(mNumberOfDofs);[m
+[32m+[m[32m        Vector binormal_torsion_variation(mNumberOfDofs);[m
+[32m+[m[32m        axial_variation.clear();[m
+[32m+[m[32m        normal_curvature_variation.clear();[m
+[32m+[m[32m        binormal_curvature_variation.clear();[m
+[32m+[m[32m        normal_torsion_variation.clear();[m
+[32m+[m[32m        binormal_torsion_variation.clear();[m
+[32m+[m
+[32m+[m[32m        //compute axial_variation[m
+[32m+[m[32m        for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            size_t dof_component = dof_index % mDofsPerNode;[m[41m [m
+[32m+[m[32m            size_t control_point_index = dof_index / mDofsPerNode;[m[41m     [m
+[32m+[m[32m            if (dof_component > 2)[m
+[32m+[m[32m                axial_variation[dof_index] = 0;[m
+[32m+[m[32m            else[m
+[32m+[m[32m                axial_variation[dof_index] = rKinematicVariables.r1[dof_component] * shape_function_derivatives[control_point_index];[m
+[32m+[m[32m        }[m
+[32m+[m[32m        //compute normal_curvature_variation, binormal_curvature_variation, normal_torsion_variation, binormal_torsion_variation[m
+[32m+[m[32m        Vector3d current_tangent;[m
+[32m+[m[32m        current_tangent.clear();[m
+[32m+[m[32m        Vector3d current_tangent_derivative;[m
+[32m+[m[32m        current_tangent_derivative.clear();[m
+[32m+[m[32m        Vector3d reference_tangent;[m
+[32m+[m[32m        reference_tangent.clear();[m
+[32m+[m[32m        Vector3d reference_tangent_derivative;[m
+[32m+[m[32m        reference_tangent_derivative.clear();[m
+[32m+[m[32m        Vector3d initial_reference_tangent_derivative;[m
+[32m+[m[32m        initial_reference_tangent_derivative.clear();[m
+[32m+[m[32m        Vector current_tangent_variation;[m
+[32m+[m[32m        Vector current_tangent_derivative_variation;[m
+[32m+[m[32m        Matrix3d current_lambda_matrix;[m
+[32m+[m[32m        Matrix3d current_lambda_matrix_derivative;[m
+[32m+[m[32m        Matrix3d reference_lambda_matrix;[m
+[32m+[m[32m        Matrix3d reference_lambda_matrix_derivative;[m
+[32m+[m[32m        Matrix3d current_rodrigues_matrix;[m
+[32m+[m[32m        Matrix3d current_rodrigues_matrix_derivative;[m
+[32m+[m[32m        Matrix3d reference_rodrigues_matrix;[m
+[32m+[m[32m        Matrix3d reference_rodrigues_matrix_derivative;[m
+[32m+[m
+[32m+[m[32m        current_tangent = current_first_base_vector / norm_2(current_first_base_vector);[m
+[32m+[m[32m        current_tangent_derivative = current_second_base_vector / norm_2(current_first_base_vector) - inner_prod(current_first_base_vector, current_second_base_vector) / pow(norm_2(current_first_base_vector), 3) * current_first_base_vector;[m
+[32m+[m[32m        reference_tangent = reference_first_base_vector / norm_2(reference_first_base_vector);[m
+[32m+[m[32m        reference_tangent_derivative = reference_second_base_vector / norm_2(reference_first_base_vector) - inner_prod(reference_first_base_vector, reference_second_base_vector) / pow(norm_2(reference_first_base_vector), 3) * reference_first_base_vector;[m
+[32m+[m[32m        ComputeTangentVariation(shape_function_derivatives, current_first_base_vector, current_tangent_variation);[m
+[32m+[m[32m        ComputeTangentDerivativeVariation(shape_function_derivatives, shape_function_second_derivatives, current_first_base_vector, current_second_base_vector, current_tangent_derivative_variation);[m
+[32m+[m
+[32m+[m[32m        ComputeLambdaMatrix(reference_tangent, current_tangent, current_lambda_matrix);[m
+[32m+[m[32m        ComputeLambdaMatrixDerivative(reference_tangent, current_tangent, reference_tangent_derivative, current_tangent_derivative, current_lambda_matrix_derivative);[m
+[32m+[m[32m        ComputeLambdaMatrixVariation(reference_tangent, current_tangent, current_tangent_variation, mNumberOfDofs, mDofsPerNode, mSMatrixLambdaVariation);[m
+[32m+[m[32m        ComputeLambdaMatrixDerivativeVariation(reference_tangent, current_tangent, reference_tangent_derivative, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, mNumberOfDofs, mDofsPerNode, mSMatrixLambdaDerivativeVariation);[m
+[32m+[m[32m        ComputeLambdaMatrix(initial_reference_tangent, reference_tangent, reference_lambda_matrix);[m
+[32m+[m[32m        ComputeLambdaMatrixDerivative(initial_reference_tangent, reference_tangent, initial_reference_tangent_derivative, reference_tangent_derivative, reference_lambda_matrix_derivative);[m
+[32m+[m
+[32m+[m[32m        ComputeRodriguesMatrix(current_tangent, current_twist_angle, current_rodrigues_matrix);[m
+[32m+[m[32m        ComputeRodriguesMatrixDerivative(current_tangent, current_tangent_derivative, current_twist_angle, current_twist_angle_derivative, current_rodrigues_matrix_derivative);[m
+[32m+[m[32m        ComputeRodriguesMatrixVariation(current_tangent, current_tangent_variation, shape_functions, current_twist_angle, mNumberOfDofs, mDofsPerNode, mSMatrixRodriguesVariation);[m
+[32m+[m[32m        ComputeRodriguesMatrixDerivativeVariation(current_tangent, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, shape_functions, shape_function_derivatives, current_twist_angle, current_twist_angle_derivative, mNumberOfDofs, mDofsPerNode, mSMatrixRodriguesDerivativeVariation);[m
+[32m+[m[32m        ComputeRodriguesMatrix(reference_tangent, reference_twist_angle, reference_rodrigues_matrix);[m
+[32m+[m[32m        ComputeRodriguesMatrixDerivative(reference_tangent, reference_tangent_derivative, reference_twist_angle, reference_twist_angle_derivative, reference_rodrigues_matrix_derivative);[m
+[32m+[m
+[32m+[m[32m        Matrix3d reference_rodrigues_lambda_derivative_product;[m
+[32m+[m[32m        reference_rodrigues_lambda_derivative_product.clear();[m
+[32m+[m[32m        Matrix3d reference_rodrigues_derivative_lambda_product;[m
+[32m+[m[32m        reference_rodrigues_derivative_lambda_product.clear();[m
+[32m+[m[32m        Matrix3d reference_rodrigues_lambda_product;[m
+[32m+[m[32m        reference_rodrigues_lambda_product.clear();[m
+[32m+[m[32m        Matrix3d reference_rodrigues_lambda_product_derivative;[m
+[32m+[m[32m        reference_rodrigues_lambda_product_derivative.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t row_component = 0; row_component < 3; row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int column_component = 0; column_component < 3; column_component++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0; product_index < 3; product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    reference_rodrigues_lambda_product(row_component, column_component) += reference_rodrigues_matrix(row_component, product_index) * reference_lambda_matrix(product_index, column_component);[m
+[32m+[m[32m                    reference_rodrigues_lambda_derivative_product(row_component, column_component) += reference_rodrigues_matrix(row_component, product_index) * reference_lambda_matrix_derivative(product_index, column_component);[m
+[32m+[m[32m                    reference_rodrigues_derivative_lambda_product(row_component, column_component) += reference_rodrigues_matrix_derivative(row_component, product_index) * reference_lambda_matrix(product_index, column_component);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m[32m        reference_rodrigues_lambda_product_derivative = reference_rodrigues_lambda_derivative_product + reference_rodrigues_derivative_lambda_product;[m
+[32m+[m
+[32m+[m[32m        Matrix3d current_lambda_reference_rodrigues_lambda_derivative_product;[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_derivative_product.clear();[m
+[32m+[m[32m        Matrix3d current_lambda_reference_rodrigues_derivative_lambda_product;[m
+[32m+[m[32m        current_lambda_reference_rodrigues_derivative_lambda_product.clear();[m
+[32m+[m[32m        Matrix3d current_lambda_reference_rodrigues_lambda_product;[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_product.clear();[m
+[32m+[m[32m        Matrix3d current_lambda_derivative_reference_rodrigues_lambda_product;[m
+[32m+[m[32m        current_lambda_derivative_reference_rodrigues_lambda_product.clear();[m
+[32m+[m[32m        Matrix3d current_lambda_reference_rodrigues_lambda_product_derivative;[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_product_derivative.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t row_component = 0; row_component < 3; row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int column_component = 0; column_component < 3; column_component++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0; product_index < 3; product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    current_lambda_reference_rodrigues_lambda_product(row_component, column_component) += current_lambda_matrix(row_component, product_index) * reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    current_lambda_reference_rodrigues_lambda_derivative_product(row_component, column_component) += current_lambda_matrix(row_component, product_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);[m
+[32m+[m[32m                    current_lambda_reference_rodrigues_derivative_lambda_product(row_component, column_component) += current_lambda_matrix(row_component, product_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    current_lambda_derivative_reference_rodrigues_lambda_product(row_component, column_component) += current_lambda_matrix_derivative(row_component, product_index) * reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_product_derivative = current_lambda_reference_rodrigues_lambda_derivative_product + current_lambda_reference_rodrigues_derivative_lambda_product + current_lambda_derivative_reference_rodrigues_lambda_product;[m
+[32m+[m
+[32m+[m[32m        Matrix3d current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term;[m
+[32m+[m[32m        current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term.clear();[m
+[32m+[m[32m        Matrix3d current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term;[m
+[32m+[m[32m        current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term.clear();[m
+[32m+[m[32m        Matrix3d current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        Matrix3d current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        Matrix3d cross_section_transformation;[m
+[32m+[m[32m        cross_section_transformation.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t row_component = 0; row_component < 3; row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int column_component = 0; column_component < 3; column_component++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0; product_index < 3; product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);[m
+[32m+[m[32m                    current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term(row_component, column_component) += current_rodrigues_matrix_derivative(row_component, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    cross_section_transformation(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Matrix3d cross_section_transformation_derivative;[m
+[32m+[m[32m        cross_section_transformation_derivative.clear();[m
+[32m+[m[32m        cross_section_transformation_derivative = current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term + current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term + current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term + current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term;[m
+[32m+[m
+[32m+[m[32m        mSMatrixLambdaVariationRodriguesLambdaDerivative.clear();[m
+[32m+[m[32m        mSMatrixLambdaVariationRodriguesDerivativeLambda.clear();[m
+[32m+[m[32m        mSMatrixLambdaVariationRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixLambdaDerivativeVariationRodriguesLambda.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t row_component = 0; row_component < 3; row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int column_component = 0; column_component < 3; column_component++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0; product_index < 3; product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    for (size_t dof_index = 0; dof_index < mNumberOfDofs; dof_index++)[m
+[32m+[m[32m                    {[m
+[32m+[m[32m                        mSMatrixLambdaVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixLambdaVariationRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixLambdaVariationRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixLambdaDerivativeVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Matrix current_lambda_reference_rodrigues_lambda_product_derivative_variation;[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_product_derivative_variation.resize(3 * mNumberOfDofs, 3);[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_product_derivative_variation.clear();[m
+[32m+[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_product_derivative_variation = mSMatrixLambdaVariationRodriguesLambdaDerivative + mSMatrixLambdaVariationRodriguesDerivativeLambda + mSMatrixLambdaDerivativeVariationRodriguesLambda;[m
+[32m+[m
+[32m+[m[32m        mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative.clear();[m
+[32m+[m[32m        mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative.clear();[m
+[32m+[m[32m        mSMatrixRodriguesLambdaVariationRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesVariationLambdaRodriguesLambda.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t row_component = 0; row_component < 3; row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int column_component = 0; column_component < 3; column_component++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0; product_index < 3; product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    for (size_t dof_index = 0; dof_index < mNumberOfDofs; dof_index++)[m
+[32m+[m[32m                    {[m
+[32m+[m[32m                        mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaVariationRodriguesLambdaDerivative(product_index * mNumberOfDofs + dof_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaVariationRodriguesDerivativeLambda(product_index * mNumberOfDofs + dof_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaDerivativeVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix_derivative(row_component, product_index) * mSMatrixLambdaVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesLambdaVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesVariationLambdaRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation.clear();[m
+[32m+[m[32m        mSMatrixRodriguesLambdaRodriguesLambdaVariation.clear();[m
+[32m+[m
+[32m+[m[32m        mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation = mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative + mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda + mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda + mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda[m
+[32m+[m[32m            + mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative + mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda + mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda + mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda;[m
+[32m+[m[32m        mSMatrixRodriguesLambdaRodriguesLambdaVariation = mSMatrixRodriguesVariationLambdaRodriguesLambda + mSMatrixRodriguesLambdaVariationRodriguesLambda;[m
+[32m+[m
+[32m+[m[32m        Vector3d normal_vector;[m
+[32m+[m[32m        normal_vector.clear();[m
+[32m+[m[32m        Vector3d binormal_vector;[m
+[32m+[m[32m        binormal_vector.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t row_component = 0; row_component < 3; row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int product_index = 0; product_index < 3; product_index++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                normal_vector(row_component) += cross_section_transformation(row_component, product_index) * reference_normal(product_index);[m
+[32m+[m[32m                binormal_vector(row_component) += cross_section_transformation(row_component, product_index) * reference_binormal(product_index);[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Vector normal_vector_variation;[m
+[32m+[m[32m        normal_vector_variation.resize(3 * mNumberOfDofs);[m
+[32m+[m[32m        normal_vector_variation.clear();[m
+[32m+[m[32m        Vector binormal_vector_variation;[m
+[32m+[m[32m        binormal_vector_variation.resize(3 * mNumberOfDofs);[m
+[32m+[m[32m        binormal_vector_variation.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t row_component = 0; row_component < 3; row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (size_t dof_index = 0; dof_index < mNumberOfDofs; dof_index++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0; product_index < 3; product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    normal_vector_variation(row_component * mNumberOfDofs + dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index);[m
+[32m+[m[32m                    binormal_vector_variation(row_component * mNumberOfDofs + dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Vector current_first_base_vector_variation;[m
+[32m+[m[32m        current_first_base_vector_variation.resize(3 * mNumberOfDofs);[m
+[32m+[m[32m        current_first_base_vector_variation.clear();[m
+[32m+[m[32m        for (size_t row_component = 0; row_component < 3; row_component++)[m[41m [m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (size_t dof_index = 0; dof_index < mNumberOfDofs; dof_index++)[m[41m [m
+[32m+[m[32m            {[m
+[32m+[m[32m                size_t dof_component = dof_index % mDofsPerNode;[m
+[32m+[m[32m                size_t control_point_index = dof_index / mDofsPerNode;[m
+[32m+[m[32m                if (row_component == dof_component)[m
+[32m+[m[32m                    current_first_base_vector_variation(row_component * mNumberOfDofs + dof_index) = shape_function_derivatives[control_point_index];[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        for (size_t row_component = 0; row_component < 3; row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int product_index = 0; product_index < 3; product_index++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (size_t dof_index = 0; dof_index < mNumberOfDofs; dof_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    normal_curvature_variation(dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index) * current_first_base_vector[row_component] + cross_section_transformation_derivative(row_component, product_index) * reference_normal(product_index) * current_first_base_vector_variation[row_component * mNumberOfDofs + dof_index];[m
+[32m+[m[32m                    binormal_curvature_variation(dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index) * current_first_base_vector[row_component] + cross_section_transformation_derivative(row_component, product_index) * reference_binormal(product_index) * current_first_base_vector_variation[row_component * mNumberOfDofs + dof_index];[m
+[32m+[m[32m                    normal_torsion_variation(dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index) * normal_vector(row_component) + cross_section_transformation_derivative(row_component, product_index) * reference_binormal(product_index) * normal_vector_variation(row_component * mNumberOfDofs + dof_index);[m
+[32m+[m[32m                    binormal_torsion_variation(dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index) * binormal_vector(row_component) + cross_section_transformation_derivative(row_component, product_index) * reference_normal(product_index) * binormal_vector_variation(row_component * mNumberOfDofs + dof_index);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[41m    [m
+[32m+[m[32m        // Initialize B matrices[m
+[32m+[m[32m        rBAxial.resize(5, mNumberOfDofs);[m
+[32m+[m[32m        rBBending1.resize(5, mNumberOfDofs);[m
+[32m+[m[32m        rBBending2.resize(5, mNumberOfDofs);[m
+[32m+[m[32m        rBTorsion1.resize(5, mNumberOfDofs);[m
+[32m+[m[32m        rBTorsion2.resize(5, mNumberOfDofs);[m
+[32m+[m[32m        rBAxial.clear();[m
+[32m+[m[32m        rBBending1.clear();[m
+[32m+[m[32m        rBBending2.clear();[m
+[32m+[m[32m        rBTorsion1.clear();[m
+[32m+[m[32m        rBTorsion2.clear();[m
+[32m+[m
+[32m+[m[32m        noalias(row(rBAxial, 0)) = axial_variation; //Normal force[m
+[32m+[m[32m        noalias(row(rBBending1, 1)) = normal_curvature_variation;  // Bending about n-axis[m
+[32m+[m[32m        noalias(row(rBBending2, 2)) = binormal_curvature_variation;  // Bending about v-axis[m
+[32m+[m[32m        noalias(row(rBTorsion1, 3)) = normal_torsion_variation;   // Torsion n in row 1 (shear stress)[m
+[32m+[m[32m        noalias(row(rBTorsion2, 4)) = binormal_torsion_variation;   // Torsion v in row 2 (shear stress)[m
+[32m+[m[41m        [m
+[32m+[m[32m        KRATOS_CATCH("")[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m
+[32m+[m[32m    void NonLinearBernoulliBeamElement3D::ComputeGMatrices([m
+[32m+[m[32m        const IndexType IntegrationPointIndex,[m
+[32m+[m[32m        const KinematicVariables& rKinematicVariables,[m
+[32m+[m[32m        Matrix& rGAxial,[m
+[32m+[m[32m        Matrix& rGBending1,[m
+[32m+[m[32m        Matrix& rGBending2,[m
+[32m+[m[32m        Matrix& rGTorsion1,[m
+[32m+[m[32m        Matrix& rGTorsion2)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        KRATOS_TRY[m
+[32m+[m
+[32m+[m[32m        const auto& r_geometry = GetGeometry();[m
+[32m+[m
+[32m+[m[32m        // Get shape functions and derivatives at integration point[m
+[32m+[m[32m        Vector shape_functions = row(r_geometry.ShapeFunctionsValues(GetIntegrationMethod()), IntegrationPointIndex);[m
+[32m+[m[32m        Vector shape_function_derivatives = column(r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex, GetIntegrationMethod()), 0);[m
+[32m+[m[32m        Vector shape_function_second_derivatives = column(r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, GetIntegrationMethod()), 0);[m
+[32m+[m[41m        [m
+[32m+[m[32m        // Extract kinematic variables[m
+[32m+[m[32m        Vector3d current_first_base_vector = rKinematicVariables.r1;[m
+[32m+[m[32m        Vector3d current_second_base_vector = rKinematicVariables.r2;[m
+[32m+[m[32m        Vector3d reference_first_base_vector = rKinematicVariables.R1;[m
+[32m+[m[32m        Vector3d reference_second_base_vector = rKinematicVariables.R2;[m
+[32m+[m[32m        Vector3d reference_normal = rKinematicVariables.N0;[m
+[32m+[m[32m        Vector3d reference_binormal = rKinematicVariables.V0;[m
+[32m+[m[32m        double current_twist_angle = rKinematicVariables.phi;[m
+[32m+[m[32m        double current_twist_angle_derivative = rKinematicVariables.phi_der;[m
+[32m+[m[32m        double reference_twist_angle = rKinematicVariables.Phi;[m
+[32m+[m[32m        double reference_twist_angle_derivative = rKinematicVariables.Phi_der;[m
+[32m+[m[32m        Vector3d initial_reference_tangent = GetProperties()[T_0];[m
+[32m+[m
+[32m+[m[32m        // Compute curvature and torsion variations[m
+[32m+[m[32m        Matrix axial_second_variation(mNumberOfDofs, mNumberOfDofs);[m
+[32m+[m[32m        Matrix normal_curvature_second_variation(mNumberOfDofs, mNumberOfDofs);[m
+[32m+[m[32m        Matrix binormal_curvature_second_variation(mNumberOfDofs, mNumberOfDofs);[m
+[32m+[m[32m        Matrix normal_torsion_second_variation(mNumberOfDofs, mNumberOfDofs);[m
+[32m+[m[32m        Matrix binormal_torsion_second_variation(mNumberOfDofs, mNumberOfDofs);[m
+[32m+[m[32m        axial_second_variation.clear();[m
+[32m+[m[32m        normal_curvature_second_variation.clear();[m
+[32m+[m[32m        binormal_curvature_second_variation.clear();[m
+[32m+[m[32m        normal_torsion_second_variation.clear();[m
+[32m+[m[32m        binormal_torsion_second_variation.clear();[m
+[32m+[m
+[32m+[m[32m        //compute axial_variation[m
+[32m+[m[32m        for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)[m[41m [m
+[32m+[m[32m        {[m
+[32m+[m[32m            size_t dof_component = dof_index % mDofsPerNode;[m[41m [m
+[32m+[m[32m            size_t control_point_index = dof_index / mDofsPerNode;[m[41m     [m
+[32m+[m[32m            if (dof_component > 2)[m
+[32m+[m[32m                for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)[m
+[32m+[m[32m                    axial_second_variation(dof_index, second_dof_index) = 0.0;[m
+[32m+[m[32m            else[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    size_t second_dof_component = second_dof_index % mDofsPerNode;[m[41m [m
+[32m+[m[32m                    int second_control_point_index = second_dof_index / mDofsPerNode;[m[41m     [m
+[32m+[m[32m                    if (second_dof_component > 2)[m
+[32m+[m[32m                        axial_second_variation(dof_index, second_dof_index) = 0;[m
+[32m+[m[32m                    else[m
+[32m+[m[32m                        if (dof_component == second_dof_component)[m
+[32m+[m[32m                            axial_second_variation(dof_index, second_dof_index) = shape_function_derivatives[control_point_index] * shape_function_derivatives[second_control_point_index];[m
+[32m+[m[32m                        else[m
+[32m+[m[32m                            axial_second_variation(dof_index, second_dof_index) = 0;[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m[41m        [m
+[32m+[m[32m        //compute normal_curvature_second_variation, binormal_curvature_second_variation, normal_torsion_second_variation, binormal_torsion_second_variation[m
+[32m+[m[32m        Vector3d current_tangent;[m
+[32m+[m[32m        current_tangent.clear();[m
+[32m+[m[32m        Vector3d current_tangent_derivative;[m
+[32m+[m[32m        current_tangent_derivative.clear();[m
+[32m+[m[32m        Vector3d reference_tangent;[m
+[32m+[m[32m        reference_tangent.clear();[m
+[32m+[m[32m        Vector3d reference_tangent_derivative;[m
+[32m+[m[32m        reference_tangent_derivative.clear();[m
+[32m+[m[32m        Vector3d initial_reference_tangent_derivative;[m
+[32m+[m[32m        initial_reference_tangent_derivative.clear();[m
+[32m+[m[32m        Vector current_tangent_variation;[m
+[32m+[m[32m        Vector current_tangent_derivative_variation;[m
+[32m+[m[32m        Matrix current_tangent_second_variation;[m
+[32m+[m[32m        Matrix current_tangent_derivative_second_variation;[m
+[32m+[m[32m        Matrix3d current_lambda_matrix;[m
+[32m+[m[32m        Matrix3d current_lambda_matrix_derivative;[m
+[32m+[m[32m        Matrix3d reference_lambda_matrix;[m
+[32m+[m[32m        Matrix3d reference_lambda_matrix_derivative;[m
+[32m+[m[32m        Matrix3d current_rodrigues_matrix;[m
+[32m+[m[32m        Matrix3d current_rodrigues_matrix_derivative;[m
+[32m+[m[32m        Matrix3d reference_rodrigues_matrix;[m
+[32m+[m[32m        Matrix3d reference_rodrigues_matrix_derivative;[m
+[32m+[m
+[32m+[m[32m        current_tangent = current_first_base_vector / norm_2(current_first_base_vector);[m
+[32m+[m[32m        current_tangent_derivative = current_second_base_vector / norm_2(current_first_base_vector) - inner_prod(current_first_base_vector, current_second_base_vector) / pow(norm_2(current_first_base_vector), 3) * current_first_base_vector;[m
+[32m+[m[32m        reference_tangent = reference_first_base_vector / norm_2(reference_first_base_vector);[m
+[32m+[m[32m        reference_tangent_derivative = reference_second_base_vector / norm_2(reference_first_base_vector) - inner_prod(reference_first_base_vector, reference_second_base_vector) / pow(norm_2(reference_first_base_vector), 3) * reference_first_base_vector;[m
+[32m+[m[32m        ComputeTangentVariation(shape_function_derivatives, current_first_base_vector, current_tangent_variation);[m
+[32m+[m[32m        ComputeTangentDerivativeVariation(shape_function_derivatives, shape_function_second_derivatives, current_first_base_vector, current_second_base_vector, current_tangent_derivative_variation);[m
+[32m+[m[32m        ComputeTangentSecondVariation(shape_function_derivatives, current_first_base_vector, current_tangent_second_variation);[m
+[32m+[m[32m        ComputeTangentDerivativeSecondVariation(shape_function_derivatives, shape_function_second_derivatives, current_first_base_vector, current_second_base_vector, current_tangent_derivative_second_variation);[m
+[32m+[m
+[32m+[m[32m        ComputeLambdaMatrix(reference_tangent, current_tangent, current_lambda_matrix);[m
+[32m+[m[32m        ComputeLambdaMatrixDerivative(reference_tangent, current_tangent, reference_tangent_derivative, current_tangent_derivative, current_lambda_matrix_derivative);[m
+[32m+[m
+[32m+[m[32m        ComputeLambdaMatrix(initial_reference_tangent, reference_tangent, reference_lambda_matrix);[m
+[32m+[m[32m        ComputeLambdaMatrixDerivative(initial_reference_tangent, reference_tangent, initial_reference_tangent_derivative, reference_tangent_derivative, reference_lambda_matrix_derivative);[m
+[32m+[m[32m        ComputeLambdaMatrixVariations(reference_tangent, current_tangent, reference_tangent_derivative, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, current_tangent_second_variation, current_tangent_derivative_second_variation, mNumberOfDofs, mDofsPerNode, mSMatrixLambdaVariation, mSMatrixLambdaDerivativeVariation, mSMatrixLambdaSecondVariation, mSMatrixLambdaDerivativeSecondVariation);[m
+[32m+[m
+[32m+[m[32m        ComputeRodriguesMatrix(current_tangent, current_twist_angle, current_rodrigues_matrix);[m
+[32m+[m[32m        ComputeRodriguesMatrixDerivative(current_tangent, current_tangent_derivative, current_twist_angle, current_twist_angle_derivative, current_rodrigues_matrix_derivative);[m
+[32m+[m[32m        ComputeRodriguesMatrixVariation(current_tangent, current_tangent_variation, shape_functions, current_twist_angle, mNumberOfDofs, mDofsPerNode, mSMatrixRodriguesVariation);[m
+[32m+[m[32m        ComputeRodriguesMatrixDerivativeVariation(current_tangent, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, shape_functions, shape_function_derivatives, current_twist_angle, current_twist_angle_derivative, mNumberOfDofs, mDofsPerNode, mSMatrixRodriguesDerivativeVariation);[m
+[32m+[m[32m        ComputeRodriguesMatrixSecondVariation(current_tangent, current_tangent_variation, current_tangent_second_variation, shape_functions, current_twist_angle, mNumberOfDofs, mDofsPerNode, mSMatrixRodriguesSecondVariation);[m
+[32m+[m[32m        ComputeRodriguesMatrixDerivativeSecondVariation(current_tangent, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, current_tangent_second_variation, current_tangent_derivative_second_variation, shape_functions, shape_function_derivatives, current_twist_angle, current_twist_angle_derivative, mNumberOfDofs, mDofsPerNode, mSMatrixRodriguesDerivativeSecondVariation);[m
+[32m+[m
+[32m+[m[32m        ComputeRodriguesMatrix(reference_tangent, reference_twist_angle, reference_rodrigues_matrix);[m
+[32m+[m[32m        ComputeRodriguesMatrixDerivative(reference_tangent, reference_tangent_derivative, reference_twist_angle, reference_twist_angle_derivative, reference_rodrigues_matrix_derivative);[m
+[32m+[m
+[32m+[m[32m        Matrix3d reference_rodrigues_lambda_derivative_product;[m
+[32m+[m[32m        reference_rodrigues_lambda_derivative_product.clear();[m
+[32m+[m[32m        Matrix3d reference_rodrigues_derivative_lambda_product;[m
+[32m+[m[32m        reference_rodrigues_derivative_lambda_product.clear();[m
+[32m+[m[32m        Matrix3d reference_rodrigues_lambda_product;[m
+[32m+[m[32m        reference_rodrigues_lambda_product.clear();[m
+[32m+[m[32m        Matrix3d reference_rodrigues_lambda_product_derivative;[m
+[32m+[m[32m        reference_rodrigues_lambda_product_derivative.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t  row_component   = 0;row_component < 3;row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int column_component = 0;column_component < 3;column_component++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0;product_index < 3;product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    reference_rodrigues_lambda_product(row_component, column_component) += reference_rodrigues_matrix(row_component, product_index) * reference_lambda_matrix(product_index, column_component);[m
+[32m+[m[32m                    reference_rodrigues_lambda_derivative_product(row_component, column_component) += reference_rodrigues_matrix(row_component, product_index) * reference_lambda_matrix_derivative(product_index, column_component);[m
+[32m+[m[32m                    reference_rodrigues_derivative_lambda_product(row_component, column_component) += reference_rodrigues_matrix_derivative(row_component, product_index) * reference_lambda_matrix(product_index, column_component);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m[32m        reference_rodrigues_lambda_product_derivative = reference_rodrigues_lambda_derivative_product + reference_rodrigues_derivative_lambda_product;[m
+[32m+[m
+[32m+[m[32m        Matrix3d current_lambda_reference_rodrigues_lambda_derivative_product;[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_derivative_product.clear();[m
+[32m+[m[32m        Matrix3d current_lambda_reference_rodrigues_derivative_lambda_product;[m
+[32m+[m[32m        current_lambda_reference_rodrigues_derivative_lambda_product.clear();[m
+[32m+[m[32m        Matrix3d current_lambda_reference_rodrigues_lambda_product;[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_product.clear();[m
+[32m+[m[32m        Matrix3d current_lambda_derivative_reference_rodrigues_lambda_product;[m
+[32m+[m[32m        current_lambda_derivative_reference_rodrigues_lambda_product.clear();[m
+[32m+[m[32m        Matrix3d current_lambda_reference_rodrigues_lambda_product_derivative;[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_product_derivative.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t  row_component   = 0;row_component < 3;row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int column_component = 0;column_component < 3;column_component++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0;product_index < 3;product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    current_lambda_reference_rodrigues_lambda_product(row_component, column_component) += current_lambda_matrix(row_component, product_index) * reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    current_lambda_reference_rodrigues_lambda_derivative_product(row_component, column_component) += current_lambda_matrix(row_component, product_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);[m
+[32m+[m[32m                    current_lambda_reference_rodrigues_derivative_lambda_product(row_component, column_component) += current_lambda_matrix(row_component, product_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    current_lambda_derivative_reference_rodrigues_lambda_product(row_component, column_component) += current_lambda_matrix_derivative(row_component, product_index) * reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_product_derivative = current_lambda_reference_rodrigues_lambda_derivative_product + current_lambda_reference_rodrigues_derivative_lambda_product + current_lambda_derivative_reference_rodrigues_lambda_product;[m
+[32m+[m
+[32m+[m[32m        Matrix3d current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term;[m
+[32m+[m[32m        current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term.clear();[m
+[32m+[m[32m        Matrix3d current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term;[m
+[32m+[m[32m        current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term.clear();[m
+[32m+[m[32m        Matrix3d current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        Matrix3d current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        Matrix3d cross_section_transformation;[m
+[32m+[m[32m        cross_section_transformation.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t  row_component   = 0;row_component < 3;row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int column_component = 0;column_component < 3;column_component++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0;product_index < 3;product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);[m
+[32m+[m[32m                    current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term(row_component, column_component) += current_rodrigues_matrix_derivative(row_component, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    cross_section_transformation(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Matrix3d cross_section_transformation_derivative;[m
+[32m+[m[32m        cross_section_transformation_derivative.clear();[m
+[32m+[m[32m        cross_section_transformation_derivative = current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term + current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term + current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term + current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term;[m
+[32m+[m
+[32m+[m[41m        [m
+[32m+[m[32m        mSMatrixLambdaVariationRodriguesLambdaDerivative.clear();[m
+[32m+[m[32m        mSMatrixLambdaVariationRodriguesDerivativeLambda.clear();[m
+[32m+[m[32m        mSMatrixLambdaVariationRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixLambdaDerivativeVariationRodriguesLambda.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t  row_component   = 0;row_component < 3;row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int column_component = 0;column_component < 3;column_component++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0;product_index < 3;product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)[m
+[32m+[m[32m                    {[m
+[32m+[m[32m                        mSMatrixLambdaVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixLambdaVariationRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixLambdaVariationRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixLambdaDerivativeVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Matrix current_lambda_reference_rodrigues_lambda_product_derivative_variation;[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_product_derivative_variation.resize(3 * mNumberOfDofs, 3);[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_product_derivative_variation.clear();[m
+[32m+[m
+[32m+[m[32m        current_lambda_reference_rodrigues_lambda_product_derivative_variation = mSMatrixLambdaVariationRodriguesLambdaDerivative + mSMatrixLambdaVariationRodriguesDerivativeLambda + mSMatrixLambdaDerivativeVariationRodriguesLambda;[m
+[32m+[m
+[32m+[m[32m        mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative.clear();[m
+[32m+[m[32m        mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative.clear();[m
+[32m+[m[32m        mSMatrixRodriguesLambdaVariationRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixRodriguesVariationLambdaRodriguesLambda.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t  row_component   = 0;row_component < 3;row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int column_component = 0;column_component < 3;column_component++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0;product_index < 3;product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)[m
+[32m+[m[32m                    {[m
+[32m+[m[32m                        mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaVariationRodriguesLambdaDerivative(product_index * mNumberOfDofs + dof_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaVariationRodriguesDerivativeLambda(product_index * mNumberOfDofs + dof_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaDerivativeVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix_derivative(row_component, product_index) * mSMatrixLambdaVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesLambdaVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component);[m
+[32m+[m[32m                        mSMatrixRodriguesVariationLambdaRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[41m        [m
+[32m+[m[41m        [m
+[32m+[m[32m        mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation.clear();[m
+[32m+[m[32m        mSMatrixRodriguesLambdaRodriguesLambdaVariation.clear();[m
+[32m+[m[32m        mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation = mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative + mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda + mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda + mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda[m
+[32m+[m[32m            + mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative + mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda + mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda + mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda;[m
+[32m+[m[32m        mSMatrixRodriguesLambdaRodriguesLambdaVariation = mSMatrixRodriguesVariationLambdaRodriguesLambda + mSMatrixRodriguesLambdaVariationRodriguesLambda;[m
+[32m+[m
+[32m+[m[32m        mSMatrixLambdaSecondVariationRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixLambdaDerivativeSecondVariationRodriguesLambda.clear();[m
+[32m+[m[32m        mSMatrixLambdaSecondVariationRodriguesDerivativeLambda.clear();[m
+[32m+[m[32m        mSMatrixLambdaSecondVariationRodriguesLambdaDerivative.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t  row_component   = 0;row_component < 3;row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int column_component = 0;column_component < 3;column_component++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0;product_index < 3;product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)[m
+[32m+[m[32m                    {[m
+[32m+[m[32m                        for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)[m
+[32m+[m[32m                        {[m
+[32m+[m[32m                            mSMatrixLambdaSecondVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixLambdaSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                            mSMatrixLambdaDerivativeSecondVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixLambdaDerivativeSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                            mSMatrixLambdaSecondVariationRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixLambdaSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);[m
+[32m+[m[32m                            mSMatrixLambdaSecondVariationRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixLambdaSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);[m
+[32m+[m[32m                        }[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Matrix current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        Matrix current_rodrigues_lambda_derivative_second_variation_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        current_rodrigues_lambda_derivative_second_variation_reference_rodrigues_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_lambda_derivative_second_variation_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        Matrix current_rodrigues_lambda_second_variation_reference_rodrigues_derivative_lambda_term;[m
+[32m+[m[32m        current_rodrigues_lambda_second_variation_reference_rodrigues_derivative_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_lambda_second_variation_reference_rodrigues_derivative_lambda_term.clear();[m
+[32m+[m[32m        Matrix current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_derivative_term;[m
+[32m+[m[32m        current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_derivative_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_derivative_term.clear();[m
+[32m+[m
+[32m+[m[32m        Matrix current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        Matrix current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        Matrix current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term;[m
+[32m+[m[32m        current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term.clear();[m
+[32m+[m[32m        Matrix current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term;[m
+[32m+[m[32m        current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term.clear();[m
+[32m+[m
+[32m+[m[32m        Matrix current_rodrigues_derivative_second_variation_lambda_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        current_rodrigues_derivative_second_variation_lambda_reference_rodrigues_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_derivative_second_variation_lambda_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        Matrix current_rodrigues_second_variation_lambda_derivative_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        current_rodrigues_second_variation_lambda_derivative_reference_rodrigues_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_second_variation_lambda_derivative_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        Matrix current_rodrigues_second_variation_lambda_reference_rodrigues_derivative_lambda_term;[m
+[32m+[m[32m        current_rodrigues_second_variation_lambda_reference_rodrigues_derivative_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_second_variation_lambda_reference_rodrigues_derivative_lambda_term.clear();[m
+[32m+[m[32m        Matrix current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_derivative_term;[m
+[32m+[m[32m        current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_derivative_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_derivative_term.clear();[m
+[32m+[m[32m        Matrix current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        Matrix current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term.clear();[m
+[32m+[m[32m        Matrix current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_term;[m
+[32m+[m[32m        current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_term.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t  row_component   = 0;row_component < 3;row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int column_component = 0;column_component < 3;column_component++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0;product_index < 3;product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)[m
+[32m+[m[32m                    {[m
+[32m+[m[32m                        for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)[m
+[32m+[m[32m                        {[m
+[32m+[m[32m                            current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix_derivative(row_component, product_index) * mSMatrixLambdaSecondVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);[m
+[32m+[m[32m                            current_rodrigues_lambda_derivative_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaDerivativeSecondVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);[m
+[32m+[m[32m                            current_rodrigues_lambda_second_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaSecondVariationRodriguesDerivativeLambda(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);[m
+[32m+[m[32m                            current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaSecondVariationRodriguesLambdaDerivative(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);[m
+[32m+[m[32m                            current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * mSMatrixLambdaVariationRodriguesLambda(product_index * mNumberOfDofs + second_dof_index, column_component);[m
+[32m+[m[32m                            current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * mSMatrixLambdaDerivativeVariationRodriguesLambda(product_index * mNumberOfDofs + second_dof_index, column_component);[m
+[32m+[m[32m                            current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * mSMatrixLambdaVariationRodriguesDerivativeLambda(product_index * mNumberOfDofs + second_dof_index, column_component);[m
+[32m+[m[32m                            current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * mSMatrixLambdaVariationRodriguesLambdaDerivative(product_index * mNumberOfDofs + second_dof_index, column_component);[m
+[32m+[m[32m                            current_rodrigues_derivative_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesDerivativeSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                            current_rodrigues_second_variation_lambda_derivative_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                            current_rodrigues_second_variation_lambda_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);[m
+[32m+[m[32m                            current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);[m
+[32m+[m[32m                            current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaSecondVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);[m
+[32m+[m[32m                            current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * mSMatrixLambdaVariationRodriguesLambda(product_index * mNumberOfDofs + second_dof_index, column_component);[m
+[32m+[m[32m                            current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);[m
+[32m+[m[32m                        }[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Matrix cross_section_transformation_derivative_second_variation;[m
+[32m+[m[32m        cross_section_transformation_derivative_second_variation.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        cross_section_transformation_derivative_second_variation.clear();[m
+[32m+[m
+[32m+[m[32m        Vector3d normal_vector;[m
+[32m+[m[32m        normal_vector.clear();[m
+[32m+[m[32m        Vector3d binormal_vector;[m
+[32m+[m[32m        binormal_vector.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t  row_component   = 0;row_component < 3;row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int product_index = 0;product_index < 3;product_index++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                normal_vector(row_component) += cross_section_transformation(row_component, product_index) * reference_normal(product_index);[m
+[32m+[m[32m                binormal_vector(row_component) += cross_section_transformation(row_component, product_index) * reference_binormal(product_index);[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Vector normal_vector_variation;[m
+[32m+[m[32m        normal_vector_variation.resize(3 * mNumberOfDofs);[m
+[32m+[m[32m        normal_vector_variation.clear();[m
+[32m+[m[32m        Vector binormal_vector_variation;[m
+[32m+[m[32m        binormal_vector_variation.resize(3 * mNumberOfDofs);[m
+[32m+[m[32m        binormal_vector_variation.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t  row_component   = 0;row_component < 3;row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (int product_index = 0;product_index < 3;product_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    normal_vector_variation(row_component * mNumberOfDofs + dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index);[m
+[32m+[m[32m                    binormal_vector_variation(row_component * mNumberOfDofs + dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Matrix cross_section_transformation_second_variation;[m
+[32m+[m[32m        cross_section_transformation_second_variation.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);[m
+[32m+[m[32m        cross_section_transformation_second_variation.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t  row_component   = 0;row_component < 3;row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (int column_component = 0;column_component < 3;column_component++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)[m
+[32m+[m[32m                    {[m
+[32m+[m[32m                        cross_section_transformation_second_variation(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index) + current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);[m
+[32m+[m[32m                        cross_section_transformation_derivative_second_variation(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_lambda_derivative_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_lambda_second_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)[m
+[32m+[m[32m                            + current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)[m
+[32m+[m[32m                            + current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index) + current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index) + current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index) + current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index)[m
+[32m+[m[32m                            + current_rodrigues_derivative_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_second_variation_lambda_derivative_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_second_variation_lambda_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        Matrix normal_vector_second_variation;[m
+[32m+[m[32m        normal_vector_second_variation.resize(3 * mNumberOfDofs, mNumberOfDofs);[m
+[32m+[m[32m        normal_vector_second_variation.clear();[m
+[32m+[m[32m        Matrix binormal_vector_second_variation;[m
+[32m+[m[32m        binormal_vector_second_variation.resize(3 * mNumberOfDofs, mNumberOfDofs);[m
+[32m+[m[32m        binormal_vector_second_variation.clear();[m
+[32m+[m
+[32m+[m[32m        for (size_t  row_component   = 0;row_component < 3;row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    for (size_t  product_index = 0;product_index < 3;product_index++)[m
+[32m+[m[32m                    {[m
+[32m+[m[32m                        normal_vector_second_variation(row_component * mNumberOfDofs + dof_index, second_dof_index) += cross_section_transformation_second_variation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_normal(product_index);[m
+[32m+[m[32m                        binormal_vector_second_variation(row_component * mNumberOfDofs + dof_index, second_dof_index) += cross_section_transformation_second_variation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_binormal(product_index);[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        for (size_t  row_component   = 0;row_component < 3;row_component++)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            for (size_t  product_index = 0;product_index < 3;product_index++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)[m
+[32m+[m[32m                    {[m
+[32m+[m[32m                        normal_curvature_second_variation(dof_index, second_dof_index) += 0;[m
+[32m+[m[32m                        normal_curvature_second_variation(dof_index, second_dof_index) += 0;[m
+[32m+[m
+[32m+[m[32m                        normal_torsion_second_variation(dof_index, second_dof_index) += cross_section_transformation_derivative_second_variation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_binormal(product_index) * normal_vector(row_component)[m
+[32m+[m[32m                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index) * normal_vector_variation(row_component * mNumberOfDofs + second_dof_index)[m
+[32m+[m[32m                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + second_dof_index, product_index) * reference_binormal(product_index) * normal_vector_variation(row_component * mNumberOfDofs + dof_index)[m
+[32m+[m[32m                            + cross_section_transformation_derivative(row_component, product_index) * reference_binormal(product_index) * normal_vector_second_variation(row_component * mNumberOfDofs + dof_index, second_dof_index);[m
+[32m+[m
+[32m+[m[32m                        binormal_torsion_second_variation(dof_index, second_dof_index) += cross_section_transformation_derivative_second_variation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_normal(product_index) * binormal_vector(row_component)[m
+[32m+[m[32m                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index) * binormal_vector_variation(row_component * mNumberOfDofs + second_dof_index)[m
+[32m+[m[32m                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + second_dof_index, product_index) * reference_normal(product_index) * binormal_vector_variation(row_component * mNumberOfDofs + dof_index)[m
+[32m+[m[32m                            + cross_section_transformation_derivative(row_component, product_index) * reference_normal(product_index) * binormal_vector_second_variation(row_component * mNumberOfDofs + dof_index, second_dof_index);[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        // Initialize G matrices[m
+[32m+[m[32m        rGAxial.resize(mNumberOfDofs, mNumberOfDofs);[m
+[32m+[m[32m        rGBending1.resize(mNumberOfDofs, mNumberOfDofs);[m
+[32m+[m[32m        rGBending2.resize(mNumberOfDofs, mNumberOfDofs);[m
+[32m+[m[32m        rGTorsion1.resize(mNumberOfDofs, mNumberOfDofs);[m
+[32m+[m[32m        rGTorsion2.resize(mNumberOfDofs, mNumberOfDofs);[m
+[32m+[m[32m        rGAxial.clear();[m
+[32m+[m[32m        rGBending1.clear();[m
+[32m+[m[32m        rGBending2.clear();[m
+[32m+[m[32m        rGTorsion1.clear();[m
+[32m+[m[32m        rGTorsion2.clear();[m
+[32m+[m
+[32m+[m[32m        noalias(rGAxial) = axial_second_variation;[m
+[32m+[m[32m        noalias(rGBending1) = normal_curvature_second_variation;[m
+[32m+[m[32m        noalias(rGBending2) = binormal_curvature_second_variation;[m[41m  [m
+[32m+[m[32m        noalias(rGTorsion1) = normal_torsion_second_variation;[m[41m   [m
+[32m+[m[32m        noalias(rGTorsion1) = binormal_torsion_second_variation;[m[41m   [m
+[32m+[m[41m            [m
+[32m+[m[32m        KRATOS_CATCH("")[m
+[32m+[m[41m        [m
+[32m+[m[32m    }[m
+[32m+[m[32m}[m
+\ No newline at end of file[m

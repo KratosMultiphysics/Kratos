@@ -19,9 +19,10 @@
 //elements
 #include "custom_elements/truss_element.h"
 #include "custom_elements/truss_embedded_edge_element.h"
+#include "custom_elements/beam_base_element_3D.h"
+#include "custom_elements/non_linear_bernoulli_beam_element_3D.h"
 #include "custom_elements/beam_thin_element_2D.h"
 #include "custom_elements/beam_thick_element_2D.h"
-#include "custom_elements/non_linear_bernoulli_beam_element_3D.h"
 #include "custom_elements/iga_membrane_element.h"
 #include "custom_elements/shell_3p_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
@@ -61,6 +62,9 @@
 #include "custom_modelers/nurbs_geometry_modeler_sbm.h"
 #include "custom_modelers/nurbs_geometry_modeler_gap_sbm.h"
 #include "custom_modelers/import_nurbs_sbm_modeler.h"
+
+//constitutive
+#include "custom_constitutive/bernoulli_beam_elastic_constitutive_law.h"
 
 namespace Kratos {
 
@@ -136,9 +140,9 @@ private:
 
     const TrussElement mTrussElement;
     const TrussEmbeddedEdgeElement mTrussEmbeddedEdgeElement;
+    const NonLinearBernoulliBeamElement3D mNonLinearBernoulliBeamElement3D;
     const BeamThinElement2D mBeamThinElement2D;
     const BeamThickElement2D mBeamThickElement2D;
-    const BeamThickElement2D mBeamBernoulliElement3D;
     const IgaMembraneElement mIgaMembraneElement;
     const Shell3pElement mShell3pElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
@@ -178,6 +182,9 @@ private:
     const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
     const NurbsGeometryModelerGapSbm mNurbsGeometryModelerGapSbm;
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
+
+    // Constitutive Laws
+    const BernoulliBeamElasticConstitutiveLaw mBernoulliBeamElasticConstitutiveLaw;
 
     ///@}
     ///@name Private methods

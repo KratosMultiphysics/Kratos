@@ -14,6 +14,7 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
+#include "custom_processes/compute_beam_vectors_process.h"
 #include "custom_processes/output_quadrature_domain_process.h"
 #include "custom_processes/output_eigen_values_process.h"
 #include "custom_processes/nitsche_stabilization_model_part_process.h"
@@ -31,6 +32,14 @@ void AddCustomProcessesToPython(
     pybind11::module& m)
 {
     namespace py = pybind11;
+
+    py::class_<ComputeBeamVectorsProcess, ComputeBeamVectorsProcess::Pointer, Process>(
+        m, "ComputeBeamVectorsProcess")
+        .def(py::init<ModelPart&>())
+        .def(py::init<
+            ModelPart&,
+            const NurbsCurveGeometry<3, PointerVector<Node>>&>())
+        ;
 
     py::class_<OutputQuadratureDomainProcess, OutputQuadratureDomainProcess::Pointer, Process>(m, "OutputQuadratureDomainProcess")
         .def(py::init<Model&, Parameters >())
@@ -56,7 +65,6 @@ void AddCustomProcessesToPython(
     py::class_<AssignIgaExternalConditionsProcess, AssignIgaExternalConditionsProcess::Pointer, Process>(m, "AssignIgaExternalConditionsProcess")
         .def(py::init<Model&, Parameters >())
         ;
-
 }
 
 } // namespace Python

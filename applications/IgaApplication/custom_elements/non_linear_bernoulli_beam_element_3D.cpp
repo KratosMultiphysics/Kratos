@@ -178,97 +178,115 @@ namespace Kratos
     }
         
 
-    void NonLinearBernoulliBeamElement3D::CalculateAll(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag)
+void NonLinearBernoulliBeamElement3D::CalculateAll(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag)
+{
+    KRATOS_TRY
+
+    const auto& r_geometry = GetGeometry();
+    const auto& r_integration_points =
+        r_geometry.IntegrationPoints();
+
+    const int build_level = rCurrentProcessInfo.Has(BUILD_LEVEL)
+        ? rCurrentProcessInfo[BUILD_LEVEL]
+        : 0;
+
+    const bool calculate_material_stiffness =
+        build_level != 2;
+
+    const bool calculate_geometric_stiffness =
+        build_level != 1;
+
+    Vector stress_axial = ZeroVector(5);
+    Vector stress_bending_1 = ZeroVector(5);
+    Vector stress_bending_2 = ZeroVector(5);
+    Vector stress_torsion_1 = ZeroVector(5);
+    Vector stress_torsion_2 = ZeroVector(5);
+
+    // Temporary diagnostics for geometric stiffness entry (0, 5)
+    double debug_geo_axial = 0.0;
+    double debug_geo_bending_1 = 0.0;
+    double debug_geo_bending_2 = 0.0;
+    double debug_geo_torsion_1 = 0.0;
+    double debug_geo_torsion_2 = 0.0;
+
+    for (
+        IndexType point_number = 0;
+        point_number < r_integration_points.size();
+        ++point_number)
     {
-        KRATOS_TRY
+        // Compute kinematics and metric
+        KinematicVariables kinematic_variables(
+            GetGeometry().WorkingSpaceDimension());
 
-        const auto& r_geometry = GetGeometry();
-        const auto& r_integration_points =
-            r_geometry.IntegrationPoints();
+        CalculateKinematics(
+            point_number,
+            kinematic_variables);
 
-        Vector stress_axial = ZeroVector(5);
-        Vector stress_bending_1 = ZeroVector(5);
-        Vector stress_bending_2 = ZeroVector(5);
-        Vector stress_torsion_1 = ZeroVector(5);
-        Vector stress_torsion_2 = ZeroVector(5);
+        // Create constitutive law parameters
+        ConstitutiveLaw::Parameters constitutive_law_parameters(
+            GetGeometry(),
+            GetProperties(),
+            rCurrentProcessInfo);
 
-        for (
-            IndexType point_number = 0;
-            point_number < r_integration_points.size();
-            ++point_number)
-        {
-            // Compute kinematics and metric
-            KinematicVariables kinematic_variables(
-                GetGeometry().WorkingSpaceDimension());
+        ConstitutiveVariables constitutive_variables(5);
 
-            CalculateKinematics(
-                point_number,
-                kinematic_variables);
+        CalculateConstitutiveVariables(
+            point_number,
+            kinematic_variables,
+            constitutive_variables,
+            constitutive_law_parameters,
+            ConstitutiveLaw::StressMeasure_PK2);
 
-            // Create constitutive law parameters
-            ConstitutiveLaw::Parameters constitutive_law_parameters(
-                GetGeometry(),
-                GetProperties(),
-                rCurrentProcessInfo);
+        Matrix b_axial;
+        Matrix b_bending_1;
+        Matrix b_bending_2;
+        Matrix b_torsion_1;
+        Matrix b_torsion_2;
 
-            ConstitutiveVariables constitutive_variables(5);
+        ComputeBMatrices(
+            point_number,
+            kinematic_variables,
+            b_axial,
+            b_bending_1,
+            b_bending_2,
+            b_torsion_1,
+            b_torsion_2);
 
-            CalculateConstitutiveVariables(
-                point_number,
-                kinematic_variables,
-                constitutive_variables,
-                constitutive_law_parameters,
-                ConstitutiveLaw::StressMeasure_PK2);
+        Matrix g_axial;
+        Matrix g_bending_1;
+        Matrix g_bending_2;
+        Matrix g_torsion_1;
+        Matrix g_torsion_2;
 
-            Matrix b_axial;
-            Matrix b_bending_1;
-            Matrix b_bending_2;
-            Matrix b_torsion_1;
-            Matrix b_torsion_2;
+        ComputeGMatrices(
+            point_number,
+            kinematic_variables,
+            g_axial,
+            g_bending_1,
+            g_bending_2,
+            g_torsion_1,
+            g_torsion_2);
 
-            ComputeBMatrices(
-                point_number,
-                kinematic_variables,
-                b_axial,
-                b_bending_1,
-                b_bending_2,
-                b_torsion_1,
-                b_torsion_2);
+        // Assemble stiffness with cross-sectional scaling
+        const double integration_weight =
+            r_integration_points[point_number].Weight() *
+            kinematic_variables.A;
 
-            Matrix g_axial;
-            Matrix g_bending_1;
-            Matrix g_bending_2;
-            Matrix g_torsion_1;
-            Matrix g_torsion_2;
+        const double inverse_a2 =
+            1.0 /
+            (kinematic_variables.A *
+             kinematic_variables.A);
 
-            ComputeGMatrices(
-                point_number,
-                kinematic_variables,
-                g_axial,
-                g_bending_1,
-                g_bending_2,
-                g_torsion_1,
-                g_torsion_2);
+        const double inverse_a4 =
+            inverse_a2 * inverse_a2;
 
-            // Assemble stiffness with cross-sectional scaling
-            const double integration_weight =
-                r_integration_points[point_number].Weight() *
-                kinematic_variables.A;
-
-            const double inverse_a2 =
-                1.0 /
-                (kinematic_variables.A *
-                kinematic_variables.A);
-
-            const double inverse_a4 =
-                inverse_a2 * inverse_a2;
-
-            if (CalculateStiffnessMatrixFlag == true) {
+        if (CalculateStiffnessMatrixFlag == true) {
+            if (calculate_material_stiffness) {
                 // Material stiffness
                 rLeftHandSideMatrix +=
                     inverse_a4 *
@@ -314,6 +332,39 @@ namespace Kratos
                         Matrix(prod(
                             constitutive_variables.ConstitutiveMatrix,
                             b_torsion_2)));
+            }
+
+            if (calculate_geometric_stiffness) {
+                // Temporary diagnostic contributions for K_geo(0, 5)
+                debug_geo_axial +=
+                    inverse_a4 *
+                    integration_weight *
+                    g_axial(0, 5) *
+                    constitutive_variables.StressVector[0];
+
+                debug_geo_bending_1 +=
+                    inverse_a4 *
+                    integration_weight *
+                    g_bending_1(0, 5) *
+                    constitutive_variables.StressVector[1];
+
+                debug_geo_bending_2 +=
+                    inverse_a4 *
+                    integration_weight *
+                    g_bending_2(0, 5) *
+                    constitutive_variables.StressVector[2];
+
+                debug_geo_torsion_1 +=
+                    inverse_a2 *
+                    integration_weight *
+                    g_torsion_1(0, 5) *
+                    constitutive_variables.StressVector[3];
+
+                debug_geo_torsion_2 +=
+                    inverse_a2 *
+                    integration_weight *
+                    g_torsion_2(0, 5) *
+                    constitutive_variables.StressVector[4];
 
                 // Geometrical stiffness
                 rLeftHandSideMatrix +=
@@ -346,64 +397,109 @@ namespace Kratos
                     g_torsion_2 *
                     constitutive_variables.StressVector[4];
             }
-
-            if (CalculateResidualVectorFlag == true) {
-                // Map stress components to different behaviors
-                stress_axial[0] =
-                    constitutive_variables.StressVector[0];
-
-                stress_bending_1[1] =
-                    constitutive_variables.StressVector[1];
-
-                stress_bending_2[2] =
-                    constitutive_variables.StressVector[2];
-
-                stress_torsion_1[3] =
-                    constitutive_variables.StressVector[3];
-
-                stress_torsion_2[4] =
-                    constitutive_variables.StressVector[4];
-
-                // Assemble internal forces
-                rRightHandSideVector -=
-                    inverse_a4 *
-                    integration_weight *
-                    prod(
-                        trans(b_axial),
-                        stress_axial);
-
-                rRightHandSideVector -=
-                    inverse_a4 *
-                    integration_weight *
-                    prod(
-                        trans(b_bending_1),
-                        stress_bending_1);
-
-                rRightHandSideVector -=
-                    inverse_a4 *
-                    integration_weight *
-                    prod(
-                        trans(b_bending_2),
-                        stress_bending_2);
-
-                rRightHandSideVector -=
-                    inverse_a2 *
-                    integration_weight *
-                    prod(
-                        trans(b_torsion_1),
-                        stress_torsion_1);
-
-                rRightHandSideVector -=
-                    inverse_a2 *
-                    integration_weight *
-                    prod(
-                        trans(b_torsion_2),
-                        stress_torsion_2);
-            }
         }
 
-        KRATOS_CATCH("")
+        if (CalculateResidualVectorFlag == true) {
+            // Map stress components to different behaviors
+            stress_axial[0] =
+                constitutive_variables.StressVector[0];
+
+            stress_bending_1[1] =
+                constitutive_variables.StressVector[1];
+
+            stress_bending_2[2] =
+                constitutive_variables.StressVector[2];
+
+            stress_torsion_1[3] =
+                constitutive_variables.StressVector[3];
+
+            stress_torsion_2[4] =
+                constitutive_variables.StressVector[4];
+
+            // Assemble internal forces
+            rRightHandSideVector -=
+                inverse_a4 *
+                integration_weight *
+                prod(
+                    trans(b_axial),
+                    stress_axial);
+
+            rRightHandSideVector -=
+                inverse_a4 *
+                integration_weight *
+                prod(
+                    trans(b_bending_1),
+                    stress_bending_1);
+
+            rRightHandSideVector -=
+                inverse_a4 *
+                integration_weight *
+                prod(
+                    trans(b_bending_2),
+                    stress_bending_2);
+
+            rRightHandSideVector -=
+                inverse_a2 *
+                integration_weight *
+                prod(
+                    trans(b_torsion_1),
+                    stress_torsion_1);
+
+            rRightHandSideVector -=
+                inverse_a2 *
+                integration_weight *
+                prod(
+                    trans(b_torsion_2),
+                    stress_torsion_2);
+        }
     }
+
+    if (
+        CalculateStiffnessMatrixFlag &&
+        calculate_geometric_stiffness &&
+        build_level == 2)
+    {
+        std::cout
+            << "\n--- Geometric contribution (0,5) ---"
+            << std::endl;
+
+        std::cout
+            << "axial      = "
+            << debug_geo_axial
+            << std::endl;
+
+        std::cout
+            << "bending 1  = "
+            << debug_geo_bending_1
+            << std::endl;
+
+        std::cout
+            << "bending 2  = "
+            << debug_geo_bending_2
+            << std::endl;
+
+        std::cout
+            << "torsion 1  = "
+            << debug_geo_torsion_1
+            << std::endl;
+
+        std::cout
+            << "torsion 2  = "
+            << debug_geo_torsion_2
+            << std::endl;
+
+        std::cout
+            << "sum        = "
+            << debug_geo_axial +
+               debug_geo_bending_1 +
+               debug_geo_bending_2 +
+               debug_geo_torsion_1 +
+               debug_geo_torsion_2
+            << std::endl;
+    }
+
+    KRATOS_CATCH("")
+}
 
         
     int NonLinearBernoulliBeamElement3D::Check(
@@ -411,7 +507,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        Check(rCurrentProcessInfo);
+        BeamBaseElement3D::Check(rCurrentProcessInfo);
 
         const double numerical_limit =
             std::numeric_limits<double>::epsilon();
@@ -1845,8 +1941,23 @@ namespace Kratos
                 {
                     for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)
                     {
-                        normal_curvature_second_variation(dof_index, second_dof_index) += 0;
-                        normal_curvature_second_variation(dof_index, second_dof_index) += 0;
+                        const double first_base_vector_variation_dof =
+                            row_component == dof_index % mDofsPerNode
+                                ? shape_function_derivatives[dof_index / mDofsPerNode]
+                                : 0.0;
+
+                        const double first_base_vector_variation_second_dof =
+                            row_component == second_dof_index % mDofsPerNode
+                                ? shape_function_derivatives[second_dof_index / mDofsPerNode]
+                                : 0.0;
+
+                        normal_curvature_second_variation(dof_index, second_dof_index) += cross_section_transformation_derivative_second_variation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_normal(product_index) * current_first_base_vector(row_component)
+                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index) * first_base_vector_variation_second_dof
+                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + second_dof_index, product_index) * reference_normal(product_index) * first_base_vector_variation_dof;
+
+                        binormal_curvature_second_variation(dof_index, second_dof_index) += cross_section_transformation_derivative_second_variation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_binormal(product_index) * current_first_base_vector(row_component)
+                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index) * first_base_vector_variation_second_dof
+                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + second_dof_index, product_index) * reference_binormal(product_index) * first_base_vector_variation_dof;
 
                         normal_torsion_second_variation(dof_index, second_dof_index) += cross_section_transformation_derivative_second_variation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_binormal(product_index) * normal_vector(row_component)
                             + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index) * normal_vector_variation(row_component * mNumberOfDofs + second_dof_index)
@@ -1878,7 +1989,7 @@ namespace Kratos
         noalias(rGBending1) = normal_curvature_second_variation;
         noalias(rGBending2) = binormal_curvature_second_variation;  
         noalias(rGTorsion1) = normal_torsion_second_variation;   
-        noalias(rGTorsion1) = binormal_torsion_second_variation;   
+        noalias(rGTorsion2) = binormal_torsion_second_variation;   
             
         KRATOS_CATCH("")
         

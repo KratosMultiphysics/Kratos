@@ -8,9 +8,9 @@ from KratosMultiphysics import eigen_solver_factory
 class TestEigensystemSolver(KratosUnittest.TestCase):
 
     def _run_test(self, settings):
-        space = KratosMultiphysics.UblasSparseSpace()
+        space = KratosMultiphysics.SparseSpace()
 
-        K = KratosMultiphysics.CompressedMatrix()
+        K = KratosMultiphysics.SparseMatrix()
 
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
@@ -22,12 +22,10 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
         n = K.Size1()
         self.assertEqual(n, 900)
 
-        M = KratosMultiphysics.CompressedMatrix(n, n)
+        M = KratosMultiphysics.SparseMatrix(n, n)
 
         for i in range(n):
-            for j in range(n):
-                if (i == j):
-                    M[i, j] = 1.0
+            M[i, i] = 1.0
 
         # create result containers (they will be resized inside the solver)
         eigenvalues = KratosMultiphysics.Vector(n)
@@ -46,11 +44,11 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
 
         # test mass normalization of eigenvectors
         for i in range(eigenvectors.Size1()):
-            eigenvector = KratosMultiphysics.Vector(n)
+            eigenvector = KratosMultiphysics.SparseVector(n)
             for j in range(n):
                 eigenvector[j] = eigenvectors[i,j]
 
-            _aux = KratosMultiphysics.Vector(n)
+            _aux = KratosMultiphysics.SparseVector(n)
             space.Mult(M, eigenvector, _aux)
 
             value = 0.0

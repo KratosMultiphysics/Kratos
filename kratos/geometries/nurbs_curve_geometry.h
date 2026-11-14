@@ -751,6 +751,112 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
     }
+    
+    void ShapeFunctionsValuesAndCPIndices(
+        const CoordinatesArrayType& rCoordinates,
+        std::vector<IndexType>& rControlPointIndices,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr
+    ) const
+    {
+        const double u = rCoordinates[0];
+
+        KRATOS_WARNING_IF(
+            "ShapeFunctionsValuesAndCPIndices",
+            DerivativeOrder > mPolynomialDegree)
+            << "Requested derivative order (" << DerivativeOrder
+            << ") exceeds the polynomial degree (" << mPolynomialDegree
+            << "). Higher derivatives may be zero or undefined."
+            << std::endl;
+
+        NurbsCurveShapeFunction shape_function_container(
+            mPolynomialDegree,
+            DerivativeOrder + 1);
+
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(
+                mKnots,
+                mWeights,
+                u);
+        } else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(
+                mKnots,
+                u);
+        }
+
+        const SizeType number_of_nonzero_control_points =
+            shape_function_container.NumberOfNonzeroControlPoints();
+
+        const auto control_point_indices =
+            shape_function_container.GetNonzeroControlPointIndices();
+
+        rControlPointIndices.resize(control_point_indices.size());
+
+        for (IndexType i = 0; i < control_point_indices.size(); ++i) {
+            rControlPointIndices[i] =
+                this->pGetPoint(control_point_indices[i])->Id();
+        }
+
+        if (rShapeFunctionsValues.size() !=
+            number_of_nonzero_control_points) {
+            rShapeFunctionsValues.resize(
+                number_of_nonzero_control_points,
+                false);
+        }
+
+        for (IndexType i = 0;
+            i < number_of_nonzero_control_points;
+            ++i) {
+            rShapeFunctionsValues[i] =
+                shape_function_container(i, 0);
+        }
+
+        if (pShapeFunctionDerivatives == nullptr ||
+            DerivativeOrder == 0) {
+            return;
+        }
+
+        pShapeFunctionDerivatives->resize(DerivativeOrder);
+
+        for (IndexType derivative_order = 0;
+            derivative_order < DerivativeOrder;
+            ++derivative_order) {
+
+            Matrix& r_derivatives =
+                (*pShapeFunctionDerivatives)[derivative_order];
+
+            r_derivatives.resize(
+                number_of_nonzero_control_points,
+                1,
+                false);
+
+            const IndexType container_derivative_index =
+                derivative_order + 1;
+
+            for (IndexType i = 0;
+                i < number_of_nonzero_control_points;
+                ++i) {
+                r_derivatives(i, 0) =
+                    shape_function_container(
+                        i,
+                        container_derivative_index);
+            }
+        }
+    }
+
+    void SetInternals(
+    const PointsArrayType& rThisPoints,
+    const SizeType PolynomialDegree,
+    const Vector& rKnots,
+    const Vector& rWeights)
+    {
+        this->Points() = rThisPoints;
+        mPolynomialDegree = PolynomialDegree;
+        mKnots = rKnots;
+        mWeights = rWeights;
+    }
+
 
     ///@}
 private:
