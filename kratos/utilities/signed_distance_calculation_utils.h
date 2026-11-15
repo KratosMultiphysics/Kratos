@@ -145,7 +145,7 @@ public:
         BoundedMatrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N, distances;
         array_1d<double,TDim> grad_d;
-        array_1d<double,3> coord_on_0(3,0.0);
+        array_1d<double,3> coord_on_0 = CreateFilled<array_1d<double, 3>>(0.0);
         array_1d<double,3> temp;
         BoundedMatrix<double, TDim, TDim> free_surface_points;
 

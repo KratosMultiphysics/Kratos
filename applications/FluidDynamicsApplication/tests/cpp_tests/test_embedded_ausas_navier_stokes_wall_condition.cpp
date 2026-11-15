@@ -123,7 +123,7 @@ namespace Kratos
                 distances_vector(i) = r_geometry[i].FastGetSolutionStepValue(DISTANCE);
             }
             modelPart.Elements()[1].SetValue(ELEMENTAL_DISTANCES, distances_vector);
-            const array_1d<double, 3> edge_distances_vector(3, -1.0);
+            const array_1d<double, 3> edge_distances_vector = CreateFilled<array_1d<double, 3>>(-1.0);
             modelPart.Elements()[1].SetValue(ELEMENTAL_EDGE_DISTANCES, edge_distances_vector);
 
             // Find the nodal neighbours
@@ -242,7 +242,7 @@ namespace Kratos
                 distances_vector(i) = r_geometry[i].FastGetSolutionStepValue(DISTANCE);
             }
             modelPart.Elements()[1].SetValue(ELEMENTAL_DISTANCES, distances_vector);
-            const array_1d<double, 6> edge_distances_vector(6, -1.0);
+            const array_1d<double, 6> edge_distances_vector = CreateFilled<array_1d<double, 6>>(-1.0);
             modelPart.Elements()[1].SetValue(ELEMENTAL_EDGE_DISTANCES, edge_distances_vector);
 
             // Find the nodal neighbours

@@ -1597,7 +1597,7 @@ void CrBeamElement3D2N::AddExplicitContribution(
 
         for (IndexType i = 0; i < msNumberOfNodes; ++i) {
             double aux_nodal_mass = 0.0;
-            array_1d<double, 3> aux_nodal_inertia(3, 0.0);
+            array_1d<double, 3> aux_nodal_inertia = CreateFilled<array_1d<double, 3>>(0.0);
 
             const SizeType index = i * msLocalSize;
 

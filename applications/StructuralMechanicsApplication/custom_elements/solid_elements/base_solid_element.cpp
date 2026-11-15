@@ -932,7 +932,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     const GeometryType::IntegrationPointsArrayType &integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
 
     const SizeType number_of_integration_points = integration_points.size();
-    rOutput.assign(number_of_integration_points, array_1d<double, 3>(3, 0.0));
+    rOutput.assign(number_of_integration_points, CreateFilled<array_1d<double, 3>>(0.0));
 
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
@@ -980,7 +980,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     const GeometryType::IntegrationPointsArrayType &integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
 
     const SizeType number_of_integration_points = integration_points.size();
-    rOutput.assign(number_of_integration_points, array_1d<double, 6>(6, 0.0));
+    rOutput.assign(number_of_integration_points, CreateFilled<array_1d<double, 6>>(0.0));
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);

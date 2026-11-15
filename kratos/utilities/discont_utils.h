@@ -129,9 +129,9 @@ public:
 
         int n_negative_distance_nodes = 0;
         int n_positive_distance_nodes = 0;
-        array_1d<int,4> signs(4,-2); // [] = {-2, -2, -2, -2};
-        array_1d<int,4> negative_distance_nodes(4,-1); // [] = {-1, -1, -1, -1};
-        array_1d<int,4> positive_distance_nodes(4,-1); // [] = {-1, -1, -1, -1};
+        array_1d<int,4> signs = CreateFilled<array_1d<int, 4>>(-2); // [] = {-2, -2, -2, -2};
+        array_1d<int,4> negative_distance_nodes = CreateFilled<array_1d<int, 4>>(-1); // [] = {-1, -1, -1, -1};
+        array_1d<int,4> positive_distance_nodes = CreateFilled<array_1d<int, 4>>(-1); // [] = {-1, -1, -1, -1};
 
         //compute the gradient of the distance and normalize it
         array_1d<double, 3 > grad_d;

@@ -315,7 +315,7 @@ int FlexibleElasticIsotropic3D::Check(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    Vector N(rElementGeometry.size(), 1.0/rElementGeometry.size());
+    Vector N = CreateFilled<Vector>(1.0/rElementGeometry.size(), rElementGeometry.size());
     double E = rMaterialProperties.GetValue(YOUNG_MODULUS, rElementGeometry, N, rCurrentProcessInfo);
     KRATOS_ERROR_IF(E < 0.0) << "YOUNG_MODULUS is negative." << std::endl;
 

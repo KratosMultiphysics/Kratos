@@ -12,8 +12,8 @@ DynamicVMS<TDim>::DynamicVMS(IndexType NewId, const NodesArrayType &ThisNodes):
     mIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1)
 {
     unsigned int NumGauss = this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod);
-    mSubscaleVel.resize(NumGauss,array_1d<double,3>(3,0.0));
-    mOldSubscaleVel.resize(NumGauss,array_1d<double,3>(3,0.0));
+    mSubscaleVel.resize(NumGauss,CreateFilled<array_1d<double, 3>>(0.0));
+    mOldSubscaleVel.resize(NumGauss,CreateFilled<array_1d<double, 3>>(0.0));
     mIterCount.resize(NumGauss,0);
     this->CalculateGeometryData();
 }
@@ -25,8 +25,8 @@ DynamicVMS<TDim>::DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry):
     mIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1)
 {
     unsigned int NumGauss = this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod);
-    mSubscaleVel.resize(NumGauss,array_1d<double,3>(3,0.0));
-    mOldSubscaleVel.resize(NumGauss,array_1d<double,3>(3,0.0));
+    mSubscaleVel.resize(NumGauss,CreateFilled<array_1d<double, 3>>(0.0));
+    mOldSubscaleVel.resize(NumGauss,CreateFilled<array_1d<double, 3>>(0.0));
     mIterCount.resize(NumGauss,0);
     this->CalculateGeometryData();
 }
@@ -37,8 +37,8 @@ DynamicVMS<TDim>::DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry, c
     mIntegrationMethod(ThisIntegrationMethod)
 {
     unsigned int NumGauss = this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod);
-    mSubscaleVel.resize(NumGauss,array_1d<double,3>(3,0.0));
-    mOldSubscaleVel.resize(NumGauss,array_1d<double,3>(3,0.0));
+    mSubscaleVel.resize(NumGauss,CreateFilled<array_1d<double, 3>>(0.0));
+    mOldSubscaleVel.resize(NumGauss,CreateFilled<array_1d<double, 3>>(0.0));
     mIterCount.resize(NumGauss,0);
     this->CalculateGeometryData();
 }
@@ -49,8 +49,8 @@ DynamicVMS<TDim>::DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry, P
     mIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1)
 {
     unsigned int NumGauss = this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod);
-    mSubscaleVel.resize(NumGauss,array_1d<double,3>(3,0.0));
-    mOldSubscaleVel.resize(NumGauss,array_1d<double,3>(3,0.0));
+    mSubscaleVel.resize(NumGauss,CreateFilled<array_1d<double, 3>>(0.0));
+    mOldSubscaleVel.resize(NumGauss,CreateFilled<array_1d<double, 3>>(0.0));
     mIterCount.resize(NumGauss,0);
     this->CalculateGeometryData();
 }
@@ -62,8 +62,8 @@ DynamicVMS<TDim>::DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry, P
     mIntegrationMethod(ThisIntegrationMethod)
 {
     unsigned int NumGauss = this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod);
-    mSubscaleVel.resize(NumGauss,array_1d<double,3>(3,0.0));
-    mOldSubscaleVel.resize(NumGauss,array_1d<double,3>(3,0.0));
+    mSubscaleVel.resize(NumGauss,CreateFilled<array_1d<double, 3>>(0.0));
+    mOldSubscaleVel.resize(NumGauss,CreateFilled<array_1d<double, 3>>(0.0));
     mIterCount.resize(NumGauss,0);
     this->CalculateGeometryData();
 }

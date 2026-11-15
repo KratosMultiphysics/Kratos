@@ -13,6 +13,8 @@
 #pragma once
 
 // System includes
+#include <algorithm>
+#include <cstddef>
 #include <string>
 #include <iostream>
 
@@ -95,6 +97,43 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
+
+    /**
+     * @brief Set every entry of a dense container to a given value.
+     * @details Works for ublas::vector, ublas::matrix, ublas::bounded_matrix
+     *          and Kratos::array_1d. Intended to be called right after a
+     *          size-only construction, e.g. Vector a(n); SetValues(a, 0.0);
+     * @tparam TContainerType Dense container type.
+     * @param rContainer Container whose entries are overwritten.
+     * @param rValue Value assigned to every entry.
+     */
+    template <class TContainerType>
+    void SetValues(
+        TContainerType& rContainer,
+        const typename TContainerType::value_type& rValue)
+    {
+        std::fill(rContainer.data().begin(), rContainer.data().end(), rValue);
+    }
+
+    /**
+     * @brief Construct a dense container from its sizes and set every entry to a given value.
+     * @details Intended for const declarations, which cannot be filled after construction:
+     *          const Vector a = CreateFilled<Vector>(1.0, n);
+     * @tparam TContainerType Dense container type.
+     * @tparam TSizes Types of the size arguments forwarded to the size constructor.
+     * @param rValue Value assigned to every entry.
+     * @param rSizes Sizes forwarded to the container constructor.
+     * @return The filled container.
+     */
+    template <class TContainerType, class... TSizes>
+    TContainerType CreateFilled(
+        const typename TContainerType::value_type& rValue,
+        const TSizes... rSizes)
+    {
+        TContainerType container(rSizes...);
+        SetValues(container, rValue);
+        return container;
+    }
 
 ///@}
 ///@name Kratos Classes

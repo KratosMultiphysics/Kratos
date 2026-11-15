@@ -428,7 +428,7 @@ protected:
 
         // Initialize the ELEMENTAL_DISTANCES variable (make it threadsafe)
         if (!this->Has(ELEMENTAL_DISTANCES)) {
-            Vector zero_vector(TNumNodes, 0.0);
+            Vector zero_vector = CreateFilled<Vector>(0.0, TNumNodes);
             this->SetValue(ELEMENTAL_DISTANCES, zero_vector);
         }
 

@@ -104,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementsArrayWrite, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(XmlAsciiNDDataElementChar, KratosCoreFastSuite)
 {
-    DenseVector<unsigned int> shape(2, 0);
+    DenseVector<unsigned int> shape = CreateFilled<DenseVector<unsigned int>>(0, 2);
     shape[0] = 5; shape[1] = 3;
     auto char_nd_data_1 = Kratos::make_shared<NDData<unsigned char>>(shape);
     auto char_nd_data_1_view = char_nd_data_1->ViewData();
@@ -125,7 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlAsciiNDDataElementChar, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(XmlAsciiNDDataElementInt, KratosCoreFastSuite)
 {
-    DenseVector<unsigned int> shape(2, 0);
+    DenseVector<unsigned int> shape = CreateFilled<DenseVector<unsigned int>>(0, 2);
     shape[0] = 5; shape[1] = 3;
     auto char_nd_data_1 = Kratos::make_shared<NDData<int>>(shape);
     auto char_nd_data_1_view = char_nd_data_1->ViewData();
@@ -146,7 +146,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlAsciiNDDataElementInt, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(XmlAsciiNDDataElementDouble, KratosCoreFastSuite)
 {
-    DenseVector<unsigned int> shape(2, 0);
+    DenseVector<unsigned int> shape = CreateFilled<DenseVector<unsigned int>>(0, 2);
     shape[0] = 5; shape[1] = 3;
     auto char_nd_data_1 = Kratos::make_shared<NDData<double>>(shape);
     auto char_nd_data_1_view = char_nd_data_1->ViewData();
@@ -167,7 +167,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlAsciiNDDataElementDouble, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(XmlBase64BinaryNDDataElementChar, KratosCoreFastSuite)
 {
-    DenseVector<unsigned int> shape(2, 0);
+    DenseVector<unsigned int> shape = CreateFilled<DenseVector<unsigned int>>(0, 2);
     shape[0] = 5; shape[1] = 3;
     auto char_nd_data_1 = Kratos::make_shared<NDData<unsigned char>>(shape);
     auto char_nd_data_1_view = char_nd_data_1->ViewData();
@@ -188,7 +188,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlBase64BinaryNDDataElementChar, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(XmlBase64BinaryNDDataElementInt, KratosCoreFastSuite)
 {
-    DenseVector<unsigned int> shape(2, 0);
+    DenseVector<unsigned int> shape = CreateFilled<DenseVector<unsigned int>>(0, 2);
     shape[0] = 5; shape[1] = 3;
     auto char_nd_data_1 = Kratos::make_shared<NDData<int>>(shape);
     auto char_nd_data_1_view = char_nd_data_1->ViewData();
@@ -209,7 +209,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlBase64BinaryNDDataElementInt, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(XmlBase64BinaryNDDataElementDouble, KratosCoreFastSuite)
 {
-    DenseVector<unsigned int> shape(2, 0);
+    DenseVector<unsigned int> shape = CreateFilled<DenseVector<unsigned int>>(0, 2);
     shape[0] = 5; shape[1] = 3;
     auto char_nd_data_1 = Kratos::make_shared<NDData<double>>(shape);
     auto char_nd_data_1_view = char_nd_data_1->ViewData();

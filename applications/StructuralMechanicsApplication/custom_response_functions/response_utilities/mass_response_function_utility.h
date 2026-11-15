@@ -164,7 +164,7 @@ public:
 			}
 
 			// Compute sensitivities using finite differencing in the three spatial direction
-			array_3d gradient(3, 0.0);
+			array_3d gradient = CreateFilled<array_3d>(0.0);
 
 			// Apply pertubation in X-direction and recompute total mass of all neighbor elements
 			double mass_after_fd = 0.0;

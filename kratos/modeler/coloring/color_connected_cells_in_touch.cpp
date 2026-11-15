@@ -62,8 +62,8 @@ void ColorConnectedCellsInTouch::ApplyColorToConnectedCellsInTouchWithGeometry(
     const int CellColor
     ) const
 {
-    array_1d<std::size_t, 3> min_position(3,0);
-    array_1d<std::size_t, 3> max_position(3,0);
+    array_1d<std::size_t, 3> min_position = CreateFilled<array_1d<std::size_t, 3>>(0);
+    array_1d<std::size_t, 3> max_position = CreateFilled<array_1d<std::size_t, 3>>(0);
     CartesianMeshColors& r_colors = GetMeshColors();
     r_colors.CalculateOuterMinMaxNodePositions(rGeometry, min_position, max_position);
     for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){

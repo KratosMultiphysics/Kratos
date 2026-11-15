@@ -46,7 +46,7 @@ KRATOS_TEST_CASE_IN_SUITE(UblasSpaceNormDenseMatrix, KratosCoreFastSuite)
 {
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     const std::size_t size = 10;
-    LocalSpaceType::MatrixType mat(size, size, 0.0);
+    LocalSpaceType::MatrixType mat = CreateFilled<LocalSpaceType::MatrixType>(0.0, size, size);
 
     for (std::size_t i=0; i<mat.size1(); ++i)	{
         mat(i,i) = 4.5;

@@ -513,7 +513,7 @@ void AddFields(
             auto all_ta_shapes = rDataCommunicator.AllGatherv(communicated_shape);
 
             // find a data shape from some rank which has non-empty container
-            DenseVector<unsigned int> ref_ta_shape(max_number_of_dimensions, 0);
+            DenseVector<unsigned int> ref_ta_shape = CreateFilled<DenseVector<unsigned int>>(0, max_number_of_dimensions);
             for (const auto& rank_shape : all_ta_shapes) {
                 if (rank_shape[0] != 0) {
                     std::copy(rank_shape.begin() + 1, rank_shape.end(), ref_ta_shape.begin() + 1);

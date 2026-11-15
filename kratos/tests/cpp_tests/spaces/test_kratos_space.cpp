@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormSparseMatrix, KratosCoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(KratosSpaceNormDenseMatrix, KratosCoreFastSuite)
 {
     const SparseSpaceTestingInternals::IndexType size = 10;
-    SparseSpaceTestingInternals::LocalSpaceType::MatrixType mat(size, size, 0.0);
+    SparseSpaceTestingInternals::LocalSpaceType::MatrixType mat = CreateFilled<SparseSpaceTestingInternals::LocalSpaceType::MatrixType>(0.0, size, size);
 
     for (std::size_t i=0; i<mat.size1(); ++i)	{
         mat(i,i) = 4.5;

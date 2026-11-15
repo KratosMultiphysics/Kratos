@@ -92,9 +92,9 @@ namespace Kratos
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
         // initialization of shear difference vector
-        array_1d<double, 3> w(3, 0.0);  // shear difference vector
-        array_1d<double, 3> Dw_D1(3, 0.0), Dw_D2(3, 0.0);   // derivatives of the shear difference vector
-        array_1d<double, 2> w_alpha(2, 0.0);    // components w_alpha of the shear difference vector which calculates as (w_alpha(1) * a1 + w_alpha(2) * a2)
+        array_1d<double, 3> w = CreateFilled<array_1d<double, 3>>(0.0);  // shear difference vector
+        array_1d<double, 3> Dw_D1 = CreateFilled<array_1d<double, 3>>(0.0), Dw_D2 = CreateFilled<array_1d<double, 3>>(0.0);   // derivatives of the shear difference vector
+        array_1d<double, 2> w_alpha = CreateFilled<array_1d<double, 2>>(0.0);    // components w_alpha of the shear difference vector which calculates as (w_alpha(1) * a1 + w_alpha(2) * a2)
         Matrix Dw_alpha_Dbeta = ZeroMatrix(2, 2);   // derivatives of the components w_alpha (lines = component w_alpha; columns = coorindates for which the component is derived)
 
         // computation of actual metric and shear difference vector
@@ -111,7 +111,7 @@ namespace Kratos
             mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
             
             // Differential Volume
-            array_1d<double, 3> G1(3, 0.0), G2(3, 0.0), G1_con(3, 0.0), G2_con(3, 0.0);
+            array_1d<double, 3> G1 = CreateFilled<array_1d<double, 3>>(0.0), G2 = CreateFilled<array_1d<double, 3>>(0.0), G1_con = CreateFilled<array_1d<double, 3>>(0.0), G2_con = CreateFilled<array_1d<double, 3>>(0.0);
             CalculateInitialBaseVectorsLinearised(G1, G2, G1_con, G2_con);
             double dV = inner_prod(MathUtils<double>::CrossProduct(G1, G2), mInitialMetric.a3_kirchhoff_love);   // mInitialMetric.a3_kirchhoff_love = G3
 
@@ -380,8 +380,8 @@ namespace Kratos
     {
         double thickness = GetProperties()[THICKNESS];
         
-        array_1d<double, 3> DA3_D1(3, 0.0), DA3_D2(3, 0.0), DA1_D1xA2(3, 0.0), A1xDA2_D1(3, 0.0), DA1_D2xA2(3, 0.0), A1xDA2_D2(3, 0.0), 
-            G1xG2(3, 0.0), G_ab(3, 0.0), G_ab_con(3, 0.0);
+        array_1d<double, 3> DA3_D1 = CreateFilled<array_1d<double, 3>>(0.0), DA3_D2 = CreateFilled<array_1d<double, 3>>(0.0), DA1_D1xA2 = CreateFilled<array_1d<double, 3>>(0.0), A1xDA2_D1 = CreateFilled<array_1d<double, 3>>(0.0), DA1_D2xA2 = CreateFilled<array_1d<double, 3>>(0.0), A1xDA2_D2 = CreateFilled<array_1d<double, 3>>(0.0), 
+            G1xG2 = CreateFilled<array_1d<double, 3>>(0.0), G_ab = CreateFilled<array_1d<double, 3>>(0.0), G_ab_con = CreateFilled<array_1d<double, 3>>(0.0);
 
         MathUtils<double>::CrossProduct(DA1_D1xA2, mInitialMetric.Da1_D1, mInitialMetric.a2);
         MathUtils<double>::CrossProduct(A1xDA2_D1, mInitialMetric.a1, mInitialMetric.Da1_D2); // DA1_D2 = DA2_D1
@@ -428,8 +428,8 @@ namespace Kratos
 
         double DdA_D1 = 0.0;
         double DdA_D2 = 0.0;
-        array_1d<double, 3> Da1xa2_D1(3, 0.0), Da1xa2_D2(3, 0.0);
-        array_1d<double, 3> Da3_KL_D1(3, 0.0), Da3_KL_D2(3, 0.0);
+        array_1d<double, 3> Da1xa2_D1 = CreateFilled<array_1d<double, 3>>(0.0), Da1xa2_D2 = CreateFilled<array_1d<double, 3>>(0.0);
+        array_1d<double, 3> Da3_KL_D1 = CreateFilled<array_1d<double, 3>>(0.0), Da3_KL_D2 = CreateFilled<array_1d<double, 3>>(0.0);
 
         // derivatives of a3_kirchhoff_love w.r.t. theta_alpha
         // derivative of a3_kirchhoff_love w.r.t. theta1: (a1xa2)'= a1'xa2 + a1xa2'
@@ -479,19 +479,19 @@ namespace Kratos
         rdetF = 0.0;
 
         // Covariant metric
-        array_1d<double, 3> G_ab(3, 0.0);
+        array_1d<double, 3> G_ab = CreateFilled<array_1d<double, 3>>(0.0);
         G_ab[0] = pow(mInitialMetric.a1[0], 2) + pow(mInitialMetric.a1[1], 2) + pow(mInitialMetric.a1[2], 2);
         G_ab[1] = pow(mInitialMetric.a2[0], 2) + pow(mInitialMetric.a2[1], 2) + pow(mInitialMetric.a2[2], 2);
         G_ab[2] = mInitialMetric.a1[0] * mInitialMetric.a2[0] + mInitialMetric.a1[1] * mInitialMetric.a2[1] 
             + mInitialMetric.a1[2] * mInitialMetric.a2[2];
         // Contravariant metric
-        array_1d<double, 3> G_ab_con(3, 0.0);
+        array_1d<double, 3> G_ab_con = CreateFilled<array_1d<double, 3>>(0.0);
         double inv_detG_ab = 1.0 / (G_ab[0] * G_ab[1] - G_ab[2] * G_ab[2]);
         G_ab_con[0] = inv_detG_ab * G_ab[1];
         G_ab_con[2] = -inv_detG_ab * G_ab[2];
         G_ab_con[1] = inv_detG_ab * G_ab[0];
         // Contravariant base vectors
-        array_1d<double, 3> G1_con(3, 0.0), G2_con(3, 0.0);
+        array_1d<double, 3> G1_con = CreateFilled<array_1d<double, 3>>(0.0), G2_con = CreateFilled<array_1d<double, 3>>(0.0);
         G1_con = rG1 * G_ab_con[0] + rG2 * G_ab_con[2];
         G2_con = rG1 * G_ab_con[2] + rG2 * G_ab_con[1];
     
@@ -513,7 +513,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        array_1d<double, 5> strain_vector(5, 0.0), strain_vector_reissner_mindlin(5, 0.0);
+        array_1d<double, 5> strain_vector = CreateFilled<array_1d<double, 5>>(0.0), strain_vector_reissner_mindlin = CreateFilled<array_1d<double, 5>>(0.0);
         
         // Strain computation in curvilinear space
         CalculateStrain(strain_vector, rActualMetric.a_ab, rActualMetric.curvature);
@@ -634,7 +634,7 @@ namespace Kratos
             int kr = r / 5;
             int dirr = r % 5;
 
-            array_1d<double, 3> dE_curvilinear(3, 0.0);
+            array_1d<double, 3> dE_curvilinear = CreateFilled<array_1d<double, 3>>(0.0);
             // "if" guarantees that there are zero entries corresponding to the new parameters w_1 and w_2
             if (dirr == 0 || dirr == 1 || dirr == 2)
             {
@@ -742,7 +742,7 @@ namespace Kratos
             unsigned int kr = r / 3;
             unsigned int dirr = r % 3;
 
-            array_1d<double, 3> S_dg_1(3, 0.0), S_dg_2(3, 0.0);
+            array_1d<double, 3> S_dg_1 = CreateFilled<array_1d<double, 3>>(0.0), S_dg_2 = CreateFilled<array_1d<double, 3>>(0.0);
             S_dg_1(dirr) = r_DN_De(kr, 0);
             S_dg_2(dirr) = r_DN_De(kr, 1);
 
@@ -773,7 +773,7 @@ namespace Kratos
                 unsigned int dirs = s % 3;
 
                 // strain
-                array_1d<double, 3> ddE_cu(3, 0.0);
+                array_1d<double, 3> ddE_cu = CreateFilled<array_1d<double, 3>>(0.0);
                 if (dirr == dirs)
                 {
                     ddE_cu[0] = r_DN_De(kr, 0)* r_DN_De(ks, 0);
@@ -788,7 +788,7 @@ namespace Kratos
                 }
 
                 // curvature
-                array_1d<double, 3> ddg3(3, 0.0);
+                array_1d<double, 3> ddg3 = CreateFilled<array_1d<double, 3>>(0.0);
                 int dirt = 4 - dirr - dirs;
                 int ddir = dirr - dirs;
                 if (ddir == -1)      ddg3(dirt - 1) =  r_DN_De(kr, 0) * r_DN_De(ks, 1) - r_DN_De(ks, 0) * r_DN_De(kr, 1);
@@ -802,12 +802,12 @@ namespace Kratos
 
                 double d = 3.0*S_g3dg3[r] * S_g3dg3[s] * inv_lg3_5;
 
-                array_1d<double, 3> ddn(3, 0.0);
+                array_1d<double, 3> ddn = CreateFilled<array_1d<double, 3>>(0.0);
                 ddn[0] = ddg3[0] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(0, r) - S_g3dg3lg3_3[r] * S_dg3(0, s) + (c + d)*rActualMetric.a3_kirchhoff_love_tilde[0];
                 ddn[1] = ddg3[1] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(1, r) - S_g3dg3lg3_3[r] * S_dg3(1, s) + (c + d)*rActualMetric.a3_kirchhoff_love_tilde[1];
                 ddn[2] = ddg3[2] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(2, r) - S_g3dg3lg3_3[r] * S_dg3(2, s) + (c + d)*rActualMetric.a3_kirchhoff_love_tilde[2];
 
-                array_1d<double, 3> ddK_cu(3, 0.0);
+                array_1d<double, 3> ddK_cu = CreateFilled<array_1d<double, 3>>(0.0);
                 ddK_cu[0] = - mZeta * thickness / 2.0 * (r_DDN_DDe(kr, 0)*S_dn(dirr, s) + r_DDN_DDe(ks, 0)*S_dn(dirs, r)
                     + rActualMetric.H(0, 0)*ddn[0] + rActualMetric.H(1, 0)*ddn[1] + rActualMetric.H(2, 0)*ddn[2]);
                 ddK_cu[1] = - mZeta * thickness / 2.0 * (r_DDN_DDe(kr, 2)*S_dn(dirr, s) + r_DDN_DDe(ks, 2)*S_dn(dirs, r)
@@ -1109,11 +1109,11 @@ namespace Kratos
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
         
         // shear difference vector
-        array_1d<double, 3> w(3, 0.0);
+        array_1d<double, 3> w = CreateFilled<array_1d<double, 3>>(0.0);
         // derivatives of the shear difference vector
-        array_1d<double, 3> Dw_D1(3, 0.0), Dw_D2(3, 0.0);
+        array_1d<double, 3> Dw_D1 = CreateFilled<array_1d<double, 3>>(0.0), Dw_D2 = CreateFilled<array_1d<double, 3>>(0.0);
         // components w_alpha of the shear difference vector which calculates as (w_alpha(1) * a1 + w_alpha(2) * a2)
-        array_1d<double, 2> w_alpha(2, 0.0);
+        array_1d<double, 2> w_alpha = CreateFilled<array_1d<double, 2>>(0.0);
         // derivatives of the components w_alpha
         Matrix Dw_alpha_Dbeta = ZeroMatrix(2, 2);
 
@@ -1131,7 +1131,7 @@ namespace Kratos
         {
             mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
-            array_1d<double, 3> G1(3, 0.0), G2(3, 0.0), G1_con(3, 0.0), G2_con(3, 0.0), g1(3, 0.0), g2(3, 0.0), g3(3, 0.0);
+            array_1d<double, 3> G1 = CreateFilled<array_1d<double, 3>>(0.0), G2 = CreateFilled<array_1d<double, 3>>(0.0), G1_con = CreateFilled<array_1d<double, 3>>(0.0), G2_con = CreateFilled<array_1d<double, 3>>(0.0), g1 = CreateFilled<array_1d<double, 3>>(0.0), g2 = CreateFilled<array_1d<double, 3>>(0.0), g3 = CreateFilled<array_1d<double, 3>>(0.0);
             Matrix F = ZeroMatrix(3, 3);
             double detF = 0.0;
             CalculateInitialBaseVectorsLinearised(G1, G2, G1_con, G2_con);

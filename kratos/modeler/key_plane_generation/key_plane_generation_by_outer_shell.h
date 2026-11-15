@@ -47,7 +47,7 @@ public:
 
         auto dx = parameters["voxel_sizes"].GetVector();
         // Now we find the min and max value for the node coordinates
-        Vector min_v(3,std::numeric_limits<double>::max()), max_v(3, -std::numeric_limits<double>::max());
+        Vector min_v = CreateFilled<Vector>(std::numeric_limits<double>::max(), 3), max_v = CreateFilled<Vector>(-std::numeric_limits<double>::max(), 3);
         for(auto& node: GetInputModelPart().Nodes()){
             double x = node.X(), y = node.Y(), z = node.Z();
             min_v[0] = std::min(min_v[0], x); max_v[0] = std::max(max_v[0], x);

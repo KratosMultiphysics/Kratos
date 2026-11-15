@@ -169,7 +169,7 @@ public:
             rOutputStream << rElement.Id() << rSeparator << g << rSeparator;
 
             // Print integration point coordinates
-            array_1d<double,3> coordinates(3,0.0);
+            array_1d<double,3> coordinates = CreateFilled<array_1d<double, 3>>(0.0);
             for (unsigned int n = 0; n < shape_functions.size2(); n++)
                 coordinates += shape_functions(g,n) * r_geometry[n].Coordinates();
             rOutputStream << coordinates[0] << rSeparator << coordinates[1] << rSeparator << coordinates[2];

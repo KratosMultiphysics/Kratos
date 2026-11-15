@@ -24,7 +24,7 @@ KRATOS_TEST_CASE_IN_SUITE(DebugHelpersKRATOS_WATCH_VECTOR_WITH_PRECISION, Kratos
 {
     // This test is added merely to check debug_helpers.h is compilable since this header is not supposed to be
     // included in any of the production codes.
-    Vector temp(1, 10.0);
+    Vector temp = CreateFilled<Vector>(10.0, 1);
     KRATOS_WATCH_VECTOR_WITH_PRECISION(temp, 12);
 }
 
@@ -32,7 +32,7 @@ KRATOS_TEST_CASE_IN_SUITE(DebugHelpersKRATOS_WATCH_MATRIX_WITH_PRECISION, Kratos
 {
     // This test is added merely to check debug_helpers.h is compilable since this header is not supposed to be
     // included in any of the production codes.    
-    Matrix temp(1, 1, 10.0);
+    Matrix temp = CreateFilled<Matrix>(10.0, 1, 1);
     KRATOS_WATCH_MATRIX_WITH_PRECISION(temp, 12);
 }
 } // namespace Testing

@@ -80,7 +80,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::Initialize(const ProcessIn
 
     // Initialize the ELEMENTAL_DISTANCES variable (make it threadsafe)
     if (!this->Has(ELEMENTAL_DISTANCES)) {
-        Vector zero_vector(NumNodes, 0.0);
+        Vector zero_vector = CreateFilled<Vector>(0.0, NumNodes);
         this->SetValue(ELEMENTAL_DISTANCES, zero_vector);
     }
 

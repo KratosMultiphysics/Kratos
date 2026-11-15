@@ -77,7 +77,7 @@ void CheckFractionalStepDiscontinuousEmbeddedVelocity(const int FractionalStep)
     p_element->SetValue(SPLIT_ELEMENT, true);
     p_element->Set(SLIP, false);
     p_element->SetValue(C_SMAGORINSKY, 0.0);
-    Vector distances(TDim + 1, 0.5);
+    Vector distances = CreateFilled<Vector>(0.5, TDim + 1);
     distances[TDim] = -0.5;
     p_element->SetValue(ELEMENTAL_DISTANCES, distances);
 

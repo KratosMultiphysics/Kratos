@@ -51,7 +51,7 @@ namespace Kratos
             auto point_locator = BinBasedFastPointLocator<2>(this_model_part);
             point_locator.UpdateSearchDatabase();
 
-            array_1d<double, 3> coordinates(3, 0.0);
+            array_1d<double, 3> coordinates = CreateFilled<array_1d<double, 3>>(0.0);
             coordinates[0] = 0.5;
             coordinates[1] = 0.5;
             Vector shape_functions;
@@ -94,7 +94,7 @@ namespace Kratos
             auto point_locator = BinBasedFastPointLocator<3>(this_model_part);
             point_locator.UpdateSearchDatabase();
 
-            array_1d<double, 3> coordinates(3, 0.0);
+            array_1d<double, 3> coordinates = CreateFilled<array_1d<double, 3>>(0.0);
             coordinates[0] = 0.5;
             coordinates[1] = 0.5;
             coordinates[2] = 0.5;
@@ -140,7 +140,7 @@ namespace Kratos
             auto point_locator = BinBasedFastPointLocatorConditions<3>(this_model_part);
             point_locator.UpdateSearchDatabase();
 
-            array_1d<double, 3> coordinates(3, 0.0);
+            array_1d<double, 3> coordinates = CreateFilled<array_1d<double, 3>>(0.0);
             coordinates[0] = 0.5;
             coordinates[1] = 0.5;
             Vector shape_functions;

@@ -301,7 +301,7 @@ public:
         // At this point 'LHS' contains also this term of the Geometric stiffness
         // (Ke = (P' * Km * H * P) - (G' * Fn' * P))
 
-        MatrixType Fnm(18, 3, 0.0);
+        MatrixType Fnm = CreateFilled<MatrixType>(0.0, 18, 3);
 
         EICR::Spin_AtRow(projectedLocalForces, Fnm, 0);
         EICR::Spin_AtRow(projectedLocalForces, Fnm, 6);
@@ -387,7 +387,7 @@ public:
 #ifdef COROT_POLAR_DECOMPOSITION
     inline MatrixType RotationGradient(const ShellT3_LocalCoordinateSystem& LCS)
     {
-        Matrix G(3, 18, 0.0);
+        Matrix G = CreateFilled<Matrix>(0.0, 3, 18);
         //const GeometryType & geom = GetGeometry();
 
         ShellT3_LocalCoordinateSystem a(CreateReferenceCoordinateSystem());   // REF coordinate system

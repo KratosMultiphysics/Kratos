@@ -4171,7 +4171,7 @@ void SolidShellElementSprism3D6N::InitializeGeneralVariables(GeneralVariables& r
     }
 
     // Computing gradient
-    GeometryType::ShapeFunctionsGradientsType DN_DX(integration_point_number, ZeroMatrix(6, 3));
+    GeometryType::ShapeFunctionsGradientsType DN_DX = CreateFilled<GeometryType::ShapeFunctionsGradientsType>(ZeroMatrix(6, 3), integration_point_number);
     const GeometryType::ShapeFunctionsGradientsType& DN_De = msGeometryData.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     double detJ;
     Matrix inv_j;

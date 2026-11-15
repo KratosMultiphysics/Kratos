@@ -277,7 +277,7 @@ void ReadMaterialsUtility::AssignVariablesToProperty(
                 rProperty.SetValue(r_variable, temp);
             } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
                 const Variable<array_1d<double, 6>>& r_variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(variable_name);
-                array_1d<double, 6> temp(6, 0.0);
+                array_1d<double, 6> temp = CreateFilled<array_1d<double, 6>>(0.0);
                 const Vector& r_value_variable = value.GetVector();
                 KRATOS_ERROR_IF(r_value_variable.size() != 6) << "The vector of variable " << variable_name << " has size " << r_value_variable.size() << " and it is supposed to be 6" << std::endl;
                 for (IndexType index = 0; index < 6; ++index)
