@@ -14,7 +14,10 @@
 #include <map>
 
 /* Project includes */
+#include "containers/model.h"
 #include "custom_workflows/dgeoflow.h"
+#include "geo_mechanics_application_variables.h"
+#include "includes/kratos_parameters.h"
 #include "tests/cpp_tests/flow_stubs.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
@@ -62,6 +65,57 @@ TEST_P(ParametrizedDGeoFlowTests, ErosionProcessStrategy)
     KRATOS_EXPECT_DOUBLE_EQ(progress_report_values.front(), 0.0);
     KRATOS_EXPECT_DOUBLE_EQ(progress_report_values.back(), 0.75);
     KRATOS_EXPECT_EQ(progress_report_values.size(), 10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DGeoFlowParsesSeepageAndNormalFluxLoads, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("PorousDomain");
+    r_model_part.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
+    r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION_X);
+    r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION_Y);
+    r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION_Z);
+    r_model_part.CreateSubModelPart("flux_boundary");
+    r_model_part.CreateSubModelPart("seepage_boundary");
+    r_model_part.CreateSubModelPart("gravity");
+
+    Parameters project_parameters(R"(
+    {
+        "processes": {
+            "constraints_process_list": [],
+            "loads_process_list": [
+                {
+                    "process_name": "ApplyScalarConstraintTableProcess",
+                    "Parameters": {
+                        "model_part_name": "PorousDomain.flux_boundary",
+                        "variable_name": "NORMAL_FLUID_FLUX",
+                        "value": -5.0,
+                        "table": 1
+                    }
+                },
+                {
+                    "process_name": "ApplySeepageBoundaryProcess",
+                    "Parameters": {
+                        "model_part_name": "PorousDomain.seepage_boundary"
+                    }
+                },
+                {
+                    "process_name": "ApplyVectorConstraintTableProcess",
+                    "Parameters": {
+                        "model_part_name": "PorousDomain.gravity",
+                        "variable_name": "VOLUME_ACCELERATION"
+                    }
+                }
+            ]
+        }
+    })");
+
+    KratosExecute execute;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(execute.ParseProcesses(r_model_part, project_parameters),
+                                      "DGeoFlow only supports constant NORMAL_FLUID_FLUX values.");
+
+    project_parameters["processes"]["loads_process_list"][0]["Parameters"]["table"].SetInt(0);
+    execute.ParseProcesses(r_model_part, project_parameters);
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsIntegrationSuite,

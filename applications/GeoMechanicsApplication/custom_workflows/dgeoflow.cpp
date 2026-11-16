@@ -12,6 +12,7 @@
 
 #include "dgeoflow.h"
 #include "custom_processes/apply_constant_hydrostatic_pressure_process.h"
+#include "custom_processes/apply_seepage_boundary_process.h"
 #include "custom_processes/geo_apply_constant_scalar_value_process.h"
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
 #include "custom_utilities/file_input_utility.h"
@@ -178,11 +179,36 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
     }
 
     auto loads_processes = projFile["processes"]["loads_process_list"];
-    // Should only have one.
-    auto        name = loads_processes.GetArrayItem(0)["Parameters"]["model_part_name"].GetString();
-    std::size_t found   = name.find_last_of('.');
-    std::string subname = name.substr(found + 1);
-    ModelPart&  part    = rModelPart.GetSubModelPart(subname);
+    // Keep the previous fallback for projects without a VOLUME_ACCELERATION process.
+    auto gravity_model_part_name =
+        loads_processes.GetArrayItem(0)["Parameters"]["model_part_name"].GetString();
+
+    for (Parameters process : loads_processes) {
+        const auto& parameters      = process["Parameters"];
+        const auto  model_part_name = parameters["model_part_name"].GetString();
+
+        if (parameters.Has("variable_name") &&
+            parameters["variable_name"].GetString() == "VOLUME_ACCELERATION") {
+            gravity_model_part_name = model_part_name;
+        }
+
+        if (process["process_name"].GetString() == "ApplySeepageBoundaryProcess") {
+            mProcesses.push_back(make_shared<ApplySeepageBoundaryProcess>(rModelPart.GetModel(), parameters));
+        } else if (parameters.Has("variable_name") &&
+                   parameters["variable_name"].GetString() == "NORMAL_FLUID_FLUX") {
+            KRATOS_ERROR_IF(parameters.Has("table") && parameters["table"].GetInt() != 0)
+                << "DGeoFlow only supports constant NORMAL_FLUID_FLUX values." << std::endl;
+
+            const auto found   = model_part_name.find_last_of('.');
+            const auto subname = model_part_name.substr(found + 1);
+            auto&      part    = rModelPart.GetSubModelPart(subname);
+            mProcesses.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(part, parameters));
+        }
+    }
+
+    const auto found   = gravity_model_part_name.find_last_of('.');
+    const auto subname = gravity_model_part_name.substr(found + 1);
+    ModelPart& part    = rModelPart.GetSubModelPart(subname);
 
     mProcesses.push_back(make_shared<GeoApplyConstantScalarValueProcess>(part, Parameters{R"(
         {
