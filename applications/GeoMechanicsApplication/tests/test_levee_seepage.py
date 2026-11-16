@@ -45,12 +45,14 @@ class KratosGeoMechanicsLeveeSeepageTests(KratosUnittest.TestCase):
                         for node in (first, second):
                             points[round(node.Y, 10)] = nodal_values[node.Id]
                     continue
-                fraction = (x - first.X) / (second.X - first.X)
-                if 0.0 <= fraction <= 1.0:
-                    y = first.Y + fraction * (second.Y - first.Y)
+                if min(first.X, second.X) <= x <= max(first.X, second.X):
+                    edge = sorted((first, second), key=lambda node: node.X)
+                    xp = [node.X for node in edge]
+                    yp = [node.Y for node in edge]
+                    y = np.interp(x, xp, yp)
                     points[round(y, 10)] = tuple(
-                        a + fraction * (b - a)
-                        for a, b in zip(nodal_values[first.Id], nodal_values[second.Id])
+                        np.interp(x, xp, [a, b])
+                        for a, b in zip(nodal_values[edge[0].Id], nodal_values[edge[1].Id])
                     )
         self.assertGreaterEqual(len(points), 2, f"No vertical mesh section at x = {x}")
         return sorted(points.items())
