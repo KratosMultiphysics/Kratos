@@ -12,6 +12,7 @@
 //
 // System includes
 #include <iostream>
+#include <limits>
 #include <set>
 
 // External includes
@@ -235,6 +236,158 @@ double& ThicknessIntegratedCompositeConstitutiveLaw::CalculateValue(
     double& rValue
     )
 {
+    if (rThisVariable == VON_MISES_STRESS_TOP_SURFACE ||
+    rThisVariable == VON_MISES_STRESS_BOTTOM_SURFACE ||
+    rThisVariable == VON_MISES_STRESS_MIDDLE_SURFACE)
+{
+    KRATOS_ERROR_IF(mConstitutiveLaws.empty())
+        << "No constitutive laws defined in the composite.";
+
+    const auto& r_material_properties = rValues.GetMaterialProperties();
+    const Vector generalized_strain = rValues.GetStrainVector(); // size 8
+    Flags& r_flags = rValues.GetOptions();
+
+    KRATOS_ERROR_IF(generalized_strain.size() != VoigtSize)
+        << "Expected 8 generalized strains in the composite law.";
+
+    // Save state that this calculation will temporarily change.
+    const bool old_compute_stress =
+        r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool old_compute_tensor =
+        r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    const Vector old_strain = rValues.GetStrainVector();
+    const Vector old_stress = rValues.GetStressVector();
+    const Matrix old_constitutive = rValues.GetConstitutiveMatrix();
+
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    // Find the physical top and bottom of the laminate.
+    double z_bottom = std::numeric_limits<double>::max();
+    double z_top = -std::numeric_limits<double>::max();
+
+    for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
+        const double z1 = mZCoordinates[i] - 0.5 * mThicknesses[i];
+        const double z2 = mZCoordinates[i] + 0.5 * mThicknesses[i];
+        z_bottom = std::min(z_bottom, std::min(z1, z2));
+        z_top = std::max(z_top, std::max(z1, z2));
+    }
+
+    double z_eval = 0.0;
+    if (rThisVariable == VON_MISES_STRESS_TOP_SURFACE) {
+        z_eval = z_top;
+    } else if (rThisVariable == VON_MISES_STRESS_BOTTOM_SURFACE) {
+        z_eval = z_bottom;
+    }
+
+    // Find the layer containing z_eval. At a shared interface, this
+    // chooses the first matching layer
+    IndexType layer = mConstitutiveLaws.size();
+    for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
+        const double z1 = mZCoordinates[i] - 0.5 * mThicknesses[i];
+        const double z2 = mZCoordinates[i] + 0.5 * mThicknesses[i];
+        const double z_min = std::min(z1, z2);
+        const double z_max = std::max(z1, z2);
+
+        if (z_eval >= z_min - 1.0e-12 &&
+            z_eval <= z_max + 1.0e-12) {
+            layer = i;
+            break;
+        }
+    }
+
+    KRATOS_ERROR_IF(layer == mConstitutiveLaws.size())
+        << "Could not find the layer containing z = " << z_eval;
+
+    // For the middle surface z_eval is zero. It must lie inside a layer
+    // If the laminate has a gap around z=0, fail explicitly.
+    if (rThisVariable == VON_MISES_STRESS_MIDDLE_SURFACE) {
+        bool middle_is_inside_laminate = false;
+        for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) { //Goes through each layer searching z=0
+            const double z1 = mZCoordinates[i] - 0.5 * mThicknesses[i];
+            const double z2 = mZCoordinates[i] + 0.5 * mThicknesses[i];
+            if (0.0 >= std::min(z1, z2) - 1.0e-12 &&
+                0.0 <= std::max(z1, z2) + 1.0e-12) {
+                layer = i;
+                middle_is_inside_laminate = true;
+                break;
+            }
+        }
+        KRATOS_ERROR_IF_NOT(middle_is_inside_laminate)
+            << "The laminate middle surface z=0 is not inside a layer.";
+    }
+
+    // Each subproperty is paired with the constitutive law at the same index.
+    auto it_subprop = r_material_properties.GetSubProperties().begin();
+    std::advance(it_subprop, layer);
+    Properties& r_layer_properties = *it_subprop;
+    rValues.SetMaterialProperties(r_layer_properties);
+
+    Vector& r_strain = rValues.GetStrainVector(); 
+    Vector& r_stress = rValues.GetStressVector(); 
+    Matrix& r_constitutive = rValues.GetConstitutiveMatrix(); 
+
+    r_strain.resize(3, false);
+    r_stress.resize(3, false);
+    r_constitutive.resize(3, 3, false);
+
+    for (IndexType i = 0; i < 3; ++i) {
+        r_strain[i] =
+            generalized_strain[i] + z_eval * generalized_strain[i + 3];
+    }
+
+    // Rotate shell strains into the material axes of this layer.
+    BoundedMatrix<double, 2, 2> T;
+    BoundedMatrix<double, 3, 3> Tvoigt;
+    AdvancedConstitutiveLawUtilities<3>::CalculateRotationOperatorEuler1(
+        mEulerAngles[layer], T);
+    ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(T, Tvoigt);
+    r_strain = prod(Tvoigt, r_strain);
+
+    // Build the 2D deformation gradient expected by the inner law.
+    Matrix F(2, 2);
+    noalias(F) =
+        AdvancedConstitutiveLawUtilities<3>::
+            ComputeEquivalentSmallDeformationDeformationGradient(r_strain);
+    rValues.SetDeterminantF(MathUtils<double>::Det2(F));
+    rValues.SetDeformationGradientF(F);
+
+    mConstitutiveLaws[layer]->CalculateMaterialResponseCauchy(rValues);
+
+    // The inner law returns [sigma_xx, sigma_yy, tau_xy] for plane stress.
+    rValue = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(
+        r_stress);
+
+    // Restore the values this query temporarily changed.
+    rValues.SetMaterialProperties(r_material_properties);
+    r_strain.resize(old_strain.size(), false);
+    noalias(r_strain) = old_strain;
+    r_stress.resize(old_stress.size(), false);
+    noalias(r_stress) = old_stress;
+    r_constitutive.resize(
+        old_constitutive.size1(), old_constitutive.size2(), false);
+    noalias(r_constitutive) = old_constitutive;
+
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, old_compute_stress);
+    r_flags.Set(
+        ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, old_compute_tensor);
+
+    return rValue;
+}
+
+if (rThisVariable == VON_MISES_STRESS) {
+    double top_value = 0.0;
+    double middle_value = 0.0;
+    double bottom_value = 0.0;
+
+    CalculateValue(rValues, VON_MISES_STRESS_TOP_SURFACE, top_value);
+    CalculateValue(rValues, VON_MISES_STRESS_MIDDLE_SURFACE, middle_value);
+    CalculateValue(rValues, VON_MISES_STRESS_BOTTOM_SURFACE, bottom_value);
+
+    rValue = std::max({top_value, middle_value, bottom_value});
+    return rValue;
+}
     return TCalculateValue<double>(rValues, rThisVariable, rValue);
 }
 
