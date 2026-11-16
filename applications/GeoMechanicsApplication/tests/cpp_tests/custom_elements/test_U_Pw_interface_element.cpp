@@ -129,11 +129,12 @@ UPwInterfaceElement CreateInterfaceElementWithUPwDofs(const Properties::Pointer&
     return result;
 }
 
-UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs(
-    Model&                                      rModel,
-    const Properties::Pointer&                  rpProperties,
-    IsDiffOrderElement                          IsDiffOrder,
-    const std::vector<CalculationContribution>& rContributions)
+UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofsAndModifier(
+    Model&                                          rModel,
+    const Properties::Pointer&                      rpProperties,
+    IsDiffOrderElement                              IsDiffOrder,
+    const std::vector<CalculationContribution>&     rContributions,
+    std::unique_ptr<IntegrationCoefficientModifier> pModifier)
 {
     auto& r_model_part = CreateModelPartWithUPwVariables(rModel);
 
@@ -143,7 +144,18 @@ UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWit
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    return CreateInterfaceElementWithUPwDofs<Interface2D>(rpProperties, p_geometry, IsDiffOrder, rContributions);
+    return CreateInterfaceElementWithUPwDofs<Interface2D>(rpProperties, p_geometry, IsDiffOrder,
+                                                          rContributions, std::move(pModifier));
+}
+
+UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs(
+    Model&                                      rModel,
+    const Properties::Pointer&                  rpProperties,
+    IsDiffOrderElement                          IsDiffOrder,
+    const std::vector<CalculationContribution>& rContributions)
+{
+    return CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofsAndModifier(
+        rModel, rpProperties, IsDiffOrder, rContributions, nullptr);
 }
 
 UPwInterfaceElement CreateHorizontalOpenUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs(
@@ -748,15 +760,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideIsScaledByContactS
         p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
         if (UsePerimeter) p_properties->SetValue(GEO_CONTACT_SURFACE_PERIMETER, perimeter);
 
-        Model               model;
-        auto&               r_model_part = CreateModelPartWithUPwVariables(model);
-        PointerVector<Node> nodes;
-        nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-        nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
-        nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
-        nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
-        auto element = CreateInterfaceElementWithUPwDofs<Interface2D>(
-            p_properties, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes), IsDiffOrderElement::No,
+        Model model;
+        auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofsAndModifier(
+            model, p_properties, IsDiffOrderElement::No,
             {CalculationContribution::Stiffness, CalculationContribution::Permeability},
             std::make_unique<IntegrationCoefficientModifierForInterfaceElement>());
         element.Initialize(ProcessInfo{});
