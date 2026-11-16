@@ -18,6 +18,7 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
@@ -79,7 +80,8 @@ public:
                 {
                     "quasi_newton_type": "broyden",
                     "quasi_newton_restart_interval": 50,
-                    "quasi_newton_max_rank" : 10
+                    "quasi_newton_max_rank" : 10,
+                    "quasi_newton_scaling" : false
 
                 }  )");
 
@@ -92,15 +94,20 @@ public:
             mQuasiNewtonType = QuasiNewtonType::LBFGS;
         } else if (quasi_newton_type == "broyden") {
             mQuasiNewtonType = QuasiNewtonType::Broyden;
+        } else if (quasi_newton_type == "none") {
+            mQuasiNewtonType = QuasiNewtonType::None;
         } else {
             KRATOS_ERROR << "Unknown 'quasi_newton_type': '" << quasi_newton_type
-                         << "'. Valid options are 'broyden' and 'lbfgs'." << std::endl;
+                         << "'. Valid options are 'broyden', 'lbfgs' and 'none'." << std::endl;
         }
 
         mRestartInterval = rParameters["quasi_newton_restart_interval"].GetInt();
         mMaxRank         = rParameters["quasi_newton_max_rank"].GetInt();
+        mUseScaling      = rParameters["quasi_newton_scaling"].GetBool();
 
-        // it is required to use a direct solver without scaling for the quasi-newton strategy, as the strategy depends on reusing the factorization of the initial stiffness matrix.
+        // A direct solver is required, as the strategy reuses the factorization of the initial stiffness matrix.
+        // The solver is created without scaling, since the ScalingSolver only scales within Solve(); when
+        // "quasi_newton_scaling" is enabled, the scaling is applied by this strategy instead.
         auto linear_solver_settings = Parameters(R"(
             {
                 "solver_type": "LinearSolversApplication.sparse_lu",
@@ -190,8 +197,9 @@ public:
     }
 
 private:
-    /// The available quasi-Newton update schemes.
-    enum class QuasiNewtonType { Broyden, LBFGS };
+    /// The available quasi-Newton update schemes. 'None' applies no low-rank updates and only
+    /// reuses the factorization of rA_0.
+    enum class QuasiNewtonType { Broyden, LBFGS, None };
 
     struct RankStorage {
         virtual void Clear()   = 0;
@@ -233,7 +241,65 @@ private:
     BroydenRankStorage mBroydenRankStorage;
     unsigned int       mRestartInterval = 100; // rebuild K0 every N iterations to refresh curvature
     unsigned int mMaxRank = 10; // maximum number of low-rank updates to store (Broyden or BFGS)
+    bool mUseScaling      = false; // symmetrically scale rA_0 before factorization
+    TSystemVectorType mScalingWeights; // w_i, such that the factorized matrix is W^{-1} rA_0 W^{-1}
     typename TLinearSolver::Pointer mpLinearSolver;
+
+    /// Symmetrically scales rA_0 in place: rA_0 <- W^{-1} rA_0 W^{-1}, with w_i = sqrt(||row_i(rA_0)||_2),
+    /// the same weights as used by the ScalingSolver.
+    void ScaleA0(TSystemMatrixType& rA_0)
+    {
+        const auto& r_row_indices    = rA_0.index1_data();
+        const auto& r_column_indices = rA_0.index2_data();
+        auto&       r_values         = rA_0.value_data();
+
+        mScalingWeights.resize(rA_0.size1(), false);
+        IndexPartition<std::size_t>(rA_0.size1()).for_each([&](std::size_t Row) {
+            double row_norm_squared = 0.0;
+            for (auto k = r_row_indices[Row]; k < r_row_indices[Row + 1]; ++k) {
+                row_norm_squared += r_values[k] * r_values[k];
+            }
+            mScalingWeights[Row] = std::sqrt(std::sqrt(row_norm_squared));
+        });
+
+        IndexPartition<std::size_t>(rA_0.size1()).for_each([&](std::size_t Row) {
+            for (auto k = r_row_indices[Row]; k < r_row_indices[Row + 1]; ++k) {
+                r_values[k] /= mScalingWeights[Row] * mScalingWeights[r_column_indices[k]];
+            }
+        });
+    }
+
+    /// Solves rA_0 rX = rB with the cached factorization, where rA_0 is the unscaled initial matrix.
+    void SolveWithA0(TSystemMatrixType& rA_0, TSystemVectorType& rX, const TSystemVectorType& rB)
+    {
+        TSystemVectorType rhs(rB);
+        if (mUseScaling) {
+            IndexPartition<std::size_t>(rhs.size()).for_each(
+                [&](std::size_t i) { rhs[i] /= mScalingWeights[i]; });
+        }
+
+        mpLinearSolver->PerformSolutionStep(rA_0, rX, rhs);
+
+        if (mUseScaling) {
+            IndexPartition<std::size_t>(rX.size()).for_each(
+                [&](std::size_t i) { rX[i] /= mScalingWeights[i]; });
+        }
+    }
+
+    /// Computes rY = rA_0 rX, where rA_0 is the unscaled initial matrix (rA_0 = W A_s W when scaled).
+    void MultiplyWithA0(TSystemMatrixType& rA_0, const TSystemVectorType& rX, TSystemVectorType& rY)
+    {
+        if (!mUseScaling) {
+            TSparseSpace::Mult(rA_0, rX, rY);
+            return;
+        }
+
+        TSystemVectorType scaled_x(rX.size());
+        IndexPartition<std::size_t>(rX.size()).for_each(
+            [&](std::size_t i) { scaled_x[i] = mScalingWeights[i] * rX[i]; });
+        TSparseSpace::Mult(rA_0, scaled_x, rY);
+        IndexPartition<std::size_t>(rY.size()).for_each([&](std::size_t i) { rY[i] *= mScalingWeights[i]; });
+    }
 
     void UpdateBroydenRank(TSystemMatrixType& rA_0, const TSystemVectorType& rDx, const TSystemVectorType& rDb)
     {
@@ -249,7 +315,7 @@ private:
         const double d_x_squared = TSparseSpace::Dot(rDx, rDx);
         if (d_x_squared > std::numeric_limits<double>::epsilon()) {
             const std::size_t k = mBroydenRankStorage.u_list.size();
-            TSparseSpace::Mult(rA_0, rDx, db_hat);
+            MultiplyWithA0(rA_0, rDx, db_hat);
             if (k > 0) {
                 Vector v_list_dot_dx(k);
                 for (std::size_t i = 0; i < k; ++i) {
@@ -263,7 +329,7 @@ private:
             TSystemVectorType v_col = rDx / d_x_squared;
 
             TSystemVectorType z_col(rDx.size());
-            mpLinearSolver->PerformSolutionStep(rA_0, z_col, u_col);
+            SolveWithA0(rA_0, z_col, u_col);
 
             if (mBroydenRankStorage.u_list.size() >= mMaxRank) {
                 mBroydenRankStorage.u_list.erase(mBroydenRankStorage.u_list.begin());
@@ -296,8 +362,14 @@ private:
     void BuildAndConstrainA0(TSystemMatrixType& rA_0, TSystemVectorType& rDx, TSystemVectorType& rb, RankStorage& rRankStorage)
     {
         rRankStorage.Clear();
+        BuildAndConstrainA0(rA_0, rDx, rb);
+    }
 
-        auto       p_builder_and_solver = MotherType::GetBuilderAndSolver();
+    /// Builds A and b, applies master-slave constraints
+    /// Dirichlet conditions, then factorizes the resulting (reduced) rA_0.
+    void BuildAndConstrainA0(TSystemMatrixType& rA_0, TSystemVectorType& rDx, TSystemVectorType& rb)
+    {
+        auto      p_builder_and_solver = MotherType::GetBuilderAndSolver();
         auto       p_scheme             = MotherType::GetScheme();
         ModelPart& r_model_part         = BaseType::GetModelPart();
 
@@ -312,7 +384,11 @@ private:
         }
         p_builder_and_solver->ApplyDirichletConditions(p_scheme, r_model_part, rA_0, rDx, rb);
 
-        mpLinearSolver->InitializeSolutionStep(rA_0, rDx, rb); // factorize rA_0
+        if (mUseScaling) {
+            ScaleA0(rA_0);
+        }
+
+        mpLinearSolver->InitializeSolutionStep(rA_0, rDx, rb); // factorize rA_0 (scaled, if enabled)
 
         BaseType::mStiffnessMatrixIsBuilt = true;
     }
@@ -363,7 +439,7 @@ private:
 
         // Seed: rDx = H_0 * q = rA_0^{-1} q (reuses the cached factorization)
         TSparseSpace::SetToZero(rDx);
-        mpLinearSolver->PerformSolutionStep(rA_0, rDx, q);
+        SolveWithA0(rA_0, rDx, q);
 
         // Second loop: oldest to newest
         for (std::size_t i = 0; i < k; ++i) {
@@ -376,7 +452,7 @@ private:
     /// Solves rDx = (rA_0 + U V^T)^{-1} rb (Sherman-Morrison-Woodbury).
     void ShermanMorrisSolve(TSystemMatrixType& rA_0, TSystemVectorType& rDx, TSystemVectorType& rb)
     {
-        mpLinearSolver->PerformSolutionStep(rA_0, rDx, rb); // rDx = rA_0^{-1} rb
+        SolveWithA0(rA_0, rDx, rb); // rDx = rA_0^{-1} rb
 
         // add the low rank correction, rDx = rDx - Z * (I + V^T Z)^{-1} (V^T rDx), where Z = rA_0^{-1} U
         const std::size_t k = mBroydenRankStorage.u_list.size();
@@ -474,8 +550,13 @@ private:
                 BuildAndConstrainA0(rA_0, rDx, rb, mBroydenRankStorage);
             }
             ShermanMorrisSolve(rA_0, rDx, rb);
+        } else if (mQuasiNewtonType == QuasiNewtonType::None) {
+            if (RebuildLhs) {
+                BuildAndConstrainA0(rA_0, rDx, rb);
+            }
+            SolveWithA0(rA_0, rDx, rb);
         } else {
-            KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'."
+            KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden', 'lbfgs' and 'none'."
                          << std::endl;
         }
     }
@@ -487,8 +568,10 @@ private:
 
         } else if (mQuasiNewtonType == QuasiNewtonType::Broyden) {
             this->UpdateBroydenRank(rA_0, rDx, rDeltaB);
+        } else if (mQuasiNewtonType == QuasiNewtonType::None) {
+            // no low-rank updates, only the factorization of rA_0 is reused
         } else {
-            KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'."
+            KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden', 'lbfgs' and 'none'."
                          << std::endl;
         }
     }

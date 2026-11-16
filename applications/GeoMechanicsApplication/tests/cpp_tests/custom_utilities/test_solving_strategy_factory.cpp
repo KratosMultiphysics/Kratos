@@ -156,6 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForQuasiNewtonStrategy, 
     parameters.AddString("quasi_newton_type", "broyden");
     parameters.AddInt("quasi_newton_restart_interval", 50);
     parameters.AddInt("quasi_newton_max_rank", 10);
+    parameters.AddBool("quasi_newton_scaling", true);
 
     const auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
 

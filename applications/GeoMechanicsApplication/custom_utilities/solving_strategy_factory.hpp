@@ -97,6 +97,9 @@ public:
                 strategy_parameters.AddValue("quasi_newton_max_rank",
                                              rSolverSettings["quasi_newton_max_rank"]);
             }
+            if (rSolverSettings.Has("quasi_newton_scaling")) {
+                strategy_parameters.AddValue("quasi_newton_scaling", rSolverSettings["quasi_newton_scaling"]);
+            }
 
             auto result =
                 std::make_unique<GeoMechanicsQuasiNewtonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(

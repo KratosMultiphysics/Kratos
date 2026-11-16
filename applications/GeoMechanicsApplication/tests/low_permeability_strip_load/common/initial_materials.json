@@ -1,0 +1,88 @@
+{
+    "properties": [
+        {
+            "model_part_name": "PorousDomain.Soil_Top",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
+                    "YOUNG_MODULUS": 2000000.0,
+                    "POISSON_RATIO": 0.3,
+                    "DENSITY_SOLID": 1732.9255861365953,
+                    "DENSITY_WATER": 1019.367991845056,
+                    "POROSITY": 0.0,
+                    "BULK_MODULUS_SOLID": 10000000000.0,
+                    "BULK_MODULUS_FLUID": 2200000000.0,
+                    "DYNAMIC_VISCOSITY": 0.001,
+                    "PERMEABILITY_XX": 1e-16,
+                    "PERMEABILITY_YY": 1e-16,
+                    "PERMEABILITY_XY": 0.0,
+                    "GEO_COHESION": 2000.0,
+                    "GEO_FRICTION_ANGLE": 25.0,
+                    "K0_MAIN_DIRECTION": 1,
+                    "K0_NC": 0.58
+                },
+                "Tables": {}
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Soil_Middle",
+            "properties_id": 2,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
+                    "YOUNG_MODULUS": 2000000.0,
+                    "POISSON_RATIO": 0.3,
+                    "DENSITY_SOLID": 1732.9255861365953,
+                    "DENSITY_WATER": 1019.367991845056,
+                    "POROSITY": 0.0,
+                    "BULK_MODULUS_SOLID": 10000000000.0,
+                    "BULK_MODULUS_FLUID": 2200000000.0,
+                    "DYNAMIC_VISCOSITY": 0.001,
+                    "PERMEABILITY_XX": 1e-16,
+                    "PERMEABILITY_YY": 1e-16,
+                    "PERMEABILITY_XY": 0.0,
+                    "GEO_COHESION": 2000.0,
+                    "GEO_FRICTION_ANGLE": 25.0,
+                    "K0_MAIN_DIRECTION": 1,
+                    "K0_NC": 0.58
+                },
+                "Tables": {}
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Soil_Bottom",
+            "properties_id": 3,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
+                    "YOUNG_MODULUS": 30000000.0,
+                    "POISSON_RATIO": 0.3,
+                    "DENSITY_SOLID": 1936.7991845056065,
+                    "DENSITY_WATER": 1019.367991845056,
+                    "POROSITY": 0.0,
+                    "BULK_MODULUS_SOLID": 10000000000.0,
+                    "BULK_MODULUS_FLUID": 2200000000.0,
+                    "DYNAMIC_VISCOSITY": 0.001,
+                    "PERMEABILITY_XX": 1e-16,
+                    "PERMEABILITY_YY": 1e-16,
+                    "PERMEABILITY_XY": 0.0,
+                    "GEO_COHESION": 0.0,
+                    "GEO_FRICTION_ANGLE": 32.0,
+                    "K0_MAIN_DIRECTION": 1,
+                    "K0_NC": 0.47
+                },
+                "Tables": {}
+            }
+        }
+    ]
+}
