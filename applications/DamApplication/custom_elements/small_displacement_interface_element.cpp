@@ -573,6 +573,84 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::SetValuesOnIntegrationPo
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                                                                     std::vector<double>& rOutput,
+                                                                                     const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int NumGPoints = mConstitutiveLawVector.size();
+
+    if(rVariable == JOINT_WIDTH)
+    {
+        // Current mechanical aperture at each element integration point.
+        // The values are reported in the constitutive-law (Lobatto) order and
+        // are not interpolated, so that point-wise consumers such as the uplift
+        // process can use them together with their own integration points.
+        const GeometryType& Geom = this->GetGeometry();
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+        array_1d<double,TNumNodes*TDim> DisplacementVector;
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
+        this->CalculateReferenceRotationMatrix(RotationMatrix,Geom);
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+        array_1d<double,TDim> RelDispVector;
+        array_1d<double,TDim> LocalRelDispVector;
+
+        if ( rOutput.size() != NumGPoints )
+            rOutput.resize( NumGPoints );
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
+
+            noalias(RelDispVector) = prod(Nu,DisplacementVector);
+
+            noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
+
+            double JointWidth = mInitialGap[GPoint] + LocalRelDispVector[TDim-1];
+
+            // JointWidth can't be negative
+            if ( JointWidth < 0.0 )
+                JointWidth = 0.0;
+
+            rOutput[GPoint] = JointWidth;
+        }
+    }
+    else if(rVariable == STATE_VARIABLE)
+    {
+        // Constitutive state reported by the law at each integration point.
+        // This element does not reinterpret it: the law owns its meaning.
+        // As in Poromechanics, it is not interpolated to output points.
+        if ( rOutput.size() != NumGPoints )
+            rOutput.resize( NumGPoints );
+
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            rOutput[GPoint] = 0.0;
+            mConstitutiveLawVector[GPoint]->GetValue( rVariable, rOutput[GPoint] );
+        }
+    }
+    else
+    {
+        //Printed on standard GiD Gauss points
+        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
+        if ( rOutput.size() != OutputGPoints )
+            rOutput.resize( OutputGPoints );
+
+        for(unsigned int i=0; i < OutputGPoints; i++)
+        {
+            rOutput[i] = 0.0;
+        }
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
 void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
                                                                                      std::vector<array_1d<double,3>>& rOutput,
                                                                                      const ProcessInfo& rCurrentProcessInfo)

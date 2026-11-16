@@ -41,6 +41,7 @@ from test_process_based_nodal_smoothing import DamProcessBasedNodalSmoothingTest
 from test_dam_output_processes import TestDamOutputProcesses
 from test_dam_gid_output_process import TestDamGiDOutputProcess
 from test_dam_mapping_variables_utility import TestDamMappingVariablesUtility
+from test_dam_uplift_joint_state import TestDamUpliftJointState
 
 
 def AssembleTestSuites():
@@ -85,6 +86,7 @@ def AssembleTestSuites():
                 TestApplyLoadVectorDamProcesses,
                 TestApplyConstraintVectorDamProcesses,
                 TestImposeWaterLoadsConditionProcess,
+                TestDamUpliftJointState,
                 TestDamLinearSolver,
                 TestGlobalTangentConsistency,
                 TestImposeNodalYoungModulusProcess,
@@ -147,6 +149,7 @@ def AssembleTestSuites():
                 TestApplyLoadVectorDamProcesses,
                 TestApplyConstraintVectorDamProcesses,
                 TestImposeWaterLoadsConditionProcess,
+                TestDamUpliftJointState,
                 TestDamLinearSolver,
                 TestGlobalTangentConsistency,
                 TestImposeNodalYoungModulusProcess,
