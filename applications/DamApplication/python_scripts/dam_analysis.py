@@ -176,7 +176,17 @@ class DamAnalysis(AnalysisStage):
                     "DamApplication: the selected solver does not support the "
                     "hydro-mechanical uplift coupling required by the straight "
                     "uplift process.")
+            from KratosMultiphysics.DamApplication import dam_uplift_coupling_utility
+            dam_uplift_coupling_utility.ValidateMechanicalSettings(
+                self.solver.settings["mechanical_solver_settings"])
             self._uplift_coupling_settings = self.uplift_coupling_data[0]["settings"]
+            reference_settings = self._uplift_coupling_settings.WriteJsonString()
+            for entry in self.uplift_coupling_data[1:]:
+                if entry["settings"].WriteJsonString() != reference_settings:
+                    raise RuntimeError(
+                        "DamApplication: multiple straight uplift processes "
+                        "have different 'hydro_mechanical_coupling' settings. "
+                        "Use identical coupling settings for all of them.")
 
         initial_state_import_processes = [
             process for process in self.list_of_processes
@@ -504,6 +514,7 @@ class DamAnalysis(AnalysisStage):
 
     def _SolveWithUpliftCoupling(self):
         """Iterate the mechanical solve and the uplift pressure of the step."""
+        self._uplift_coupling_pressure_history = []
         state = []
         for entry in self.uplift_coupling_data:
             state.append(
@@ -525,6 +536,16 @@ class DamAnalysis(AnalysisStage):
         """Number of hydro-mechanical iterations of the last solved step."""
         return getattr(self, "_last_uplift_coupling_iterations", 0)
 
+    def GetUpliftCouplingPressureHistory(self):
+        """Diagnostic record of the last step (only with echo_level > 1).
+
+        Each entry is a list (one item per coupled uplift process) of
+        (used, raw, applied) pressure dictionaries: the pressure used by the
+        mechanical solve, the pressure recomputed from the resulting aperture,
+        and the pressure actually written for the next solve.
+        """
+        return getattr(self, "_uplift_coupling_pressure_history", [])
+
     def _UpdateUpliftCoupling(self, state):
         settings = self._uplift_coupling_settings
         pressure_rtol = settings["pressure_relative_tolerance"].GetDouble()
@@ -532,6 +553,7 @@ class DamAnalysis(AnalysisStage):
         opening_atol = settings["joint_width_absolute_tolerance"].GetDouble()
         front_rtol = settings["front_relative_tolerance"].GetDouble()
         relaxation = settings["relaxation_factor"].GetDouble()
+        store_history = settings["echo_level"].GetInt() > 1
 
         if relaxation <= 0.0 or relaxation > 1.0:
             raise RuntimeError(
@@ -543,6 +565,7 @@ class DamAnalysis(AnalysisStage):
         opening_change = 0.0
         front_change = 0.0
         front_scale = 1.0
+        history_record = []
 
         for index, entry in enumerate(self.uplift_coupling_data):
             process = entry["process"]
@@ -568,8 +591,15 @@ class DamAnalysis(AnalysisStage):
                     node.SetSolutionStepValue(variable, value)
                     used_pressure[node.Id] = value
                 state[index]["pressure"] = used_pressure
+                applied_pressure = used_pressure
             else:
                 state[index]["pressure"] = new_pressure
+                applied_pressure = new_pressure
+
+            if store_history:
+                history_record.append(
+                    (dict(old_pressure), dict(new_pressure),
+                     dict(applied_pressure)))
 
             opening_change = max(
                 opening_change, process.GetMaxJointWidthChange())
@@ -579,6 +609,9 @@ class DamAnalysis(AnalysisStage):
             front_change = max(front_change, abs(front - previous_front))
             front_scale = max(front_scale, abs(front), abs(previous_front))
             state[index]["front"] = front
+
+        if store_history:
+            self._uplift_coupling_pressure_history.append(history_record)
 
         pressure_tolerance = pressure_atol + pressure_rtol * pressure_norm
         front_tolerance = front_rtol * front_scale

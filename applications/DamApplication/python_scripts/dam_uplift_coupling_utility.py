@@ -1,6 +1,28 @@
 import KratosMultiphysics
 
 
+def ValidateMechanicalSettings(mechanical_settings):
+    """Reject mechanical configurations incompatible with the coupling.
+
+    Only a quasi-static Newton-Raphson mechanical solve is supported. The check
+    is shared by the solvers and by the analysis stage so that an unsupported
+    configuration is reported before the strategy is constructed.
+    """
+    solution_type = mechanical_settings["solution_type"].GetString()
+    if solution_type != "Quasi-Static":
+        raise RuntimeError(
+            "DamApplication: hydro-mechanical uplift coupling is only "
+            "supported for 'solution_type' == 'Quasi-Static' "
+            "(got '{}').".format(solution_type))
+
+    strategy_type = mechanical_settings["strategy_type"].GetString()
+    if strategy_type != "Newton-Raphson":
+        raise RuntimeError(
+            "DamApplication: hydro-mechanical uplift coupling requires "
+            "'mechanical_solver_settings.strategy_type' == 'Newton-Raphson' "
+            "(got '{}').".format(strategy_type))
+
+
 def SolveMechanicalStepWithUpliftCoupling(
         mechanical_strategy, update_uplift, coupling_settings):
     """Solve one time step with the uplift pressure coupled to the joint state.

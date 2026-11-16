@@ -79,6 +79,12 @@ class ImposeWaterLoadsConditionProcess(KratosMultiphysics.Process):
 
     @staticmethod
     def _CreateUpliftCouplingSettings(settings):
+        """Return the coupling settings with defaults applied.
+
+        The coupling is enabled by default. It requires a quasi-static
+        Newton-Raphson mechanical solve (dynamic and arc-length are rejected)
+        and all straight uplift processes must share identical settings.
+        """
         coupling_settings = KratosMultiphysics.Parameters(
             """
             {

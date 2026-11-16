@@ -206,23 +206,13 @@ class DamMechanicalSolver(object):
     def SolveWithUpliftCoupling(self, update_uplift, coupling_settings):
         """Solve the step iterating the mechanical problem and the uplift
         pressure until the hydro-mechanical state is consistent."""
-        mechanical_settings = self.settings["mechanical_solver_settings"]
-        if mechanical_settings["solution_type"].GetString() != "Quasi-Static":
-            raise RuntimeError(
-                "DamApplication: hydro-mechanical uplift coupling is only "
-                "supported for 'solution_type' == 'Quasi-Static' "
-                "(got '{}').".format(mechanical_settings["solution_type"].GetString()))
-        strategy_type = mechanical_settings["strategy_type"].GetString()
-        if strategy_type != "Newton-Raphson":
-            raise RuntimeError(
-                "DamApplication: hydro-mechanical uplift coupling requires "
-                "'mechanical_solver_settings.strategy_type' == 'Newton-Raphson' "
-                "(got '{}').".format(strategy_type))
+        from KratosMultiphysics.DamApplication import dam_uplift_coupling_utility
+        dam_uplift_coupling_utility.ValidateMechanicalSettings(
+            self.settings["mechanical_solver_settings"])
 
-        if mechanical_settings["clear_storage"].GetBool():
+        if self.settings["mechanical_solver_settings"]["clear_storage"].GetBool():
             self.Clear()
 
-        from KratosMultiphysics.DamApplication import dam_uplift_coupling_utility
         return dam_uplift_coupling_utility.SolveMechanicalStepWithUpliftCoupling(
             self.Solver, update_uplift, coupling_settings)
 

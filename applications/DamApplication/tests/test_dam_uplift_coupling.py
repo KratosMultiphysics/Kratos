@@ -59,6 +59,31 @@ class _RecordingDamAnalysis(DamAnalysis):
         }
 
 
+class _ThermalSolverProxy:
+    """Counts thermal solves while delegating everything to the real strategy."""
+
+    def __init__(self, strategy, owner):
+        self._strategy = strategy
+        self._owner = owner
+
+    def Solve(self):
+        self._owner.thermal_solve_count += 1
+        return self._strategy.Solve()
+
+    def __getattr__(self, name):
+        return getattr(self._strategy, name)
+
+
+class _ThermalCountingAnalysis(_RecordingDamAnalysis):
+    """Thermo-mechanical analysis that counts thermal solves."""
+
+    def Initialize(self):
+        super().Initialize()
+        self.thermal_solve_count = 0
+        self.solver.Thermal_Solver = _ThermalSolverProxy(
+            self.solver.Thermal_Solver, self)
+
+
 class TestDamUpliftCoupling(KratosUnittest.TestCase):
     """Hydro-mechanical coupling between joint opening and uplift pressure.
 
@@ -74,10 +99,10 @@ class TestDamUpliftCoupling(KratosUnittest.TestCase):
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _LoadParameters():
+    def _LoadParameters(file_name="ProjectParameters.json"):
         fixture = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), _FIXTURE_DIR,
-            "ProjectParameters.json")
+            file_name)
         with open(fixture) as parameter_file:
             return KM.Parameters(parameter_file.read())
 
@@ -146,7 +171,8 @@ class TestDamUpliftCoupling(KratosUnittest.TestCase):
             (state["pressures"][i + 1] + state["pressures"][i])
             for i in range(len(state["x"]) - 1))
 
-    def _AssertAnalysisConsistent(self, analysis, expected_front):
+    def _AssertAnalysisConsistent(self, analysis, expected_front,
+                                  pressure_delta=1.0e-10):
         """The stored pressure must be the one produced by the final opening."""
         process = analysis.uplift_coupling_data[0]["process"]
         model_part = analysis.main_model_part
@@ -159,7 +185,8 @@ class TestDamUpliftCoupling(KratosUnittest.TestCase):
         after = {node.Id: node.GetSolutionStepValue(KM.POSITIVE_FACE_PRESSURE)
                  for node in model_part.Nodes if node.Id in _BASE_NODE_IDS}
         for node_id in before:
-            self.assertAlmostEqual(before[node_id], after[node_id], delta=1.0e-10)
+            self.assertAlmostEqual(
+                before[node_id], after[node_id], delta=pressure_delta)
         self.assertAlmostEqual(process.GetMaxJointWidthChange(), 0.0, delta=1.0e-14)
         self.assertAlmostEqual(process.GetJointPosition(), expected_front, delta=1.0e-12)
 
@@ -233,7 +260,13 @@ class TestDamUpliftCoupling(KratosUnittest.TestCase):
         one_way_pressures = [2000.0, 1500.0, 1000.0, 500.0, 0.0]
         for actual, reference in zip(one_way_state["pressures"], one_way_pressures):
             self.assertAlmostEqual(actual, reference, delta=1.0e-9)
-        self.assertAlmostEqual(self._Resultant(one_way_state), 4000.0, delta=1.0e-9)
+        one_way_uplift = self._Resultant(one_way_state)
+        self.assertAlmostEqual(one_way_uplift, 4000.0, delta=1.0e-9)
+        # Global vertical equilibrium of the one-way solution: the reaction
+        # balances the top load minus the uplift actually applied.
+        self.assertAlmostEqual(
+            one_way_state["reaction_y"],
+            _TOP_LOAD * _LENGTH - one_way_uplift, delta=1.0e-9)
 
         # The feedback must change the result substantially.
         pressure_differences = [
@@ -342,6 +375,240 @@ class TestDamUpliftCoupling(KratosUnittest.TestCase):
         message = str(context.exception)
         self.assertIn("did not converge", message)
         self.assertIn("NOT advanced", message)
+
+    # ------------------------------------------------------------------
+    # Benchmark F: pressure relaxation
+    # ------------------------------------------------------------------
+
+    def test_pressure_relaxation_factor(self):
+        parameters = self._BaselineParameters()
+        self._SetCouplingSetting(parameters, "relaxation_factor", 0.5)
+        self._SetCouplingSetting(parameters, "echo_level", 2)
+
+        with KratosUnittest.WorkFolderScope(_FIXTURE_DIR, __file__):
+            analysis = self._Run(parameters, _RecordingDamAnalysis)
+
+        history = analysis.GetUpliftCouplingPressureHistory()
+        self.assertGreater(len(history), 1)
+
+        # The first mechanical solve uses the uncracked (one-way) pressure.
+        # The pressure recomputed from the resulting opening is the full
+        # hydrostatic distribution, so the applied pressure is the relaxed
+        # value between both.
+        used, raw, applied = history[0][0]
+        expected_used = {1: 2000.0, 2: 1500.0, 3: 1000.0, 4: 500.0, 5: 0.0}
+        expected_raw = {1: 2000.0, 2: 2000.0, 3: 2000.0, 4: 2000.0, 5: 0.0}
+        for node_id in expected_used:
+            self.assertAlmostEqual(used[node_id], expected_used[node_id],
+                                   delta=1.0e-9)
+            self.assertAlmostEqual(raw[node_id], expected_raw[node_id],
+                                   delta=1.0e-9)
+            self.assertAlmostEqual(
+                applied[node_id],
+                0.5 * used[node_id] + 0.5 * raw[node_id], delta=1.0e-12)
+        self.assertAlmostEqual(applied[2], 1750.0, delta=1.0e-12)
+
+        # Every iteration relaxes between the pressure used by the mechanical
+        # solve and the one recomputed from the resulting joint state. The
+        # pressure used must be the one applied in the previous iteration.
+        previous_applied = applied
+        for record in history[1:]:
+            used, raw, applied = record[0]
+            for node_id in used:
+                self.assertAlmostEqual(
+                    used[node_id], previous_applied[node_id], delta=1.0e-12)
+                self.assertAlmostEqual(
+                    applied[node_id],
+                    0.5 * used[node_id] + 0.5 * raw[node_id], delta=1.0e-12)
+            previous_applied = applied
+
+        # The last raw pressure (recomputed from the final opening) and the
+        # pressure used by the last mechanical solve agree within the
+        # convergence criterion.
+        used, raw, applied = history[-1][0]
+        settings = analysis.uplift_coupling_data[0]["settings"]
+        pressure_tolerance = (
+            settings["pressure_absolute_tolerance"].GetDouble() +
+            settings["pressure_relative_tolerance"].GetDouble() *
+            max(abs(value) for value in raw.values()))
+        for node_id in used:
+            self.assertLessEqual(
+                abs(raw[node_id] - used[node_id]), pressure_tolerance)
+
+        # The stored (relaxed) pressure is consistent with the final opening
+        # within the convergence tolerance.
+        self._AssertAnalysisConsistent(
+            analysis, 3.0, pressure_delta=pressure_tolerance)
+
+        # Relaxation changes the path, not the fixed point: the converged
+        # solution is the same full hydrostatic distribution.
+        state = analysis.coupled_history[-1]
+        self.assertAlmostEqual(state["front"], 3.0, delta=1.0e-9)
+        for actual, reference in zip(
+                state["pressures"], [2000.0, 2000.0, 2000.0, 2000.0, 0.0]):
+            self.assertAlmostEqual(actual, reference, delta=pressure_tolerance)
+
+        # The final mechanical equilibrium corresponds to the applied
+        # pressure. The relaxation residue is bounded by the tolerance.
+        uplift = self._Resultant(state)
+        self.assertAlmostEqual(
+            state["reaction_y"], _TOP_LOAD * _LENGTH - uplift,
+            delta=_LENGTH * pressure_tolerance)
+
+    def test_relaxed_coupling_reports_non_convergence(self):
+        parameters = self._BaselineParameters()
+        self._SetCouplingSetting(parameters, "relaxation_factor", 0.5)
+        self._SetCouplingSetting(parameters, "max_iterations", 2)
+
+        with KratosUnittest.WorkFolderScope(_FIXTURE_DIR, __file__):
+            with self.assertRaises(RuntimeError) as context:
+                self._Run(parameters)
+
+        message = str(context.exception)
+        self.assertIn("did not converge", message)
+        self.assertIn("NOT advanced", message)
+
+    # ------------------------------------------------------------------
+    # Benchmark G: thermo-mechanical path
+    # ------------------------------------------------------------------
+
+    def test_thermo_mechanical_coupling_solves_thermal_once_per_step(self):
+        parameters = self._LoadParameters("ProjectParameters_thermo.json")
+        parameters["problem_data"]["end_time"].SetDouble(3.0)
+        parameters["problem_data"]["time_step"].SetDouble(1.0)
+
+        with KratosUnittest.WorkFolderScope(_FIXTURE_DIR, __file__):
+            analysis = self._Run(parameters, _ThermalCountingAnalysis)
+
+        # The thermal problem does not depend on the uplift pressure: exactly
+        # one thermal solve per physical time step, never one per coupling
+        # iteration.
+        self.assertEqual(analysis.thermal_solve_count, 3)
+        self.assertEqual(len(analysis.coupled_history), 3)
+
+        # The mechanical problem is iterated with the uplift pressure.
+        self.assertGreaterEqual(analysis.coupled_history[0]["iterations"], 2)
+        self.assertGreaterEqual(analysis.GetLastUpliftCouplingIterations(), 1)
+
+        # The final coupled state matches the mechanical benchmark.
+        state = analysis.coupled_history[-1]
+        self.assertAlmostEqual(state["front"], 3.0, delta=1.0e-12)
+        expected = [2000.0, 2000.0, 2000.0, 2000.0, 0.0]
+        for actual, reference in zip(state["pressures"], expected):
+            self.assertAlmostEqual(actual, reference, delta=1.0e-9)
+        uplift = self._Resultant(state)
+        self.assertAlmostEqual(
+            state["reaction_y"], _TOP_LOAD * _LENGTH - uplift, delta=1.0e-9)
+        self._AssertAnalysisConsistent(analysis, 3.0)
+
+        # The fixture is isothermal at T = 0.
+        temperatures = sorted(set(
+            round(node.GetSolutionStepValue(KM.TEMPERATURE), 12)
+            for node in analysis.main_model_part.Nodes))
+        self.assertEqual(temperatures, [0.0])
+
+    def test_thermo_mechanical_without_coupling_keeps_original_path(self):
+        parameters = self._LoadParameters("ProjectParameters_thermo.json")
+        self._SetCouplingSetting(parameters, "enabled", False)
+
+        with KratosUnittest.WorkFolderScope(_FIXTURE_DIR, __file__):
+            analysis = self._Run(parameters, _ThermalCountingAnalysis)
+
+        self.assertFalse(analysis._use_uplift_coupling)
+        self.assertEqual(analysis.thermal_solve_count, 1)
+        self.assertEqual(len(analysis.coupled_history), 0)
+        self.assertEqual(analysis.GetLastUpliftCouplingIterations(), 0)
+
+        # Single update: the uncracked pressure distribution and no coupling.
+        state = analysis._CoupledState()
+        self.assertIsNone(state["front"])
+        expected = [2000.0, 1500.0, 1000.0, 500.0, 0.0]
+        for actual, reference in zip(state["pressures"], expected):
+            self.assertAlmostEqual(actual, reference, delta=1.0e-9)
+
+    # ------------------------------------------------------------------
+    # Benchmark H: unsupported configurations and compatibility
+    # ------------------------------------------------------------------
+
+    def test_dynamic_analysis_with_coupling_is_rejected(self):
+        parameters = self._BaselineParameters()
+        parameters["solver_settings"]["mechanical_solver_settings"][
+            "solution_type"].SetString("Dynamic")
+
+        with KratosUnittest.WorkFolderScope(_FIXTURE_DIR, __file__):
+            with self.assertRaises(RuntimeError) as context:
+                self._Run(parameters)
+
+        message = str(context.exception)
+        self.assertIn("Quasi-Static", message)
+        self.assertIn("Dynamic", message)
+
+    def test_arc_length_analysis_with_coupling_is_rejected(self):
+        parameters = self._BaselineParameters()
+        mechanical = parameters["solver_settings"]["mechanical_solver_settings"]
+        mechanical["strategy_type"].SetString("Arc-Length")
+        # Provide a complete arc-length configuration. The coupling guard is
+        # expected to reject the analysis before the strategy is constructed.
+        mechanical.AddEmptyValue("desired_iterations").SetInt(4)
+        mechanical.AddEmptyValue("max_radius_factor").SetDouble(20.0)
+        mechanical.AddEmptyValue("min_radius_factor").SetDouble(0.5)
+
+        with KratosUnittest.WorkFolderScope(_FIXTURE_DIR, __file__):
+            with self.assertRaises(RuntimeError) as context:
+                self._Run(parameters)
+
+        message = str(context.exception)
+        self.assertIn("Newton-Raphson", message)
+        self.assertIn("Arc-Length", message)
+
+    def test_conflicting_uplift_coupling_settings_are_rejected(self):
+        parameters = self._BaselineParameters()
+        duplicate = None
+        for i in range(parameters["loads_process_list"].size()):
+            process = parameters["loads_process_list"][i]
+            if "Uplift" in process["process_name"].GetString():
+                duplicate = KM.Parameters(process.WriteJsonString())
+                break
+        self.assertIsNotNone(duplicate)
+        duplicate["Parameters"]["hydro_mechanical_coupling"][
+            "max_iterations"].SetInt(7)
+        parameters["loads_process_list"].Append(duplicate)
+
+        with KratosUnittest.WorkFolderScope(_FIXTURE_DIR, __file__):
+            with self.assertRaises(RuntimeError) as context:
+                self._Run(parameters)
+
+        message = str(context.exception)
+        self.assertIn("different", message)
+        self.assertIn("hydro_mechanical_coupling", message)
+
+    def test_analysis_without_uplift_process_uses_original_solver(self):
+        parameters = self._BaselineParameters()
+        kept = KM.Parameters("[]")
+        for i in range(parameters["loads_process_list"].size()):
+            process = parameters["loads_process_list"][i]
+            if "Uplift" not in process["process_name"].GetString():
+                kept.Append(process)
+        parameters.RemoveValue("loads_process_list")
+        parameters.AddValue("loads_process_list", kept)
+
+        coupling_calls = []
+        original = _RecordingDamAnalysis._SolveWithUpliftCoupling
+
+        class _Probe(_RecordingDamAnalysis):
+            def _SolveWithUpliftCoupling(self):
+                coupling_calls.append(True)
+                return original(self)
+
+        with KratosUnittest.WorkFolderScope(_FIXTURE_DIR, __file__):
+            analysis = self._Run(parameters, _Probe)
+
+        self.assertFalse(analysis._use_uplift_coupling)
+        self.assertEqual(coupling_calls, [])
+        state = analysis._CoupledState()
+        self.assertIsNone(state["front"])
+        for pressure in state["pressures"]:
+            self.assertAlmostEqual(pressure, 0.0, delta=1.0e-15)
 
 
 if __name__ == "__main__":
