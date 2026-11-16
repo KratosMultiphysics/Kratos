@@ -22,20 +22,15 @@ class KratosGeoMechanicsGroutedAnchorTests(KratosUnittest.TestCase):
             displacement_result = test_helper.get_nodal_variable_from_ascii(
                 run_stage_1_path, "DISPLACEMENT"
             )
-
-        characteristic_node_ids = [1, 2, 3, 4, 5]
-        regression_displacement_results = [
-            [-0.00076362, -0.104623, 0],
-            [-2.55326e-05, -0.104993, 0],
-            [0.000950976, -0.105002, 0],
-            [-0.00256835, -0.108894, 0],
-            [-0.000377458, -0.102321, 0],
-        ]
-        for node_id, reg_disp in zip(
-            characteristic_node_ids, regression_displacement_results
-        ):
-            # result at time 1
-            self.assertVectorAlmostEqual(displacement_result[1][node_id], reg_disp)
+        regression_displacements = {
+            1: [-0.00076362, -0.104623, 0],
+            2: [-2.55326e-05, -0.104993, 0],
+            3: [0.000950976, -0.105002, 0],
+            4: [-0.00256835, -0.108894, 0],
+            5: [-0.000377458, -0.102321, 0],
+        }
+        for node_id, expected in regression_displacements.items():
+            self.assertVectorAlmostEqual(displacement_result[1][node_id], expected)
 
 
 if __name__ == "__main__":

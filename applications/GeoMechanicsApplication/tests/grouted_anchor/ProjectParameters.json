@@ -174,7 +174,6 @@
                                         "body_output": true,
                                         "node_output": false,
                                         "skin_output": false,
-                                        "plane_output": [],
                                         "nodal_results": [
                                             "DISPLACEMENT",
                                             "TOTAL_DISPLACEMENT",
@@ -184,8 +183,7 @@
                                             "CAUCHY_STRESS_TENSOR",
                                             "HYDRAULIC_HEAD"
                                         ]
-                                    },
-                                    "point_data_configuration": []
+                                    }
                                 }
                             }
                         }

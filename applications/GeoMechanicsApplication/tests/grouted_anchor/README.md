@@ -4,7 +4,7 @@ This test models a 2D plane-strain soil body with a sheetpile wall that is held 
 
 ## Setup
 
-The test consists of a single stage (`1_Initial_stage`) with a static, drained analysis (pore pressure fixed at 0.0). A schematic depiction of the model is shown below.
+The test consists of a single stage (`1_Initial_stage`) with a static, drained analysis (pore pressure fixed at 0.0). The Newton Raphson scheme is used, and it is a steady state calculation, meaning the used time-step of 1.0s is not relevant for the results. No prestress is applied to the anchor. A schematic depiction of the model is shown below.
 
 ![Mesh.svg](Mesh.svg)
 
@@ -28,19 +28,9 @@ The test consists of a single stage (`1_Initial_stage`) with a static, drained a
     - Sheetpile: `TimoshenkoBeamElasticConstitutiveLaw` (Young's modulus 2.1e11 Pa, cross area 1.5e-2 m², I33 3.0e-4 m⁴).
     - Grouted anchor part: `TrussConstitutiveLaw` (Young's modulus 4.6e+10 Pa, cross area 1.77e-02 m²). The cross area is consistent with the perimeter of the grouted anchor given in the interface (assuming one anchor per meter). The Young's modulus is calculated from the free anchor Young's modulus, the assumed Young's modulus of 30 GPa for concrete and it's cross area and the cross area of the grout body (consisting of the steel anchor and the surrounding concrete). 
     - Free anchor part: `TrussConstitutiveLaw` (Young's modulus 2.1e11 Pa, cross area 4.938e-3 m²).
-    - Grout-soil interface: `GeoIncrementalLinearElasticInterfaceLaw` (normal stiffness 7.69e8 Pa/m, shear stiffness 7.69e7 Pa/m). The perimeter of the grouted anchor is given using the `GEO_CONTACT_SURFACE_PERIMETER` and is consistent with the cross area of the grouted anchor part (assuming one anchor per m).
+    - Grout-soil interface: `GeoIncrementalLinearElasticInterfaceLaw` (normal stiffness 7.69e8 Pa/m, shear stiffness 7.69e7 Pa/m). The perimeter of the grouted anchor is given using the `GEO_CONTACT_SURFACE_PERIMETER` (0.471m) and is consistent with the cross area of the grouted anchor part (assuming one anchor per m).
 
 
 ## Assertions
 
-The test (`test_grouted_anchor.py`) runs the stage with the sequential orchestrator and reads the `DISPLACEMENT` results from `Sheetpile_with_anchor.post.res`. At time 1.0, the displacement vectors of nodes 1 to 5 are compared with regression values:
-
-| Node | Displacement X [m] | Displacement Y [m] |
-|------|--------------------|--------------------|
-| 1    | -0.00076362        | -0.104623          |
-| 2    | -2.55326e-05       | -0.104993          |
-| 3    | 0.000950976        | -0.105002          |
-| 4    | -0.00256835        | -0.108894          |
-| 5    | -0.000377458       | -0.102321          |
-
-These five nodes are also displayed in the schematic. The Z-displacement is 0 for all nodes. These values are regression results rather than analytical solutions.
+The test (`test_grouted_anchor.py`) runs the stage with the sequential orchestrator and reads the `DISPLACEMENT` results from `Sheetpile_with_anchor.post.res`. At time 1.0, the displacement vectors of nodes 1 to 5 are compared with regression values. These five nodes are also displayed in the schematic. The Z-displacement is 0 for all nodes. The asserted values are regression results rather than analytical solutions.

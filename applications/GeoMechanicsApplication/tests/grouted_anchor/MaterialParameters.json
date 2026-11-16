@@ -16,12 +16,7 @@
                     "POROSITY": 0.3,
                     "BULK_MODULUS_SOLID": 1.0e+10,
                     "BULK_MODULUS_FLUID": 2.2e+09,
-                    "DYNAMIC_VISCOSITY": 1.0e-03,
-                    "PERMEABILITY_XX": 1.0e-05,
-                    "PERMEABILITY_YY": 1.0e-05,
-                    "PERMEABILITY_XY": 0.0,
-                    "GEO_COHESION": 1.0e+03,
-                    "GEO_FRICTION_ANGLE": 30.0
+                    "DYNAMIC_VISCOSITY": 1.0e-03
                 }
             }
         },
@@ -83,10 +78,7 @@
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 7.69230769230769e+08,
                     "INTERFACE_SHEAR_STIFFNESS": 7.69230769230769e+07,
-                    "GEO_CONTACT_SURFACE_PERIMETER": 0.471,
-                    "GEO_COHESION": 800.0,
-                    "GEO_FRICTION_ANGLE": 24.79128089714489,
-                    "GEO_DILATANCY_ANGLE": 0.0
+                    "GEO_CONTACT_SURFACE_PERIMETER": 0.471
                 }
             }
         }

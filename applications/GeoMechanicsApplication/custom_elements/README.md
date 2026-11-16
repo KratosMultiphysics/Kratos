@@ -58,11 +58,11 @@ The element is assembled from separate calculation contributions (see `Calculati
 Which contributions are active can be defined at registration time. Furthermore, the `GEO_DRAINAGE_TYPE` of the element, can also switch contributions off (for example, the `CONSTANT_PW_FIELD` drainage type will switch off the `PUCouplingCalculator`, the `PermeabilityCalculator` and the `FluidBodyFlowCalculator`). Stress-state specific behavior is delegated to a `StressStatePolicy`, and the integration points follow an integration scheme (Lobatto by default for the interface elements) rather than the scheme of the underlying geometry.
 
 ## Contact surface perimeter
-Line interface elements are integrated per unit length (plane strain) and surface interface elements per unit area. To model an interface that is wrapped around a body with a certain circumference, e.g. the grout-soil interface around a grouted anchor represented by a truss, the integration coefficients can be scaled by the perimeter of the contact surface. This is done with the optional material property `GEO_CONTACT_SURFACE_PERIMETER`:
+Line interface elements are integrated per unit length (plane strain). To model a line interface that is wrapped around a body with a certain circumference, e.g. the grout-soil interface around a grouted anchor represented by a truss, the integration coefficients can be scaled by the perimeter of the contact surface. This is done with the optional material property `GEO_CONTACT_SURFACE_PERIMETER`:
 
 $$ w_{i}^{*} = w_{i} \cdot P $$
 
-where $w_i$ is the integration coefficient at integration point $i$ (integration weight times the determinant of the Jacobian of the mid-geometry) and $P$ is the contact surface perimeter. The scaling is performed by the `IntegrationCoefficientModifierForInterfaceElement`, which is passed to the element on construction. Since it modifies the integration coefficients themselves, it applies to all contributions of the element (stiffness, coupling, permeability and fluid body flow).
+where $w_i$ is the integration coefficient at integration point $i$ (integration weight times the determinant of the Jacobian of the mid-geometry) and $P$ is the contact surface perimeter. The scaling is performed by the `IntegrationCoefficientModifierForInterfaceElement`, which is passed to the element on construction. Since it modifies the integration coefficients themselves, it applies to all contributions of the element (stiffness, coupling, permeability and fluid body flow). The contact surface parameter can only be defined for line interfaces, since for plane interface elements, their surface area is already equal to the integration area.
 
 If `GEO_CONTACT_SURFACE_PERIMETER` is not specified in the properties, the integration coefficients are left unchanged (i.e. $P = 1$). The property is specified in the `Variables` of the material, for example:
 
@@ -70,7 +70,7 @@ If `GEO_CONTACT_SURFACE_PERIMETER` is not specified in the properties, the integ
 "Variables": {
     "INTERFACE_NORMAL_STIFFNESS": 7.69230769230769e+08,
     "INTERFACE_SHEAR_STIFFNESS": 7.69230769230769e+07,
-    "GEO_CONTACT_SURFACE_PERIMETER": 0.471,
+    "GEO_CONTACT_SURFACE_PERIMETER": 0.471
 }
 ```
 
