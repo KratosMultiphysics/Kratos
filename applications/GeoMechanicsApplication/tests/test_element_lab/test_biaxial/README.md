@@ -1,0 +1,33 @@
+# Biaxial plane strain test (simple, single stage)
+
+This test is a biaxial test with a prescribed vertical displacement on a plane strain configuration. It mimics a lab test, where soil properties such as the cohesion ($c$) and the friction angle ($ϕ$) are determined.
+In the lab this is performed on a box like volume of soil, where an increasing displacement is applied on the top of the box. In the model test, the box is emulated by two 2 plane strain elements that are symmetric around the left side.
+
+A schematic overview of the model is displayed in the figure below:
+
+![MeshStructure](schematic.svg)
+
+## Setup
+
+The test is performed with the following conditions:
+
+- Constraints:
+    - The bottom nodes (5, 8, 9) are fixed in the Y direction.
+    - The symmetry axis (i.e. the left nodes 1, 3, 5) is fixed in the X direction.
+    - A displacement of -0.2 $m$ is prescribed for the top nodes (1, 2, 6). The nodes move linearly from y = 1 $m$ at t = 0 to y = 0.8 $m$ at t = 1 $s$. As it is a quasi-static test, the time is not relevant, but it is used to define the displacement increment.
+- Material:
+    - A linear elastic constitutive law with the following parameters:
+        - Poisson's ratio = 0.25,
+        - Young's modulus = 10000.0 $kN/m^2$.
+    - A Mohr-Coulomb constitutive law with the following parameters:
+        - Poisson's ratio = 0.25,
+        - Young's modulus = 20000.0 $kN/m^2$,
+        - Cohesion = 2.0 $kN/m^2$,
+        - Friction angle = 25.0 $\degree$,
+        - Dilatancy angle = 2.0 $\degree$.
+- Conditions:
+  - An initial uniform stress field (at t = 0) is applied with a value of [-100.0, -100.0, -100.0, 0.0] $kN/m^2$.
+  - A lateral load is applied with a value of 100 $kN/m^2$ to the right side, mimicking the constant cell pressure.
+
+## Assertions
+For this test, the outcomes of the simulation for the displacement, the normal stresses and the engineering strain at t = 1 $s$ are asserted. Linear elastic results were verified analytically, the Mohr-Coulomb results are regression values.
