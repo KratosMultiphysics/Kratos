@@ -739,7 +739,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideIsScaledByContactS
     // Arrange
     constexpr auto perimeter                = 3.0;
     const auto     calculate_left_hand_side = [perimeter](bool UsePerimeter) {
-        auto p_properties = CreateElasticMaterialProperties<InterfacePlaneStrain>(20.0, 10.0);
+        constexpr auto normal_stiffness = 20.0;
+        constexpr auto shear_stiffness  = 10.0;
+        auto           p_properties =
+            CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
         p_properties->SetValue(TRANSVERSAL_PERMEABILITY, 5.0E-3);
         p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
         p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
@@ -1761,7 +1764,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckThrowsWhenContactSurfacePerim
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
-    p_properties->SetValue(GEO_CONTACT_SURFACE_PERIMETER, 0.0);
 
     Model model;
     auto  element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF(
@@ -1769,6 +1771,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckThrowsWhenContactSurfacePerim
     const auto dummy_process_info = ProcessInfo{};
     element.Initialize(dummy_process_info);
 
+    p_properties->SetValue(GEO_CONTACT_SURFACE_PERIMETER, -1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element.Check(dummy_process_info),
+                                      "GEO_CONTACT_SURFACE_PERIMETER")
+
+    p_properties->SetValue(GEO_CONTACT_SURFACE_PERIMETER, 0.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element.Check(dummy_process_info),
                                       "GEO_CONTACT_SURFACE_PERIMETER")
 
