@@ -582,16 +582,16 @@ protected:
         mVelocityOld.resize(n_nodes);
         mMeshVelocity.resize(n_nodes);
         mMeshVelocityOld.resize(n_nodes);
-        mOldDistance.resize(n_nodes);
+        mOldDistance.resize(n_nodes, false);
 
         if (mEvaluateLimiter){
-            mSigmaPlus.resize(n_nodes);
-            mSigmaMinus.resize(n_nodes);
-            mLimiter.resize(n_nodes);
+            mSigmaPlus.resize(n_nodes, false);
+            mSigmaMinus.resize(n_nodes, false);
+            mLimiter.resize(n_nodes, false);
         }
 
         if (mIsBfecc){
-            mError.resize(n_nodes);
+            mError.resize(n_nodes, false);
         }
 
         mDistancePartIsInitialized = true;

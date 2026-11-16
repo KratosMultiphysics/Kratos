@@ -40,6 +40,9 @@ class TransferInitialStressUtility
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Transforming local stress vector in global coordinates
+    /// @brief Adds the imported initial nodal stress to the calculated nodal stress.
+    /// @details This is an output-only operation: it updates NODAL_CAUCHY_STRESS_TENSOR
+    /// for post-processing and does not modify the constitutive mechanical state.
     void TransferInitialStress(ModelPart &r_model_part, const int TDim)
     {
 
