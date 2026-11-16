@@ -15,9 +15,11 @@ class ImposeWaterLoadsConditionProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = model_part
 
         self.components_process_list = []
         self.hydrostatic_processes = []
+        self.uplift_coupling_data = []
         # The Poromechanics constant hydrostatic process only sets the pressure
         # during ExecuteInitialize. The legacy Dam process re-applied the same
         # constant pressure at every solution step, so keep doing that here.
@@ -39,7 +41,21 @@ class ImposeWaterLoadsConditionProcess(KratosMultiphysics.Process):
         if ("StraightUpliftLinePressure2D" in settings["model_part_name"].GetString()) or ("StraightUpliftSurfacePressure3D" in settings["model_part_name"].GetString()):
 
             joint_model_part = Model["MainModelPart.Parts_" + settings["joint_group_name"].GetString()]
-            self.components_process_list.append(KratosDam.DamUpliftConditionLoadProcess(model_part, joint_model_part, settings))
+            uplift_process = KratosDam.DamUpliftConditionLoadProcess(
+                model_part, joint_model_part, self._UpliftProcessSettings(settings))
+            self.components_process_list.append(uplift_process)
+
+            coupling_settings = self._CreateUpliftCouplingSettings(settings)
+            if coupling_settings["enabled"].GetBool():
+                self.uplift_coupling_data.append(
+                    {
+                        "process": uplift_process,
+                        "model_part": model_part,
+                        "variable": KratosMultiphysics.KratosGlobals.GetVariable(
+                            settings["variable_name"].GetString()),
+                        "settings": coupling_settings,
+                    }
+                )
 
         if "CircularUpliftSurfacePressure3D" in settings["model_part_name"].GetString():
 
@@ -49,6 +65,43 @@ class ImposeWaterLoadsConditionProcess(KratosMultiphysics.Process):
         if ("HydroDynamicLinePressure2D" in settings["model_part_name"].GetString()) or ("HydroDynamicSurfacePressure3D" in settings["model_part_name"].GetString()):
 
             self.components_process_list.append(KratosDam.DamWestergaardConditionLoadProcess(model_part, settings))
+
+    @staticmethod
+    def _UpliftProcessSettings(settings):
+        # The hydro-mechanical coupling options are consumed by the Python
+        # coupling controller and are not part of the C++ uplift process
+        # schema. Pass a copy without them.
+        if not settings.Has("hydro_mechanical_coupling"):
+            return settings
+        uplift_settings = KratosMultiphysics.Parameters(settings.WriteJsonString())
+        uplift_settings.RemoveValue("hydro_mechanical_coupling")
+        return uplift_settings
+
+    @staticmethod
+    def _CreateUpliftCouplingSettings(settings):
+        coupling_settings = KratosMultiphysics.Parameters(
+            """
+            {
+                "enabled"                         : true,
+                "max_iterations"                  : 50,
+                "pressure_relative_tolerance"     : 1.0e-8,
+                "pressure_absolute_tolerance"     : 1.0e-4,
+                "joint_width_absolute_tolerance"  : 1.0e-7,
+                "front_relative_tolerance"        : 1.0e-6,
+                "relaxation_factor"               : 1.0,
+                "echo_level"                      : 0
+            }
+            """)
+        if settings.Has("hydro_mechanical_coupling"):
+            user_settings = settings["hydro_mechanical_coupling"]
+            user_settings.ValidateAndAssignDefaults(coupling_settings)
+            coupling_settings = user_settings
+        return coupling_settings
+
+    def GetUpliftCouplingData(self):
+        """Return the description of the straight-uplift processes that must be
+        re-evaluated during the hydro-mechanical coupling iterations."""
+        return list(self.uplift_coupling_data)
 
     @staticmethod
     def _CreateHydrostaticSettings(settings):

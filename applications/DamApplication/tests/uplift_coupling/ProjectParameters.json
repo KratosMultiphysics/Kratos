@@ -1,0 +1,196 @@
+{
+    "analysis_stage": "KratosMultiphysics.DamApplication.dam_analysis",
+    "problem_data": {
+        "problem_name": "uplift_bench",
+        "model_part_name": "MainModelPart",
+        "domain_size": 2,
+        "parallel_type": "OpenMP",
+        "number_of_threads": 2,
+        "start_time": 0.0,
+        "end_time": 1.0,
+        "time_step": 1.0,
+        "time_scale": "Seconds",
+        "consider_construction": false,
+        "streamlines_utility": false
+    },
+    "solver_settings": {
+        "solver_type": "dam_mechanical_solver",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "uplift_bench",
+            "input_file_label": 0
+        },
+        "echo_level": 1,
+        "buffer_size": 2,
+        "processes_sub_model_part_list": [
+            "DISPLACEMENT_Fixed",
+            "Parts_StraightUpliftLinePressure2D",
+            "LineLoad2D_TopLoad",
+            "LineLoad2D_WaterLoad"
+        ],
+        "mechanical_solver_settings": {
+            "solution_type": "Quasi-Static",
+            "strategy_type": "Newton-Raphson",
+            "scheme_type": "Newmark",
+            "convergence_criterion": "And_criterion",
+            "displacement_relative_tolerance": 1e-08,
+            "displacement_absolute_tolerance": 1e-12,
+            "residual_relative_tolerance": 1e-08,
+            "residual_absolute_tolerance": 1e-12,
+            "max_iteration": 30,
+            "echo_level": 1,
+            "buffer_size": 2,
+            "compute_reactions": true,
+            "reform_dofs_at_each_step": false,
+            "move_mesh_flag": false,
+            "block_builder": true,
+            "clear_storage": false,
+            "rayleigh_m": 0.0,
+            "rayleigh_k": 0.0,
+            "nonlocal_damage": false,
+            "linear_solver_settings": {
+                "solver_type": "skyline_lu_factorization"
+            },
+            "problem_domain_sub_model_part_list": [
+                "Parts_Dam",
+                "Parts_Joint"
+            ],
+            "body_domain_sub_model_part_list": [
+                "Parts_Dam",
+                "Parts_Joint"
+            ],
+            "mechanical_loads_sub_model_part_list": [
+                "Parts_StraightUpliftLinePressure2D",
+                "LineLoad2D_TopLoad",
+                "LineLoad2D_WaterLoad"
+            ],
+            "loads_sub_model_part_list": [],
+            "loads_variable_list": []
+        }
+    },
+    "output_configuration": {},
+    "constraints_process_list": [
+        {
+            "python_module": "apply_constraint_vector_dam_table_process",
+            "kratos_module": "KratosMultiphysics.DamApplication",
+            "process_name": "ApplyConstraintVectorDamTableProcess",
+            "Parameters": {
+                "model_part_name": "MainModelPart.DISPLACEMENT_Fixed",
+                "variable_name": "DISPLACEMENT",
+                "interval": [
+                    0.0,
+                    "End"
+                ],
+                "constrained": [
+                    true,
+                    true,
+                    true
+                ],
+                "value": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Value_Table": [
+                    0,
+                    0,
+                    0
+                ]
+            }
+        }
+    ],
+    "loads_process_list": [
+        {
+            "python_module": "assign_vector_by_direction_to_condition_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorByDirectionToConditionProcess",
+            "Parameters": {
+                "model_part_name": "MainModelPart.LineLoad2D_TopLoad",
+                "variable_name": "LINE_LOAD",
+                "interval": [
+                    0.0,
+                    "End"
+                ],
+                "modulus": 1000.0,
+                "direction": [
+                    0.0,
+                    -1.0,
+                    0.0
+                ]
+            }
+        },
+        {
+            "python_module": "assign_vector_by_direction_to_condition_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorByDirectionToConditionProcess",
+            "Parameters": {
+                "model_part_name": "MainModelPart.LineLoad2D_WaterLoad",
+                "variable_name": "LINE_LOAD",
+                "interval": [
+                    0.0,
+                    "End"
+                ],
+                "modulus": 1000.0,
+                "direction": [
+                    1.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        },
+        {
+            "python_module": "impose_water_loads_condition_process",
+            "kratos_module": "KratosMultiphysics.DamApplication",
+            "process_name": "UpliftConditionsProcess",
+            "Parameters": {
+                "model_part_name": "MainModelPart.Parts_StraightUpliftLinePressure2D",
+                "variable_name": "POSITIVE_FACE_PRESSURE",
+                "joint_group_name": "Joint",
+                "Modify": true,
+                "Gravity_Direction": "Y",
+                "Reservoir_Bottom_Coordinate_in_Gravity_Direction": 0.0,
+                "Upstream_Coordinate": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Downstream_Coordinate": [
+                    4.0,
+                    0.0,
+                    0.0
+                ],
+                "Upstream_Longitudinal_Coordinate": [
+                    0.0,
+                    1.0,
+                    0.0
+                ],
+                "Spe_weight": 10000.0,
+                "Water_level": 0.2,
+                "Water_Table": 0,
+                "Drains": false,
+                "hydro_mechanical_coupling": {
+                    "max_iterations": 50,
+                    "echo_level": 0
+                }
+            }
+        }
+    ],
+    "construction_process": [],
+    "transfer_results_process": {
+        "save_intermediate_mechanical_variables": false,
+        "save_intermediate_thermal_variables": false,
+        "save_intermediate_variables_step": 0,
+        "save_final_mechanical_variables": false,
+        "save_final_thermal_variables": false,
+        "add_previous_results": false,
+        "type_of_results": "Thermo-Mechanical",
+        "add_displacement": false,
+        "add_stress": false,
+        "add_temperature": false,
+        "add_reference_temperature": false,
+        "file_name_mechanical": "- No File -",
+        "file_name_thermal": "- No File -"
+    },
+    "temperature_by_device_list": [],
+    "output_device_list": []
+}

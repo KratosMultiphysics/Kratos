@@ -14,7 +14,9 @@
 #if !defined(KRATOS_DAM_UPLIFT_CONDITION_LOAD_PROCESS)
 #define KRATOS_DAM_UPLIFT_CONDITION_LOAD_PROCESS
 
+#include <algorithm>
 #include <cmath>
+#include <vector>
 
 // Project includes
 #include "includes/kratos_flags.h"
@@ -155,6 +157,19 @@ class DamUpliftConditionLoadProcess : public Process
         KRATOS_CATCH("");
     }
 
+    /// Current crack-front position (last calculated).
+    double GetJointPosition() const
+    {
+        return mJointPosition;
+    }
+
+    /// Maximum change of the mechanical joint aperture between the last two
+    /// calls to ExecuteInitializeSolutionStep (hydro-mechanical convergence).
+    double GetMaxJointWidthChange() const
+    {
+        return mMaxJointWidthChange;
+    }
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateRotationMatrix(BoundedMatrix<double, 3, 3> &rRotationMatrix)
@@ -239,6 +254,11 @@ class DamUpliftConditionLoadProcess : public Process
     TableType::Pointer mpTable;
     int mTableId;
 
+    // Hydro-mechanical coupling diagnostics
+    double mJointPosition = 0.0;
+    double mMaxJointWidthChange = 0.0;
+    std::vector<double> mJointWidths;
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   private:
@@ -292,6 +312,7 @@ class DamUpliftConditionLoadProcess : public Process
 
         double JointPosition = 0.0;
         double ref_water_level = mReferenceCoordinate + mWaterLevel;
+        std::vector<double> current_joint_widths;
 
         if (nelems != 0)
         {
@@ -335,6 +356,8 @@ class DamUpliftConditionLoadProcess : public Process
                     if (has_initial_joint_width && GPoint < JointWidthVector.size())
                         MyGaussPoint.JointWidth = JointWidthVector[GPoint];
 
+                    current_joint_widths.push_back(MyGaussPoint.JointWidth);
+
                     if (has_initial_joint_width && MyGaussPoint.JointWidth > InitialJointWidth) // Broken part
                     {
                         if (MyGaussPoint.Coordinates[0] > JointPosition)
@@ -345,6 +368,21 @@ class DamUpliftConditionLoadProcess : public Process
                 }
             }
         }
+
+        // Track the evolution of the mechanical aperture between two calls so
+        // that the hydro-mechanical coupling controller can judge convergence.
+        mMaxJointWidthChange = 0.0;
+        if (mJointWidths.size() == current_joint_widths.size())
+        {
+            for (std::size_t i = 0; i < current_joint_widths.size(); ++i)
+            {
+                mMaxJointWidthChange = std::max(
+                    mMaxJointWidthChange,
+                    std::abs(current_joint_widths[i] - mJointWidths[i]));
+            }
+        }
+        mJointWidths = std::move(current_joint_widths);
+        mJointPosition = JointPosition;
 
         if (nnodes != 0)
         {

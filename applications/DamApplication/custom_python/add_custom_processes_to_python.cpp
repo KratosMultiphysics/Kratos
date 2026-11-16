@@ -77,7 +77,9 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     // Uplift Condition
     py::class_<DamUpliftConditionLoadProcess, DamUpliftConditionLoadProcess::Pointer, Process>
     (m, "DamUpliftConditionLoadProcess")
-    .def(py::init < ModelPart&, ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, ModelPart&, Parameters&>())
+    .def("GetJointPosition", &DamUpliftConditionLoadProcess::GetJointPosition)
+    .def("GetMaxJointWidthChange", &DamUpliftConditionLoadProcess::GetMaxJointWidthChange);
 
     // Uplift Condition for arch dams
     py::class_<DamUpliftCircularConditionLoadProcess, DamUpliftCircularConditionLoadProcess::Pointer, Process>

@@ -42,6 +42,7 @@ from test_dam_output_processes import TestDamOutputProcesses
 from test_dam_gid_output_process import TestDamGiDOutputProcess
 from test_dam_mapping_variables_utility import TestDamMappingVariablesUtility
 from test_dam_uplift_joint_state import TestDamUpliftJointState
+from test_dam_uplift_coupling import TestDamUpliftCoupling
 
 
 def AssembleTestSuites():
@@ -87,6 +88,7 @@ def AssembleTestSuites():
                 TestApplyConstraintVectorDamProcesses,
                 TestImposeWaterLoadsConditionProcess,
                 TestDamUpliftJointState,
+                TestDamUpliftCoupling,
                 TestDamLinearSolver,
                 TestGlobalTangentConsistency,
                 TestImposeNodalYoungModulusProcess,
@@ -150,6 +152,7 @@ def AssembleTestSuites():
                 TestApplyConstraintVectorDamProcesses,
                 TestImposeWaterLoadsConditionProcess,
                 TestDamUpliftJointState,
+                TestDamUpliftCoupling,
                 TestDamLinearSolver,
                 TestGlobalTangentConsistency,
                 TestImposeNodalYoungModulusProcess,

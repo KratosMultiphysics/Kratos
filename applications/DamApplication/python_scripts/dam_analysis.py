@@ -163,6 +163,21 @@ class DamAnalysis(AnalysisStage):
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["loads_process_list"] )
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["temperature_by_device_list"] )
 
+        # Hydro-mechanical uplift coupling. It is active only when a straight
+        # uplift process is configured with coupling enabled.
+        self.uplift_coupling_data = []
+        for process in self.list_of_processes:
+            if hasattr(process, "GetUpliftCouplingData"):
+                self.uplift_coupling_data.extend(process.GetUpliftCouplingData())
+        self._use_uplift_coupling = len(self.uplift_coupling_data) > 0
+        if self._use_uplift_coupling:
+            if not hasattr(self.solver, "SolveWithUpliftCoupling"):
+                raise RuntimeError(
+                    "DamApplication: the selected solver does not support the "
+                    "hydro-mechanical uplift coupling required by the straight "
+                    "uplift process.")
+            self._uplift_coupling_settings = self.uplift_coupling_data[0]["settings"]
+
         initial_state_import_processes = [
             process for process in self.list_of_processes
             if hasattr(process, "PrevalidateInitialState")]
@@ -375,7 +390,10 @@ class DamAnalysis(AnalysisStage):
             if self.gid_output is not None:
                 self.gid_output.ExecuteInitializeSolutionStep()
 
-            self.solver.Solve() # Solve step
+            if self._use_uplift_coupling:
+                self._SolveWithUpliftCoupling()
+            else:
+                self.solver.Solve() # Solve step
 
             # streamlines_output_utility
             if self.UseStreamlineUtility:
@@ -476,6 +494,108 @@ class DamAnalysis(AnalysisStage):
                     self.save_utility.SaveMechanicalVariables(self.problem_name, self.project_parameters, self.main_model_part, self.save_intermediate_variables_step)
                 if self.save_intermediate_thermal_variables:
                     self.save_utility.SaveThermalVariables(self.problem_name, self.project_parameters, self.main_model_part, self.save_intermediate_variables_step)
+
+    @staticmethod
+    def _SnapshotNodalValues(model_part, variable):
+        return {
+            node.Id: node.GetSolutionStepValue(variable)
+            for node in model_part.Nodes
+        }
+
+    def _SolveWithUpliftCoupling(self):
+        """Iterate the mechanical solve and the uplift pressure of the step."""
+        state = []
+        for entry in self.uplift_coupling_data:
+            state.append(
+                {
+                    "pressure": self._SnapshotNodalValues(
+                        entry["model_part"], entry["variable"]),
+                    "front": entry["process"].GetJointPosition(),
+                }
+            )
+
+        def update_uplift(iteration):
+            return self._UpdateUpliftCoupling(state)
+
+        (self._last_uplift_coupling_iterations,
+         self._last_uplift_coupling_metrics) = self.solver.SolveWithUpliftCoupling(
+            update_uplift, self._uplift_coupling_settings)
+
+    def GetLastUpliftCouplingIterations(self):
+        """Number of hydro-mechanical iterations of the last solved step."""
+        return getattr(self, "_last_uplift_coupling_iterations", 0)
+
+    def _UpdateUpliftCoupling(self, state):
+        settings = self._uplift_coupling_settings
+        pressure_rtol = settings["pressure_relative_tolerance"].GetDouble()
+        pressure_atol = settings["pressure_absolute_tolerance"].GetDouble()
+        opening_atol = settings["joint_width_absolute_tolerance"].GetDouble()
+        front_rtol = settings["front_relative_tolerance"].GetDouble()
+        relaxation = settings["relaxation_factor"].GetDouble()
+
+        if relaxation <= 0.0 or relaxation > 1.0:
+            raise RuntimeError(
+                "DamApplication: 'hydro_mechanical_coupling.relaxation_factor' "
+                "must be in (0, 1].")
+
+        pressure_change = 0.0
+        pressure_norm = 0.0
+        opening_change = 0.0
+        front_change = 0.0
+        front_scale = 1.0
+
+        for index, entry in enumerate(self.uplift_coupling_data):
+            process = entry["process"]
+            model_part = entry["model_part"]
+            variable = entry["variable"]
+
+            # Recompute the uplift pressure from the current joint aperture.
+            process.ExecuteInitializeSolutionStep()
+
+            new_pressure = self._SnapshotNodalValues(model_part, variable)
+            old_pressure = state[index]["pressure"]
+
+            for node_id, value in new_pressure.items():
+                pressure_change = max(
+                    pressure_change, abs(value - old_pressure[node_id]))
+                pressure_norm = max(pressure_norm, abs(value))
+
+            if relaxation < 1.0:
+                used_pressure = {}
+                for node in model_part.Nodes:
+                    value = ((1.0 - relaxation) * old_pressure[node.Id] +
+                             relaxation * new_pressure[node.Id])
+                    node.SetSolutionStepValue(variable, value)
+                    used_pressure[node.Id] = value
+                state[index]["pressure"] = used_pressure
+            else:
+                state[index]["pressure"] = new_pressure
+
+            opening_change = max(
+                opening_change, process.GetMaxJointWidthChange())
+
+            front = process.GetJointPosition()
+            previous_front = state[index]["front"]
+            front_change = max(front_change, abs(front - previous_front))
+            front_scale = max(front_scale, abs(front), abs(previous_front))
+            state[index]["front"] = front
+
+        pressure_tolerance = pressure_atol + pressure_rtol * pressure_norm
+        front_tolerance = front_rtol * front_scale
+
+        is_converged = (
+            pressure_change <= pressure_tolerance and
+            opening_change <= opening_atol and
+            front_change <= front_tolerance)
+
+        metrics = (
+            "dp={:.6e} (tol {:.3e}), dw={:.3e} (tol {:.3e}), "
+            "dfront={:.3e} (tol {:.3e})".format(
+                pressure_change, pressure_tolerance,
+                opening_change, opening_atol,
+                front_change, front_tolerance))
+
+        return is_converged, metrics
 
     def PrintOutput(self):
         if self.gid_output is not None:
