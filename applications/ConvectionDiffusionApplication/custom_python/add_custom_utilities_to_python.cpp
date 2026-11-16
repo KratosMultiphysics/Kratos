@@ -27,6 +27,7 @@
 // #include "custom_utilities/bfecc_elemental_convection.h"
 #include "custom_utilities/bfecc_elemental_limiter_convection.h"
 #include "custom_utilities/embedded_mls_constraint_process.h"
+#include "custom_utilities/scalar_gap_geometry_utility.h"
 #include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 //#include "custom_utilities/convection_diffusion_settings.h"
@@ -63,6 +64,9 @@ void MountBin2(MoveParticleUtilityScalarTransport<TDim>& rMoveParticleUtility, c
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
+    pybind11::class_<ScalarGapGeometryUtility>(m, "ScalarGapGeometryUtility")
+        .def_static("Create", &ScalarGapGeometryUtility::Create,
+                    "Create scalar air gap elements and interface conditions.");
     namespace py = pybind11;
 
 

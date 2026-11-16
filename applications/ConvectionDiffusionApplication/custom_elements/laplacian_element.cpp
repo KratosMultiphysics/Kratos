@@ -227,6 +227,9 @@ int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 //************************************************************************************
 Element::IntegrationMethod LaplacianElement::GetIntegrationMethod() const
 {
+    if (GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) {
+        return GeometryData::IntegrationMethod::GI_GAUSS_2;
+    }
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 

@@ -28,11 +28,13 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_face.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/flux_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/laplacian_shifted_boundary_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/laplacian_gap_sbm_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mixed_laplacian_shifted_boundary_condition.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_thermal_face.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/embedded_mls_constraint_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/scalar_gap_geometry_utility.cpp
 )
 
 ## define python interface sources

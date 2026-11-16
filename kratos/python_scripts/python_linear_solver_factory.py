@@ -73,7 +73,7 @@ class PythonLinearSolverFactory(object):
             KM.Logger.PrintInfo(self.__GetLabel(), "Constructing a complex linear-solver")
             return KM.ComplexLinearSolverFactory().Create(configuration)
         else:
-            KM.Logger.PrintInfo(self.__GetLabel(), "Constructing a regular (non-complex) linear-solver")
+            # KM.Logger.PrintInfo(self.__GetLabel(), "Constructing a regular (non-complex) linear-solver")
             return KM.LinearSolverFactory().Create(configuration)
 
     def CreateFastestAvailableDirectLinearSolver(self):

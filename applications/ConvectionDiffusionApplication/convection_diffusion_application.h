@@ -43,6 +43,7 @@
 #include "custom_conditions/flux_condition.h"
 #include "custom_conditions/adjoint_thermal_face.h"
 #include "custom_conditions/laplacian_shifted_boundary_condition.h"
+#include "custom_conditions/laplacian_gap_sbm_condition.h"
 #include "custom_conditions/mixed_laplacian_shifted_boundary_condition.h"
 
 #include "includes/variables.h"
@@ -247,6 +248,7 @@ private:
     const ConvDiff2D  mConvDiff2D;
     const ConvDiff3D  mConvDiff3D;
     const LaplacianElement mLaplacian2D3N;
+    const LaplacianElement mLaplacian2D4N;
     const LaplacianElement mLaplacian3D4N;
     const LaplacianElement mLaplacian3D8N;
     const LaplacianElement mLaplacian3D27N;
@@ -274,6 +276,8 @@ private:
     const FluxCondition<4>  mFluxCondition3D4N;
 
     const LaplacianShiftedBoundaryCondition mLaplacianShiftedBoundaryCondition;
+    const LaplacianGapDirichletCondition2D mLaplacianGapDirichletCondition2D;
+    const LaplacianGapConnectorCondition2D mLaplacianGapConnectorCondition2D;
     const MixedLaplacianShiftedBoundaryCondition mMixedLaplacianShiftedBoundaryCondition;
 
     const AdjointThermalFace mAdjointThermalFace2D2N;
