@@ -118,6 +118,57 @@ KRATOS_TEST_CASE_IN_SUITE(DGeoFlowParsesSeepageAndNormalFluxLoads, KratosGeoMech
     execute.ParseProcesses(r_model_part, project_parameters);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DGeoFlowParsesSeepageConstraints, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("PorousDomain");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION_X);
+    r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION_Y);
+    r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION_Z);
+    r_model_part.CreateSubModelPart("fixed_head");
+    r_model_part.CreateSubModelPart("gravity");
+
+    Parameters project_parameters(R"(
+    {
+        "processes": {
+            "constraints_process_list": [
+                {
+                    "Parameters": {
+                        "model_part_name": "PorousDomain.fixed_head",
+                        "fluid_pressure_type": "Uniform",
+                        "value": 0.0
+                    }
+                },
+                {
+                    "process_name": "ApplySeepageBoundaryProcess",
+                    "Parameters": {
+                        "model_part_name": "PorousDomain.seepage_boundary"
+                    }
+                }
+            ],
+            "loads_process_list": [
+                {
+                    "process_name": "ApplyVectorConstraintTableProcess",
+                    "Parameters": {
+                        "model_part_name": "PorousDomain.gravity",
+                        "variable_name": "VOLUME_ACCELERATION"
+                    }
+                }
+            ]
+        }
+    })");
+
+    KratosExecute execute;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        execute.ParseProcesses(r_model_part, project_parameters),
+        "ApplySeepageBoundaryProcess: \"PorousDomain.seepage_boundary\" does not correspond to any model part");
+
+    r_model_part.CreateSubModelPart("seepage_boundary");
+    KratosExecute valid_execute;
+    valid_execute.ParseProcesses(r_model_part, project_parameters);
+}
+
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsIntegrationSuite,
                          ParametrizedDGeoFlowTests,
                          ::testing::Values("HeightAquiferD10L30line"));

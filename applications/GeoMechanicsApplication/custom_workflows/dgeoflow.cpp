@@ -151,6 +151,13 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
 
     auto constraints_processes = projFile["processes"]["constraints_process_list"];
     for (Parameters process : constraints_processes) {
+        if (process.Has("process_name") &&
+            process["process_name"].GetString() == "ApplySeepageBoundaryProcess") {
+            mProcesses.push_back(make_shared<ApplySeepageBoundaryProcess>(
+                rModelPart.GetModel(), process["Parameters"]));
+            continue;
+        }
+
         // we only support fixed hydrostatic head
         auto name          = process["Parameters"]["model_part_name"].GetString();
         auto pressure_type = process["Parameters"]["fluid_pressure_type"].GetString();
