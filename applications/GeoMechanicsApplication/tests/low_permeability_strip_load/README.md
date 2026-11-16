@@ -46,3 +46,4 @@ reference.
 | `test_newton_raphson_with_scaling` | Newton-Raphson | `"scaling": true` in `linear_solver_settings` |
 | `test_quasi_newton_lbfgs_with_scaling` | quasi-Newton (L-BFGS) | `"quasi_newton_scaling": true` |
 | `test_quasi_newton_broyden_with_scaling` | quasi-Newton (Broyden) | `"quasi_newton_scaling": true` |
+| `test_quasi_newton_none_with_scaling` | quasi-Newton without updates (modified Newton-Raphson) | `"quasi_newton_scaling": true` |

@@ -672,6 +672,36 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
         self.run_simulation_and_checks()
 
+    def test_staged_construction_with_mohr_coulomb_clay_sand_using_quasi_newton_without_updates(
+        self,
+    ):
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type=staged_construction,
+            variant="quasi_newton_none",
+            modify_project_parameters=(
+                lambda project_parameters: set_quasi_newton_method(
+                    project_parameters, "none"
+                )
+            ),
+        )
+        self.run_simulation_and_checks()
+
+    def test_staged_construction_with_mohr_coulomb_clay_sand_using_quasi_newton_without_updates_with_scaling(
+        self,
+    ):
+        self.prepare_test_run(
+            material_model_dir_name=mohr_coulomb_clay_sand_dir_name,
+            analysis_type=staged_construction,
+            variant="quasi_newton_none_with_scaling",
+            modify_project_parameters=(
+                lambda project_parameters: set_quasi_newton_method(
+                    project_parameters, "none", use_scaling=True
+                )
+            ),
+        )
+        self.run_simulation_and_checks()
+
     def test_staged_construction_with_mohr_coulomb_clay_sand_with_intermediate_save_and_load(
         self,
     ):

@@ -94,9 +94,11 @@ public:
             mQuasiNewtonType = QuasiNewtonType::LBFGS;
         } else if (quasi_newton_type == "broyden") {
             mQuasiNewtonType = QuasiNewtonType::Broyden;
+        } else if (quasi_newton_type == "none") {
+            mQuasiNewtonType = QuasiNewtonType::None;
         } else {
             KRATOS_ERROR << "Unknown 'quasi_newton_type': '" << quasi_newton_type
-                         << "'. Valid options are 'broyden' and 'lbfgs'." << std::endl;
+                         << "'. Valid options are 'broyden', 'lbfgs' and 'none'." << std::endl;
         }
 
         mRestartInterval = rParameters["quasi_newton_restart_interval"].GetInt();
@@ -195,8 +197,9 @@ public:
     }
 
 private:
-    /// The available quasi-Newton update schemes.
-    enum class QuasiNewtonType { Broyden, LBFGS };
+    /// The available quasi-Newton update schemes. 'None' applies no low-rank updates and only
+    /// reuses the factorization of rA_0.
+    enum class QuasiNewtonType { Broyden, LBFGS, None };
 
     struct RankStorage {
         virtual void Clear()   = 0;
@@ -359,8 +362,14 @@ private:
     void BuildAndConstrainA0(TSystemMatrixType& rA_0, TSystemVectorType& rDx, TSystemVectorType& rb, RankStorage& rRankStorage)
     {
         rRankStorage.Clear();
+        BuildAndConstrainA0(rA_0, rDx, rb);
+    }
 
-        auto       p_builder_and_solver = MotherType::GetBuilderAndSolver();
+    /// Builds A and b, applies master-slave constraints
+    /// Dirichlet conditions, then factorizes the resulting (reduced) rA_0.
+    void BuildAndConstrainA0(TSystemMatrixType& rA_0, TSystemVectorType& rDx, TSystemVectorType& rb)
+    {
+        auto      p_builder_and_solver = MotherType::GetBuilderAndSolver();
         auto       p_scheme             = MotherType::GetScheme();
         ModelPart& r_model_part         = BaseType::GetModelPart();
 
@@ -541,8 +550,13 @@ private:
                 BuildAndConstrainA0(rA_0, rDx, rb, mBroydenRankStorage);
             }
             ShermanMorrisSolve(rA_0, rDx, rb);
+        } else if (mQuasiNewtonType == QuasiNewtonType::None) {
+            if (RebuildLhs) {
+                BuildAndConstrainA0(rA_0, rDx, rb);
+            }
+            SolveWithA0(rA_0, rDx, rb);
         } else {
-            KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'."
+            KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden', 'lbfgs' and 'none'."
                          << std::endl;
         }
     }
@@ -554,8 +568,10 @@ private:
 
         } else if (mQuasiNewtonType == QuasiNewtonType::Broyden) {
             this->UpdateBroydenRank(rA_0, rDx, rDeltaB);
+        } else if (mQuasiNewtonType == QuasiNewtonType::None) {
+            // no low-rank updates, only the factorization of rA_0 is reused
         } else {
-            KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden' and 'lbfgs'."
+            KRATOS_ERROR << "Unknown 'quasi_newton_type'. Valid options are 'broyden', 'lbfgs' and 'none'."
                          << std::endl;
         }
     }

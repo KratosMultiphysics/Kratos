@@ -186,6 +186,14 @@ class KratosGeoMechanicsLowPermeabilityStripLoadTests(KratosUnittest.TestCase):
             ),
         )
 
+    def test_quasi_newton_none_with_scaling(self):
+        self.run_simulation_and_checks(
+            "quasi_newton_none_with_scaling",
+            lambda project_parameters: set_quasi_newton_method_with_scaling(
+                project_parameters, "none"
+            ),
+        )
+
 
 if __name__ == "__main__":
     KratosUnittest.main()
