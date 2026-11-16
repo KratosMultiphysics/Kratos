@@ -24,7 +24,6 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.FluidDynamicsApplication.rebuild_fluid_patch_gap_process import RebuildFluidPatchGapProcess
 from KratosMultiphysics.FluidDynamicsApplication.patch_history_transfer import (
     transfer_background_histories, OuterHistoryValidity, GapHistory)
-from KratosMultiphysics.FluidDynamicsApplication.history_diagnostics import HistoryDiagnostics
 
 
 class MovingGapLifecycle:
@@ -38,7 +37,7 @@ class MovingGapLifecycle:
     """
 
     def __init__(self, model, coupling_settings, velocity, dt, *,
-                 tolerance=1e-10, bdf1_startup=True, history_diagnostics=None,
+                 tolerance=1e-10, bdf1_startup=True,
                  geometry_name='Interfaces', computing_name='Computing', motions=None, cylinder=None):
         settings = coupling_settings if isinstance(coupling_settings, (list, tuple)) else [coupling_settings]
         velocities = list(velocity) if velocity and isinstance(velocity[0], (list, tuple)) else [velocity]
@@ -88,13 +87,6 @@ class MovingGapLifecycle:
         self.step = 0
         self._pending = False
         self._failed = False
-        self.diagnostics = HistoryDiagnostics(history_diagnostics) if history_diagnostics is not None else None
-        if self.diagnostics:
-            self._geometry_slots = [self._snapshot_geometry(), None, None]
-            self._activity_slots = [set(previous), None, None]
-            # Initial values may be valid supplied data; they were not solved
-            # by this lifecycle. Older computation provenance is unavailable.
-            self._computed_slots = [set(), None, None]
 
     def _get_gap_geometry(self, index):
         return self.rebuild.GetPatchGeometry(index)
@@ -107,17 +99,6 @@ class MovingGapLifecycle:
         omega = 2.0 * math.pi * motion['frequency']
         phase = motion.get('phase', 0.0)
         return (motion['amplitude'] * (math.sin(omega * time + phase) - math.sin(omega * self._initial_time + phase)), 0.0)
-
-    def _snapshot_geometry(self):
-        """Copy geometry before the next rebuild deletes its gap entities."""
-        def vertices(geometry):
-            return tuple((float(node.X), float(node.Y)) for node in geometry)
-        interfaces = [self._get_gap_geometry(i) for i in range(len(self.inner_patches))]
-        return {
-            'inner': [(e.Id, vertices(e.GetGeometry())) for patch in self.inner_patches for e in patch.Elements],
-            'active_outer': [(e.Id, vertices(e.GetGeometry())) for e in self.background.Elements if e.Is(KM.ACTIVE)],
-            'gap': [(g.Id, vertices(g)) for interface in interfaces for g in interface.GetSubModelPart('GapTriangles').Geometries]
-        }
 
     def prepare_solution_step(self, time, *, exact_history=None):
         """Move and rebuild; optionally supply exact_history(node, historical_time).
@@ -140,10 +121,6 @@ class MovingGapLifecycle:
         self.validity.advance()
         for history in self.gap_histories:
             history.advance()
-        if self.diagnostics:
-            self._geometry_slots = [None, self._geometry_slots[0], self._geometry_slots[1]]
-            self._activity_slots = [None, self._activity_slots[0], self._activity_slots[1]]
-            self._computed_slots = [set(), self._computed_slots[0], self._computed_slots[1]]
         self.bdf.ComputeAndSaveBDFCoefficients(self.root.ProcessInfo)
         if self.bdf1_startup and self.step == 1:
             self.root.ProcessInfo[KM.BDF_COEFFICIENTS] = KM.Vector([1/self.dt, -1/self.dt, 0.])
@@ -175,52 +152,21 @@ class MovingGapLifecycle:
         targets = [self.root.GetNode(i) for i in sorted(current_nodes-self.inner_ids)
                    if any(i not in self.validity.slots[k] for k in required)]
         counts = {'outer': 0, 'inner': 0, 'gap': 0, 'extrapolation': 0, 'missing': 0}
-        samples = [] if self.diagnostics else None
-        if self.diagnostics:
-            self._activity_slots[0] = set(current_nodes-self.inner_ids)
-            self._geometry_slots[0] = self._snapshot_geometry()
-            new_outer = current_nodes-self.previous_nodes-self.inner_ids
-            observe = self.diagnostics.make_observer(
-                self.step, time, self.dt, new_outer, self.validity,
-                self._geometry_slots, self._activity_slots, self._computed_slots, samples)
-            events = {'activated_nodes': len(new_outer),
-                      'deactivated_nodes': len((self.previous_nodes-self.inner_ids)-current_nodes),
-                      'activated_elements': len(current_elements-self.previous_elements),
-                      'deactivated_elements': len(self.previous_elements-current_elements)}
         if exact_history is not None:
             for node in targets:
                 for k in required:
                     if node.Id not in self.validity.slots[k]:
                         node.SetSolutionStepValue(KM.VELOCITY, k, exact_history(node, time-k*self.dt))
-                        if self.diagnostics:
-                            observe(node, k, 'exact', None, None)
-                    elif self.diagnostics:
-                        observe(node, k, 'outer', None, None)
         elif targets:
-            try:
-                offsets = []
-                for i in range(len(self.inner_patches)):
-                    current = self._translation(i, time)
-                    offsets.append({k: tuple(current[d] - self._translation(i, time-k*self.dt)[d]
-                                             for d in range(2)) for k in required})
-                counts = transfer_background_histories(
-                    self.inner_patches[0], targets, time, self.dt, self.velocities[0], self.validity,
-                    required, observer=observe if self.diagnostics else None,
-                    inner_patches=self.inner_patches, velocities=self.velocities, gap_histories=self.gap_histories,
-                    displacement_offsets=offsets)
-            except Exception:
-                if self.diagnostics:
-                    self.diagnostics.write_step(self.step, time, samples, events, committed=False)
-                raise
-        if self.diagnostics:
-            # Nodes already holding every required valid slot bypass transfer;
-            # record their reuse without modifying the numerical target set.
-            target_ids = {node.Id for node in targets}
-            for node_id in sorted(new_outer-target_ids):
-                node = self.root.GetNode(node_id)
-                for slot in required:
-                    observe(node, slot, 'outer', None, None)
-            self.diagnostics.write_step(self.step, time, samples, events)
+            offsets = []
+            for i in range(len(self.inner_patches)):
+                current = self._translation(i, time)
+                offsets.append({k: tuple(current[d] - self._translation(i, time-k*self.dt)[d]
+                                         for d in range(2)) for k in required})
+            counts = transfer_background_histories(
+                self.inner_patches[0], targets, time, self.dt, self.velocities[0], self.validity,
+                required, inner_patches=self.inner_patches, velocities=self.velocities, gap_histories=self.gap_histories,
+                displacement_offsets=offsets)
         triangles = [g for i in range(len(self.inner_patches))
                      for g in self._get_gap_geometry(i).GetSubModelPart('GapTriangles').Geometries]
         result = {'newly_active_nodes': len(current_nodes-self.previous_nodes-self.inner_ids),
@@ -250,8 +196,6 @@ class MovingGapLifecycle:
         for i, history in enumerate(self.gap_histories):
             history.capture(self._get_gap_geometry(i), time)
         self.validity.mark_solved(self._current_nodes-self.inner_ids)
-        if self.diagnostics:
-            self._computed_slots[0] = set(self._current_nodes-self.inner_ids)
         self.previous_nodes = self._current_nodes
         self.previous_elements = self._current_elements
         self.previous_triangles = self._current_triangles

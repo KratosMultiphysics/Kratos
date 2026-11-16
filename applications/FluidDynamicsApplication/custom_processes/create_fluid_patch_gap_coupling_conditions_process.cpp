@@ -59,14 +59,15 @@ void CreateFluidPatchGapCouplingConditionsProcess::Execute()
     const std::string formulation = mSettings["formulation"].GetString();
     KRATOS_ERROR_IF(formulation != "stokes" && formulation != "qsvms" &&
                     formulation != "two_phase_stokes" && formulation != "two_phase_qsvms" &&
-                    formulation != "two_phase_level_set_stokes" && formulation != "two_phase_level_set_qsvms")
+                    formulation != "two_phase_level_set_stokes" && formulation != "two_phase_level_set_qsvms" &&
+                    formulation != "one_phase_level_set_qsvms")
         << "Unknown fluid patch gap formulation: " << formulation << std::endl;
-    const bool level_set = formulation == "two_phase_level_set_stokes" || formulation == "two_phase_level_set_qsvms";
-    const bool use_qsvms = formulation == "qsvms" || formulation == "two_phase_qsvms" || formulation == "two_phase_level_set_qsvms";
-    const bool two_phase = formulation == "two_phase_stokes" || formulation == "two_phase_qsvms" || level_set;
-    KRATOS_ERROR_IF(two_phase && mSettings["allow_transient"].GetBool() &&
-                    formulation != "two_phase_level_set_qsvms")
-        << "Transient two-phase gap coupling requires the experimental level-set QSVMS path." << std::endl;
+    const bool one_phase = formulation == "one_phase_level_set_qsvms";
+    const bool level_set = formulation == "two_phase_level_set_stokes" || formulation == "two_phase_level_set_qsvms" || one_phase;
+    const bool use_qsvms = formulation == "qsvms" || formulation == "two_phase_qsvms" || formulation == "two_phase_level_set_qsvms" || one_phase;
+    const bool two_phase = formulation == "two_phase_stokes" || formulation == "two_phase_qsvms" || (level_set && !one_phase);
+    KRATOS_ERROR_IF(two_phase && mSettings["allow_transient"].GetBool() && !use_qsvms)
+        << "Transient two-phase gap coupling requires QSVMS." << std::endl;
     KRATOS_ERROR_IF(use_qsvms && !two_phase && !mSettings["allow_transient"].GetBool())
         << "QSVMS gap coupling requires the transient BDF assembly path." << std::endl;
     auto& r_background = mrModel.GetModelPart(mSettings["background_model_part_name"].GetString());
@@ -160,7 +161,7 @@ void CreateFluidPatchGapCouplingConditionsProcess::Execute()
     }
     FemMultipatchGapUtilities::GapData data;
     const double tolerance = mSettings["tolerance"].GetDouble();
-    if (two_phase) {
+    if (two_phase || one_phase) {
         Matrix contour;
         if (level_set) {
             const auto coordinates = mSettings["level_set_contour"];
@@ -173,6 +174,11 @@ void CreateFluidPatchGapCouplingConditionsProcess::Execute()
         auto water = level_set
             ? FemMultipatchGapUtilities::BuildLevelSetPhase(r_background, contour, true, tolerance)
             : FemMultipatchGapUtilities::BuildHorizontalPhase(r_background, mSettings["interface_height"].GetDouble(), true, tolerance);
+        if (one_phase) {
+            KRATOS_ERROR_IF(water.Physical.empty()) << "One-phase free surface is empty." << std::endl;
+            data.Cells = std::move(water.Cells);
+            data.Connectors = std::move(water.Connectors);
+        } else {
         auto air = level_set
             ? FemMultipatchGapUtilities::BuildLevelSetPhase(r_inner, contour, false, tolerance)
             : FemMultipatchGapUtilities::BuildHorizontalPhase(r_inner, mSettings["interface_height"].GetDouble(), false, tolerance);
@@ -189,6 +195,7 @@ void CreateFluidPatchGapCouplingConditionsProcess::Execute()
         data.Cells.insert(data.Cells.end(), air.Cells.begin(), air.Cells.end());
         data.Connectors = std::move(water.Connectors);
         data.Connectors.insert(data.Connectors.end(), air.Connectors.begin(), air.Connectors.end());
+        }
     } else {
         data = FemMultipatchGapUtilities::Build(r_background, r_inner, tolerance);
     }

@@ -5,7 +5,7 @@
 
 namespace Kratos {
 /// Materialize air-side scalar Gap-SBM entities in an auxiliary model part.
-class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) ScalarGapGeometryUtility
+class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) LaplacianGapGeometryUtility
 {
 public:
     static void Create(ModelPart& rPhase, ModelPart& rComputing, const Matrix& rContour,

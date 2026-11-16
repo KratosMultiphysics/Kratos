@@ -53,7 +53,6 @@ class MovingGapStokesSolver(PythonSolver):
             "geometry_model_part_name": "Interfaces",
             "computing_model_part_name": "Computing",
             "tolerance": 1e-10,
-            "history_diagnostics": {"enabled": false, "output_directory": "output/history_diagnostics"},
             "coupling_settings": {
                 "background_model_part_name": "Fluid.Patch_0",
                 "inner_model_part_name": "Fluid.Patch_1",
@@ -133,9 +132,7 @@ class MovingGapStokesSolver(PythonSolver):
             geometry_name=self.settings['geometry_model_part_name'].GetString(),
             computing_name=self.settings['computing_model_part_name'].GetString(),
             motions=motions,
-            cylinder=cylinder,
-            history_diagnostics=(self.settings['history_diagnostics']['output_directory'].GetString()
-                                 if self.settings['history_diagnostics']['enabled'].GetBool() else None))
+            cylinder=cylinder)
 
     def AdvanceInTime(self, current_time):
         if self._lifecycle is None:

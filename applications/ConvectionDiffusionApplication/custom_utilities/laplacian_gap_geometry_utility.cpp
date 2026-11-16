@@ -1,12 +1,12 @@
 // BSD License, Kratos default license: kratos/license.txt
 #include <algorithm>
 #include <set>
-#include "custom_utilities/scalar_gap_geometry_utility.h"
+#include "custom_utilities/laplacian_gap_geometry_utility.h"
 #include "convection_diffusion_application_variables.h"
 #include "utilities/multipatch_gap_utilities.h"
 
 namespace Kratos {
-void ScalarGapGeometryUtility::Create(ModelPart& rPhase, ModelPart& rComputing, const Matrix& rContour,
+void LaplacianGapGeometryUtility::Create(ModelPart& rPhase, ModelPart& rComputing, const Matrix& rContour,
                                       Properties::Pointer pConditionProperties, double Tolerance)
 {
     KRATOS_TRY

@@ -13,6 +13,7 @@
 #include "qs_vms.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
+#include "fluid_dynamics_application_variables.h"
 
 #include "data_containers/qs_vms/qs_vms_data.h"
 #include "data_containers/time_integrated_qs_vms/time_integrated_qs_vms_data.h"
@@ -412,6 +413,9 @@ void QSVMS<TElementData>::AddVelocitySystem(
 
     this->CalculateTau(rData,convective_velocity,tau_one,tau_two);
 
+    const double continuity_source = this->Has(CONTINUITY_SOURCE)
+        ? this->GetValue(CONTINUITY_SOURCE) : 0.0;
+
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
 
@@ -474,12 +478,13 @@ void QSVMS<TElementData>::AddVelocitySystem(
         double forcing = 0.0;
         for (unsigned int d = 0; d < Dim; ++d)
         {
+            rLocalRHS[row+d] += rData.Weight * tau_two * rData.DN_DX(i,d) * continuity_source;
             rLocalRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
             rLocalRHS[row+d] += rData.Weight * tau_one * AGradN[i] * ( body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * tau_one * (Density * BodyForce)
             rLocalRHS[row+d] -= rData.Weight * tau_two * rData.DN_DX(i,d) * mass_projection;
             forcing += rData.DN_DX(i, d) * (body_force[d] - momentum_projection[d]);
         }
-        rLocalRHS[row + Dim] += rData.Weight * tau_one * forcing; // Grad(q) * tau_one * (Density * BodyForce)
+        rLocalRHS[row + Dim] += rData.Weight * (tau_one * forcing + rData.N[i] * continuity_source);
     }
 
     // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)

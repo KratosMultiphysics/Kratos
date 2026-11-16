@@ -37,6 +37,7 @@
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
 #include "custom_utilities/fluid_test_utilities.h"
+#include "custom_utilities/two_fluid_phase_velocity_sampler.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -51,9 +52,20 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
+
     typedef TDefaultSparseSpace<double> SparseSpaceType;
     typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
+    py::class_<TwoFluidPhaseVelocitySampler>(m, "TwoFluidPhaseVelocitySampler")
+        .def(py::init<TwoFluidPhaseVelocitySampler::CellsType, std::string, double>(),
+             py::arg("cells"), py::arg("phase_name"), py::arg("tolerance"),
+             "Create a physical-support sampler from captured Q1 phase cells.")
+        .def("Sample", &TwoFluidPhaseVelocitySampler::Sample, py::arg("x"), py::arg("y"),
+             "Sample the mean velocity of the distinct parent traces at a point.")
+        .def_static("SampleNodes", &TwoFluidPhaseVelocitySampler::SampleNodes,
+             py::arg("model_part"), py::arg("water"), py::arg("air"), py::arg("tolerance"),
+             "Sample level-set nodes without changing their historical values.");
 
     // Dynamic Smagorinsky utilitites
     py::class_<DynamicSmagorinskyUtils>(m,"DynamicSmagorinskyUtils")
