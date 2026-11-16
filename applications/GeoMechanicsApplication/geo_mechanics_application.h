@@ -437,12 +437,6 @@ private:
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D9N{
         0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
         std::make_unique<PlaneStrainStressState>()};
-    const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D10N{
-        0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<PlaneStrainStressState>()};
-    const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D15N{
-        0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-        std::make_unique<PlaneStrainStressState>()};
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D10N{
         0, Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
         std::make_unique<ThreeDimensionalStressState>()};
@@ -502,14 +496,6 @@ private:
         std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D9N{
         0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
-        std::make_unique<AxisymmetricStressState>(),
-        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
-    const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D10N{
-        0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<AxisymmetricStressState>(),
-        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
-    const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D15N{
-        0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
         std::make_unique<AxisymmetricStressState>(),
         std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
@@ -611,12 +597,6 @@ private:
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D9N{
         0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
         std::make_unique<PlaneStrainStressState>()};
-    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D10N{
-        0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<PlaneStrainStressState>()};
-    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D15N{
-        0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-        std::make_unique<PlaneStrainStressState>()};
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D10N{
         0, Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
         std::make_unique<ThreeDimensionalStressState>()};
@@ -667,14 +647,6 @@ private:
         std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D9N{
         0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
-        std::make_unique<AxisymmetricStressState>(),
-        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
-    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D10N{
-        0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        std::make_unique<AxisymmetricStressState>(),
-        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
-    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D15N{
-        0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
         std::make_unique<AxisymmetricStressState>(),
         std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
