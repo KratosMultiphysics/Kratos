@@ -573,7 +573,7 @@ protected:
         const PointType& rLocalPointParent,
         const GeometryPointType& rGeometryDecomp,
         const bool DualLM = false,
-        const ProcessInfo& rCurrentProcessInfo = ProcessInfo()
+        const ProcessInfo::Pointer pCurrentProcessInfo = nullptr
         );
 
     /********************************************************************************/
