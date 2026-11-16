@@ -20,6 +20,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suites
 from artificial_compressibility_test import ArtificialCompressibilityTest
 from buoyancy_test import BuoyancyTest
+from coupled_fluid_thermal_solver_test import CoupledFluidThermalSolverTest
 from couette_flow_test import CouetteFlowTest
 from darcy_channel_test import DarcyChannelTest
 from embedded_piston_test import EmbeddedPistonTest
@@ -97,6 +98,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeYPlusProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SlipSpuriousTangentialCorrectionTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyWallLawProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CoupledFluidThermalSolverTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
