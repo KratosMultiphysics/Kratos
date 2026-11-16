@@ -358,7 +358,7 @@ class DamUpliftConditionLoadProcess : public Process
 
                     current_joint_widths.push_back(MyGaussPoint.JointWidth);
 
-                    if (has_initial_joint_width && MyGaussPoint.JointWidth > InitialJointWidth) // Broken part
+                    if (has_initial_joint_width && MyGaussPoint.JointWidth > InitialJointWidth) // Open point (aperture > initial width)
                     {
                         if (MyGaussPoint.Coordinates[0] > JointPosition)
                         {
@@ -399,24 +399,24 @@ class DamUpliftConditionLoadProcess : public Process
 
                 double uplift_pressure = 0.0;
 
-                if (ligament_length <= 0.0 || newCoordinate(0) < (reference_vector(0) + JointPosition)) // Broken part
+                if (ligament_length <= 0.0 || newCoordinate(0) < (reference_vector(0) + JointPosition)) // Open part (upstream of the open front)
                 {
                     uplift_pressure = mSpecific * (ref_water_level - (rNode.Coordinates()[direction]));
                 }
-                else // Not broken part
+                else // Closed ligament downstream of the open front
                 {
-                    if (mDrain == true && JointPosition < (reference_vector(0) + mDistanceDrain)) // If Drain and Joint broken less than the Drain
+                    if (mDrain == true && JointPosition < (reference_vector(0) + mDistanceDrain)) // Drain downstream of the open front (front has not reached the drain)
                     {
-                        if (newCoordinate(0) < (reference_vector(0) + mDistanceDrain)) // UpliftPressure before the Drain
+                        if (newCoordinate(0) < (reference_vector(0) + mDistanceDrain)) // Upstream of the drain
                         {
                             uplift_pressure = mSpecific * (ref_water_level - (rNode.Coordinates()[direction])) * (1.0 - 0.8 * ((1.0 / ((reference_vector(0) + mDistanceDrain) - JointPosition)) * (fabs(newCoordinate(0) - JointPosition))));
                         }
-                        else // UpliftPressure after the Drain
+                        else // Downstream of the drain
                         {
                             uplift_pressure = 0.2 * mSpecific * (ref_water_level - (rNode.Coordinates()[direction])) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs(newCoordinate(0) - (reference_vector(0) + mDistanceDrain)))));
                         }
                     }
-                    else // If Not Drain or Joint broken more than the Drain
+                    else // No drain, or the open front is beyond the drain
                     {
                         uplift_pressure = mSpecific * (ref_water_level - (rNode.Coordinates()[direction])) * (1.0 - ((1.0 / ligament_length) * (fabs(newCoordinate(0) - JointPosition))));
                     }
