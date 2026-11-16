@@ -537,7 +537,7 @@ namespace Kratos
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
       computeElement = this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
       bool wallElement = false;
-      if (computeElement == true)
+      if (computeElement)
       {
 
         this->EvaluateInPoint(FluidFraction, FLUID_FRACTION, N);
@@ -551,7 +551,7 @@ namespace Kratos
             break;
           }
         }
-        if (wallElement == true)
+        if (wallElement)
         {
           FluidFractionRate = this->GetProperties()[FLUID_FRACTION_RATE];
         }
@@ -594,7 +594,7 @@ namespace Kratos
       }
     }
 
-    if (computeElement == true)
+    if (computeElement)
     {
 
       VectorType PressureValues = ZeroVector(NumNodes);

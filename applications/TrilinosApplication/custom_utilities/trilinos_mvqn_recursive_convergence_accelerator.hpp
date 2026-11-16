@@ -16,11 +16,9 @@
 #include "Epetra_SerialDenseSolver.h"
 
 /* Project includes */
-#include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/kratos_parameters.h"
-#include "includes/ublas_interface.h"
-#include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
+#include "includes/default_interface.h"
 
 namespace Kratos
 {

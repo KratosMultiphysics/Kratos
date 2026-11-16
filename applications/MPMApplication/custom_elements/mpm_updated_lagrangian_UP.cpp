@@ -166,7 +166,6 @@ void MPMUpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, co
 
     array_1d<double,3> delta_xg = ZeroVector(3);
     array_1d<double,3> MP_acceleration = ZeroVector(3);
-    array_1d<double,3> MP_velocity = ZeroVector(3);
     double MP_pressure = 0.0;
     const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 

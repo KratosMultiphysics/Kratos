@@ -205,10 +205,10 @@ public:
         const SizeType LocalSize = BlockSize * TNumNodes;
 
         if (rLeftHandSideMatrix.size1() != LocalSize)
-            rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+            rLeftHandSideMatrix.resize(LocalSize,LocalSize, false);
 
         if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize);
+            rRightHandSideVector.resize(LocalSize, false);
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
@@ -231,7 +231,7 @@ public:
         const SizeType LocalSize = BlockSize * TNumNodes;
 
         if (rLeftHandSideMatrix.size1() != LocalSize)
-            rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+            rLeftHandSideMatrix.resize(LocalSize,LocalSize, false);
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
     }
@@ -248,7 +248,7 @@ public:
         const SizeType LocalSize = BlockSize * TNumNodes;
 
         if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize);
+            rRightHandSideVector.resize(LocalSize, false);
 
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 

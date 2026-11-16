@@ -642,8 +642,11 @@ endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
 if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
-  # Compile our own
+  # Compile our own (zlib sources are not unity-build safe: they redefine the same types/macros)
+  set( KRATOS_ZLIB_PREVIOUS_UNITY_BUILD ${CMAKE_UNITY_BUILD} )
+  set( CMAKE_UNITY_BUILD OFF )
   add_subdirectory( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
+  set( CMAKE_UNITY_BUILD ${KRATOS_ZLIB_PREVIOUS_UNITY_BUILD} )
   # We have to add this for zconf
   include_directories( ${KRATOS_BINARY_DIR}/external_libraries/zlib )
   set( ZLIB_LIBRARIES zlib )
@@ -654,6 +657,13 @@ message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")
 
 # Include dir for external libraries
 include_directories( SYSTEM ${KRATOS_SOURCE_DIR}/external_libraries )
+
+# Eigen (header-only). Resolved from EIGEN3_ROOT, the OS install, or an
+# automatic download (see cmake_modules/KratosEigen.cmake). Added at top level
+# so both the core and any application can use it (e.g. as sparse
+# linear-algebra backend); EIGEN_MPL2_ONLY is set globally so every translation
+# unit agrees on the licensed subset.
+include(KratosEigen)
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )

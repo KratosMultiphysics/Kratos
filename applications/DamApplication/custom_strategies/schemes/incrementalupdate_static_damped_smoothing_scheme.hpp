@@ -11,6 +11,7 @@
 // Application includes
 //~ #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "custom_strategies/schemes/incrementalupdate_static_smoothing_scheme.hpp"
+#include "custom_utilities/dam_initial_stress_utilities.hpp"
 #include "dam_application_variables.h"
 
 namespace Kratos
@@ -99,13 +100,7 @@ public:
         r_model_part.GetProcessInfo()[RAYLEIGH_BETA] = mRayleighBeta;
 
         // Initialize INITIAL_STRESS_TENSOR
-        block_for_each(r_model_part.Nodes(), [](Node& rNode){
-            auto& r_initial_stress = rNode.FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
-            if (r_initial_stress.size1() != 3 || r_initial_stress.size2() != 3) {
-                r_initial_stress.resize(3,3,false);
-            }
-            r_initial_stress.clear();
-        });
+        DamInitialStressUtilities::EnsureInitialStressTensorStorage(r_model_part);
 
         mSchemeIsInitialized = true;
 
@@ -128,10 +123,6 @@ public:
         //const double DeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
-        const unsigned int NumThreads = ParallelUtilities::GetNumThreads();
-        OpenMPUtils::PartitionVector NodePartition;
-        OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
-
         const int nnodes = static_cast<int>( rModelPart.Nodes().size() );
         NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 
@@ -171,8 +162,6 @@ public:
     {
         KRATOS_TRY;
 
-        int NumThreads = ParallelUtilities::GetNumThreads();
-
         // Initialize
         block_for_each(rDofSet, [&Dx](auto& dof)
             {
@@ -185,9 +174,6 @@ public:
         );
 
         // Updating time derivatives (nodally for efficiency)
-        OpenMPUtils::PartitionVector NodePartition;
-        OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
-
         const int nnodes = static_cast<int>(rModelPart.Nodes().size());
         NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 

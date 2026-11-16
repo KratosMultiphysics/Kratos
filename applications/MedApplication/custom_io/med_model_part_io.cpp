@@ -1082,6 +1082,21 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         geom_family_map[geom_type].push_back(it->second);
     }
 
+    // SubModelParts without nodes and geometries belong to no family above.
+    // They get a family without entities, so that they are created when reading
+    std::map<std::set<std::string>, med_int> empty_combo_to_family;
+    for (const auto* r_smp : all_sub_modelparts) {
+        if (r_smp->NumberOfNodes() > 0 || r_smp->NumberOfGeometries() > 0) {
+            continue;
+        }
+        std::string group_name = r_smp->FullName();
+        const std::string root_prefix = rThisModelPart.Name() + ".";
+        if (group_name.rfind(root_prefix, 0) == 0) {
+            group_name = group_name.substr(root_prefix.size());
+        }
+        empty_combo_to_family.emplace(std::set<std::string>{group_name}, -next_family++);
+    }
+
     // =========================================================================
     // 8. CREATE FAMILIES (GROUP DEFINITIONS)
     // =========================================================================
@@ -1114,6 +1129,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
     CreateFamilies(node_combo_to_family, "NODE_FAM_", "nodes");
     CreateFamilies(geom_combo_to_family, "GEOM_FAM_", "geometries");
+    CreateFamilies(empty_combo_to_family, "EMPTY_FAM_", "empty SubModelParts");
 
     // =========================================================================
     // 9. WRITE NODE FAMILY NUMBERS

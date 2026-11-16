@@ -282,7 +282,6 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLeftHandSide(
 
     mConstitutiveLawVector[0]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
     const double gen_axial_force = ref_area * (stress_vector[0] + pre_stress);
-    const array_3 axial_force_vector = gen_axial_force * current_unit_dir;
 
     bounded_matrix_3 outer_unit, K_m, K_geo, K_t; // the 3x3 matrices
     noalias(outer_unit) = outer_prod(current_unit_dir, current_unit_dir);
@@ -488,7 +487,6 @@ void TotalLagrangianTrussElement<TDimension>::CalculateOnIntegrationPoints(
         const array_3 curr_axis = r_geometry[1].Coordinates() - r_geometry[0].Coordinates();
         const double ref_length = norm_2(ref_axis);
         const double curr_length = norm_2(curr_axis);
-        const array_3 current_unit_dir = curr_axis / curr_length;
         const double Fxx = curr_length / ref_length; // Deformation gradient in the axial direction
         rOutput[0] = 0.5 * (Fxx * Fxx - 1.0);
     }
@@ -515,7 +513,6 @@ void TotalLagrangianTrussElement<TDimension>::CalculateOnIntegrationPoints(
         const array_3 curr_axis = r_geometry[1].Coordinates() - r_geometry[0].Coordinates();
         const double ref_length = norm_2(ref_axis);
         const double curr_length = norm_2(curr_axis);
-        const array_3 current_unit_dir = curr_axis / curr_length;
         const double Fxx = curr_length / ref_length; // Deformation gradient in the axial direction
         const double green_lagrange_strain = 0.5 * (Fxx * Fxx - 1.0);
         const double pre_stress = r_props.Has(TRUSS_PRESTRESS_PK2) ? r_props[TRUSS_PRESTRESS_PK2] :  0.0;

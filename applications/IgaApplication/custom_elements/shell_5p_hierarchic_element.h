@@ -132,7 +132,7 @@ public:
 
         //resizing as needed the RHS
         if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size);
+            rRightHandSideVector.resize(mat_size, false);
         rRightHandSideVector = ZeroVector(mat_size);
 
         CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
@@ -152,7 +152,7 @@ public:
 
         //resizing as needed the LHS
         if (rLeftHandSideMatrix.size1() != mat_size || rLeftHandSideMatrix.size2() != mat_size)
-            rLeftHandSideMatrix.resize(mat_size, mat_size);
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
         CalculateAll(rLeftHandSideMatrix, temp, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
@@ -174,12 +174,12 @@ public:
 
         //resizing as needed the LHS
         if (rLeftHandSideMatrix.size1() != mat_size || rLeftHandSideMatrix.size2() != mat_size)
-            rLeftHandSideMatrix.resize(mat_size, mat_size);
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
         //resizing as needed the RHS
         if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size);
+            rRightHandSideVector.resize(mat_size, false);
         rRightHandSideVector = ZeroVector(mat_size);
 
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);

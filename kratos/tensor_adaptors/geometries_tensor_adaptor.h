@@ -20,7 +20,7 @@
 // Project includes
 #include "geometries/geometry_data.h"
 #include "tensor_adaptor.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "utilities/data_type_traits.h"
 
 namespace Kratos
@@ -65,6 +65,7 @@ public:
     {
         ShapeFunctions,
         ShapeFunctionDerivatives,
+        Normals,
         Jacobians,
         IntegrationWeights
     };
@@ -86,6 +87,15 @@ public:
         const bool Copy = true);
 
     GeometriesTensorAdaptor(const GeometriesTensorAdaptor& rOther) = default;
+
+    /**
+     * @brief Construct an empty, invalid instance.
+     * @details Only intended for @ref Serializer::load to construct into before populating via @ref load.
+     */
+    GeometriesTensorAdaptor()
+        : mDatum(DatumType::ShapeFunctions),
+          mIntegrationMethod(GeometryData::IntegrationMethod::NumberOfIntegrationMethods)
+    {}
 
     // Destructor
     ~GeometriesTensorAdaptor() override = default;
@@ -182,6 +192,13 @@ private:
         const DenseVector<unsigned int>& Shape);
 
     template <class TContainerType>
+    static void CollectNormals(
+        double* pData,
+        const TContainerType& rContainer,
+        GeometryData::IntegrationMethod Method,
+        const DenseVector<unsigned int>& Shape);
+
+    template <class TContainerType>
     static void FillData(
         double* pData,
         const TContainerType& rContainer,
@@ -191,6 +208,17 @@ private:
 
     DatumType mDatum;
     GeometryData::IntegrationMethod mIntegrationMethod;
+
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
+
+    ///@}
 };
 
 /// @}

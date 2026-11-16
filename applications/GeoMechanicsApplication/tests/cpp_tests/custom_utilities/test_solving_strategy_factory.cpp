@@ -12,6 +12,7 @@
 
 #include "containers/model.h"
 #include "custom_utilities/solving_strategy_factory.hpp"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
@@ -19,8 +20,8 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;
-using DenseSpaceType   = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType  = TDefaultSparseSpace<double>;
+using DenseSpaceType   = TDefaultDenseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, DenseSpaceType>;
 using SolvingStrategyFactoryType = SolvingStrategyFactory<SparseSpaceType, DenseSpaceType, LinearSolverType>;
 

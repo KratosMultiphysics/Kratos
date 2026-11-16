@@ -924,12 +924,15 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         step = mp.ProcessInfo[KratosMultiphysics.STEP]
         time = mp.ProcessInfo[KratosMultiphysics.TIME]
         end_time = 1.0
+        # The strategy is created only once, otherwise the history of the Updated Lagrangian elements is reset at every step
+        strategy = self._create_strategy(mp, builder_and_type, linearize_on_old_iteration)
+        strategy.Check()
         while time <= end_time:
             A,b = self._define_movement(dim, step * 0.05)
             self._apply_BCs(bcs,A,b)
-            self._solve(mp, builder_and_type, linearize_on_old_iteration)
+            strategy.Solve()
             self._check_results(mp,A,b)
-            self._check_outputs(mp,A,dim, 5.0e-3)
+            self._check_outputs(mp,A,dim)
             self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations[step - 1])
             #self.__post_process(mp)
 
@@ -941,7 +944,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_UL_2D_triangle_block(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = False
-        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[5, 5] )
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[5, 6] )
 
     def test_UL_2D_triangle_linearized_on_old_iteration(self):
         builder_type = "block_builder"
@@ -951,7 +954,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_UL_2D_triangle_elimination(self):
         builder_type = "elimination_builder"
         linearize_on_old_iteration = False
-        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[5, 5] )
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[5, 6] )
 
     def _UL_2D_triangle_10N(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
         dim = 2
@@ -1016,12 +1019,15 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         step = mp.ProcessInfo[KratosMultiphysics.STEP]
         time = mp.ProcessInfo[KratosMultiphysics.TIME]
         end_time = 1.0
+        # The strategy is created only once, otherwise the history of the Updated Lagrangian elements is reset at every step
+        strategy = self._create_strategy(mp, builder_and_type, linearize_on_old_iteration)
+        strategy.Check()
         while time <= end_time:
             A,b = self._define_movement(dim, step * 0.05)
             self._apply_BCs(bcs,A,b)
-            self._solve(mp, builder_and_type, linearize_on_old_iteration)
+            strategy.Solve()
             self._check_results(mp,A,b)
-            self._check_outputs(mp,A,dim, 5.0e-3)
+            self._check_outputs(mp,A,dim)
             self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations[step - 1])
             #self.__post_process(mp)
 
@@ -1033,7 +1039,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_UL_2D_triangle_10N_block(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = False
-        self._UL_2D_triangle_10N(builder_type, linearize_on_old_iteration,[6, 6] )
+        self._UL_2D_triangle_10N(builder_type, linearize_on_old_iteration,[6, 7] )
 
     def test_UL_2D_triangle_10N_linearized_on_old_iteration(self):
         builder_type = "block_builder"
@@ -1043,7 +1049,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_UL_2D_triangle_10N_elimination(self):
         builder_type = "elimination_builder"
         linearize_on_old_iteration = False
-        self._UL_2D_triangle_10N(builder_type, linearize_on_old_iteration,[6, 6] )
+        self._UL_2D_triangle_10N(builder_type, linearize_on_old_iteration,[6, 7] )
 
 
     def _UL_2D_triangle_15N(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
@@ -1111,12 +1117,15 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         step = mp.ProcessInfo[KratosMultiphysics.STEP]
         time = mp.ProcessInfo[KratosMultiphysics.TIME]
         end_time = 1.0
+        # The strategy is created only once, otherwise the history of the Updated Lagrangian elements is reset at every step
+        strategy = self._create_strategy(mp, builder_and_type, linearize_on_old_iteration)
+        strategy.Check()
         while time <= end_time:
             A,b = self._define_movement(dim, step * 0.05)
             self._apply_BCs(bcs,A,b)
-            self._solve(mp, builder_and_type, linearize_on_old_iteration)
+            strategy.Solve()
             self._check_results(mp,A,b)
-            self._check_outputs(mp,A,dim, 5.0e-3)
+            self._check_outputs(mp,A,dim)
             self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations[step - 1])
             #self.__post_process(mp)
 
@@ -1128,7 +1137,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_UL_2D_triangle_15N_block(self):
         builder_type = "block_builder"
         linearize_on_old_iteration = False
-        self._UL_2D_triangle_15N(builder_type, linearize_on_old_iteration,[6, 6] )
+        self._UL_2D_triangle_15N(builder_type, linearize_on_old_iteration,[6, 7] )
 
     def test_UL_2D_triangle_15N_linearized_on_old_iteration(self):
         builder_type = "block_builder"
@@ -1138,7 +1147,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def test_UL_2D_triangle_15N_elimination(self):
         builder_type = "elimination_builder"
         linearize_on_old_iteration = False
-        self._UL_2D_triangle_15N(builder_type, linearize_on_old_iteration,[6, 6] )
+        self._UL_2D_triangle_15N(builder_type, linearize_on_old_iteration,[6, 7] )
 
 
     def _UL_2D_quadrilateral(self, builder_and_type, linearize_on_old_iteration,expected_iterations):

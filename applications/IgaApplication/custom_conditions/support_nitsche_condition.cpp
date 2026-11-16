@@ -126,7 +126,7 @@ namespace Kratos
 
         //Transformation matrix T
         if (rT.size1() != 3 && rT.size2() != 3)
-            rT.resize(3, 3);
+            rT.resize(3, 3, false);
         noalias(rT) = ZeroMatrix(3, 3);
 
         rT(0, 0) = pow(G(0, 0), 2);
@@ -143,7 +143,7 @@ namespace Kratos
 
         //Transformation matrix T from local cartesian basis to the covariant one
         if (rT_hat.size1() != 3 && rT_hat.size2() != 3)
-            rT_hat.resize(3, 3);
+            rT_hat.resize(3, 3, false);
         noalias(rT_hat) = ZeroMatrix(3, 3);
 
         rT_hat(0, 0) = pow(G(0, 0), 2);
@@ -301,7 +301,7 @@ namespace Kratos
             if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
                 m_A_ab_covariant_vector.resize(r_number_of_integration_points);
             if (m_dA_vector.size() != r_number_of_integration_points)
-                m_dA_vector.resize(r_number_of_integration_points);
+                m_dA_vector.resize(r_number_of_integration_points, false);
             if (m_T_vector.size() != r_number_of_integration_points)
                 m_T_vector.resize(r_number_of_integration_points);
             if (m_T_hat_vector.size() != r_number_of_integration_points)
@@ -555,7 +555,7 @@ namespace Kratos
         if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
             m_A_ab_covariant_vector.resize(r_number_of_integration_points);
         if (m_dA_vector.size() != r_number_of_integration_points)
-            m_dA_vector.resize(r_number_of_integration_points);
+            m_dA_vector.resize(r_number_of_integration_points, false);
         if (m_T_vector.size() != r_number_of_integration_points)
             m_T_vector.resize(r_number_of_integration_points);
         if (m_T_hat_vector.size() != r_number_of_integration_points)

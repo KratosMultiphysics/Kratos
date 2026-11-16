@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 // Application includes
 #include "custom_utilities/rans_calculation_utilities.h"
