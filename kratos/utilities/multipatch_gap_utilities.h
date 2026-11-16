@@ -60,7 +60,7 @@ public:
     static void CreateHorizontalPhaseGeometry(ModelPart& rPhase, ModelPart& rInterface,
         double InterfaceHeight, bool NegativeSide, double Tolerance);
     /// Reconstruct one phase from a wall-to-wall, increasing-x polygonal level set.
-    /// rPhase contains only complete active Cartesian Q1 cells of that phase.
+    /// rPhase contains complete active Cartesian Q1 cells or their triangular halves.
     static GapData BuildLevelSetPhase(ModelPart& rPhase, const Matrix& rContour,
         bool NegativeSide, double Tolerance);
     static void CreateLevelSetPhaseGeometry(ModelPart& rPhase, ModelPart& rInterface,

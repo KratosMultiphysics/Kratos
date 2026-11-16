@@ -17,7 +17,7 @@
 #include "utilities/gap_quadrature_utility.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/triangle_2d_3.h"
-#include "integration/line_gauss_legendre_integration_points.h"
+#include "integration/triangle_gauss_legendre_integration_points.h"
 
 namespace Kratos {
 namespace {
@@ -44,17 +44,32 @@ double area(const Polygon& rPolygon)
     for (std::size_t i = 1; i+1<rPolygon.size(); ++i) value += cross(rPolygon[0], rPolygon[i], rPolygon[i+1]);
     return value * 0.5;
 }
-Edges edges(ModelPart& rPart, const bool Cartesian)
+Edges edges(ModelPart& rPart, const bool Cartesian, const bool AllowTriangles = false)
 {
     Edges result;
     for (auto& r_element : rPart.Elements()) {
         auto& r_geometry = r_element.GetGeometry();
-        KRATOS_ERROR_IF(r_geometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4 || r_geometry.Area() <= 0.0)
-            << "Gap-SBM requires positively oriented Quad4 parents." << std::endl;
+        const bool triangle = r_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3;
+        KRATOS_ERROR_IF((r_geometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4 &&
+                         !(AllowTriangles && triangle)) || r_geometry.Area() <= 0.0)
+            << "Gap-SBM requires positively oriented Quad4 parents or supported Triangle2D3 parents." << std::endl;
         for (const auto& r_node : r_geometry) {
             KRATOS_ERROR_IF(std::abs(r_node.Z()) > 1e-12) << "Gap-SBM requires z=0." << std::endl;
         }
-        if (Cartesian) {
+        if (triangle) {
+            KRATOS_ERROR_IF(cross(r_geometry[0].Coordinates(), r_geometry[1].Coordinates(),
+                                  r_geometry[2].Coordinates()) <= 0.0)
+                << "Gap-SBM requires counterclockwise triangular parents." << std::endl;
+            const double scale = std::sqrt(r_geometry.Area());
+            bool horizontal = false, vertical = false;
+            for (const auto& r_edge : r_geometry.GenerateEdges()) {
+                horizontal = horizontal || std::abs(r_edge[1].Y() - r_edge[0].Y()) <= 1e-10 * scale;
+                vertical = vertical || std::abs(r_edge[1].X() - r_edge[0].X()) <= 1e-10 * scale;
+            }
+            KRATOS_ERROR_IF_NOT(horizontal && vertical)
+                << "Gap-SBM triangular parents must be halves of Cartesian cells." << std::endl;
+        }
+        if (Cartesian && !triangle) {
             const double scale = std::sqrt(r_geometry.Area());
             KRATOS_ERROR_IF(std::abs(r_geometry[1].Y()-r_geometry[0].Y()) > 1e-10*scale ||
                             std::abs(r_geometry[2].X()-r_geometry[1].X()) > 1e-10*scale ||
@@ -232,17 +247,60 @@ std::vector<std::array<C, 3>> triangulate(Polygon polygon, const double Tol)
     if (cross(polygon[0], polygon[1], polygon[2])>Tol*Tol) result.push_back({polygon[0], polygon[1], polygon[2]});
     return result;
 }
+
+// Try a fan from either endpoint of the surrogate edge. Each accepted
+// triangle then has a parent node; interface edges remain polygon edges.
+// A height-function gap need not be star-shaped from either endpoint.
+std::vector<std::array<C, 3>> triangulate_level_set_gap(const Polygon& rPolygon, const double Tol)
+{
+    if (rPolygon.size() < 3 || std::abs(area(rPolygon)) <= Tol * Tol) {
+        return triangulate(rPolygon, Tol);
+    }
+    const double orientation = area(rPolygon) > 0.0 ? 1.0 : -1.0;
+    std::vector<std::array<C, 3>> best;
+    double best_quality = -1.0;
+    for (std::size_t anchor = 0; anchor < 2; ++anchor) {
+        std::vector<std::array<C, 3>> candidate;
+        double minimum_quality = std::numeric_limits<double>::max();
+        double candidate_area = 0.0;
+        bool valid = true;
+        for (std::size_t offset = 1; offset + 1 < rPolygon.size(); ++offset) {
+            const C& r_a = rPolygon[anchor];
+            const C& r_b = rPolygon[(anchor + offset) % rPolygon.size()];
+            const C& r_c = rPolygon[(anchor + offset + 1) % rPolygon.size()];
+            const double determinant = orientation * cross(r_a, r_b, r_c);
+            if (determinant < -Tol * Tol) {
+                valid = false;
+                break;
+            }
+            if (determinant <= Tol * Tol) continue;
+            const double ab = distance(r_a, r_b), bc = distance(r_b, r_c), ca = distance(r_c, r_a);
+            minimum_quality = std::min(minimum_quality, determinant / (ab * ab + bc * bc + ca * ca));
+            candidate_area += 0.5 * determinant;
+            candidate.push_back(orientation > 0.0 ? std::array<C, 3>{r_a, r_b, r_c}
+                                                   : std::array<C, 3>{r_a, r_c, r_b});
+        }
+        // Near-degenerate pieces are treated as in the existing ear clipper;
+        // reject a fan if they would change the polygon area appreciably.
+        const double area_tolerance = rPolygon.size() * Tol * Tol + 1e-12 * std::abs(area(rPolygon));
+        if (valid && !candidate.empty() && std::abs(candidate_area - std::abs(area(rPolygon))) <= area_tolerance &&
+            minimum_quality > best_quality) {
+            best_quality = minimum_quality;
+            best = std::move(candidate);
+        }
+    }
+    return best.empty() ? triangulate(rPolygon, Tol) : best;
+}
+
 Geometry<Node>::Pointer quadrature(Element& rParent, const std::array<C, 3>& rTriangle)
 {
     Geometry<Node>::IntegrationPointsArrayType points;
     const double determinant = cross(rTriangle[0], rTriangle[1], rTriangle[2]);
-    // Duffy 3x3 rule integrates degree-four Cartesian Q1 products exactly.
-    for (const auto& r_first_point:LineGaussLegendreIntegrationPoints3::IntegrationPoints()) {
-        for (const auto& r_second_point:LineGaussLegendreIntegrationPoints3::IntegrationPoints()) {
-            const double u = 0.5*(1+r_first_point.X()), v = 0.5*(1+r_second_point.X());
-            const C global_point = rTriangle[0]+u*(rTriangle[1]-rTriangle[0])+(1-u)*v*(rTriangle[2]-rTriangle[0]);
-            points.emplace_back(global_point[0], global_point[1], 0.0, 0.25*determinant*(1-u)*r_first_point.Weight()*r_second_point.Weight());
-        }
+    // The reference triangle rule integrates polynomials through degree two.
+    for (const auto& r_point : TriangleGaussLegendreIntegrationPoints2::IntegrationPoints()) {
+        const C global_point = rTriangle[0] + r_point.X() * (rTriangle[1] - rTriangle[0])
+            + r_point.Y() * (rTriangle[2] - rTriangle[0]);
+        points.emplace_back(global_point[0], global_point[1], 0.0, determinant * r_point.Weight());
     }
     return GapQuadratureUtility::Create(rParent.GetGeometry(), points);
 }
@@ -333,18 +391,21 @@ FemMultipatchGapUtilities::GapData FemMultipatchGapUtilities::BuildLevelSetPhase
         const auto& r_first = *(it - 1); const auto& r_second = *it;
         return r_first[1] + (x - r_first[0]) * (r_second[1] - r_first[1]) / (r_second[0] - r_first[0]);
     };
-    const auto all_edges = edges(rPhase, true);
+    const auto all_edges = edges(rPhase, true, true);
     std::vector<Edge> boundary;
     for (const auto& [r_key, r_pair] : all_edges) {
         if (r_pair.Sides.size() != 1) continue;
         const auto& r_edge = r_pair.Sides.front();
         const double dx = r_edge.pEnd->X() - r_edge.pStart->X();
-        if (std::abs(r_edge.pEnd->Y() - r_edge.pStart->Y()) > Tolerance ||
-            (NegativeSide ? dx >= -Tolerance : dx <= Tolerance)) continue;
+        if (NegativeSide ? dx >= -Tolerance : dx <= Tolerance) continue;
         const double xmin = std::min(r_edge.pStart->X(), r_edge.pEnd->X());
         const double xmax = std::max(r_edge.pStart->X(), r_edge.pEnd->X());
-        const double y = r_edge.pStart->Y();
+        const auto edge_height = [&](double x) {
+            return r_edge.pStart->Y() + (x - r_edge.pStart->X()) *
+                (r_edge.pEnd->Y() - r_edge.pStart->Y()) / dx;
+        };
         const auto valid_height = [&](double x, double level) {
+            const double y = edge_height(x);
             KRATOS_ERROR_IF(NegativeSide ? y > level + Tolerance : y < level - Tolerance)
                 << "Phase surrogate edge crosses the level-set interface at x=" << x << "." << std::endl;
         };
@@ -371,7 +432,10 @@ FemMultipatchGapUtilities::GapData FemMultipatchGapUtilities::BuildLevelSetPhase
             const auto& r_previous = boundary[i - 1];
             KRATOS_ERROR_IF(std::abs(xmin - std::max(r_previous.pStart->X(), r_previous.pEnd->X())) > Tolerance)
                 << "Level-set phase requires one contiguous surrogate edge per column." << std::endl;
-            const double y_left = r_previous.pStart->Y(), y_right = r_edge.pStart->Y();
+            const double y_left = r_previous.pStart->X() > r_previous.pEnd->X() ?
+                r_previous.pStart->Y() : r_previous.pEnd->Y();
+            const double y_right = r_edge.pStart->X() < r_edge.pEnd->X() ?
+                r_edge.pStart->Y() : r_edge.pEnd->Y();
             const double y_interface = height(xmin);
             const double low = std::min(y_left, y_right), high = std::max(y_left, y_right);
             const double overlap_low = NegativeSide ? high : y_interface;
@@ -387,15 +451,19 @@ FemMultipatchGapUtilities::GapData FemMultipatchGapUtilities::BuildLevelSetPhase
                 double covered = 0.0;
                 for (auto& r_element : rPhase.Elements()) {
                     const auto& r_geometry = r_element.GetGeometry();
-                    const double face_x = bulk_left ? r_geometry[1].X() : r_geometry[0].X();
-                    if (std::abs(face_x - xmin) > Tolerance) continue;
-                    const double bottom = std::max(low, std::min(r_geometry[0].Y(), r_geometry[2].Y()));
-                    const double top = std::min(high, std::max(r_geometry[0].Y(), r_geometry[2].Y()));
-                    if (top - bottom <= Tolerance) continue;
-                    auto p_bulk = rPhase.pGetElement(r_element.Id());
-                    result.Connectors.push_back({bulk_left ? p_bulk : r_previous.pParent,
-                        bulk_left ? r_edge.pParent : p_bulk, C{xmin, bottom, 0.0}, C{xmin, top, 0.0}});
-                    covered += top - bottom;
+                    const auto center = r_geometry.Center();
+                    if (bulk_left ? center.X() >= xmin - Tolerance : center.X() <= xmin + Tolerance) continue;
+                    for (const auto& r_face : r_geometry.GenerateEdges()) {
+                        if (std::abs(r_face[0].X() - xmin) > Tolerance ||
+                            std::abs(r_face[1].X() - xmin) > Tolerance) continue;
+                        const double bottom = std::max(low, std::min(r_face[0].Y(), r_face[1].Y()));
+                        const double top = std::min(high, std::max(r_face[0].Y(), r_face[1].Y()));
+                        if (top - bottom <= Tolerance) continue;
+                        auto p_bulk = rPhase.pGetElement(r_element.Id());
+                        result.Connectors.push_back({bulk_left ? p_bulk : r_previous.pParent,
+                            bulk_left ? r_edge.pParent : p_bulk, C{xmin, bottom, 0.0}, C{xmin, top, 0.0}});
+                        covered += top - bottom;
+                    }
                 }
                 KRATOS_ERROR_IF(std::abs(covered - (high - low)) > Tolerance)
                     << "Level-set surrogate staircase has missing or overlapping bulk neighbours." << std::endl;
@@ -406,9 +474,11 @@ FemMultipatchGapUtilities::GapData FemMultipatchGapUtilities::BuildLevelSetPhase
             if (r_point[0] > xmin + Tolerance && r_point[0] < xmax - Tolerance) line.push_back(r_point);
         line.push_back(C{xmax, height(xmax), 0.0});
         result.Surrogate.push_back({r_edge.pParent, nullptr, r_edge.pStart->Coordinates(), r_edge.pEnd->Coordinates()});
-        Polygon polygon{C{xmin, r_edge.pStart->Y(), 0.0}, C{xmax, r_edge.pStart->Y(), 0.0}};
+        const double y_at_min = r_edge.pStart->X() < r_edge.pEnd->X() ? r_edge.pStart->Y() : r_edge.pEnd->Y();
+        const double y_at_max = r_edge.pStart->X() > r_edge.pEnd->X() ? r_edge.pStart->Y() : r_edge.pEnd->Y();
+        Polygon polygon{C{xmin, y_at_min, 0.0}, C{xmax, y_at_max, 0.0}};
         for (auto it = line.rbegin(); it != line.rend(); ++it) polygon.push_back(*it);
-        for (const auto& r_triangle : triangulate(polygon, Tolerance)) {
+        for (const auto& r_triangle : triangulate_level_set_gap(polygon, Tolerance)) {
             gap_area += 0.5 * cross(r_triangle[0], r_triangle[1], r_triangle[2]);
             result.Cells.push_back({r_edge.pParent, r_triangle, quadrature(*r_edge.pParent, r_triangle)});
         }
