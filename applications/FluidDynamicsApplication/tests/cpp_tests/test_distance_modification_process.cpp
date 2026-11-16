@@ -50,10 +50,10 @@ void TriangleModelPartForDistanceModification(
         r_geometry[1].FastGetSolutionStepValue(DISTANCE) = 1.0;
         r_geometry[2].FastGetSolutionStepValue(DISTANCE) = 1.0;
     } else {
-        Vector elem_dist = CreateFilled<Vector>(1.0, 3);
+        Vector elem_dist = CreateFilled<Vector>(3, 1.0);
         elem_dist(0) = -1e-5;
         rModelPart.ElementsBegin()->SetValue(ELEMENTAL_DISTANCES, elem_dist);
-        Vector elem_edge_dist = CreateFilled<Vector>(-1.0, 3);
+        Vector elem_edge_dist = CreateFilled<Vector>(3, -1.0);
         elem_edge_dist(1) = 0.8;
         rModelPart.ElementsBegin()->SetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, elem_edge_dist);
     }

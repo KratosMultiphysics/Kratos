@@ -761,7 +761,7 @@ protected:
 		//unsigned int Index = 0;
 		int rotations_needed = 0;
 		const unsigned int NumBlocks = LocalSize / TBlockSize;
-		DenseVector<bool> NeedRotation = CreateFilled<DenseVector<bool>>(false, NumBlocks);
+		DenseVector<bool> NeedRotation = CreateFilled<DenseVector<bool>>(NumBlocks, false);
 
 		std::vector< BoundedMatrix<double,TBlockSize,TBlockSize> > rRot(NumBlocks);
 		BoundedMatrix<double,TBlockSize,TBlockSize> tmp;
@@ -860,7 +860,7 @@ protected:
 		//unsigned int Index = 0;
 		int rotations_needed = 0;
 		const unsigned int NumBlocks = LocalSize / mBlockSize;
-		DenseVector<bool> NeedRotation = CreateFilled<DenseVector<bool>>(false, NumBlocks);
+		DenseVector<bool> NeedRotation = CreateFilled<DenseVector<bool>>(NumBlocks, false);
 
 		std::vector< BoundedMatrix<double,TDim,TDim> > rRot(NumBlocks);
 		BoundedMatrix<double,TDim,TDim> tmp;

@@ -261,8 +261,8 @@ protected:
 
         // Predetermine all necessary eigenvalues and prefactors for gradient calculation
         const std::size_t num_of_traced_eigenfrequencies = mTracedEigenfrequencyIds.size();
-        Vector traced_eigenvalues = CreateFilled<Vector>(0.0, num_of_traced_eigenfrequencies);
-        Vector gradient_prefactors = CreateFilled<Vector>(0.0, num_of_traced_eigenfrequencies);
+        Vector traced_eigenvalues = CreateFilled<Vector>(num_of_traced_eigenfrequencies, 0.0);
+        Vector gradient_prefactors = CreateFilled<Vector>(num_of_traced_eigenfrequencies, 0.0);
         for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
         {
             traced_eigenvalues[i] = GetEigenvalue(mTracedEigenfrequencyIds[i]);
@@ -293,7 +293,7 @@ protected:
             // Computation of derivative of state equation w.r.t. node coordinates
             for(auto& node_i : elem_i.GetGeometry())
             {
-                Vector gradient_contribution = CreateFilled<Vector>(0.0, 3);
+                Vector gradient_contribution = CreateFilled<Vector>(3, 0.0);
                 Matrix derived_LHS = Matrix(num_dofs_element,num_dofs_element);
                 Matrix derived_mass_matrix = Matrix(num_dofs_element,num_dofs_element);
 

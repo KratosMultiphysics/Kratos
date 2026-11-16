@@ -400,11 +400,11 @@ public:
 
         // Instantiate all strain-displacement matrices.
 
-        Matrix B = CreateFilled<Matrix>(0.0, 8, 24);
-        Vector Bdrilling = CreateFilled<Vector>(0.0, 24);
+        Matrix B = CreateFilled<Matrix>(8, 24, 0.0);
+        Vector Bdrilling = CreateFilled<Vector>(24, 0.0);
 
         // Instantiate all section tangent matrices.
-        Matrix D = CreateFilled<Matrix>(0.0, 8, 8);
+        Matrix D = CreateFilled<Matrix>(8, 8, 0.0);
 
         // Instantiate strain and stress-resultant vectors
         Vector generalizedStrains(8);

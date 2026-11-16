@@ -259,7 +259,7 @@ void SurfaceLoadCondition3D::CalculateAll(
     }
 
     // Auxiliary terms
-    Vector pressure_on_nodes = CreateFilled<Vector>(pressure_on_condition, number_of_nodes); //note that here we initialize from the value applied to the condition
+    Vector pressure_on_nodes = CreateFilled<Vector>(number_of_nodes, pressure_on_condition); //note that here we initialize from the value applied to the condition
 
     for (std::size_t i = 0; i < pressure_on_nodes.size(); i++) {
         if( r_geometry[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) ) {

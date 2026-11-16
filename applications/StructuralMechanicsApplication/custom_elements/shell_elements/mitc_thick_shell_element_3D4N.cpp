@@ -264,7 +264,7 @@ void MITCThickShellElement3D4N<TKinematics>::EASOperator::GaussPointComputation_
     EASOperatorStorage& storage)
 {
     // construct the interpolation matrix in natural coordinate system
-    Matrix E = CreateFilled<Matrix>(0.0, 3, 5);
+    Matrix E = CreateFilled<Matrix>(3, 5, 0.0);
     E(0, 0) = xi;
     E(1, 1) = eta;
     E(2, 2) = xi;
@@ -302,7 +302,7 @@ void MITCThickShellElement3D4N<TKinematics>::EASOperator::GaussPointComputation_
 
     // compute L: [G'*Dmm, G'*Dmb, G'*Dms]*[Bm; Bm; Bs]
     int num_stress = D.size2(); // it can be 6 for thin shells or 8 for thick  shells
-    Matrix GTD = CreateFilled<Matrix>(0.0, 5, num_stress);
+    Matrix GTD = CreateFilled<Matrix>(5, num_stress, 0.0);
     noalias(project(GTD, range::all(), range(0, 3))) = GTC;
     noalias(project(GTD, range::all(), range(3, 6))) = prod(trans(mG), project(D, range(0, 3), range(3, 6)));
     if (num_stress == 8)
@@ -558,11 +558,11 @@ void MITCThickShellElement3D4N<TKinematics>::InitializeSolutionStep(
         array_1d<double, 4> dArea;
 
         // Instantiate all strain-displacement matrices.
-        Matrix B = CreateFilled<Matrix>(0.0, 8, 24);
-        Vector Bdrilling = CreateFilled<Vector>(0.0, 24);
+        Matrix B = CreateFilled<Matrix>(8, 24, 0.0);
+        Vector Bdrilling = CreateFilled<Vector>(24, 0.0);
 
         // // Instantiate all section tangent matrices.
-        Matrix D = CreateFilled<Matrix>(0.0, 8, 8);
+        Matrix D = CreateFilled<Matrix>(8, 8, 0.0);
 
         // Instantiate strain and stress-resultant vectors
         Vector generalizedStrains(8);
@@ -668,11 +668,11 @@ void MITCThickShellElement3D4N<TKinematics>::FinalizeSolutionStep(
 
 
         // Instantiate all strain-displacement matrices.
-        Matrix B = CreateFilled<Matrix>(0.0, 8, 24);
-        Vector Bdrilling = CreateFilled<Vector>(0.0, 24);
+        Matrix B = CreateFilled<Matrix>(8, 24, 0.0);
+        Vector Bdrilling = CreateFilled<Vector>(24, 0.0);
 
         // // Instantiate all section tangent matrices.
-        Matrix D = CreateFilled<Matrix>(0.0, 8, 8);
+        Matrix D = CreateFilled<Matrix>(8, 8, 0.0);
 
         // Instantiate strain and stress-resultant vectors
         Vector generalizedStrains(8);
@@ -884,7 +884,7 @@ void MITCThickShellElement3D4N<TKinematics>::CalculateBMatrix(
 
     // Shear
     // MITC modified shape functions
-    Matrix MITCShapeFunctions = CreateFilled<Matrix>(0.0, 2, 4);
+    Matrix MITCShapeFunctions = CreateFilled<Matrix>(2, 4, 0.0);
     MITCShapeFunctions(1, 0) = 1.0 - xi;
     MITCShapeFunctions(0, 1) = 1.0 - eta;
     MITCShapeFunctions(1, 2) = 1.0 + xi;
@@ -986,11 +986,11 @@ void MITCThickShellElement3D4N<TKinematics>::CalculateAll(
 
     // Instantiate all strain-displacement matrices.
 
-    Matrix B = CreateFilled<Matrix>(0.0, 8, 24);
-    Vector Bdrilling = CreateFilled<Vector>(0.0, 24);
+    Matrix B = CreateFilled<Matrix>(8, 24, 0.0);
+    Vector Bdrilling = CreateFilled<Vector>(24, 0.0);
 
     // Instantiate all section tangent matrices.
-    Matrix D = CreateFilled<Matrix>(0.0, 8, 8);
+    Matrix D = CreateFilled<Matrix>(8, 8, 0.0);
 
     // Instantiate strain and stress-resultant vectors
     Vector generalizedStrains(8);

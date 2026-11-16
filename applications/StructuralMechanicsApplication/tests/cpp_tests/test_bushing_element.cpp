@@ -157,7 +157,7 @@ KRATOS_TEST_CASE_IN_SUITE(BushingElement_LHS_Constant, KratosStructuralMechanics
     Matrix lhs;
     r_model_part.GetElement(1).CalculateLeftHandSide(lhs, r_model_part.GetProcessInfo());
 
-    Matrix ref_lhs = CreateFilled<Matrix>(0.0, 12, 12);
+    Matrix ref_lhs = CreateFilled<Matrix>(12, 12, 0.0);
     ref_lhs(0, 0) = 5.720000000000e+02;
     ref_lhs(0, 6) = -5.720000000000e+02;
     ref_lhs(1, 1) = 2.960000000000e+03;
@@ -211,7 +211,7 @@ KRATOS_TEST_CASE_IN_SUITE(BushingElement_LHS_NonConstant, KratosStructuralMechan
     Matrix lhs;
     r_model_part.GetElement(1).CalculateLeftHandSide(lhs, r_model_part.GetProcessInfo());
 
-    Matrix ref_lhs = CreateFilled<Matrix>(0.0, 12, 12);
+    Matrix ref_lhs = CreateFilled<Matrix>(12, 12, 0.0);
     ref_lhs(0, 0) = 4.0000000000000000e+01;
     ref_lhs(0, 6) = -4.0000000000000000e+01;
     ref_lhs(1, 1) = 1.4965079365079362e+03;

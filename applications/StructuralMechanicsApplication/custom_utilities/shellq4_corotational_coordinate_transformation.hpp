@@ -310,7 +310,7 @@ public:
         // At this point 'LHS' contains also this term of the Geometric stiffness
         // (Ke = (P' * Km * H * P) - (G' * Fn' * P))
 
-        MatrixType Fnm = CreateFilled<MatrixType>(0.0, 24, 3);
+        MatrixType Fnm = CreateFilled<MatrixType>(24, 3, 0.0);
 
         EICR::Spin_AtRow(projectedLocalForces, Fnm, 0);
         EICR::Spin_AtRow(projectedLocalForces, Fnm, 6);
@@ -427,7 +427,7 @@ private:
         // l12 is the length of the side 1-2 projected onto the xy plane.
         RealType l12 = std::sqrt(D12(0)*D12(0) + D12(1)*D12(1));
 
-        MatrixType G = CreateFilled<MatrixType>(0.0, 3, 24);
+        MatrixType G = CreateFilled<MatrixType>(3, 24, 0.0);
 
         // G1
 
@@ -465,7 +465,7 @@ private:
     */
     inline MatrixType RotationGradient()
     {
-        Matrix G = CreateFilled<Matrix>(0.0, 3, 24);
+        Matrix G = CreateFilled<Matrix>(3, 24, 0.0);
 
         ShellQ4_LocalCoordinateSystem a(CreateReferenceCoordinateSystem());   // current coordinate system
 

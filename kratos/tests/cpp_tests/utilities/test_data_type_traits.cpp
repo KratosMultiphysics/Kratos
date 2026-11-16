@@ -98,7 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
     static_assert(type_trait::IsDynamic);
     static_assert(type_trait::IsDimensionDynamic<0>());
 
-    Vector test = CreateFilled<Vector>(1, 7);
+    Vector test = CreateFilled<Vector>(7, 1);
 
     KRATOS_EXPECT_EQ(type_trait::Size(test), 7);
     KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
@@ -110,7 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
 
     test = Vector(9, 2);
 
-    Vector dummy = CreateFilled<Vector>(-1, 9);
+    Vector dummy = CreateFilled<Vector>(9, -1);
     type_trait::CopyToContiguousData(dummy.data().begin(), test);
     KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
@@ -137,7 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
     static_assert(type_trait::IsDimensionDynamic<0>());
     static_assert(type_trait::IsDimensionDynamic<1>());
 
-    Matrix test = CreateFilled<Matrix>(1, 3, 4);
+    Matrix test = CreateFilled<Matrix>(3, 4, 1);
 
     KRATOS_EXPECT_EQ(type_trait::Size(test), 12);
 

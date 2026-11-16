@@ -42,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(SystemVectorAssembly, KratosCoreFastSuite)
     b.BeginAssemble();
     for(const auto& c : connectivities)
     {
-        Vector vdata = CreateFilled<Vector>(1.0, c.size());
+        Vector vdata = CreateFilled<Vector>(c.size(), 1.0);
         b.Assemble(vdata,c);
     }
     b.FinalizeAssemble();

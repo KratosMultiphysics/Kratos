@@ -261,7 +261,7 @@ public:
         const SizeType num_nodes = rNodes.size();
         const SizeType num_dofs = num_nodes * 6;
 
-        MatrixType S = CreateFilled<MatrixType>(0.0, num_dofs, 3);
+        MatrixType S = CreateFilled<MatrixType>(num_dofs, 3, 0.0);
 
         for (SizeType i = 0; i < num_nodes; i++) {
             SizeType j = i * 6;
@@ -342,7 +342,7 @@ public:
         const SizeType num_dofs = rDisplacements.size();
         const SizeType num_nodes = num_dofs / 6;
 
-        MatrixType L = CreateFilled<MatrixType>(0.0, num_dofs, num_dofs);
+        MatrixType L = CreateFilled<MatrixType>(num_dofs, num_dofs, 0.0);
 
         Vector3Type rotation_vector;
         Vector3Type moment_vector;

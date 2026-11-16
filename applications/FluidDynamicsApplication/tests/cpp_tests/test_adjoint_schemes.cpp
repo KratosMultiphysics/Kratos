@@ -763,7 +763,7 @@ KRATOS_TEST_CASE_IN_SUITE(VelocityBossakAdjointSchemeRHS, FluidDynamicsApplicati
         second_derivative_variables, EvaluateBossakResidual, delta);
 
     // compute old adjoint values
-    Vector lambda_1 = CreateFilled<Vector>(0.0, 9), lambda_2 = CreateFilled<Vector>(0.0, 9), lambda_3 = CreateFilled<Vector>(0.0, 9), lambda_1_old = CreateFilled<Vector>(0.0, 9), lambda_2_old = CreateFilled<Vector>(0.0, 9), lambda_3_old = CreateFilled<Vector>(0.0, 9);
+    Vector lambda_1 = CreateFilled<Vector>(9, 0.0), lambda_2 = CreateFilled<Vector>(9, 0.0), lambda_3 = CreateFilled<Vector>(9, 0.0), lambda_1_old = CreateFilled<Vector>(9, 0.0), lambda_2_old = CreateFilled<Vector>(9, 0.0), lambda_3_old = CreateFilled<Vector>(9, 0.0);
     for (unsigned int a = 0; a < 3; ++a) {
         const auto& vec_1 = adjoint_model_part.GetNode(a + 1).FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_1);
         const auto& vec_2 = adjoint_model_part.GetNode(a + 1).FastGetSolutionStepValue(ADJOINT_FLUID_VECTOR_2);

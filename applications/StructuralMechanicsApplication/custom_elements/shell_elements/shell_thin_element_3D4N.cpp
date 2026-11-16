@@ -1358,7 +1358,7 @@ void ShellThinElement3D4N<TKinematics>::CalculateBMatrix(CalculationData& data)
         double xi = r_coordinates[0];
         double eta = r_coordinates[1];
 
-        Matrix dN = CreateFilled<Matrix>(0.0, 4, 2);
+        Matrix dN = CreateFilled<Matrix>(4, 2, 0.0);
 
         // dN/dxi and dN/deta
         ShellUtilities::ShapeFunc_NaturalDerivatives(xi, eta, dN);
