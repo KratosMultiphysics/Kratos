@@ -13,6 +13,7 @@
 #include "custom_workflow_factory.h"
 #include "dgeoflow.h"
 #include "dgeosettlement.hpp"
+#include "generic.h"
 #include "time_loop_executor.h"
 
 #include "custom_utilities/file_input_utility.h"
@@ -31,5 +32,12 @@ KratosGeoSettlement* CustomWorkflowFactory::CreateKratosGeoSettlement()
 }
 
 KratosExecute* CustomWorkflowFactory::CreateKratosGeoFlow() { return new KratosExecute{}; }
+
+KratosGeneric* CustomWorkflowFactory::CreateKratosGeneric()
+{
+    return new KratosGeneric{std::make_unique<FileInputUtility>(),
+                             std::make_unique<JsonProcessInfoParser>(),
+                             std::make_unique<TimeLoopExecutor>()};
+}
 
 } // namespace Kratos
