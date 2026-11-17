@@ -94,11 +94,11 @@ public:
     /**
      * @brief Constructor without parameters
      * @param pLinearSolver The linear solver to be wrapped
-     * @param Tolerance Relative tolerance used to detect the unconstrained rigid body modes
+     * @param RigidBodyTolerance Relative tolerance used to detect the unconstrained rigid body modes
      */
     RigidBodyModePinningSolver(
         typename BaseType::Pointer pLinearSolver,
-        const double Tolerance = 1.0e-6
+        const double RigidBodyTolerance = 1.0e-6
         ) : BaseType(),
             mpLinearSolver(pLinearSolver),
             mKernel(Tolerance)
@@ -123,7 +123,7 @@ public:
         // Assign the validated settings
         this->AssignSettings(Settings);
 
-        mKernel.SetTolerance(Settings["tolerance"].GetDouble());
+        mKernel.SetTolerance(Settings["rigid_body_tolerance"].GetDouble());
 
         // Build the wrapped solver from the nested settings, with the same spelling as the
         // current-interface solver: "inner_solver_settings" already carries the inner
@@ -231,7 +231,7 @@ public:
             "inner_solver_settings" : {
                 "solver_type" : "skyline_lu_factorization"
             },
-            "tolerance" : 1.0e-6
+            "rigid_body_tolerance" : 1.0e-6
         })");
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 
