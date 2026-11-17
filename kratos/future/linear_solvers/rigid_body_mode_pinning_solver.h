@@ -7,6 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
+// author: Riccardo Rossi
 
 #pragma once
 
