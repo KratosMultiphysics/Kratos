@@ -900,7 +900,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CheckInputForLinearHarden
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_COULOMB_HARDENING_TYPE, "Linear");
     properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0}));
@@ -997,12 +997,10 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
 
-    properties.SetValue(GEO_COULOMB_HARDENING_TYPE, "Exponential");
-
-    // Base (initial / peak) parameters
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
@@ -1010,6 +1008,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.25);
     properties.SetValue(GEO_MAX_PLASTIC_ITERATIONS, 100);
+    properties.SetValue(GEO_COULOMB_HARDENING_TYPE, "Exponential");
     properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
     properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
     properties.SetValue(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
