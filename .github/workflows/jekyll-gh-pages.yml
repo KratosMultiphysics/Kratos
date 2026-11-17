@@ -57,6 +57,8 @@ jobs:
 
   # Deployment job
   deploy:
+    # GITHUB_TOKEN is always read-only for pull_request events from a fork, no matter what `permissions:` declares, so `actions/deploy-pages` (which needs id-token: write) can never succeed there. Skip the deploy job in that case instead of failing the run.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

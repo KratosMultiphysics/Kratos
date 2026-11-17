@@ -31,7 +31,7 @@
     "block_builder":                      true,
     "solution_type":                      "Quasi-Static",
     "scheme_type":                        "Newmark",
-    "reset_displacements":                true,
+    "reset_totals":                       true,
     "strategy_type":                      "linear",
     "convergence_criterion":              "displacement_criterion",
     "water_pressure_relative_tolerance":  0.0001,

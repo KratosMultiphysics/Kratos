@@ -20,8 +20,36 @@
 namespace Kratos
 {
 
+///@name Life Cycle
+///@{
+NurbsGeometryModelerSbm::NurbsGeometryModelerSbm(
+    Model& rModel,
+    const Parameters ModelerParameters)
+    : NurbsGeometryModeler(rModel, ModelerParameters)
+{
+    KRATOS_ERROR_IF(
+        mParameters.Has("lower_point_uvw") || mParameters.Has("upper_point_uvw"))
+        << "NurbsGeometryModelerSbm: \"lower_point_uvw\" and "
+        << "\"upper_point_uvw\" must not be provided in ProjectParameters for SBM or Gap-Sbm."<< std::endl;
+
+    mParameters.ValidateDefaults(this->GetValidParameters());
+    mParameters.AddMissingParameters(this->GetDefaultParameters());
+}
+///@}
+
 ///@name Stages
 ///@{
+void NurbsGeometryModelerSbm::SetupGeometryModel()
+{
+    const Vector lower_point_xyz = mParameters["lower_point_xyz"].GetVector();
+    const Vector upper_point_xyz = mParameters["upper_point_xyz"].GetVector();
+
+    mParameters.AddEmptyValue("lower_point_uvw").SetVector(lower_point_xyz);
+    mParameters.AddEmptyValue("upper_point_uvw").SetVector(upper_point_xyz);
+
+    NurbsGeometryModeler::SetupGeometryModel();
+
+}
 
 ///@}
 ///@name Private Operations
@@ -294,8 +322,6 @@ const Parameters NurbsGeometryModelerSbm::GetDefaultParameters() const
         "model_part_name" : "IgaModelPart",
         "lower_point_xyz": [0.0, 0.0, 0.0],
         "upper_point_xyz": [1.0, 1.0, 0.0],
-        "lower_point_uvw": [0.0, 0.0, 0.0],
-        "upper_point_uvw": [1.0, 1.0, 0.0],
         "polynomial_order" : [2, 2],
         "number_of_knot_spans" : [10, 10],
         "lambda_inner": 0.5,
@@ -312,8 +338,6 @@ const Parameters NurbsGeometryModelerSbm::GetValidParameters() const
         "model_part_name" : "IgaModelPart",
         "lower_point_xyz": [0.0, 0.0, 0.0],
         "upper_point_xyz": [1.0, 1.0, 0.0],
-        "lower_point_uvw": [0.0, 0.0, 0.0],
-        "upper_point_uvw": [1.0, 1.0, 0.0],
         "polynomial_order" : [2, 2],
         "number_of_knot_spans" : [10, 10],
         "lambda_inner": 0.5,

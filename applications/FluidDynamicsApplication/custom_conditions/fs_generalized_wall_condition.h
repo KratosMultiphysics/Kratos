@@ -321,11 +321,11 @@ public:
 
 			if (rLeftHandSideMatrix.size1() != LocalSize)
 			{
-				rLeftHandSideMatrix.resize(LocalSize, LocalSize);
+				rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 			}
 			if (rRightHandSideVector.size() != LocalSize)
 			{
-				rRightHandSideVector.resize(LocalSize);
+				rRightHandSideVector.resize(LocalSize, false);
 			}
 
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
@@ -341,11 +341,11 @@ public:
 
 			if (rLeftHandSideMatrix.size1() != LocalSize)
 			{
-				rLeftHandSideMatrix.resize(LocalSize, LocalSize);
+				rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 			}
 			if (rRightHandSideVector.size() != LocalSize)
 			{
-				rRightHandSideVector.resize(LocalSize);
+				rRightHandSideVector.resize(LocalSize, false);
 			}
 
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);

@@ -373,6 +373,26 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Shape Function values and CP indices
+    ///@{
+    
+    void ShapeFunctionsValuesAndCPIndices(
+        const CoordinatesArrayType& rCoordinates,
+        std::vector<IndexType>& rControlPointIndices,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr
+    ) const
+    {
+        mpNurbsCurve->ShapeFunctionsValuesAndCPIndices(
+            rCoordinates,
+            rControlPointIndices,
+            rShapeFunctionsValues,
+            DerivativeOrder,
+            pShapeFunctionDerivatives);
+    }
+
     Matrix& ShapeFunctionsLocalGradients(
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override

@@ -172,7 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateStiffnessMatrixGivesCorrectResults, KratosGeo
     constitutive_matrices.push_back(constitutive);
     constitutive_matrices.push_back(constitutive);
 
-    std::vector<double> integration_coefficients{1.0, 2.0};
+    auto integration_coefficients = std::vector{1.0, 2.0};
 
     auto stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
         b_matrices, constitutive_matrices, integration_coefficients);

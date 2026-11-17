@@ -51,6 +51,17 @@ void ReadAndSetAccessorsUtilities::ReadAndSetAccessors(
                 KRATOS_ERROR_IF(rProperty.HasAccessor(r_output_var)) << "You are trying to add an TableAccessor between " << input_var_name << " and " << output_var_name << " which already exists..." << std::endl;
 
                 rProperty.SetAccessor(r_output_var, (TableAccessor(*p_input_var, input_var_type)).Clone());
+            } else if (accessor_param["accessor_type"].GetString() == "database_accessor") {
+                // Independent Variable
+                std::string input_var_name = accessor_param["properties"]["variable"].GetString();
+                const Variable<double> *p_input_var = static_cast<const Variable<double> *>(KratosComponents<VariableData>::pGet(input_var_name));
+
+                // We set the variable type of the input variable (node_historical, node_non_historical and element)
+                std::string input_var_type = accessor_param["properties"].Has("input_variable_type") ? accessor_param["properties"]["input_variable_type"].GetString() : "node_historical";
+
+                KRATOS_ERROR_IF(rProperty.HasAccessor(*p_input_var)) << "You are trying to add a DatabaseAccessor for " << input_var_name << " which already exists..." << std::endl;
+
+                rProperty.SetAccessor(*p_input_var, (DatabaseAccessor(input_var_type)).Clone());
             } else {
                 // No more accessors implemented currently
                 KRATOS_ERROR << "This Accessor type is not available, only TableAccessor is ready for now" << std::endl;

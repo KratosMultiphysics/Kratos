@@ -59,7 +59,45 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self.assert_nodal_values_at_time(result, "DISPLACEMENT", node_ids, expected_disp, time, precision_places)
         self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress, time, precision_places)
         self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", expected_strain, time, precision_places)
-            
+
+    def test_biaxial_drained_linear_elastic(self):
+        """Regression test for the biaxial experiment on a model with linear elastic material and a constant pore water pressure."""
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_biaxial', 'drained', 'linear_elastic'))
+        self._run_biaxial_regression_test(file_path, 'biaxial_test_output.post.res', 4)
+
+    def test_biaxial_drained_mohr_coulomb(self):
+        """Regression test for the biaxial experiment on a model with Mohr Coulomb material and a constant pore water pressure."""
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_biaxial', 'drained', 'mohr_coulomb'))
+        self._run_biaxial_regression_test(file_path, 'biaxial_test_output.post.res', 4)
+
+    def _run_biaxial_regression_test(self, file_path, output_file_name, precision_places):
+        common_file_path = test_helper.get_file_path(
+            os.path.join('test_element_lab', 'test_biaxial', 'common'))
+        run_multiple_stages.run_stages(
+            file_path, 1,
+            filename_pattern="ProjectParameters.json",
+            input_path=common_file_path)
+        reader = GiDOutputFileReader()
+        result = reader.read_output_from(os.path.join(file_path, output_file_name))
+        time = 1.0
+
+        expected_displacement = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_disp.csv",
+            ["node_id"],
+            ["disp_x", "disp_y", "disp_z"])
+        expected_stress = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_stress.csv",
+            ["element_id", "ip_index"],
+            ["stress_xx", "stress_yy", "stress_zz", "stress_xy", "stress_yz", "stress_xz"])
+        expected_strain = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_strain.csv",
+            ["element_id", "ip_index"],
+            ["strain_xx", "strain_yy", "strain_zz", "strain_xy", "strain_yz", "strain_xz"])
+
+        self.assert_nodal_values_at_time(result,"DISPLACEMENT", list(expected_displacement.keys()), list(expected_displacement.values()), time, precision_places)
+        self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress, time, precision_places)
+        self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", expected_strain, time, precision_places)
+
     def test_oedometer_drained(self):
         """Regression test for the oedometer experiment on a linear elastic model with constant pore water pressure."""
         expected_stress_per_ip = [-1e+06/3.0, -1e+06, -1e+06/3.0, 0.0, 0.0, 0.0]
@@ -86,7 +124,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
             1.0, precision_places_stress)
 
         for time, expected_y in zip(displacement_times, expected_y_displacements):
-            self.assert_y_displacements_at_time(result, top_nodes, expected_y, time, precision_places_displacement)
+            self.assert_uniform_y_displacement_at_time(result, top_nodes, expected_y, time, precision_places_displacement)
 
     def test_dss_drained(self):
         """Regression test for the direct simple shear experiment with constant pore water pressure."""
@@ -195,6 +233,41 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
             self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=3),
             time=1.25, delta=0.002)
 
+    def test_schanz_vermeer(self):
+        """
+        Regression test for unloading and reloading with the pressure-dependent Schanz Vermeer stiffness law
+        on the axisymmetric 2D6N triaxial setup.
+        """
+        project_path = test_helper.get_file_path(os.path.join('test_element_lab', 'triaxial_comp_6n_schanz_vermeer'))
+
+        run_multiple_stages.run_stages(project_path, 2)
+
+        reader = GiDOutputFileReader()
+
+        stage_1_output = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_schanz_vermeer_stage1.post.res"))
+        stage_2_output = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_schanz_vermeer_stage2.post.res"))
+
+        self._assert_average_stress_component(reader, stage_1_output, 1.0, 1, -46.667766, 4)
+        self._assert_average_stress_component(reader, stage_2_output, 2.0, 1, -100.01745, 4)
+
+        self._assert_y_displacements_at_time(stage_1_output, 1.0, [1, 2, 6],
+                           [ 5.81174e-06, 5.44455e-06, 3.85041e-06], 8)
+        self._assert_y_displacements_at_time(stage_2_output, 2.0, [1, 2, 6],
+                           [ -5.82745e-06, -5.4599e-06, -3.8529e-06], 8)
+
+    def _assert_average_stress_component(self, reader, output_data, time, component_index, expected_value, places):
+        stress_vectors_per_element = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data)
+        component_values = [stress_vector[component_index]
+                            for element_stress_vectors in stress_vectors_per_element
+                            for stress_vector in element_stress_vectors]
+
+        average_value = sum(component_values) / len(component_values)
+        self.assertAlmostEqual(expected_value, average_value, places)
+
+    def _assert_y_displacements_at_time(self, output_data, time, node_ids, expected_y_displacements, places):
+        for node_id, expected_y_displacement in zip(node_ids, expected_y_displacements):
+            self.assert_uniform_y_displacement_at_time(output_data, [node_id], expected_y_displacement, time, places=places)
+
     def test_oedometer_ULFEM(self):
         """
         Oedometer test on a linear elastic model with 2D6N elements
@@ -210,9 +283,9 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         reader = GiDOutputFileReader()
         result = reader.read_output_from(output_file)
 
-        self.assert_y_displacements_at_time(result, top_node_nbrs, -0.0099, 0.1, 4)
-        self.assert_y_displacements_at_time(result, top_node_nbrs, -0.0654, 0.7, 4)
-        self.assert_y_displacements_at_time(result, top_node_nbrs, -0.0909, 1.0, 4)
+        self.assert_uniform_y_displacement_at_time(result, top_node_nbrs, -0.0099, 0.1, 4)
+        self.assert_uniform_y_displacement_at_time(result, top_node_nbrs, -0.0654, 0.7, 4)
+        self.assert_uniform_y_displacement_at_time(result, top_node_nbrs, -0.0909, 1.0, 4)
 
     def test_oedometer_ULFEM_diff_order(self):
         """
@@ -228,7 +301,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         reader = GiDOutputFileReader()
         result = reader.read_output_from(output_file)
         top_node_nbrs = [1]
-        self.assert_y_displacements_at_time(result, top_node_nbrs, -1e-4, 1.0, 6)
+        self.assert_uniform_y_displacement_at_time(result, top_node_nbrs, -1e-4, 1.0, 6)
 
     def _assert_oedometer_effective_stresses(self, effective_stresses, expected_yy, places_yy):
         for element in effective_stresses:

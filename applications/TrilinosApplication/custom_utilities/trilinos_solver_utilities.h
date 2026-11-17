@@ -15,6 +15,7 @@
 
 // External includes
 #include "Teuchos_ParameterList.hpp"
+#include "Teuchos_Comm.hpp"
 #include <mpi.h>
 #include "Epetra_Comm.h"
 
@@ -28,6 +29,8 @@ namespace TrilinosSolverUtilities {
 void SetTeuchosParameters(const Parameters rSettings, Teuchos::ParameterList& rParameterlist);
 
 MPI_Comm GetMPICommFromEpetraComm(const Epetra_Comm& rEpetraComm);
+
+MPI_Comm GetMPICommFromTeuchosComm(const Teuchos::Comm<int>& rTeuchosComm);
 
 }  // namespace TrilinosSolverUtilities.
 }  // namespace Kratos.

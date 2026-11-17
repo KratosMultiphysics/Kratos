@@ -247,13 +247,11 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         cond1 = mp.CreateNewCondition(prefix + "LineLoadCondition2D2N", 1, [1,2], mp.GetProperties()[1])
         cond2 = mp.CreateNewCondition(prefix + "LineLoadCondition2D2N", 2, [2,3], mp.GetProperties()[1])
 
-        rhs = KratosMultiphysics.Vector(6)
-        rhs[0] = 0.0
-        rhs[1] = 0.0
-        rhs[2] = 0.0
-        rhs[3] = 0.0
-        rhs[4] = 0.0
-        rhs[5] = 0.0
+        # System-space vector (backend-agnostic alias): BuildRHS assembles into
+        # the active backend's system vector type
+        rhs = KratosMultiphysics.SparseVector(6)
+        for i in range(6):
+            rhs[i] = 0.0
 
         # First we apply a constant LINE_LOAD to theh condition
         load_on_cond = KratosMultiphysics.Vector(3)

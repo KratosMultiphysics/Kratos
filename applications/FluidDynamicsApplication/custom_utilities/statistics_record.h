@@ -21,8 +21,7 @@
 
 // Project includes
 #include "containers/pointer_vector.h"
-#include "includes/define.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "statistics_utilities.h"
 
 namespace Kratos

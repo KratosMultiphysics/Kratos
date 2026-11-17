@@ -404,7 +404,7 @@ Vector& GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::GetValue(
     )
 {
     if (rThisVariable == INTERNAL_VARIABLES) {
-        rValue.resize(6);
+        rValue.resize(6, false);
         rValue[0] = mDamages[0];
         rValue[1] = mDamages[1];
         rValue[2] = mDamages[2];
@@ -503,7 +503,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateSeca
     const double nu = r_material_properties[POISSON_RATIO];
 
     if (rSecantTensor.size1() != VoigtSize)
-        rSecantTensor.resize(VoigtSize, VoigtSize);
+        rSecantTensor.resize(VoigtSize, VoigtSize, false);
     noalias(rSecantTensor) = ZeroMatrix(VoigtSize, VoigtSize);
 
     if constexpr (Dimension == 3) { // 3D version
@@ -547,7 +547,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
     )
 {
     if (rRotationTensor.size1() != VoigtSize)
-        rRotationTensor.resize(VoigtSize,VoigtSize);
+        rRotationTensor.resize(VoigtSize,VoigtSize, false);
     noalias(rRotationTensor) = ZeroMatrix(VoigtSize,VoigtSize);
 
     if constexpr (Dimension == 3) {

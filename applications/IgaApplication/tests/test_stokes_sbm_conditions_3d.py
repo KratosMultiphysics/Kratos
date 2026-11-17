@@ -78,8 +78,6 @@ def _create_outer_support_model_part():
                     "model_part_name" : "IgaModelPart",
                     "lower_point_xyz": [0.0, 0.0, 0.0],
                     "upper_point_xyz": [2.0, 2.0, 2.0],
-                    "lower_point_uvw": [0.0, 0.0, 0.0],
-                    "upper_point_uvw": [2.0, 2.0, 2.0],
                     "polynomial_order" : [1, 1, 1],
                     "number_of_knot_spans" : [4, 4, 4],
                     "lambda_outer": 0.5,
@@ -103,7 +101,8 @@ def _create_outer_support_model_part():
                             "name": "SbmFluidConditionDirichlet",
                             "shape_function_derivatives_order": 3,
                             "sbm_parameters": {
-                                "is_inner" : false
+                                "is_inner" : false,
+                                "projection_type" : "linealized"
                             }
                         }
                     ]
@@ -138,8 +137,6 @@ def _create_support_pressure_condition_model_part():
                     "model_part_name" : "IgaModelPart",
                     "lower_point_xyz": [0.0, 0.0, 0.0],
                     "upper_point_xyz": [2.0, 2.0, 2.0],
-                    "lower_point_uvw": [0.0, 0.0, 0.0],
-                    "upper_point_uvw": [2.0, 2.0, 2.0],
                     "polynomial_order" : [1, 1, 1],
                     "number_of_knot_spans" : [4, 4, 4],
                     "lambda_outer": 0.5,
@@ -163,7 +160,8 @@ def _create_support_pressure_condition_model_part():
                             "name": "SupportPressureCondition",
                             "shape_function_derivatives_order": 3,
                             "sbm_parameters": {
-                                "is_inner" : false
+                                "is_inner" : false,
+                                "projection_type" : "linealized"
                             }
                         }
                     ]

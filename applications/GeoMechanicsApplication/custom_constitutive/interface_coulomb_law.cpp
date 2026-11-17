@@ -15,24 +15,27 @@
 // Application includes
 #include "custom_constitutive/interface_coulomb_law.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
+#include "custom_constitutive/coulomb_impl.h"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/math_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "geo_mechanics_application_variables.h"
 
-#include <cmath>
-
 namespace Kratos
 {
+InterfaceCoulombLaw::InterfaceCoulombLaw()                                          = default;
+InterfaceCoulombLaw::~InterfaceCoulombLaw()                                         = default;
+InterfaceCoulombLaw::InterfaceCoulombLaw(InterfaceCoulombLaw&&) noexcept            = default;
+InterfaceCoulombLaw& InterfaceCoulombLaw::operator=(InterfaceCoulombLaw&&) noexcept = default;
 
 InterfaceCoulombLaw::InterfaceCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
       mTractionVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mTractionVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
-      mRelativeDisplacementVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize()))
+      mRelativeDisplacementVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+      mpCoulombImpl(std::make_unique<CoulombImpl>())
 {
 }
 
@@ -42,8 +45,11 @@ ConstitutiveLaw::Pointer InterfaceCoulombLaw::Clone() const
     p_result->mTractionVector                      = mTractionVector;
     p_result->mTractionVectorFinalized             = mTractionVectorFinalized;
     p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
-    p_result->mCoulombImpl                         = mCoulombImpl;
+    p_result->mpCoulombImpl                        = mpCoulombImpl->Clone();
     p_result->mIsModelInitialized                  = mIsModelInitialized;
+    p_result->mMaxRelativeOvershoot                = mMaxRelativeOvershoot;
+    p_result->mMaxNumberOfSubSteps                 = mMaxNumberOfSubSteps;
+    p_result->mCalculatedNumberOfSubSteps          = mCalculatedNumberOfSubSteps;
     return p_result;
 }
 
@@ -60,7 +66,7 @@ Vector& InterfaceCoulombLaw::GetValue(const Variable<Vector>& rVariable, Vector&
 int& InterfaceCoulombLaw::GetValue(const Variable<int>& rVariable, int& rValue)
 {
     if (rVariable == GEO_PLASTICITY_STATUS) {
-        rValue = static_cast<int>(mCoulombImpl.GetPlasticityStatus());
+        rValue = static_cast<int>(mpCoulombImpl->GetPlasticityStatus());
     }
     return rValue;
 }
@@ -99,6 +105,16 @@ int InterfaceCoulombLaw::Check(const Properties&   rMaterialProperties,
     }
     check_properties.Check(INTERFACE_NORMAL_STIFFNESS);
     check_properties.Check(INTERFACE_SHEAR_STIFFNESS);
+
+    if (rMaterialProperties.Has(GEO_MAX_RELATIVE_OVERSHOOT)) {
+        check_properties.SingleUseBounds(CheckProperties::Bounds::ExclusiveLowerAndInclusiveUpper)
+            .Check(GEO_MAX_RELATIVE_OVERSHOOT, 0.0, 1.0);
+    }
+
+    if (rMaterialProperties.Has(GEO_MAX_NUMBER_OF_SUB_STEPS)) {
+        constexpr auto max_value_number_of_substeps = std::numeric_limits<int>::max();
+        check_properties.Check(GEO_MAX_NUMBER_OF_SUB_STEPS, 1, max_value_number_of_substeps);
+    }
     return result;
 }
 
@@ -124,12 +140,19 @@ bool InterfaceCoulombLaw::RequiresInitializeMaterialResponse() { return true; }
 
 void InterfaceCoulombLaw::InitializeMaterial(const Properties& rMaterialProperties, const Geometry<Node>&, const Vector&)
 {
-    mCoulombImpl = CoulombImpl{rMaterialProperties};
+    mpCoulombImpl = std::make_unique<CoulombImpl>(rMaterialProperties);
 
     mRelativeDisplacementVectorFinalized =
         HasInitialState() ? GetInitialState().GetInitialStrainVector() : ZeroVector{GetStrainSize()};
     mTractionVectorFinalized =
         HasInitialState() ? GetInitialState().GetInitialStressVector() : ZeroVector{GetStrainSize()};
+
+    if (rMaterialProperties.Has(GEO_MAX_RELATIVE_OVERSHOOT)) {
+        mMaxRelativeOvershoot = rMaterialProperties[GEO_MAX_RELATIVE_OVERSHOOT];
+    }
+    if (rMaterialProperties.Has(GEO_MAX_NUMBER_OF_SUB_STEPS)) {
+        mMaxNumberOfSubSteps = rMaterialProperties[GEO_MAX_NUMBER_OF_SUB_STEPS];
+    }
 }
 
 void InterfaceCoulombLaw::InitializeMaterialResponseCauchy(Parameters& rConstitutiveLawParameters)
@@ -148,24 +171,88 @@ void InterfaceCoulombLaw::CalculateMaterialResponseCauchy(Parameters& rConstitut
     }
 
     const auto& r_properties = rConstitutiveLawParameters.GetMaterialProperties();
+    const auto elastic_matrix = mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties);
+    const auto normal_stiffness = r_properties[INTERFACE_NORMAL_STIFFNESS];
+    const auto shear_stiffness  = r_properties[INTERFACE_SHEAR_STIFFNESS];
 
-    auto trial_sigma_tau = CalculateTrialTractionVector(rConstitutiveLawParameters.GetStrainVector(),
-                                                        r_properties[INTERFACE_NORMAL_STIFFNESS],
-                                                        r_properties[INTERFACE_SHEAR_STIFFNESS]);
-    auto mapped_sigma_tau = trial_sigma_tau;
+    // Elastic predictor over the full increment starting from the last finalized state.
+    const auto full_trial_sigma_tau = CalculateTrialTractionVector(
+        rConstitutiveLawParameters.GetStrainVector(), normal_stiffness, shear_stiffness);
 
-    const auto negative   = std::signbit(trial_sigma_tau.Tau());
-    trial_sigma_tau.Tau() = std::abs(trial_sigma_tau.Tau());
-
-    if (!mCoulombImpl.IsAdmissibleStressState(trial_sigma_tau)) {
-        mapped_sigma_tau = mCoulombImpl.DoReturnMapping(
-            trial_sigma_tau, mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties),
-            Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
-        if (negative) mapped_sigma_tau.Tau() *= -1.0;
+    // If the whole step stays elastic, there is no need to sub-step.
+    auto aux_sigma_tau  = full_trial_sigma_tau;
+    aux_sigma_tau.Tau() = std::abs(aux_sigma_tau.Tau());
+    if (mpCoulombImpl->IsAdmissibleStressState(aux_sigma_tau)) {
+        mTractionVector                              = full_trial_sigma_tau.CopyTo<Vector>();
+        rConstitutiveLawParameters.GetStressVector() = mTractionVector;
+        return;
     }
 
-    mTractionVector                              = mapped_sigma_tau.CopyTo<Vector>();
+    std::size_t number_of_sub_steps = 1;
+    if (mMaxNumberOfSubSteps > 1) {
+        // only calculate the number of sub-steps once per solution step for stability
+        if (mCalculatedNumberOfSubSteps == 0) {
+            mCalculatedNumberOfSubSteps = CalculateAdaptiveNumberOfSubSteps(aux_sigma_tau, elastic_matrix);
+        }
+        number_of_sub_steps = mCalculatedNumberOfSubSteps;
+    }
+
+    // Running committed state for the sub-stepping (start from last finalized state).
+    Vector committed_traction     = mTractionVectorFinalized;
+    Vector committed_displacement = mRelativeDisplacementVectorFinalized;
+
+    const Vector total_displacement_increment =
+        rConstitutiveLawParameters.GetStrainVector() - mRelativeDisplacementVectorFinalized;
+
+    constexpr auto number_of_normal_components = std::size_t{1};
+    const auto elastic_tensor = ConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(
+        normal_stiffness, shear_stiffness, GetStrainSize(), number_of_normal_components);
+
+    for (std::size_t sub = 1; sub <= number_of_sub_steps; ++sub) {
+        const Vector sub_displacement =
+            mRelativeDisplacementVectorFinalized +
+            (static_cast<double>(sub) / static_cast<double>(number_of_sub_steps)) * total_displacement_increment;
+
+        auto trial_sigma_tau = Geo::SigmaTau{
+            committed_traction + prod(elastic_tensor, sub_displacement - committed_displacement)};
+        auto mapped_sigma_tau = trial_sigma_tau;
+
+        const auto negative   = std::signbit(trial_sigma_tau.Tau());
+        trial_sigma_tau.Tau() = std::abs(trial_sigma_tau.Tau());
+
+        if (!mpCoulombImpl->IsAdmissibleStressState(trial_sigma_tau)) {
+            mapped_sigma_tau = mpCoulombImpl->DoReturnMapping(
+                trial_sigma_tau, elastic_matrix, Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
+            if (negative) mapped_sigma_tau.Tau() *= -1.0;
+        }
+
+        mTractionVector        = mapped_sigma_tau.CopyTo<Vector>();
+        committed_traction     = mTractionVector;
+        committed_displacement = sub_displacement;
+    }
+
     rConstitutiveLawParameters.GetStressVector() = mTractionVector;
+}
+
+std::size_t InterfaceCoulombLaw::CalculateAdaptiveNumberOfSubSteps(const Geo::SigmaTau& rTrialTraction,
+                                                                   const Matrix& rElasticMatrix) const
+{
+    // make sure that kappa is not updated while calculating the number of required sub steps
+    mpCoulombImpl->SaveKappaOfCoulombYieldSurface();
+    const auto mapped_sigma_tau = mpCoulombImpl->DoReturnMapping(
+        rTrialTraction, rElasticMatrix, Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
+    mpCoulombImpl->RestoreKappaOfCoulombYieldSurface();
+
+    const auto trial_values  = rTrialTraction.CopyTo<Vector>();
+    const auto mapped_values = mapped_sigma_tau.CopyTo<Vector>();
+
+    const auto overshoot          = norm_2(trial_values - mapped_values);
+    const auto stress_scale       = std::max(norm_2(trial_values), 1.0e-12);
+    const auto relative_overshoot = overshoot / stress_scale;
+
+    const auto number_of_sub_steps = static_cast<int>(std::ceil(relative_overshoot / mMaxRelativeOvershoot));
+
+    return std::clamp(number_of_sub_steps, 1, mMaxNumberOfSubSteps);
 }
 
 Geo::SigmaTau InterfaceCoulombLaw::CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
@@ -183,6 +270,7 @@ void InterfaceCoulombLaw::FinalizeMaterialResponseCauchy(Parameters& rConstituti
 {
     mRelativeDisplacementVectorFinalized = rConstitutiveLawParameters.GetStrainVector();
     mTractionVectorFinalized             = mTractionVector;
+    mCalculatedNumberOfSubSteps          = 0;
 }
 
 Matrix& InterfaceCoulombLaw::CalculateValue(Parameters&             rConstitutiveLawParameters,
@@ -209,8 +297,10 @@ void InterfaceCoulombLaw::save(Serializer& rSerializer) const
     rSerializer.save("TractionVector", mTractionVector);
     rSerializer.save("TractionVectorFinalized", mTractionVectorFinalized);
     rSerializer.save("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
-    rSerializer.save("CoulombImpl", mCoulombImpl);
+    rSerializer.save("CoulombImpl", mpCoulombImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
+    rSerializer.save("MaxRelativeOvershoot", mMaxRelativeOvershoot);
+    rSerializer.save("MaxNumberOfSubSteps", mMaxNumberOfSubSteps);
 }
 
 void InterfaceCoulombLaw::load(Serializer& rSerializer)
@@ -220,8 +310,10 @@ void InterfaceCoulombLaw::load(Serializer& rSerializer)
     rSerializer.load("TractionVector", mTractionVector);
     rSerializer.load("TractionVectorFinalized", mTractionVectorFinalized);
     rSerializer.load("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
-    rSerializer.load("CoulombImpl", mCoulombImpl);
+    rSerializer.load("CoulombImpl", mpCoulombImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
+    rSerializer.load("MaxRelativeOvershoot", mMaxRelativeOvershoot);
+    rSerializer.load("MaxNumberOfSubSteps", mMaxNumberOfSubSteps);
 }
 
 } // Namespace Kratos

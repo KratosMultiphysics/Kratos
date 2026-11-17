@@ -1,0 +1,1 @@
+{"modes": [3, 10], "layers_size": [50.0, 50.0], "batch_size": 2, "epochs": 200, "NN_gradient_regularisation_weight": 1.0, "lr_strategy": {"scheduler": "sgdr", "base_lr": 0.001, "additional_params": [0.0001, 10.0, 400.0]}}

@@ -10,7 +10,6 @@
         "end_time"              : 18000,
         "time_step"             : 3600,
         "time_scale"            : "Seconds",
-        "consider_selfweight"   : false,
         "consider_construction" : true,
         "streamlines_utility"   : false
     },

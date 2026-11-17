@@ -31,6 +31,8 @@ from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TT
 from test_patch_test_small_displacement_mixed_volumetric_strain import TestPatchTestSmallDisplacementMixedVolumetricStrain as TTestPatchTestSmallDisplacementMixedVolumetricStrain
 from test_patch_test_small_displacement_shifted_boundary import TestPatchTestSmallDisplacementShiftedBoundary as TestPatchTestSmallDisplacementShiftedBoundary
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
+from test_updated_lagrangian_postprocessing import TestUpdatedLagrangianPostprocessing as TTestUpdatedLagrangianPostprocessing
+from test_almansi_strain_output import TestAlmansiStrainOutput as TTestAlmansiStrainOutput
 from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
 from test_patch_test_truss import TestTruss3D2N as TTestTruss3D2N
@@ -84,6 +86,8 @@ from test_cr_beam_adjoint_element_3d2n import TestCrBeamAdjointElement as TTestC
 from test_linear_thin_shell_adjoint_element_3d3n import TestShellThinAdjointElement3D3N as TTestShellThinAdjointElement3D3N
 from test_truss_adjoint_element_3d2n import TestTrussAdjointElement as TTestTrussAdjointElement
 from test_truss_adjoint_element_3d2n import TestTrussLinearAdjointElement as TTestTrussLinearAdjointElement
+from test_small_displacement_adjoint_element_3d10n import TestSmallDisplacementAdjointElement3D10N as TTestSmallDisplacementAdjointElement3D10N
+from test_small_displacement_adjoint_element_3d10n import TestSmallDisplacementAdjointElement3D10NTwoElements as TTestSmallDisplacementAdjointElement3D10NTwoElements
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisBeamStructureLocalStress as TTestAdjointSensitivityAnalysisBeamStructureLocalStress
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisBeamStructureNodalDisplacement as TTestAdjointSensitivityAnalysisBeamStructureNodalDisplacement
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisBeamStructureStrainEnergy as TTestAdjointSensitivityAnalysisBeamStructureStrainEnergy
@@ -301,6 +305,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrainBbar]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestLargeStrain]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestUpdatedLagrangianPostprocessing]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAlmansiStrainOutput]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallDisplacementMixedVolumetricStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPatchTestSmallDisplacementShiftedBoundary]))
@@ -346,6 +352,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D3N]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussAdjointElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussLinearAdjointElement]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSmallDisplacementAdjointElement3D10N]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSmallDisplacementAdjointElement3D10NTwoElements]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointLoadingConditions]))
     # RVE tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestRVESimplestTest]))

@@ -19,7 +19,7 @@
 // Project includes
 #include "includes/define_python.h"
 #include "trilinos_space.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "includes/model_part.h"
 
 // Linear solvers
@@ -55,7 +55,7 @@ namespace Kratos::Python
 namespace py = pybind11;
 
 using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using TrilinosLocalSpaceType = TDefaultDenseSpace<double>;
 using TrilinosLinearSolverType = LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
 
 void Solve(TrilinosLinearSolverType& solver,
