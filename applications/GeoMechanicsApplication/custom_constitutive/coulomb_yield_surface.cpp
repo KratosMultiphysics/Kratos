@@ -48,9 +48,11 @@ Geo::KappaDependentFunction MakeFrictionAngleCalculator(const Properties& rMater
     }
 
     if (hardening_type == "exponential") {
+        auto&      coefficients = rMaterialProperties[GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS];
+        const auto converted_coefficients =
+            UblasUtilities::CreateVector({MathUtils<>::DegreesToRadians(coefficients(0)), coefficients(1)});
         return FunctionObjectUtilities::MakeExponentialFunction(
-            ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties),
-            rMaterialProperties[GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS]);
+            ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties), converted_coefficients);
     }
 
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the friction angle of material "
@@ -96,9 +98,11 @@ Geo::KappaDependentFunction MakeDilatancyAngleCalculator(const Properties& rMate
     }
 
     if (hardening_type == "exponential") {
+        auto&      coefficients = rMaterialProperties[GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS];
+        const auto converted_coefficients =
+            UblasUtilities::CreateVector({MathUtils<>::DegreesToRadians(coefficients(0)), coefficients(1)});
         return FunctionObjectUtilities::MakeExponentialFunction(
-            MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
-            rMaterialProperties[GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS]);
+            MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]), converted_coefficients);
     }
 
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the dilatancy angle of material "

@@ -582,6 +582,7 @@ In exponential hardening, the material properties of the Coulomb yield surface f
 ```
 
 where $\phi_{\mathrm{res}}$, $c_{\mathrm{res}}$, and $\psi_{\mathrm{res}}$ are the residual values and are user-defined parameters. The variables $a_{\phi}$, $a_c$, and $a_{\psi}$ are shape factors that control the rate of hardening and are also user-defined.
+Note that $phi_{\mathrm{res}}$, and $\psi_{\mathrm{res}}$ should be given in $\degree$ like $\phi$, and $\psi$. Internally, they are converted to radians. $c_{res}$ should be given in the same units as $c$. The shape factors $a_{\phi}$, $a_c$, and $a_{\psi}$ are dimensionless.
 
 
 #### Iterative process
