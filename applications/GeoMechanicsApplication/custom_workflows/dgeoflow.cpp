@@ -120,7 +120,7 @@ KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer Krat
     Parameters p_parameters(R"(
     {
         "min_iteration":    6,
-        "number_cycles":    100,
+        "number_cycles":    1,
         "increase_factor":  2.0,
         "reduction_factor": 0.5,
 		"max_piping_iterations": 500,
@@ -137,7 +137,7 @@ KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer Krat
     bool MoveMeshFlag           = false;
 
     auto pSolvingStrategy =
-        Kratos::make_unique<GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(
+        Kratos::make_unique<GeoMechanicsNewtonRaphsonErosionProcessStrategyType>(
             rModelPart, p_scheme, p_criteria, p_builder_and_solver, p_parameters, MaxIterations,
             CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag);
 
@@ -206,9 +206,7 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
             KRATOS_ERROR_IF(parameters.Has("table") && parameters["table"].GetInt() != 0)
                 << "DGeoFlow only supports constant NORMAL_FLUID_FLUX values." << std::endl;
 
-            const auto found   = model_part_name.find_last_of('.');
-            const auto subname = model_part_name.substr(found + 1);
-            auto&      part    = rModelPart.GetSubModelPart(subname);
+            auto& part = rModelPart.GetModel().GetModelPart(model_part_name);
             mProcesses.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(part, parameters));
         }
     }
@@ -464,6 +462,7 @@ void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     rModelPart.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
     rModelPart.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+    rModelPart.AddNodalSolutionStepVariable(NODAL_WATER_FLOW_RATE);
 }
 
 int KratosExecute::FindCriticalHead(ModelPart&                   rModelPart,

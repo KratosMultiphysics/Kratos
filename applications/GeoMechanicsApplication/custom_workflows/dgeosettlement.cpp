@@ -326,6 +326,7 @@ void KratosGeoSettlement::AddNodalSolutionStepVariablesTo(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     rModelPart.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
     rModelPart.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+    rModelPart.AddNodalSolutionStepVariable(NODAL_WATER_FLOW_RATE);
 
     // Variables that can be extrapolated from integration points to nodes
     rModelPart.AddNodalSolutionStepVariable(TOTAL_STRESS_TENSOR);

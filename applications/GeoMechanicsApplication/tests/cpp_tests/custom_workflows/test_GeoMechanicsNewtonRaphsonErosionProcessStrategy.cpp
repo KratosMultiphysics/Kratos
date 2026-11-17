@@ -15,6 +15,8 @@
 
 /* Project includes */
 #include "containers/model.h"
+#include "custom_conditions/geo_seepage_condition.h"
+#include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
 #include "custom_workflows/dgeoflow.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/kratos_parameters.h"
@@ -25,6 +27,51 @@ namespace Kratos::Testing
 {
 
 using namespace Kratos;
+
+namespace
+{
+
+class SeepageTestElement : public Element
+{
+public:
+    using Element::Element;
+
+    void GetDofList(DofsVectorType& rDofs, const ProcessInfo&) const override
+    {
+        rDofs = {GetGeometry()[0].pGetDof(WATER_PRESSURE),
+                 GetGeometry()[1].pGetDof(WATER_PRESSURE)};
+    }
+
+    void EquationIdVector(EquationIdVectorType& rIds, const ProcessInfo&) const override
+    {
+        rIds = {GetGeometry()[0].GetDof(WATER_PRESSURE).EquationId(),
+                GetGeometry()[1].GetDof(WATER_PRESSURE).EquationId()};
+    }
+
+    void CalculateRightHandSide(VectorType& rRhs, const ProcessInfo&) override
+    {
+        rRhs.resize(2, false);
+        for (auto i = std::size_t{0}; i < 2; ++i) {
+            rRhs[i] = GetValue(PRESSURE) + GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
+        }
+    }
+
+    void CalculateLocalSystem(MatrixType& rLhs, VectorType& rRhs, const ProcessInfo& rProcessInfo) override
+    {
+        rLhs = -IdentityMatrix(2);
+        CalculateRightHandSide(rRhs, rProcessInfo);
+    }
+};
+
+class TestableDGeoFlowStrategy : public KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType
+{
+public:
+    using BaseType = KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
+    using BaseType::BaseType;
+    using BaseType::Recalculate;
+};
+
+} // namespace
 
 class ParametrizedDGeoFlowTests : public ::testing::TestWithParam<std::string>
 {
@@ -75,7 +122,8 @@ KRATOS_TEST_CASE_IN_SUITE(DGeoFlowParsesSeepageAndNormalFluxLoads, KratosGeoMech
     r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION_X);
     r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION_Y);
     r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION_Z);
-    r_model_part.CreateSubModelPart("flux_boundary");
+    auto& r_boundaries = r_model_part.CreateSubModelPart("boundaries");
+    r_boundaries.CreateSubModelPart("flux_boundary");
     r_model_part.CreateSubModelPart("seepage_boundary");
     r_model_part.CreateSubModelPart("gravity");
 
@@ -87,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(DGeoFlowParsesSeepageAndNormalFluxLoads, KratosGeoMech
                 {
                     "process_name": "ApplyScalarConstraintTableProcess",
                     "Parameters": {
-                        "model_part_name": "PorousDomain.flux_boundary",
+                        "model_part_name": "PorousDomain.boundaries.flux_boundary",
                         "variable_name": "NORMAL_FLUID_FLUX",
                         "value": -5.0,
                         "table": 1
@@ -167,6 +215,56 @@ KRATOS_TEST_CASE_IN_SUITE(DGeoFlowParsesSeepageConstraints, KratosGeoMechanicsFa
     r_model_part.CreateSubModelPart("seepage_boundary");
     KratosExecute valid_execute;
     valid_execute.ParseProcesses(r_model_part, project_parameters);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DGeoFlowSwitchesSeepageDuringSolveAndErosionRecalculation, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("PorousDomain", 2);
+    KratosExecute::AddNodalSolutionStepVariables(r_model_part);
+    auto p_first_node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    auto p_second_node = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.AddDof(WATER_PRESSURE, REACTION_WATER_PRESSURE);
+    }
+    auto p_geometry = make_shared<Line2D2<Node>>(p_first_node, p_second_node);
+    auto p_properties = r_model_part.CreateNewProperties(0);
+    auto p_element = make_intrusive<SeepageTestElement>(1, p_geometry, p_properties);
+    p_element->SetValue(PRESSURE, 1.0);
+    r_model_part.AddElement(p_element);
+    r_model_part.AddCondition(make_intrusive<GeoSeepageCondition>(1, p_geometry, p_properties));
+    r_model_part.CloneTimeStep(1.0);
+
+    using SparseSpaceType = KratosExecute::SparseSpaceType;
+    using LocalSpaceType = KratosExecute::LocalSpaceType;
+    using LinearSolverType = KratosExecute::LinearSolverType;
+    auto settings = Parameters{R"({"number_cycles":1,"max_piping_iterations":2})"};
+    TestableDGeoFlowStrategy strategy{
+        r_model_part,
+        make_shared<BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>>(),
+        KratosExecute::setup_criteria_dgeoflow(),
+        make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(
+            KratosExecute::setup_solver_dgeoflow()),
+        settings, 15, true, false, false};
+    strategy.SetEchoLevel(0);
+    strategy.Initialize();
+    strategy.InitializeSolutionStep();
+    strategy.Predict();
+
+    KRATOS_EXPECT_TRUE(strategy.SolveSolutionStep());
+    for (const auto& r_node : r_model_part.Nodes()) {
+        KRATOS_EXPECT_TRUE(r_node.IsFixed(WATER_PRESSURE));
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 0.0, 1e-12);
+    }
+
+    // Reversing the flow must release the seepage nodes inside the erosion recalculation.
+    p_element->SetValue(PRESSURE, -1.0);
+    KRATOS_EXPECT_TRUE(strategy.Recalculate());
+    for (const auto& r_node : r_model_part.Nodes()) {
+        KRATOS_EXPECT_FALSE(r_node.IsFixed(WATER_PRESSURE));
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 1.0, 1e-12);
+    }
+    strategy.FinalizeSolutionStep();
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsIntegrationSuite,
