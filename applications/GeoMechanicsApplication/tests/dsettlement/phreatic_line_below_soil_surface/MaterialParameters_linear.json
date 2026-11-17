@@ -8,7 +8,7 @@
                     "name": "GeoLinearElasticPlaneStrain2DLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "BIOT_COEFFICIENT": 1.0,
                     "DENSITY_SOLID": 2.24260958205912e+03,
                     "DENSITY_WATER": 1.01936799184506e+03,

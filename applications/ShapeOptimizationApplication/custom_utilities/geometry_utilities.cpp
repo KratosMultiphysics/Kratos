@@ -631,7 +631,7 @@ void GeometryUtilities::BaseVectors(const NodeType& rNode, const Kratos::GlobalP
     Kratos::Point::CoordinatesArrayType LocalPoint(2);
     GeometryUtilities::LocalPointInElement(rNode, pElement, LocalPoint);
 
-    matrix<double> first_derivative;
+    Matrix first_derivative;
     pElement->GetGeometry().ShapeFunctionsLocalGradients(first_derivative, LocalPoint);
     Vector g_1 = ZeroVector(3);
     Vector g_2 = ZeroVector(3);

@@ -68,7 +68,7 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
     // Construct and initialize correlation matrix
     BuiltinTimer build_cl_matrix_timer;
     DenseMatrixType correlation_matrix;
-    correlation_matrix.resize(num_nodes_reduced_space,num_nodes_reduced_space);
+    correlation_matrix.resize(num_nodes_reduced_space,num_nodes_reduced_space, false);
     // Assemble correlation matrix
     const auto it_node_reduced_begin = reduced_space_nodes.begin();
     IndexPartition<unsigned int>(num_nodes_reduced_space).for_each(
@@ -114,11 +114,11 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
 
     // Get and resize final perturbation matrix
     DenseMatrixType& rPerturbationMatrix = *mpPerturbationMatrix;
-    rPerturbationMatrix.resize(num_of_nodes, num_random_variables);
+    rPerturbationMatrix.resize(num_of_nodes, num_random_variables, false);
 
     // Construct Correlation vector
     DenseVectorType correlation_vector;
-    correlation_vector.resize(num_nodes_reduced_space);
+    correlation_vector.resize(num_nodes_reduced_space, false);
     // Generate random field over full domain
     BuiltinTimer assemble_random_field_time;
     #pragma omp parallel for firstprivate(correlation_vector)

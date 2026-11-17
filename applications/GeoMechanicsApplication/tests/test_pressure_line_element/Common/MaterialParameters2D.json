@@ -7,7 +7,7 @@
         "name"                             : "GeoLinearElasticPlaneStrain2DLaw"
       },
       "Variables" : {
-        "IGNORE_UNDRAINED"                 : false,
+        "GEO_DRAINAGE_TYPE"                : "FULLY_COUPLED",
         "YOUNG_MODULUS"                    : 1.000000e+07,
         "POISSON_RATIO"                    : 0.000000e+00,
         "DENSITY_SOLID"                    : 2.650000e+03,
@@ -20,10 +20,7 @@
         "BIOT_COEFFICIENT"                 : 1.000000e+00,
         "RETENTION_LAW"                    : "SaturatedLaw",
         "SATURATED_SATURATION"             : 1.000000e+00,
-        "RESIDUAL_SATURATION"              : 0.000000e+00,
         "CROSS_AREA"                       : 1.0
-      },
-      "Tables": { 
       }
     }
   }]

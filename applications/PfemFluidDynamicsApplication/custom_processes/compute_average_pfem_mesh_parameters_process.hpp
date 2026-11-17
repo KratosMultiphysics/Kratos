@@ -113,7 +113,7 @@ namespace Kratos
       {
         if (i_node->Is(FLUID))
         {
-          if (numberOfRefiningBoxes == 0 || (numberOfRefiningBoxes == 1 && mrRemesh.UseRefiningBox[0] == false))
+          if (numberOfRefiningBoxes == 0 || (numberOfRefiningBoxes == 1 && !mrRemesh.UseRefiningBox[0]))
           {
             preliminaryOutOfBoxesFluidNodes += 1.0;
             preliminaryOutOfBoxesMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
@@ -125,7 +125,7 @@ namespace Kratos
             {
               array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint[index];
               array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint[index];
-              if (mrRemesh.UseRefiningBox[index] == true)
+              if (mrRemesh.UseRefiningBox[index])
               {
                 homogeneousMesh = false;
                 if (dimension == 2)
@@ -151,7 +151,7 @@ namespace Kratos
               }
             }
             // CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREAS
-            if (outOfRefiningBoxes == true)
+            if (outOfRefiningBoxes)
             {
               preliminaryOutOfBoxesFluidNodes += 1.0;
               preliminaryOutOfBoxesMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H); // this is a preliminary evaluation of the local mesh size
@@ -178,7 +178,7 @@ namespace Kratos
               const double transitionDistanceInInputMesh = mrRemesh.RefiningBoxElementsInTransitionZone[index] * mrRemesh.Refine->CriticalRadius;
               array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint[index];
               array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint[index];
-              if (mrRemesh.UseRefiningBox[index] == true)
+              if (mrRemesh.UseRefiningBox[index])
               {
                 if (dimension == 2)
                 {
@@ -199,7 +199,7 @@ namespace Kratos
               }
             }
             // CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREAS
-            if (outOfRefiningBoxes == true)
+            if (outOfRefiningBoxes)
             {
               outOfBoxesFluidNodes += 1.0;
               outOfBoxesMeanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);

@@ -17,9 +17,8 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/variables.h"
 #include "iga_application_variables.h"
 
@@ -113,6 +112,8 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -245,13 +246,13 @@ protected:
         ConstitutiveVariables(const SizeType StrainSize)
         {
             if (StrainVector.size() != StrainSize)
-                StrainVector.resize(StrainSize);
+                StrainVector.resize(StrainSize, false);
 
             if (StressVector.size() != StrainSize)
-                StressVector.resize(StrainSize);
+                StressVector.resize(StrainSize, false);
 
             if (D.size1() != StrainSize || D.size2() != StrainSize)
-                D.resize(StrainSize, StrainSize);
+                D.resize(StrainSize, StrainSize, false);
 
             noalias(StrainVector) = ZeroVector(StrainSize);
             noalias(StressVector) = ZeroVector(StrainSize);

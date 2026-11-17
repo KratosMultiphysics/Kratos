@@ -1164,8 +1164,8 @@ void UPlSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& StressContain
 
     for(unsigned int iNode = 0; iNode < 3; iNode++)
     {
-        NodalStressVector[iNode].resize(VoigtSize);
-        NodalStressTensor[iNode].resize(cl_dimension,cl_dimension);
+        NodalStressVector[iNode].resize(VoigtSize, false);
+        NodalStressTensor[iNode].resize(cl_dimension,cl_dimension, false);
     }
 
     BoundedMatrix<double,3,3> ExtrapolationMatrix;
@@ -1219,8 +1219,8 @@ void UPlSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& StressContain
 
     for(unsigned int iNode = 0; iNode < 4; iNode ++)
     {
-        NodalStressVector[iNode].resize(VoigtSize);
-        NodalStressTensor[iNode].resize(cl_dimension,cl_dimension);
+        NodalStressVector[iNode].resize(VoigtSize, false);
+        NodalStressTensor[iNode].resize(cl_dimension,cl_dimension, false);
     }
 
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
@@ -1274,8 +1274,8 @@ void UPlSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& StressContain
 
     for(unsigned int iNode = 0; iNode < 4; iNode ++)
     {
-        NodalStressVector[iNode].resize(VoigtSize);
-        NodalStressTensor[iNode].resize(3,3);
+        NodalStressVector[iNode].resize(VoigtSize, false);
+        NodalStressTensor[iNode].resize(3,3, false);
     }
 
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
@@ -1314,8 +1314,8 @@ void UPlSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& StressContain
 
     for(unsigned int iNode = 0; iNode < 8; iNode ++)
     {
-        NodalStressVector[iNode].resize(VoigtSize);
-        NodalStressTensor[iNode].resize(3,3);
+        NodalStressVector[iNode].resize(VoigtSize, false);
+        NodalStressTensor[iNode].resize(3,3, false);
     }
 
     BoundedMatrix<double,8,8> ExtrapolationMatrix;

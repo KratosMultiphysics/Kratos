@@ -25,7 +25,9 @@ def CreateSolver(cls, model, custom_settings):
                 "rom_settings": {
                     "nodal_unknowns": [],
                     "number_of_rom_dofs": 0,
-                    "rom_bns_settings": {}
+                    "rom_bns_settings": {},
+                    "weight_vector_index": 0,
+                    "number_of_hrom_sets": 1
                 }
             }""")
             default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -39,7 +41,9 @@ def CreateSolver(cls, model, custom_settings):
                 "global_galerkin": KratosROM.GlobalROMBuilderAndSolver,
                 "lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
                 "lspg_ann": KratosROM.AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver,
+                "lspg_rbf": KratosROM.AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver, # Same builder and solver as the ANN-enhanced one, with an RBF decoder
                 "galerkin_ann": KratosROM.AnnPromGlobalROMBuilderAndSolver,
+                "galerkin_rbf": KratosROM.AnnPromGlobalROMBuilderAndSolver, # Same builder and solver as the ANN-enhanced one, with an RBF decoder
                 "elemental_petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver,
                 "global_petrov_galerkin": KratosROM.GlobalPetrovGalerkinROMBuilderAndSolver
             }
@@ -86,11 +90,11 @@ def CreateSolver(cls, model, custom_settings):
             self._AssignMissingInnerRomParameters(projection_strategy)
 
             # Check that the number of ROM DOFs has been provided
-            if projection_strategy in ("galerkin_ann", "lspg_ann") == False:
+            if projection_strategy in ("galerkin_ann", "lspg_ann", "galerkin_rbf", "lspg_rbf") == False:
                 n_rom_dofs = self.settings["rom_settings"]["number_of_rom_dofs"].GetInt()
                 if not n_rom_dofs > 0:
                     err_msg = "\'number_of_rom_dofs\' in \'rom_settings\' is {}. Please set a larger than zero value.".format(n_rom_dofs)
-                    raise Exception(err_msg)                
+                    raise Exception(err_msg)
 
             # Return the validated ROM parameters
             return self.settings["rom_settings"], projection_strategy
@@ -99,7 +103,7 @@ def CreateSolver(cls, model, custom_settings):
             if not self.settings["rom_settings"].Has("rom_bns_settings"):
                 self.settings["rom_settings"].AddEmptyValue("rom_bns_settings")
             monotonicity_preserving = self.settings["rom_settings"]["rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.settings["rom_settings"]["rom_bns_settings"].Has("monotonicity_preserving") else False
-            if projection_strategy in ("global_galerkin", "lspg", "global_petrov_galerkin", "galerkin_ann", "lspg_ann"):
+            if projection_strategy in ("global_galerkin", "lspg", "global_petrov_galerkin", "galerkin_ann", "lspg_ann", "galerkin_rbf", "lspg_rbf"):
                 self.settings["rom_settings"]["rom_bns_settings"].AddBool("monotonicity_preserving", monotonicity_preserving)
 
     return ROMSolver(model, custom_settings)

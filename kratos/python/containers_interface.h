@@ -80,13 +80,21 @@ public:
                typename TContainerType::value_type &value) { self[i] = value; })
         .def("__getitem__",
              [](TContainerType &self, unsigned int i) { return self(i); })
-        .def(
-            "__iter__",
-            [](TContainerType &self) {
-              return py::make_iterator(self.begin(), self.end());
-            },
-            py::keep_alive<0, 1>())
-        .def("clear", [](TContainerType &self) { self.clear(); });
+         .def(
+             "__iter__",
+             [](TContainerType &self) {
+               return py::make_iterator(self.begin(), self.end());
+             },
+             py::keep_alive<0, 1>())
+         .def("clear", [](TContainerType &self) { self.clear(); })
+         .def("IdsList", [](TContainerType &self) {
+           const int n = self.size();
+           py::array_t<int> ids(n);
+           auto ids_ptr = static_cast<int *>(ids.request().ptr);
+           IndexPartition<int>(n).for_each(
+               [&self, &ids_ptr](int i) { ids_ptr[i] = (self.ptr_begin() + i)->get()->Id(); });
+           return ids;
+         });
   }
 };
 

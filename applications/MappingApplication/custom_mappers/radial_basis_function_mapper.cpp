@@ -19,6 +19,7 @@
 #include "mapping_application_variables.h"
 #include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_utilities.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
 
 // External includes
 
@@ -744,7 +745,40 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIgaOnC
         n_cp                       // number of control points on origin interface
     );
 
-    noalias(*pMappingMatrix) = prod(rMappingMatrixGP, N_reduced);
+    // the dense shape-function factor is packed into compressed storage so
+    // the backend-generic sparse multiplication utility can be used
+    const IndexType n_gp_rows = N_reduced.size1();
+    // Only nonzero entries are stored to avoid structural zeros in the product.
+    // N_reduced is zero-initialized, so structural zeros are exactly 0.0 and no tolerance is needed
+    IndexType n_nonzeros = 0;
+    for (IndexType i = 0; i < n_gp_rows; ++i) {
+        for (IndexType j = 0; j < n_cp; ++j) {
+            if (N_reduced(i, j) != 0.0) {
+                ++n_nonzeros;
+            }
+        }
+    }
+    MappingMatrixType n_reduced_sparse(n_gp_rows, n_cp, n_nonzeros);
+    {
+        auto&& row_indices = n_reduced_sparse.index1_data();
+        auto&& col_indices = n_reduced_sparse.index2_data();
+        auto&& values = n_reduced_sparse.value_data();
+        row_indices[0] = 0;
+        IndexType counter = 0;
+        for (IndexType i = 0; i < n_gp_rows; ++i) {
+            for (IndexType j = 0; j < n_cp; ++j) {
+                const double value = N_reduced(i, j);
+                if (value != 0.0) {
+                    col_indices[counter] = j;
+                    values[counter] = value;
+                    ++counter;
+                }
+            }
+            row_indices[i + 1] = counter;
+        }
+        n_reduced_sparse.set_filled(n_gp_rows + 1, counter);
+    }
+    SparseMatrixMultiplicationUtility::MatrixMultiplication(rMappingMatrixGP, n_reduced_sparse, *pMappingMatrix);
 
     return pMappingMatrix;
 }

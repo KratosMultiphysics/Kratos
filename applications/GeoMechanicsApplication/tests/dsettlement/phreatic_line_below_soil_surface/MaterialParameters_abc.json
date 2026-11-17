@@ -8,7 +8,7 @@
                     "name": "SmallStrainUDSM2DPlaneStrainLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": false,
+                    "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "BIOT_COEFFICIENT": 1.0,
                     "DENSITY_SOLID": 2.24260958205912e+03,
                     "DENSITY_WATER": 1.01936799184506e+03,

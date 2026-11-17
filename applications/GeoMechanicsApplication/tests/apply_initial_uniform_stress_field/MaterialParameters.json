@@ -8,7 +8,7 @@
                     "name": "GeoIncrementalLinearElastic3DLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "YOUNG_MODULUS": 1.0e+04,
                     "POISSON_RATIO": 0.0,
                     "DENSITY_SOLID": 2.65,

@@ -33,7 +33,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements ShellThickElementCorotational3D4N// GUI group identifier: Surface_Q4_thick
+Begin Elements MITCThickShellCorotationalElement3D4N// GUI group identifier: Surface_Q4_thick
          1          0          7         10         14         12
          2          0          5          6         10          7
          3          0         10         13         18         14

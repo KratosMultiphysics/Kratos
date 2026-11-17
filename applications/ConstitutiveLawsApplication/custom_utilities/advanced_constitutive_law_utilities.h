@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/node.h"
 #include "includes/constitutive_law.h"
 #include "geometries/geometry.h"
@@ -547,6 +547,13 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      * "computational Methods for plasticity: Theory and applications" (2008), pg 373
      */
     static BoundedMatrix<double, 3, 3> CalculatePOperator();
+
+    /**
+     * @brief This method computes the maximum edge length of
+     * a shell of 3 and 4 nodes
+     */
+    static double GetMaxReferenceEdgeLengthForShell(
+        const GeometryType &rGeometry);
 
 }; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos

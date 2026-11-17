@@ -22,7 +22,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/parallel_utilities.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/variables.h"
 
 namespace Kratos {
@@ -504,9 +504,6 @@ private:
         if (!r_nodes.empty()) {
             // If we consider rotation dofs
             const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
-
-            // Auxiliary values
-            const array_1d<double,3> zero_array = ZeroVector(3);
 
             // Getting
             const auto it_node_begin = r_nodes.begin();

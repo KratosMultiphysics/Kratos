@@ -13,6 +13,7 @@
 #include "string_utilities.h"
 #include <algorithm>
 #include <cctype>
+#include <sstream>
 
 namespace Kratos
 {
@@ -22,6 +23,23 @@ std::string GeoStringUtilities::ToLower(const std::string& rString)
     auto result = rString;
     std::ranges::transform(result, result.begin(), [](auto c) { return std::tolower(c); });
     return result;
+}
+
+std::string GeoStringUtilities::Join(const std::vector<std::string>& rStrings,
+                                     const std::string&              rSeparator,
+                                     const std::string&              rNameWrapper)
+{
+    if (rStrings.empty()) return {};
+
+    auto oss = std::ostringstream{};
+    auto it  = rStrings.begin();
+    oss << rNameWrapper << *it << rNameWrapper;
+    ++it;
+    for (; it != rStrings.end(); ++it) {
+        oss << rSeparator << rNameWrapper << *it << rNameWrapper;
+    }
+
+    return oss.str();
 }
 
 } // namespace Kratos

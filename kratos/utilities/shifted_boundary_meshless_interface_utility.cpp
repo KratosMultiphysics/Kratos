@@ -94,7 +94,7 @@ namespace
     {
         const std::size_t n_nodes = rGeometry.PointsNumber();
         if (rNodalDistances.size() != n_nodes) {
-            rNodalDistances.resize(n_nodes);
+            rNodalDistances.resize(n_nodes, false);
         }
         std::size_t i = 0;
         for (const auto& r_node : rGeometry) {
@@ -986,7 +986,7 @@ namespace
 
         // Fill the coordinates matrix
         array_1d<double,3> aux_coord;
-        rCloudCoordinates.resize(n_cloud_nodes, 3);
+        rCloudCoordinates.resize(n_cloud_nodes, 3, false);
         for (std::size_t i_node = 0; i_node < n_cloud_nodes; ++i_node) {
             noalias(aux_coord) = rCloudNodes[i_node].Coordinates();
             rCloudCoordinates(i_node, 0) = aux_coord[0];
@@ -1072,7 +1072,7 @@ namespace
         std::sort(rCloudNodes.ptr_begin(), rCloudNodes.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
 
         // Fill the coordinates matrix
-        rCloudCoordinates.resize(n_cloud_nodes, 3);
+        rCloudCoordinates.resize(n_cloud_nodes, 3, false);
         IndexPartition<std::size_t>(n_cloud_nodes).for_each(array_1d<double,3>(), [&rCloudNodes, &rCloudCoordinates](std::size_t iNode, array_1d<double,3>& rAuxCoordTLS){
             noalias(rAuxCoordTLS) = rCloudNodes[iNode].Coordinates();
             rCloudCoordinates(iNode, 0) = rAuxCoordTLS[0];

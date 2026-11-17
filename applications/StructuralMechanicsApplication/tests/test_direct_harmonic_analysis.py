@@ -14,6 +14,8 @@ class DirectHarmonicAnalysisTests(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_IMAGINARY)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.DISPLACEMENT_IMAGINARY)
+        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ROTATION_IMAGINARY)
+
 
     def _add_dofs(self, mp):
         vu = KratosMultiphysics.VariableUtils()

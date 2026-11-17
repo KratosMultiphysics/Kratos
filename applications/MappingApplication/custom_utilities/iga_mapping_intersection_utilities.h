@@ -168,22 +168,26 @@ namespace IgaMappingIntersectionUtilities
      *
      * For each coupling geometry:
      *  1. FEM nodes are projected onto the IGA patch in parametric space (u,v)
-     *  2. The projected FEM triangle (or clipped triangles, in case of trimming) is triangulated in parameter space
-     *  3. Integration points are generated for each parametric triangle
-     *  4. The integration points are mapped to the FEM side by projecting the master quadrature-point coordinates
+     *  2. Candidate triangles are built for the one-, two-, or three-node projection case
+     *  3. Every candidate triangle is clipped against the outer trimming loops and inner holes
+     *  4. The remaining regions are triangulated and subdivided at the knot spans
+     *  5. Integration points are generated for each parametric triangle
+     *  6. The integration points are mapped to the FEM side by projecting the master quadrature-point coordinates
      *     into the FEM local space
-     *  5. Quadrature-point geometries are created on both sides and stored as new coupling conditions
+     *  7. Quadrature-point geometries are created on both sides and stored as new coupling conditions
      *
      * @param rModelPartCoupling      ModelPart containing the surface coupling geometries (IGA patch + FEM condition)
      * @param origin_is_iga           If true, master = IGA patch and slave = FEM geometry. Otherwise swapped.
      * @param rPatchCache             Patch cache used for fast initial guess generation for surface projections
      * @param search_radius           Radius used in the cached spatial bins search for initial guess estimation
+     * @param WriteTrianglesToFile    If true, writes the created parametric triangles to a text file
      */
     void KRATOS_API(MAPPING_APPLICATION) CreateIgaFEMQuadraturePointsOnSurface(
         ModelPart& rModelPartCoupling,
         bool origin_is_iga,
         const PatchCacheMap& rPatchCache,
-        const double search_radius);
+        const double search_radius,
+        const bool WriteTrianglesToFile);
 
 
     /**

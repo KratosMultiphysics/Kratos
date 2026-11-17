@@ -29,13 +29,13 @@ Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const Geomet
 {
     CheckIfGeometryIsSupported(rGeometry);
 
+    if (rIntegrationPoints.size() == 1) return {rGeometry.size(), 1, 1.0};
+
     const auto  p_lower_order_geometry = CreateLowerOrderGeometry(rGeometry);
     const auto& r_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : rGeometry;
 
     auto result = CalculateExtrapolationMatrixForCornerNodes(rGeometry, rIntegrationPoints, r_corner_geometry);
-
     if (p_lower_order_geometry) AddRowsForMidsideNodes(rGeometry, result);
-
     return result;
 }
 
@@ -70,7 +70,7 @@ void LinearNodalExtrapolator::AddRowsForMidsideNodes(const GeometryType& rGeomet
 {
     const auto global_to_local_mapping = NodeUtilities::CreateGlobalToLocalNodeIndexMap(rGeometry.Points());
 
-    rExtrapolationMatrix.resize(rGeometry.PointsNumber(), rExtrapolationMatrix.size2());
+    rExtrapolationMatrix.resize(rGeometry.PointsNumber(), rExtrapolationMatrix.size2(), true);
     for (const auto& edge : rGeometry.GenerateEdges()) {
         row(rExtrapolationMatrix, global_to_local_mapping.at(edge[2].GetId())) =
             0.5 * (row(rExtrapolationMatrix, global_to_local_mapping.at(edge[0].GetId())) +

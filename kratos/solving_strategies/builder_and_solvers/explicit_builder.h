@@ -692,8 +692,9 @@ protected:
 
         // Initialize the lumped mass matrix vector
         // Note that the lumped mass matrix vector size matches the dof set one
+        // (it is a system vector, so it is zeroed through the sparse space)
         mpLumpedMassVector = TSystemVectorPointerType(new TSystemVectorType(GetDofSet().size()));
-        TDenseSpace::SetToZero(*mpLumpedMassVector);
+        TSparseSpace::SetToZero(*mpLumpedMassVector);
 
         // Loop the elements to get the lumped mass vector
         const auto &r_elements_array = rModelPart.Elements();

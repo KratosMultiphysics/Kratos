@@ -213,7 +213,7 @@ void IsotropicDamageCohesive3DLaw::InitializeConstitutiveLawVariables(Constituti
     const unsigned int VoigtSize = StrainVector.size();
 
     // Initialize the size of the vector with the derivatives of the equivalent strain
-    rVariables.DerivativeEquivalentStrain.resize(VoigtSize);
+    rVariables.DerivativeEquivalentStrain.resize(VoigtSize, false);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -394,7 +394,7 @@ void IsotropicDamageCohesive3DLaw::ComputeDamageConstitutiveMatrix(Matrix& rDama
 
     // Initialize the damage part of the tangent constitutive matrix
     const unsigned int VoigtSize = StrainVector.size();
-    rDamageConstitutiveMatrix.resize(VoigtSize,VoigtSize);
+    rDamageConstitutiveMatrix.resize(VoigtSize,VoigtSize, false);
 
     // Fill the matrix
     noalias(rDamageConstitutiveMatrix) = outer_prod(EffectiveStressVector,rVariables.DerivativeEquivalentStrain);

@@ -12,8 +12,7 @@
 
 
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_PQ_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_PQ_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -145,4 +144,3 @@ private:
 
 }; // Class MPMUpdatedLagrangianPQ
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_PQ_H_INCLUDED  defined

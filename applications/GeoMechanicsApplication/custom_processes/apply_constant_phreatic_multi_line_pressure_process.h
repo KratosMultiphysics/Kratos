@@ -41,7 +41,6 @@ public:
     void               PrintInfo(std::ostream& rOStream) const override;
     const std::string& VariableName() const;
     bool               IsFixed() const;
-    bool               IsSeepage() const;
     unsigned int       GravityDirection() const;
     double             SpecificWeight() const;
     unsigned int       OutOfPlaneDirection() const;
@@ -63,11 +62,10 @@ private:
     std::string  mVariableName;
     bool         mIsFixed;
     bool         mIsFixedProvided;
-    bool         mIsSeepage;
-    unsigned int mGravityDirection;
+    unsigned int mGravityDirection = 0;
     double       mSpecificWeight;
     unsigned int mOutOfPlaneDirection;
-    unsigned int mHorizontalDirection;
+    unsigned int mHorizontalDirection = 0;
     Vector       mHorizontalDirectionCoordinates;
     Vector       mGravityDirectionCoordinates;
     Vector       mXCoordinates;

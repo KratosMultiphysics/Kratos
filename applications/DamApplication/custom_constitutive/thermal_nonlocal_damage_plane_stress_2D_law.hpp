@@ -71,12 +71,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ThermalNonlocalDamagePlaneStrain2DLaw )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ThermalNonlocalDamagePlaneStrain2DLaw )
     }
 
 }; // Class ThermalNonlocalDamagePlaneStress2DLaw

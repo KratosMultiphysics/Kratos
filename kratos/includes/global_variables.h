@@ -4,17 +4,17 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//
 //
 
 #pragma once
 
 // System includes
+#include <numbers>
 
 // External includes
 
@@ -22,12 +22,22 @@
 
 namespace Kratos::Globals
 {
-	constexpr double Pi   = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651L;
+    ///@name Kratos Globals
+    ///@{
+
+    // Using the STL to constants variables
+	constexpr double Pi = std::numbers::pi;
+	constexpr double pi = std::numbers::pi; // NOTE: Consistent lowercase naming is often preferred
+    constexpr double e = std::numbers::e;
+    constexpr double sqrt2 = std::numbers::sqrt2;
+    constexpr double sqrt3 = std::numbers::sqrt3;
+    constexpr double log2e = std::numbers::log2e;
+    constexpr double log10e = std::numbers::log10e;
+    constexpr double phi = std::numbers::phi;
 
     static constexpr int MaxAllowedThreads = 128; //we assume that no more than MaxAllowedThreads is used in SMP
 
-    ///@name Kratos Globals
-    ///@{
+    ///@}
     ///@name Enums
     ///@{
 
@@ -39,7 +49,6 @@ namespace Kratos::Globals
         Initial = 0,
         Current = 1
     };
-
 
     /**
      * @brief Enum for location of data
@@ -56,22 +65,4 @@ namespace Kratos::Globals
     };
 
     ///@}
-    ///@}
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-
 }  // namespace Kratos::Globals

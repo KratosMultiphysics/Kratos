@@ -22,7 +22,7 @@
 #include "includes/model_part_io.h"
 #include "includes/global_variables.h"
 #include "processes/structured_mesh_generator_process.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "testing/testing.h"
 
 // Application includes
@@ -31,7 +31,7 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef UblasSpace<double, Matrix, Vector> SpaceType;
+    typedef TDefaultDenseSpace<double> SpaceType;
 
     void SetTestInterface(ModelPart &rTestModelPart)
     {
@@ -117,18 +117,18 @@ namespace Testing {
 
         void AccessComputeConsistentResidual(
             ModelPart &rModelPart,
-            Variable<TValueType> &rOriginalVariable,
-            Variable<TValueType> &rModifiedVariable,
-            Variable<TValueType> &rResidualVariable)
+            const Variable<TValueType> &rOriginalVariable,
+            const Variable<TValueType> &rModifiedVariable,
+            const Variable<TValueType> &rResidualVariable)
         {
             this->ComputeConsistentResidual(rModelPart, rOriginalVariable, rModifiedVariable, rResidualVariable);
         }
 
         void AccessComputeNodeByNodeResidual(
             ModelPart &rModelPart,
-            Variable<TValueType> &rOriginalVariable,
-            Variable<TValueType> &rModifiedVariable,
-            Variable<TValueType> &rResidualVariable)
+            const Variable<TValueType> &rOriginalVariable,
+            const Variable<TValueType> &rModifiedVariable,
+            const Variable<TValueType> &rResidualVariable)
         {
             this->ComputeNodeByNodeResidual(rModelPart, rOriginalVariable, rModifiedVariable, rResidualVariable);
         }

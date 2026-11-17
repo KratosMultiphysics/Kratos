@@ -33,7 +33,7 @@ title = "KratosMultiphysics Core"
         "Intended Audience :: Science/Research",
         "Intended Audience :: Developers"
     ]
-    dynamic = ["version"]
+    dynamic = ["version", "optional-dependencies"]
 
 # List of binaries for this application 
 # (This is a Kratos build script extension and will not work with "python build")

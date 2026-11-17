@@ -7,6 +7,7 @@ import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_mul
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
 )
+from helper_utilities import _compare_nodal_value_lists_at_time
 
 
 class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
@@ -39,40 +40,6 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         if not times:
             raise RuntimeError("No valid output time steps found")
         return times
-
-    @staticmethod
-    def _top_scalar_differences(values_a, values_b, ids_a, ids_b, top_n=5):
-        differences = [
-            (
-                abs(value_a - value_b),
-                id_a,
-                id_b,
-                value_a,
-                value_b,
-            )
-            for id_a, id_b, value_a, value_b in zip(ids_a, ids_b, values_a, values_b)
-        ]
-        return sorted(differences, key=lambda item: item[0], reverse=True)[:top_n]
-
-    @staticmethod
-    def _format_nodal_difference_summary(differences):
-        if not differences:
-            return "No nodal pairs were compared"
-
-        return " | ".join(
-            (
-                f"interface node {interface_node_id}, soil node {soil_node_id}: "
-                f"interface={interface_value:.12e}, soil={soil_value:.12e}, "
-                f"|delta|={difference:.12e}"
-            )
-            for (
-                difference,
-                interface_node_id,
-                soil_node_id,
-                interface_value,
-                soil_value,
-            ) in differences
-        )
 
     @staticmethod
     def _format_flux_difference_summary(differences):
@@ -288,8 +255,9 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
 
         return side_a_node_ids, side_b_node_ids
 
-    def _assert_displacement_match_at_time(
+    def _assert_nodal_variable_match_at_time(
         self,
+        variable_name,
         interface_output,
         soil_output,
         interface_time,
@@ -297,76 +265,34 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         interface_node_ids,
         soil_node_ids,
         time_index,
-        displacement_tolerance,
+        tolerance,
+        value_extractor=lambda value: value,
     ):
-        interface_displacements = GiDOutputFileReader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT",
+        interface_values = GiDOutputFileReader.nodal_values_at_time(
+            variable_name,
             interface_time,
             interface_output,
             interface_node_ids,
         )
-        soil_displacements = GiDOutputFileReader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", soil_time, soil_output, soil_node_ids
-        )
-        top_displacement_differences = sorted(
-            [
-                (abs(a[1] - b[1]), id_a, id_b, a[1], b[1])
-                for id_a, id_b, a, b in zip(
-                    interface_node_ids,
-                    soil_node_ids,
-                    interface_displacements,
-                    soil_displacements,
-                )
-            ],
-            key=lambda item: item[0],
-            reverse=True,
-        )[:5]
-        max_displacement_difference_y = (
-            top_displacement_differences[0][0] if top_displacement_differences else 0.0
-        )
-        self.assertLess(
-            max_displacement_difference_y,
-            displacement_tolerance,
-            msg=(
-                f"TOTAL_DISPLACEMENT_Y mismatch at time index {time_index} "
-                f"(time={interface_time:.12g}). Top nodal differences: "
-                f"{self._format_nodal_difference_summary(top_displacement_differences)}"
-            ),
+        soil_values = GiDOutputFileReader.nodal_values_at_time(
+            variable_name, soil_time, soil_output, soil_node_ids
         )
 
-    def _assert_pressure_match_at_time(
-        self,
-        interface_output,
-        soil_output,
-        interface_time,
-        soil_time,
-        interface_node_ids,
-        soil_node_ids,
-        time_index,
-        pressure_tolerance,
-    ):
-        interface_pressures = GiDOutputFileReader.nodal_values_at_time(
-            "WATER_PRESSURE", interface_time, interface_output, interface_node_ids
+        compare_errors = _compare_nodal_value_lists_at_time(
+            list(interface_node_ids),
+            [value_extractor(value) for value in interface_values],
+            [value_extractor(value) for value in soil_values],
+            interface_time,
+            abs_tol=tolerance,
+            rel_tol=0.0,
         )
-        soil_pressures = GiDOutputFileReader.nodal_values_at_time(
-            "WATER_PRESSURE", soil_time, soil_output, soil_node_ids
-        )
-        top_pressure_differences = self._top_scalar_differences(
-            interface_pressures,
-            soil_pressures,
-            interface_node_ids,
-            soil_node_ids,
-        )
-        max_pressure_difference = (
-            top_pressure_differences[0][0] if top_pressure_differences else 0.0
-        )
-        self.assertLess(
-            max_pressure_difference,
-            pressure_tolerance,
+
+        self.assertFalse(
+            compare_errors,
             msg=(
-                f"WATER_PRESSURE mismatch at time index {time_index} "
-                f"(time={interface_time:.12g}). Top nodal differences: "
-                f"{self._format_nodal_difference_summary(top_pressure_differences)}"
+                f"{variable_name} mismatch at time index {time_index} "
+                f"(time={interface_time:.12g}). First differences: "
+                + " | ".join(compare_errors[:5])
             ),
         )
 
@@ -515,7 +441,8 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
                 ),
             )
 
-            self._assert_displacement_match_at_time(
+            self._assert_nodal_variable_match_at_time(
+                "TOTAL_DISPLACEMENT",
                 interface_output,
                 soil_output,
                 interface_time,
@@ -524,8 +451,10 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
                 soil_node_ids,
                 time_index,
                 displacement_tolerance,
+                value_extractor=lambda value: value[1],
             )
-            self._assert_pressure_match_at_time(
+            self._assert_nodal_variable_match_at_time(
+                "WATER_PRESSURE",
                 interface_output,
                 soil_output,
                 interface_time,

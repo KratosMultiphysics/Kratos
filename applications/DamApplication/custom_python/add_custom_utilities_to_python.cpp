@@ -20,10 +20,11 @@
 
 #include "custom_utilities/streamlines_output_3D_utilities.hpp"
 #include "custom_utilities/global_joint_stress_utility.hpp"
-#include "custom_utilities/transfer_selfweight_stress_utility.hpp"
+#include "custom_utilities/transfer_initial_stress_utility.hpp"
 #include "custom_utilities/construction_utility.hpp"
-#include "custom_utilities/mapping_variables_2D_utilities.hpp"
-#include "custom_utilities/mapping_variables_3D_utilities.hpp"
+#include "custom_utilities/mapping_variables_utilities.hpp"
+#include "custom_utilities/dam_initial_state_spatial_search_utility.h"
+#include "custom_utilities/dam_initial_state_transfer_utility.h"
 
 
 namespace Kratos
@@ -72,6 +73,32 @@ void ActiveHeatFluxAzenha(
     rThisUtil.ActiveHeatFluxAzenha(AzenhaParameters);
 }
 
+/// @brief Registers the shared Dam point-locator template for one dimension.
+/// @details The search, containment check, shape functions and error handling
+/// live once in DamInitialStateSpatialSearchUtility<TDim>. Only the Python class
+/// name differs between the 2D and 3D adapters.
+template <SizeType TDim>
+void AddInitialStateSpatialSearchToPython(
+    pybind11::module& rModule,
+    const char* pClassName)
+{
+    namespace py = pybind11;
+    using SpatialSearchType = DamInitialStateSpatialSearchUtility<TDim>;
+
+    py::class_<SpatialSearchType>(rModule, pClassName)
+        .def(py::init<ModelPart&>(), py::arg("source_model_part"))
+        .def("UpdateSearchDatabase", &SpatialSearchType::UpdateSearchDatabase)
+        .def("FindPoint", [](SpatialSearchType& rSelf,
+                             const array_1d<double, 3>& rCoordinates,
+                             const double Tolerance) {
+            typename SpatialSearchType::Result result =
+                rSelf.FindPoint(rCoordinates, Tolerance);
+            return py::make_tuple(result.Found, result.ShapeFunctions,
+                                  result.pElement, result.LocalCoordinates);
+        },
+        py::arg("coordinates"), py::arg("tolerance") = 1.0e-9);
+}
+
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
@@ -89,11 +116,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters>())
     .def("ComputingGlobalStress",&GlobalJointStressUtility::ComputingGlobalStress);
 
-    py::class_< TransferSelfweightStressUtility >
-    (m ,"TransferSelfweightStressUtility")
+    py::class_< TransferInitialStressUtility >
+    (m ,"TransferInitialStressUtility")
     .def(py::init<>())
-    .def("Transfer",&TransferSelfweightStressUtility::Transfer)
-    .def("TransferInitialStress",&TransferSelfweightStressUtility::TransferInitialStress);
+    .def("TransferInitialStress",&TransferInitialStressUtility::TransferInitialStress);
 
     py::class_< ConstructionUtility >
     (m, "ConstructionUtility")
@@ -118,6 +144,31 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(py::init<>())
     .def("MappingThermalModelParts",&MappingVariables3DUtilities::MappingThermalModelParts)
     .def("MappingMechanicalModelParts",&MappingVariables3DUtilities::MappingMechanicalModelParts);
+
+    AddInitialStateSpatialSearchToPython<2>(
+        m, "DamInitialStateSpatialSearch2D");
+    AddInitialStateSpatialSearchToPython<3>(
+        m, "DamInitialStateSpatialSearch3D");
+
+    py::class_< DamInitialStateTransferUtility >
+    (m, "DamInitialStateTransferUtility")
+    .def_static("GetFinalCauchyStresses",
+        &DamInitialStateTransferUtility::GetFinalCauchyStresses,
+        py::arg("model_part"))
+    .def_static("ValidateInitialStresses",
+        &DamInitialStateTransferUtility::ValidateInitialStresses,
+        py::arg("destination_model_part"), py::arg("stresses"),
+        py::arg("compensate_initial_thermal_strain") = false)
+    .def_static("AssignInitialStresses",
+        &DamInitialStateTransferUtility::AssignInitialStresses,
+        py::arg("destination_model_part"), py::arg("stresses"),
+        py::arg("compensate_initial_thermal_strain") = false)
+    .def_static("GetIntegrationMethodName",
+        &DamInitialStateTransferUtility::GetIntegrationMethodName,
+        py::arg("element"))
+    .def_static("GetIntegrationPointCoordinates",
+        &DamInitialStateTransferUtility::GetIntegrationPointCoordinates,
+        py::arg("element"));
 }
 
 }  // namespace Python.

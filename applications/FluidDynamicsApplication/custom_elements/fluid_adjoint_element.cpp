@@ -315,7 +315,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::GetSecondDerivat
     int Step) const
 {
     if (rValues.size() != TElementLocalSize) {
-        rValues.resize(TElementLocalSize);
+        rValues.resize(TElementLocalSize, false);
     }
 
     const auto& r_geometry = this->GetGeometry();
@@ -455,7 +455,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateMassMat
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    rMassMatrix.resize(0, 0);
+    rMassMatrix.resize(0, 0, false);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
@@ -504,7 +504,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::Calculate(
 
     if (rVariable == PRIMAL_RELAXED_SECOND_DERIVATIVE_VALUES) {
         if (rOutput.size() != TElementLocalSize) {
-            rOutput.resize(TElementLocalSize);
+            rOutput.resize(TElementLocalSize, false);
         }
 
         IndexType local_index = 0;
