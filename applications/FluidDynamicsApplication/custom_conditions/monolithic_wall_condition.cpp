@@ -122,9 +122,9 @@ void MonolithicWallCondition<TDim,TNumNodes>::CalculateLocalVelocityContribution
     const SizeType LocalSize = (TDim + 1) * TNumNodes;
 
     if (rDampMatrix.size1() != LocalSize)
-        rDampMatrix.resize(LocalSize,LocalSize);
+        rDampMatrix.resize(LocalSize,LocalSize, false);
     if (rRightHandSideVector.size() != LocalSize)
-        rRightHandSideVector.resize(LocalSize);
+        rRightHandSideVector.resize(LocalSize, false);
 
     noalias(rDampMatrix) = ZeroMatrix(LocalSize,LocalSize);
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);

@@ -189,6 +189,7 @@ void KratosDamApplication::Register()
     Serializer::Register("ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw",mThermalModifiedMisesNonlocalDamagePlaneStress2DLaw);
 
     //Register Variables
+    KRATOS_REGISTER_VARIABLE( USE_PROCESS_BASED_LOCAL_EQUIVALENT_STRAIN )
     KRATOS_REGISTER_VARIABLE( TIME_UNIT_CONVERTER )
     KRATOS_REGISTER_VARIABLE( THERMAL_EXPANSION )
 

@@ -71,6 +71,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("GetElementIdsInModelPart", &RomAuxiliaryUtilities::GetElementIdsInModelPart)
         .def_static("GetConditionIdsInModelPart", &RomAuxiliaryUtilities::GetConditionIdsInModelPart)
         .def_static("AddGeometries", &RomAuxiliaryUtilities::AddGeometries)
+        .def_static("AddHRomVisualizationGeometries", &RomAuxiliaryUtilities::AddHRomVisualizationGeometries)
         .def_static("AssignPropertiesToEntitiesIfMissing", &RomAuxiliaryUtilities::AssignPropertiesToEntitiesIfMissing)
         ;
 }

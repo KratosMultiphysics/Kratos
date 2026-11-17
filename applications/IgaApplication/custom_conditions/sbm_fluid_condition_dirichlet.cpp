@@ -280,7 +280,7 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
         mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
     }
 
-    mDistanceVector.resize(3);
+    mDistanceVector.resize(3, false);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 
     const Matrix& H = r_geometry.ShapeFunctionsValues();
@@ -340,7 +340,7 @@ void SbmFluidConditionDirichlet::CalculateB(
 
     // Resize B matrix to Voigt strain size and appropriate number of columns.
     if (rB.size1() != strain_size || rB.size2() != mat_size)
-        rB.resize(strain_size, mat_size);
+        rB.resize(strain_size, mat_size, false);
 
     noalias(rB) = ZeroMatrix(strain_size, mat_size);
 

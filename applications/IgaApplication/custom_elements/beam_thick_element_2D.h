@@ -179,7 +179,7 @@ public:
         const std::size_t mat_size = number_of_nodes * 3;
 
         if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size);
+            rRightHandSideVector.resize(mat_size, false);
         noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
         MatrixType left_hand_side_matrix;
@@ -204,7 +204,7 @@ public:
         VectorType right_hand_side_vector;
 
         if (rLeftHandSideMatrix.size1() != mat_size)
-            rLeftHandSideMatrix.resize(mat_size, mat_size);
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
         CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
@@ -228,11 +228,11 @@ public:
         const std::size_t mat_size = number_of_nodes * 3;
 
         if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size);
+            rRightHandSideVector.resize(mat_size, false);
         noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
         if (rLeftHandSideMatrix.size1() != mat_size)
-            rLeftHandSideMatrix.resize(mat_size, mat_size);
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,

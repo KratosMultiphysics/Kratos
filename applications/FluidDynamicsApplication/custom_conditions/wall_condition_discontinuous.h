@@ -234,9 +234,9 @@ public:
             const SizeType LocalSize = TDim * TNumNodes;
 
             if (rLeftHandSideMatrix.size1() != LocalSize)
-                rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+                rLeftHandSideMatrix.resize(LocalSize,LocalSize, false);
             if (rRightHandSideVector.size() != LocalSize)
-                rRightHandSideVector.resize(LocalSize);
+                rRightHandSideVector.resize(LocalSize, false);
 
             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
             noalias(rRightHandSideVector) = ZeroVector(LocalSize);
@@ -251,9 +251,9 @@ public:
             const SizeType LocalSize = TNumNodes;
 
             if (rLeftHandSideMatrix.size1() != LocalSize)
-                rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+                rLeftHandSideMatrix.resize(LocalSize,LocalSize, false);
             if (rRightHandSideVector.size() != LocalSize)
-                rRightHandSideVector.resize(LocalSize);
+                rRightHandSideVector.resize(LocalSize, false);
 
             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
             noalias(rRightHandSideVector) = ZeroVector(LocalSize);
