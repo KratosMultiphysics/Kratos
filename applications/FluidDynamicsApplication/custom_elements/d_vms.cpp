@@ -11,12 +11,13 @@
 //
 
 #include "d_vms.h"
+#include <cmath>
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
 #include "data_containers/qs_vms/qs_vms_data.h"
 #include "data_containers/qs_vms_dem_coupled/qs_vms_dem_coupled_data.h"
-//#include "data_containers/time_integrated_qs_vms/time_integrated_qs_vms_data.h"
+#include "data_containers/time_integrated_qs_vms/time_integrated_qs_vms_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos
@@ -140,6 +141,12 @@ void DVMS<TElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo)
             mOldSubscaleVelocity[g] = ZeroVector(Dim);
     }
 
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
+        if (mOldContinuitySource.size() != number_of_gauss_points) {
+            mOldContinuitySource = ZeroVector(number_of_gauss_points);
+        }
+    }
+
     #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
     mSubscaleIterationError.resize(number_of_gauss_points);
     mSubscaleIterationCount.resize(number_of_gauss_points);
@@ -149,6 +156,12 @@ void DVMS<TElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 template <class TElementData>
 void DVMS<TElementData>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
+        KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(STEP)) << "DVMS requires STEP to commit subscale history." << std::endl;
+        if (mLastCommittedStep == rCurrentProcessInfo[STEP]) {
+            return;
+        }
+    }
     // Get Shape function data
     Vector gauss_weights;
     Matrix shape_functions;
@@ -169,6 +182,12 @@ void DVMS<TElementData>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
         for (unsigned int d = 0; d < Dim; d++) {
             r_value[d] = UpdatedValue[d];
         }
+        if constexpr (TElementData::ElementManagesTimeIntegration) {
+            mOldContinuitySource[g] = this->Has(CONTINUITY_SOURCE) ? this->GetValue(CONTINUITY_SOURCE) : 0.0;
+        }
+    }
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
+        mLastCommittedStep = rCurrentProcessInfo[STEP];
     }
 }
 
@@ -199,6 +218,21 @@ void DVMS<TElementData>::InitializeNonLinearIteration(const ProcessInfo& rCurren
 template< class TElementData >
 int DVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
+        KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(DELTA_TIME) && std::isfinite(rCurrentProcessInfo[DELTA_TIME]) && rCurrentProcessInfo[DELTA_TIME] > 0.0)
+            << "Time-integrated DVMS requires a positive DELTA_TIME." << std::endl;
+        KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(BDF_COEFFICIENTS))
+            << "Time-integrated DVMS requires BDF_COEFFICIENTS." << std::endl;
+        const auto& r_bdf = rCurrentProcessInfo[BDF_COEFFICIENTS];
+        KRATOS_ERROR_IF(r_bdf.size() != 3) << "Time-integrated DVMS requires three BDF coefficients." << std::endl;
+        for (const auto coefficient : r_bdf) {
+            KRATOS_ERROR_IF_NOT(std::isfinite(coefficient)) << "BDF coefficients must be finite." << std::endl;
+        }
+        for (const auto& r_node : this->GetGeometry()) {
+            KRATOS_ERROR_IF(r_node.GetBufferSize() < 3) << "Time-integrated DVMS requires a buffer of at least three steps." << std::endl;
+        }
+        KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(STEP)) << "Time-integrated DVMS requires STEP." << std::endl;
+    }
     int out = QSVMS<TElementData>::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
@@ -403,6 +437,115 @@ void DVMS<TElementData>::PrintInfo(std::ostream& rOStream) const
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Evaluation of system terms on Gauss Points
 
+template<class TElementData>
+Vector DVMS<TElementData>::CalculateContinuitySourceRHS(const ProcessInfo& rCurrentProcessInfo)
+{
+    Vector weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType derivatives;
+    this->CalculateGeometryData(weights, shape_functions, derivatives);
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
+    Vector result = ZeroVector(LocalSize);
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
+        KRATOS_ERROR_IF(mOldContinuitySource.size() != weights.size())
+            << "DVMS source history has not been initialized." << std::endl;
+        const double source = this->Has(CONTINUITY_SOURCE) ? this->GetValue(CONTINUITY_SOURCE) : 0.0;
+        for (std::size_t g = 0; g < weights.size(); ++g) {
+            this->UpdateIntegrationPointData(data, g, weights[g], row(shape_functions, g), derivatives[g]);
+            const auto velocity = this->FullConvectiveVelocity(data);
+            double tau_one, tau_two, tau_p;
+            this->CalculateStabilizationParameters(data, velocity, tau_one, tau_two, tau_p);
+            for (unsigned int i = 0; i < NumNodes; ++i) {
+                for (unsigned int d = 0; d < Dim; ++d) {
+                    result[i * BlockSize + d] += data.Weight * data.DN_DX(i, d) *
+                        ((tau_two + tau_p) * source - tau_p * mOldContinuitySource[g]);
+                }
+                result[i * BlockSize + Dim] += data.Weight * data.N[i] * source;
+            }
+        }
+    }
+    return result;
+}
+
+template<class TElementData>
+Matrix DVMS<TElementData>::GetAcceptedSubscaleState() const
+{
+    Vector weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType derivatives;
+    this->CalculateGeometryData(weights, shape_functions, derivatives);
+    KRATOS_ERROR_IF(mOldSubscaleVelocity.size() != weights.size() || mOldContinuitySource.size() != weights.size())
+        << "DVMS accepted subscale state has not been initialized." << std::endl;
+    Matrix state = ZeroMatrix(weights.size(), 6);
+    for (std::size_t g = 0; g < weights.size(); ++g) {
+        for (unsigned int i = 0; i < NumNodes; ++i) {
+            state(g, 0) += shape_functions(g, i) * this->GetGeometry()[i].X();
+            state(g, 1) += shape_functions(g, i) * this->GetGeometry()[i].Y();
+        }
+        state(g, 2) = weights[g];
+        state(g, 3) = mOldSubscaleVelocity[g][0];
+        state(g, 4) = mOldSubscaleVelocity[g][1];
+        state(g, 5) = mOldContinuitySource[g];
+    }
+    return state;
+}
+
+template<class TElementData>
+void DVMS<TElementData>::SetAcceptedSubscaleState(const Matrix& rState, int LastCommittedStep)
+{
+    const auto count = this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+    KRATOS_ERROR_IF(rState.size1() != count || rState.size2() != 3)
+        << "DVMS subscale state must contain two velocities and one source per integration point." << std::endl;
+    mOldSubscaleVelocity.resize(count);
+    mPredictedSubscaleVelocity.resize(count);
+    mOldContinuitySource.resize(count, false);
+    for (std::size_t g = 0; g < count; ++g) {
+        mOldSubscaleVelocity[g].clear();
+        mPredictedSubscaleVelocity[g].clear();
+        for (unsigned int d = 0; d < Dim; ++d) {
+            if (d < 2) mOldSubscaleVelocity[g][d] = rState(g, d);
+        }
+        mOldContinuitySource[g] = rState(g, 2);
+    }
+    mLastCommittedStep = LastCommittedStep;
+}
+
+template<class TElementData>
+void DVMS<TElementData>::AddTimeIntegratedLHS(TElementData& rData, MatrixType& rLHS)
+{
+    Vector rhs = ZeroVector(LocalSize);
+    this->AddTimeIntegratedSystem(rData, rLHS, rhs);
+}
+
+template<class TElementData>
+void DVMS<TElementData>::AddTimeIntegratedRHS(TElementData& rData, VectorType& rRHS)
+{
+    Matrix lhs = ZeroMatrix(LocalSize, LocalSize);
+    this->AddTimeIntegratedSystem(rData, lhs, rRHS);
+}
+
+template<class TElementData>
+void DVMS<TElementData>::AlgebraicMomentumResidual(
+    const TElementData& rData,
+    const array_1d<double,3>& rConvectionVelocity,
+    array_1d<double,3>& rResidual) const
+{
+    BaseType::AlgebraicMomentumResidual(rData, rConvectionVelocity, rResidual);
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
+        const double density = this->GetAtCoordinate(rData.Density, rData.N);
+        for (unsigned int i = 0; i < NumNodes; ++i) {
+            const auto& r_acceleration = this->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
+            for (unsigned int d = 0; d < Dim; ++d) {
+                const double bdf_acceleration = rData.bdf0 * rData.Velocity(i,d)
+                    + rData.bdf1 * rData.Velocity_OldStep1(i,d)
+                    + rData.bdf2 * rData.Velocity_OldStep2(i,d);
+                rResidual[d] += density * rData.N[i] * (r_acceleration[d] - bdf_acceleration);
+            }
+        }
+    }
+}
+
 template< class TElementData >
 void DVMS<TElementData>::AddVelocitySystem(
     TElementData& rData,
@@ -423,6 +566,11 @@ void DVMS<TElementData>::AddVelocitySystem(
     this->CalculateStabilizationParameters(rData,convective_velocity,tau_one,tau_two,tau_p);
 
     const double dt = rData.DeltaTime;
+
+    const double continuity_source = TElementData::ElementManagesTimeIntegration && this->Has(CONTINUITY_SOURCE)
+        ? this->GetValue(CONTINUITY_SOURCE) : 0.0;
+    const double old_source = TElementData::ElementManagesTimeIntegration
+        ? mOldContinuitySource[rData.IntegrationPointIndex] : 0.0;
 
     // small scale velocity contributions (subscale tracking)
     array_1d<double,Dim> OldUssTerm = (density/dt) * mOldSubscaleVelocity[rData.IntegrationPointIndex]; // rho * u_ss^{n-1}/dt
@@ -518,11 +666,13 @@ void DVMS<TElementData>::AddVelocitySystem(
 
             // Dynamic term in pressure subscale div(vh) * h^2/(c1*dt) * (-div(uh^n) )
             rLocalRHS[row+d] -= rData.Weight * rData.DN_DX(i,d) * tau_p * OldResidual;
+            rLocalRHS[row+d] += rData.Weight * rData.DN_DX(i,d) *
+                ((tau_two + tau_p) * continuity_source - tau_p * old_source);
 
             // Grad(q) * TauOne * (Density * BodyForce - Projection)
             qF += rData.DN_DX(i, d) * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
         }
-        rLocalRHS[row+Dim] += rData.Weight * tau_one * qF; // Grad(q) * TauOne * (Density * BodyForce)
+        rLocalRHS[row+Dim] += rData.Weight * (tau_one * qF + rData.N[i] * continuity_source);
     }
 
     // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)
@@ -771,6 +921,10 @@ void DVMS<TElementData>::SubscalePressure(
     else
         this->OrthogonalMassResidual(rData,residual);
 
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
+        residual += this->Has(CONTINUITY_SOURCE) ? this->GetValue(CONTINUITY_SOURCE) : 0.0;
+        old_residual += mOldContinuitySource[rData.IntegrationPointIndex];
+    }
     rPressureSubscale = (tau_two+tau_p)*residual - tau_p*old_residual;
 }
 
@@ -902,6 +1056,10 @@ void DVMS<TElementData>::save(Serializer& rSerializer) const
     typedef QSVMS<TElementData> BaseElement;
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElement );
     rSerializer.save("mOldSubscaleVelocity",mOldSubscaleVelocity);
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
+        rSerializer.save("LastCommittedStep", mLastCommittedStep);
+        rSerializer.save("OldContinuitySource", mOldContinuitySource);
+    }
 }
 
 
@@ -911,12 +1069,18 @@ void DVMS<TElementData>::load(Serializer& rSerializer)
     typedef QSVMS<TElementData> BaseElement;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElement);
     rSerializer.load("mOldSubscaleVelocity",mOldSubscaleVelocity);
+    if constexpr (TElementData::ElementManagesTimeIntegration) {
+        rSerializer.load("LastCommittedStep", mLastCommittedStep);
+        rSerializer.load("OldContinuitySource", mOldContinuitySource);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
 template class DVMS< QSVMSData<2,3> >;
+template class DVMS< QSVMSData<2,4> >;
+template class DVMS< TimeIntegratedQSVMSData<2,4> >;
 template class DVMS< QSVMSData<3,4> >;
 
 template class DVMS< QSVMSDEMCoupledData<2,3> >;

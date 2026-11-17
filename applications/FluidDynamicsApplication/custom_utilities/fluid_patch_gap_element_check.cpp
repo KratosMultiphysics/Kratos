@@ -29,7 +29,7 @@ void FluidPatchGapElementCheck::Check(
     using QSVMSQ1ElementType = QSVMS<TimeIntegratedQSVMSData<2, 4>>;
     if (UseQSVMS) {
         KRATOS_ERROR_IF(dynamic_cast<const QSVMSQ1ElementType*>(&rElement) == nullptr)
-            << "QSVMS gap coupling requires TimeIntegratedQSVMS2D4N on both patches." << std::endl;
+            << "Transient fluid gap coupling requires TimeIntegratedQSVMS2D4N or TimeIntegratedDVMS2D4N." << std::endl;
     } else {
         KRATOS_ERROR_IF(dynamic_cast<const StokesElementType*>(&rElement) == nullptr)
             << "Gap-SBM currently requires SymbolicStokes2D4N bulk elements." << std::endl;

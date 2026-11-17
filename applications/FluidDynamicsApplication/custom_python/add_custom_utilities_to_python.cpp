@@ -38,6 +38,8 @@
 #include "custom_utilities/acceleration_limitation_utilities.h"
 #include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/two_fluid_phase_velocity_sampler.h"
+#include "custom_elements/d_vms.h"
+#include "custom_elements/data_containers/time_integrated_qs_vms/time_integrated_qs_vms_data.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -51,6 +53,31 @@ namespace Python
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
+
+    using TimeIntegratedDVMSQ1 = DVMS<TimeIntegratedQSVMSData<2, 4>>;
+    m.def("IsTimeIntegratedDVMS2D4N", [](Element& rElement) {
+        return dynamic_cast<TimeIntegratedDVMSQ1*>(&rElement) != nullptr;
+    }, py::arg("element"), "Check whether an element is a time-integrated Q1 DVMS element.");
+    m.def("CalculateDVMSContinuitySourceRHS", [](Element& rElement, const ProcessInfo& rInfo) {
+        auto* p_element = dynamic_cast<TimeIntegratedDVMSQ1*>(&rElement);
+        KRATOS_ERROR_IF_NOT(p_element) << "Expected TimeIntegratedDVMS2D4N." << std::endl;
+        return p_element->CalculateContinuitySourceRHS(rInfo);
+    }, py::arg("element"), py::arg("process_info"), "Calculate current and historical continuity-source contributions without modifying element state.");
+    m.def("GetDVMSAcceptedSubscaleState", [](Element& rElement) {
+        auto* p_element = dynamic_cast<TimeIntegratedDVMSQ1*>(&rElement);
+        KRATOS_ERROR_IF_NOT(p_element) << "Expected TimeIntegratedDVMS2D4N." << std::endl;
+        return p_element->GetAcceptedSubscaleState();
+    }, py::arg("element"), "Get accepted DVMS quadrature coordinates, weights, velocities and source.");
+    m.def("SetDVMSAcceptedSubscaleState", [](Element& rElement, const Matrix& rState, int Step) {
+        auto* p_element = dynamic_cast<TimeIntegratedDVMSQ1*>(&rElement);
+        KRATOS_ERROR_IF_NOT(p_element) << "Expected TimeIntegratedDVMS2D4N." << std::endl;
+        p_element->SetAcceptedSubscaleState(rState, Step);
+    }, py::arg("element"), py::arg("state"), py::arg("step"), "Restore accepted DVMS subscales and commit step.");
+    m.def("GetDVMSLastCommittedSubscaleStep", [](Element& rElement) {
+        auto* p_element = dynamic_cast<TimeIntegratedDVMSQ1*>(&rElement);
+        KRATOS_ERROR_IF_NOT(p_element) << "Expected TimeIntegratedDVMS2D4N." << std::endl;
+        return p_element->GetLastCommittedSubscaleStep();
+    }, py::arg("element"), "Get the last accepted DVMS subscale step.");
 
 
     typedef TDefaultSparseSpace<double> SparseSpaceType;

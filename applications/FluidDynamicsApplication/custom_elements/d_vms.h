@@ -102,6 +102,12 @@ public:
     constexpr static unsigned int LocalSize = BaseType::LocalSize;
     constexpr static unsigned int StrainSize = BaseType::StrainSize;
 
+    /// Accepted integration-point state: x, y, weight, velocity components and previous source.
+    Matrix GetAcceptedSubscaleState() const;
+    Vector CalculateContinuitySourceRHS(const ProcessInfo& rCurrentProcessInfo);
+    void SetAcceptedSubscaleState(const Matrix& rState, int LastCommittedStep);
+    int GetLastCommittedSubscaleStep() const { return mLastCommittedStep; }
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -280,6 +286,8 @@ protected:
     // Velocity subscale history, stored at integration points
     DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
+    Vector mOldContinuitySource;
+    int mLastCommittedStep = -1;
 
     #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
     std::vector< double > mSubscaleIterationError;
@@ -298,10 +306,18 @@ protected:
 
     // Protected interface of FluidElement ////////////////////////////////////
 
+    void AddTimeIntegratedLHS(TElementData& rData, MatrixType& rLHS) override;
+    void AddTimeIntegratedRHS(TElementData& rData, VectorType& rRHS) override;
+
     void AddVelocitySystem(
         TElementData& rData,
         MatrixType& rLocalLHS,
         VectorType& rLocalRHS) override;
+
+    void AlgebraicMomentumResidual(
+        const TElementData& rData,
+        const array_1d<double,3>& rConvectionVelocity,
+        array_1d<double,3>& rResidual) const override;
 
     virtual void AddMassLHS(
         TElementData& rData,

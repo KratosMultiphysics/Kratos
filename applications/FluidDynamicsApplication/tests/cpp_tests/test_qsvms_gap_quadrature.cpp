@@ -14,6 +14,7 @@
 
 // System includes
 #include <array>
+#include <cmath>
 
 // Project includes
 #include "containers/model.h"
@@ -102,6 +103,33 @@ KRATOS_TEST_CASE_IN_SUITE(TimeIntegratedQSVMSQ1GapQuadraturePartition, FluidDyna
         p_gap->CalculateLocalSystem(lhs, rhs, r_part.GetProcessInfo());
         noalias(total_lhs) += lhs;
         noalias(total_rhs) += rhs;
+
+        // The optional source belongs only to the gap element. It supplies
+        // both the continuity equation and the divergence stabilization.
+        p_gap->SetValue(CONTINUITY_SOURCE, 2.0);
+        Matrix source_lhs;
+        Vector source_rhs;
+        p_gap->CalculateLocalSystem(source_lhs, source_rhs, r_part.GetProcessInfo());
+        KRATOS_EXPECT_MATRIX_NEAR(source_lhs, lhs, 1e-12);
+        double pressure_increment = 0.0;
+        double velocity_increment_norm = 0.0;
+        for (std::size_t i = 0; i < 4; ++i) {
+            pressure_increment += source_rhs[3*i+2] - rhs[3*i+2];
+            velocity_increment_norm += std::abs(source_rhs[3*i] - rhs[3*i]);
+            velocity_increment_norm += std::abs(source_rhs[3*i+1] - rhs[3*i+1]);
+        }
+        KRATOS_EXPECT_NEAR(pressure_increment, 1.0, 1e-11); // 2 * triangle area
+        KRATOS_EXPECT_GT(velocity_increment_norm, 1e-12);
+        p_gap->SetValue(CONTINUITY_SOURCE, -2.0);
+        Vector negative_rhs;
+        p_gap->CalculateLocalSystem(source_lhs, negative_rhs, r_part.GetProcessInfo());
+        for (std::size_t i = 0; i < 12; ++i) {
+            KRATOS_EXPECT_NEAR(source_rhs[i] - rhs[i], rhs[i] - negative_rhs[i], 1e-11);
+        }
+        Matrix parent_lhs;
+        Vector parent_rhs;
+        p_parent->CalculateLocalSystem(parent_lhs, parent_rhs, r_part.GetProcessInfo());
+        KRATOS_EXPECT_VECTOR_NEAR(parent_rhs, expected_rhs, 1e-12);
     }
     KRATOS_EXPECT_MATRIX_NEAR(total_lhs, expected_lhs, 1e-10);
     KRATOS_EXPECT_VECTOR_NEAR(total_rhs, expected_rhs, 1e-10);

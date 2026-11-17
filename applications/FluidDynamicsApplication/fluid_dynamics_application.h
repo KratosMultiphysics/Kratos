@@ -320,6 +320,8 @@ private:
     const AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,3> > mAxisymmetricNavierStokes2D3N;
     const AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,4> > mAxisymmetricNavierStokes2D4N;
     const DVMS< QSVMSData<2,3> > mDVMS2D3N;
+    const DVMS< QSVMSData<2,4> > mDVMS2D4N;
+    const DVMS< TimeIntegratedQSVMSData<2,4> > mTimeIntegratedDVMS2D4N;
     const DVMS< QSVMSData<3,4> > mDVMS3D4N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mDVMSDEMCoupled2D3N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,6> > mDVMSDEMCoupled2D6N;

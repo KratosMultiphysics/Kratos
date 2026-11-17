@@ -27,11 +27,11 @@ Element::Pointer QSVMSGapElementUtility::Create(
     KRATOS_TRY
     using QSVMSQ1 = QSVMS<TimeIntegratedQSVMSData<2, 4>>;
     KRATOS_ERROR_IF(dynamic_cast<QSVMSQ1*>(&rParent) == nullptr)
-        << "QSVMS gap integration requires TimeIntegratedQSVMS2D4N." << std::endl;
+        << "Gap integration requires TimeIntegratedQSVMS2D4N or TimeIntegratedDVMS2D4N." << std::endl;
     KRATOS_ERROR_IF_NOT(pQuadratureGeometry) << "Missing gap quadrature geometry." << std::endl;
     const auto& r_parent_geometry = rParent.GetGeometry();
     KRATOS_ERROR_IF(r_parent_geometry.PointsNumber() != 4 || pQuadratureGeometry->PointsNumber() != 4)
-        << "QSVMS gap integration requires four parent Q1 nodes." << std::endl;
+        << "Fluid gap integration requires four parent Q1 nodes." << std::endl;
     for (std::size_t i = 0; i < 4; ++i) {
         KRATOS_ERROR_IF(pQuadratureGeometry->pGetPoint(i) != r_parent_geometry.pGetPoint(i))
             << "Gap quadrature must use the parent nodes in parent order." << std::endl;
