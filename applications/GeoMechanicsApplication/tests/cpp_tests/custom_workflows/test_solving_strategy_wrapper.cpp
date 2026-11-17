@@ -118,9 +118,10 @@ ModelPart& CreateDummyModelPart(Model& rModel)
 
 SolvingStrategyWrapperType CreateWrapperWithEmptyProcessInfo(ModelPart& rModelPart)
 {
-    const auto reset_totals = true;
-    return SolvingStrategyWrapperType{
-        SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart), reset_totals};
+    const auto reset_totals   = true;
+    const auto move_mesh_flag = true;
+    return SolvingStrategyWrapperType{SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart),
+                                      reset_totals, move_mesh_flag};
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)

@@ -31,11 +31,13 @@ class SolvingStrategyWrapper : public StrategyWrapper
 public:
     explicit SolvingStrategyWrapper(std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy,
                                     bool                         ResetTotals        = false,
+                                    bool                         MoveMeshFlag       = false,
                                     const std::filesystem::path& rWorkingDirectory  = "",
                                     const Parameters&            rProjectParameters = {})
         : mpStrategy(std::move(strategy)),
           mrModelPart(mpStrategy->GetModelPart()),
           mResetTotals{ResetTotals},
+          mMoveMeshFlag{MoveMeshFlag},
           mProjectParameters{rProjectParameters},
           mWorkingDirectory{rWorkingDirectory}
     {
@@ -88,7 +90,8 @@ public:
 
     void RestorePositionsAndDOFVectorToStartOfStep() override
     {
-        VariableUtils().UpdateCurrentPosition(mrModelPart.Nodes(), DISPLACEMENT, 1);
+        if (mMoveMeshFlag)
+            VariableUtils().UpdateCurrentPosition(mrModelPart.Nodes(), DISPLACEMENT, 1);
 
         const auto index_of_old_value = Node::IndexType{1};
         const auto index_of_new_value = Node::IndexType{0};
@@ -149,6 +152,7 @@ private:
     std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> mpStrategy;
     ModelPart&                                                  mrModelPart;
     bool                                                        mResetTotals;
+    bool                                                        mMoveMeshFlag;
     Parameters                                                  mProjectParameters;
     std::filesystem::path                                       mWorkingDirectory;
     std::unique_ptr<GeoOutputWriter>                            mWriter;
