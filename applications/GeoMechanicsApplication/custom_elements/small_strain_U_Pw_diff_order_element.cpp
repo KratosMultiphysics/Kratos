@@ -1429,7 +1429,20 @@ void SmallStrainUPwDiffOrderElement::SetUpPressureGeometryPointer()
         if (dimension == 3) // 3D T10P4
             mpPressureGeometry = make_shared<Tetrahedra3D4<Node>>(r_geometry(0), r_geometry(1),
                                                                   r_geometry(2), r_geometry(3));
+        // For 10-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
+        // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
+        // else if (dimension == 2) // 2D T10P6
+        //     mpPressureGeometry = make_shared<Triangle2D6<Node>>(
+        //         r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5));
         break;
+
+    // For 15-noded triangles, the lower order pressure geometry is found to be constructed
+    // incorrectly. Therefore, this possibility is temporarily disabled, to prevent a user from
+    // accessing it. case 15: // 2D T15P10
+    //     mpPressureGeometry = make_shared<Triangle2D10<Node>>(
+    //         r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4),
+    //         r_geometry(5), r_geometry(6), r_geometry(7), r_geometry(8), r_geometry(9));
+    //     break;
     case 20: // 3D H20P8
         mpPressureGeometry =
             make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3),
@@ -1442,7 +1455,7 @@ void SmallStrainUPwDiffOrderElement::SetUpPressureGeometryPointer()
         break;
     default:
         KRATOS_ERROR << "Unexpected geometry type for different order interpolation element "
-                     << this->Id() << "number of u nodes = " << number_of_U_nodes << std::endl;
+                     << this->Id() << std::endl;
     }
 }
 
