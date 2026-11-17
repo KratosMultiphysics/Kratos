@@ -24,6 +24,9 @@ class ProcessInfoParser;
 class TimeLoopExecutorInterface;
 class KratosGeoSettlement;
 
+/// ProjectParameters-driven workflow, also exposed through the C ABI:
+/// KratosGeneric_CreateInstance, execute_generic_analysis, and KratosGeneric_DestroyInstance.
+/// The caller owns the instance and must destroy it after all synchronous runs have completed.
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeneric
 {
 public:
