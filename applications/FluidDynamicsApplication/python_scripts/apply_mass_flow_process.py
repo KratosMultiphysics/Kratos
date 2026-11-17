@@ -219,24 +219,22 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
 
     @staticmethod
     def __CalculateInwardsNormal(boundary_model_part):
-        # Compute the condition and nodes area normals and save the values in the NORMAL variable
-        # Also note that in the nodes case, the normal values are stored in the historical database
-        enforce_generic_algorithm = False
-        KratosMultiphysics.NormalCalculationUtils().CalculateNormals(
-            boundary_model_part,
-            enforce_generic_algorithm,
-            KratosMultiphysics.NORMAL)
-
-        # Compute the average conditions normal in the boundary
-        area_normal = KratosMultiphysics.VariableUtils().SumConditionVectorVariable(KratosMultiphysics.NORMAL, boundary_model_part)
-        area = area_normal.norm_2()
+        # Compute the average normal of the boundary from the geometries of its conditions
+        # Note that the nodal NORMAL is not modified, as it might be used by other boundaries sharing nodes with this one (e.g. a slip wall)
+        local_area_normal = numpy.zeros(3)
+        for condition in boundary_model_part.GetCommunicator().LocalMesh().Conditions:
+            geometry = condition.GetGeometry()
+            local_area_normal += geometry.DomainSize() * numpy.array(geometry.UnitNormal())
+        data_communicator = boundary_model_part.GetCommunicator().GetDataCommunicator()
+        area_normal = numpy.array([data_communicator.SumAll(float(component)) for component in local_area_normal])
+        area = numpy.linalg.norm(area_normal)
         if area < 1.0e-12:
             err_msg = f"Area normal norm is close to 0 in '{boundary_model_part.FullName()}'. This might be caused because:\n"
             err_msg += "\t- the provided model part has no conditions\n"
             err_msg += "\t- the provided model part is a closed surface"
             raise Exception(err_msg)
 
-        # Note that it is assumed that the NormalCalculationUtils().CalculateNormals returns the outwards normal vector
+        # Note that it is assumed that the conditions are oriented outwards
         return [-area_normal[i] / area for i in range(3)]
 
     @staticmethod

@@ -11,7 +11,6 @@ class ApplyMassFlowProcessTest(KratosUnittest.TestCase):
         self.model_part.SetBufferSize(2)
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         with KratosUnittest.WorkFolderScope(".", __file__):
             KratosMultiphysics.ModelPartIO("Cavity/square5").ReadModelPart(self.model_part)
         for var in [KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.VELOCITY_Z]:
