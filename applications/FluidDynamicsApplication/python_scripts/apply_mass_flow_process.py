@@ -19,7 +19,7 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
     velocity imposed. Note that the match is exact for linear simplicial conditions.
 
     The "mass_flow" can be a number or a function of time, being positive when entering the domain.
-    In 2D it is the mass flow per unit depth.
+    In 2D it is the mass flow per unit width.
 
     Two velocity profiles are available for each boundary:
     - "uniform": the process sets (and fixes if "constrained") a uniform velocity along the average
@@ -31,6 +31,10 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
     the profile to be rescaled. Boundaries can share nodes (e.g. adjacent outlets) if these use the
     "uniform" profile and are "constrained": the shared nodes take the velocity of the first boundary
     in the list and the next ones treat them as fixed.
+
+    This process assumes an incompressible flow: the mass flow is converted to a flow rate with a constant
+    density, which is taken from the properties of the fluid elements. A nodal density ("nodal_density")
+    is not supported yet.
     """
 
     def __init__(self, Model, settings):
@@ -40,16 +44,13 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
         {
             "model_part_name"   : "",
             "boundaries"        : [],
-            "density"           : 0.0,
+            "nodal_density"     : false,
             "constrained"       : true,
             "check_balance"     : true,
             "balance_tolerance" : 1.0e-10,
             "interval"          : [0.0,"End"]
         }
         """)
-
-        # If not provided, the density is taken from the properties of the fluid model part elements
-        user_defined_density = settings.Has("density")
 
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -64,7 +65,10 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
         self.balance_tolerance = settings["balance_tolerance"].GetDouble()
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
-        self.density = settings["density"].GetDouble() if user_defined_density else self.__GetDensityFromProperties()
+        # The density is taken from the properties of the fluid model part elements
+        if settings["nodal_density"].GetBool():
+            raise NotImplementedError("'nodal_density' is not supported yet. The density is taken from the properties of the elements.")
+        self.density = self.__GetDensityFromProperties()
         if self.density <= 0.0:
             raise Exception(f"DENSITY is {self.density}, positive number expected.")
 
@@ -206,7 +210,10 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
     def __GetDensityFromProperties(self):
         density = 0.0
         for element in self.model_part.GetCommunicator().LocalMesh().Elements:
-            density = element.Properties.GetValue(KratosMultiphysics.DENSITY)
+            if element.Properties.Has(KratosMultiphysics.DENSITY):
+                density = element.Properties.GetValue(KratosMultiphysics.DENSITY)
+            else:
+                raise Exception("DENSITY cannot be found in properties.")
             break
         return self.model_part.GetCommunicator().GetDataCommunicator().MaxAll(density)
 

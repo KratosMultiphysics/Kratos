@@ -27,7 +27,9 @@ class ApplyMassFlowProcessTest(KratosUnittest.TestCase):
         self.inlet_model_part = self.model_part.GetSubModelPart("NoSlip2D_left_wall")
         self.outlet_model_part = self.model_part.GetSubModelPart("NoSlip2D_right_wall")
 
+        # The process takes the density from the properties of the elements
         self.density = 1.5
+        self.model_part.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY, self.density)
 
     def test_uniform(self):
         process = self.__CreateProcess()
@@ -120,8 +122,7 @@ class ApplyMassFlowProcessTest(KratosUnittest.TestCase):
             "boundaries"      : [
                 {"model_part_name" : "FluidModelPart.NoSlip2D_left_wall", "mass_flow" :  3.0},
                 {"model_part_name" : "FluidModelPart.outlet_low",         "mass_flow" : -1.2},
-                {"model_part_name" : "FluidModelPart.outlet_high",        "mass_flow" : -1.8}],
-            "density"         : 1.5
+                {"model_part_name" : "FluidModelPart.outlet_high",        "mass_flow" : -1.8}]
         }""")
         process = apply_mass_flow_process.ApplyMassFlowProcess(self.model, settings)
         process.ExecuteInitializeSolutionStep()
@@ -169,11 +170,20 @@ class ApplyMassFlowProcessTest(KratosUnittest.TestCase):
         self.model_part.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY, 4.0)
         self.density = 4.0
 
-        process = self.__CreateProcess(density_settings="")
+        process = self.__CreateProcess()
         process.ExecuteInitializeSolutionStep()
 
         self.assertAlmostEqual(self.__CalculateMassFlow(self.inlet_model_part), 2.0, 12)
         self.assertAlmostEqual(KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRate(self.inlet_model_part), -0.5, 12)
+
+    def test_density_not_in_properties(self):
+        self.model_part.GetProperties()[0].Erase(KratosMultiphysics.DENSITY)
+        with self.assertRaisesRegex(Exception, "DENSITY cannot be found in properties"):
+            self.__CreateProcess()
+
+    def test_nodal_density_not_implemented(self):
+        with self.assertRaisesRegex(NotImplementedError, "'nodal_density' is not supported yet"):
+            self.__CreateProcess(nodal_density=True)
 
     def test_check_balance(self):
         process = self.__CreateProcess(outlet_mass_flow="-1.9")
@@ -185,7 +195,7 @@ class ApplyMassFlowProcessTest(KratosUnittest.TestCase):
         self.assertAlmostEqual(self.__CalculateMassFlow(self.inlet_model_part), 2.0, 12)
         self.assertAlmostEqual(self.__CalculateMassFlow(self.outlet_model_part), -1.9, 12)
 
-    def __CreateProcess(self, inlet_mass_flow="2.0", outlet_mass_flow="-2.0", inlet_profile="uniform", density_settings='"density" : 1.5,', constrained=True, check_balance=True):
+    def __CreateProcess(self, inlet_mass_flow="2.0", outlet_mass_flow="-2.0", inlet_profile="uniform", nodal_density=False, constrained=True, check_balance=True):
         settings = KratosMultiphysics.Parameters(f"""{{
             "model_part_name" : "FluidModelPart",
             "boundaries"      : [{{
@@ -196,7 +206,7 @@ class ApplyMassFlowProcessTest(KratosUnittest.TestCase):
                 "model_part_name" : "FluidModelPart.NoSlip2D_right_wall",
                 "mass_flow"       : {outlet_mass_flow}
             }}],
-            {density_settings}
+            "nodal_density"   : {str(nodal_density).lower()},
             "constrained"     : {str(constrained).lower()},
             "check_balance"   : {str(check_balance).lower()}
         }}""")
