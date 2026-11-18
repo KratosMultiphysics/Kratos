@@ -23,9 +23,10 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
 
     Two velocity profiles are available for each boundary:
     - "uniform": the process sets (and fixes if "constrained") a uniform velocity along the average
-      boundary normal. The velocity components already fixed (e.g. by a wall or a symmetry condition) are
+      inwards boundary normal. The velocity components already fixed (e.g. by a wall or a symmetry condition) are
       left untouched and their flow rate is subtracted from the prescribed one.
-    - "rescale_existing": the process scales the velocity set by the previous processes.
+    - "rescale_existing": the process scales the velocity set by the previous processes. Note that all the
+      components are scaled, including the ones fixed by those processes.
 
     Hence, this process must be placed after the wall processes and after the processes setting
     the profile to be rescaled. Boundaries can share nodes (e.g. adjacent outlets) if these use the
@@ -33,8 +34,18 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
     in the list and the next ones treat them as fixed.
 
     This process assumes an incompressible flow: the mass flow is converted to a flow rate with a constant
-    density, which is taken from the properties of the fluid elements. A nodal density ("nodal_density")
-    is not supported yet.
+    density, which is taken from the properties of the fluid elements. A single density is assumed, so
+    an error is thrown if the properties of the fluid model part have different ones. A nodal density
+    ("nodal_density") is not supported yet.
+
+    The conditions of the boundaries are assumed to be oriented outwards, as the fluid solvers do.
+
+    Other settings:
+    - "constrained": the velocity set by the "uniform" profile is fixed during the solution step.
+    - "check_balance": an error is thrown if the prescribed mass flows do not add up to zero, with
+      "balance_tolerance" relative to the largest absolute one. To be deactivated if not all the boundaries
+      have the mass flow prescribed (e.g. there is a pressure outlet).
+    - "interval": time interval in which the mass flows are imposed.
     """
 
     def __init__(self, Model, settings):
@@ -198,7 +209,7 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
             max_velocity = boundary_model_part.GetCommunicator().GetDataCommunicator().MaxAll(max_velocity)
             if abs(profile_flow_rate) <= 1.0e-12 * max_velocity * boundary["area"]:
                 err_msg = f"The '{boundary['profile']}' profile in '{boundary_model_part.FullName()}' has zero flow rate, so it cannot be scaled to the prescribed mass flow.\n"
-                err_msg += "Check that the velocity profile is set (or that not all the nodes are fixed) before this process is executed."
+                err_msg += "Check that the velocity to be rescaled is set before this process is executed (or that not all the velocity components are fixed if the profile is uniform)."
                 raise Exception(err_msg)
             scale_factor = (-mass_flow / self.density - fixed_flow_rate) / profile_flow_rate
 
@@ -215,27 +226,43 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
             else:
                 raise Exception("DENSITY cannot be found in properties.")
             break
-        return self.model_part.GetCommunicator().GetDataCommunicator().MaxAll(density)
+        density = self.model_part.GetCommunicator().GetDataCommunicator().MaxAll(density)
+
+        # Note that a single density is assumed, so the properties of the model part are checked to have the same one
+        # This is done with the properties rather than with the elements to avoid looping the latter
+        for properties in self.model_part.Properties:
+            if properties.Has(KratosMultiphysics.DENSITY):
+                properties_density = properties.GetValue(KratosMultiphysics.DENSITY)
+                if abs(properties_density - density) > 1.0e-12 * abs(density):
+                    err_msg = f"The properties of '{self.model_part.FullName()}' have different DENSITY values ({density} and {properties_density} in properties {properties.Id}).\n"
+                    err_msg += "This process assumes a single density."
+                    raise Exception(err_msg)
+
+        return density
 
     @staticmethod
     def __CalculateInwardsNormal(boundary_model_part):
         # Compute the average normal of the boundary from the geometries of its conditions
         # Note that the nodal NORMAL is not modified, as it might be used by other boundaries sharing nodes with this one (e.g. a slip wall)
+        local_area = 0.0
         local_area_normal = numpy.zeros(3)
         for condition in boundary_model_part.GetCommunicator().LocalMesh().Conditions:
             geometry = condition.GetGeometry()
+            local_area += geometry.DomainSize()
             local_area_normal += geometry.DomainSize() * numpy.array(geometry.UnitNormal())
         data_communicator = boundary_model_part.GetCommunicator().GetDataCommunicator()
+        area = data_communicator.SumAll(local_area)
         area_normal = numpy.array([data_communicator.SumAll(float(component)) for component in local_area_normal])
-        area = numpy.linalg.norm(area_normal)
-        if area < 1.0e-12:
+        area_normal_norm = numpy.linalg.norm(area_normal)
+        # Note that the area normal norm is compared to the boundary area, so that the check does not depend on the size of the boundary
+        if area_normal_norm <= 1.0e-12 * area:
             err_msg = f"Area normal norm is close to 0 in '{boundary_model_part.FullName()}'. This might be caused because:\n"
             err_msg += "\t- the provided model part has no conditions\n"
             err_msg += "\t- the provided model part is a closed surface"
             raise Exception(err_msg)
 
         # Note that it is assumed that the conditions are oriented outwards
-        return [-area_normal[i] / area for i in range(3)]
+        return [-area_normal[i] / area_normal_norm for i in range(3)]
 
     @staticmethod
     def __CalculateArea(boundary_model_part):

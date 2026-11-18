@@ -11,6 +11,7 @@ class ApplyMassFlowProcessTest(KratosUnittest.TestCase):
         self.model_part.SetBufferSize(2)
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         with KratosUnittest.WorkFolderScope(".", __file__):
             KratosMultiphysics.ModelPartIO("Cavity/square5").ReadModelPart(self.model_part)
         for var in [KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.VELOCITY_Z]:
@@ -19,7 +20,7 @@ class ApplyMassFlowProcessTest(KratosUnittest.TestCase):
         # Orient the conditions outwards as the fluid solvers do
         tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
         throw_errors = False
-        flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse() | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+        flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse()
         tmoc(self.model_part, throw_errors, flags).Execute()
 
         # Unit square with the inlet in the left wall and the outlet in the right one
@@ -72,7 +73,7 @@ class ApplyMassFlowProcessTest(KratosUnittest.TestCase):
         for node in wall_nodes:
             self.assertVectorAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY), [0.0, 0.0, 0.0], 12)
 
-        # The walls nodes must remain fixed as these are not fixed by the mass flow process
+        # The wall nodes must remain fixed as these are not fixed by the mass flow process
         process.ExecuteFinalizeSolutionStep()
         wall_node_ids = [node.Id for node in wall_nodes]
         for node in self.model_part.Nodes:
@@ -180,9 +181,70 @@ class ApplyMassFlowProcessTest(KratosUnittest.TestCase):
         with self.assertRaisesRegex(Exception, "DENSITY cannot be found in properties"):
             self.__CreateProcess()
 
+    def test_density_not_unique(self):
+        # Assign a different density to one of the elements
+        other_properties = self.model_part.CreateNewProperties(100)
+        other_properties.SetValue(KratosMultiphysics.DENSITY, 2.0 * self.density)
+        next(iter(self.model_part.Elements)).Properties = other_properties
+        with self.assertRaisesRegex(Exception, "have different DENSITY values"):
+            self.__CreateProcess()
+
     def test_nodal_density_not_implemented(self):
         with self.assertRaisesRegex(NotImplementedError, "'nodal_density' is not supported yet"):
             self.__CreateProcess(nodal_density=True)
+
+    def test_small_boundary(self):
+        # The check of the boundary normal must not depend on the size of the domain
+        for node in self.model_part.Nodes:
+            node.X0, node.Y0 = 1.0e-13 * node.X0, 1.0e-13 * node.Y0
+            node.X, node.Y = node.X0, node.Y0
+
+        process = self.__CreateProcess()
+        process.ExecuteInitializeSolutionStep()
+
+        self.assertAlmostEqual(self.__CalculateMassFlow(self.inlet_model_part), 2.0, 12)
+        self.assertAlmostEqual(self.__CalculateMassFlow(self.outlet_model_part), -2.0, 12)
+
+    def test_closed_boundary(self):
+        # The area normal of a closed boundary is zero, so there is no average normal
+        skin = self.model_part.CreateSubModelPart("skin")
+        skin.AddConditions([condition.Id for condition in self.model_part.Conditions])
+        skin.AddNodes(sorted({node.Id for condition in self.model_part.Conditions for node in condition.GetGeometry()}))
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" : "FluidModelPart",
+            "boundaries"      : [{"model_part_name" : "FluidModelPart.skin", "mass_flow" : 0.0}]
+        }""")
+        with self.assertRaisesRegex(Exception, "Area normal norm is close to 0"):
+            apply_mass_flow_process.ApplyMassFlowProcess(self.model, settings)
+
+    def test_nodal_normal_not_modified(self):
+        # The nodal NORMAL might be used by other boundaries sharing nodes with the mass flow ones (e.g. a slip wall)
+        for node in self.model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.NORMAL, [0.3, -0.7, 0.2])
+
+        process = self.__CreateProcess()
+        process.ExecuteInitializeSolutionStep()
+        process.ExecuteFinalizeSolutionStep()
+
+        self.assertAlmostEqual(self.__CalculateMassFlow(self.inlet_model_part), 2.0, 12)
+        for node in self.model_part.Nodes:
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.NORMAL), [0.3, -0.7, 0.2], 12)
+
+    def test_interval(self):
+        process = self.__CreateProcess(interval="[1.0, 2.0]")
+
+        # Nothing is done outside the interval
+        self.model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.5
+        process.ExecuteInitializeSolutionStep()
+        for node in self.model_part.Nodes:
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY), [0.0, 0.0, 0.0], 12)
+            self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_X))
+        process.ExecuteFinalizeSolutionStep()
+
+        self.model_part.ProcessInfo[KratosMultiphysics.TIME] = 1.5
+        process.ExecuteInitializeSolutionStep()
+        self.assertAlmostEqual(self.__CalculateMassFlow(self.inlet_model_part), 2.0, 12)
+        self.assertAlmostEqual(self.__CalculateMassFlow(self.outlet_model_part), -2.0, 12)
 
     def test_check_balance(self):
         process = self.__CreateProcess(outlet_mass_flow="-1.9")
@@ -194,7 +256,7 @@ class ApplyMassFlowProcessTest(KratosUnittest.TestCase):
         self.assertAlmostEqual(self.__CalculateMassFlow(self.inlet_model_part), 2.0, 12)
         self.assertAlmostEqual(self.__CalculateMassFlow(self.outlet_model_part), -1.9, 12)
 
-    def __CreateProcess(self, inlet_mass_flow="2.0", outlet_mass_flow="-2.0", inlet_profile="uniform", nodal_density=False, constrained=True, check_balance=True):
+    def __CreateProcess(self, inlet_mass_flow="2.0", outlet_mass_flow="-2.0", inlet_profile="uniform", nodal_density=False, constrained=True, check_balance=True, interval='[0.0, "End"]'):
         settings = KratosMultiphysics.Parameters(f"""{{
             "model_part_name" : "FluidModelPart",
             "boundaries"      : [{{
@@ -207,7 +269,8 @@ class ApplyMassFlowProcessTest(KratosUnittest.TestCase):
             }}],
             "nodal_density"   : {str(nodal_density).lower()},
             "constrained"     : {str(constrained).lower()},
-            "check_balance"   : {str(check_balance).lower()}
+            "check_balance"   : {str(check_balance).lower()},
+            "interval"        : {interval}
         }}""")
         return apply_mass_flow_process.ApplyMassFlowProcess(self.model, settings)
 
