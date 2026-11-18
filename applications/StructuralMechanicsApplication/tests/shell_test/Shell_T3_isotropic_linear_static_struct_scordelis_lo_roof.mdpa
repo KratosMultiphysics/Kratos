@@ -48,7 +48,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements IsotropicShellElement3D3N// GUI group identifier: Surface
+Begin Elements LegacyIsotropicShellElement3D3N// GUI group identifier: Surface
          1          0         28         29         34
          2          0         29         36         34
          3          0         22         23         28
