@@ -14,9 +14,11 @@ import os
 import pathlib
 
 import numpy
+import scipy.sparse
 
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
+from KratosMultiphysics import scipy_conversion_tools
 from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.RomApplication.future.rom_decoders import CreateDecoder, GetBasisRows
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
@@ -68,7 +70,8 @@ def CreateFutureScheme(model_part, settings, legacy_scheme, run_hrom=False, sche
 class FutureRomStrategy:
     def __init__(self, solver, rom_data_folder="rom_data", criterion_residual="zero", run_hrom=False, hrom_weights_set=0, train_hrom=False,
                  use_native_schemes=True, convergence_criterion="solver", residual_relative_tolerance=1.0e-9, residual_absolute_tolerance=1.0e-9,
-                 update="increment", scheme="auto", decoder_factory=None, name=None, snapshots=None, initial_reduced_coordinates=None):
+                 update="increment", scheme="auto", decoder_factory=None, name=None, snapshots=None, initial_reduced_coordinates=None,
+                 projection="auto", lspg_solving_technique=None, monotonicity_preserving=None):
         """criterion_residual: the residual vector given to the convergence criterion. "zero" as the legacy ROM (its builder never
         builds the full residual, so a residual criterion converges at once); "full" the assembled FOM residual.
         run_hrom: only the HROM entities of the ROM folder are assembled, scaled by the column hrom_weights_set of their weights (one
@@ -89,6 +92,14 @@ class FutureRomStrategy:
         update: how the new reduced coordinates reach the DOFs. "increment": D(q + dq) - D(q) added by the scheme on top of the current
         state (the legacy ROM with a linear decoder; keeps the predictor of the scheme and any part of the state outside the decoder).
         "absolute": the state is set to D(q) before each build (the FutureRomSolver of #14850; the predictor is overwritten).
+        projection: the test basis W of the reduced system W^T A Phi dq = W^T b, with Phi the Jacobian of the decoder. "galerkin" (W = Phi),
+        "petrov_galerkin" (W = Psi, the LeftBasisMatrix.npy of the ROM folder with its 'petrov_galerkin_number_of_rom_dofs' columns; solved
+        by least squares when it has more columns than Phi) or "lspg" (W = A Phi: least squares of A Phi dq = b). "auto": the
+        'projection_strategy' of the RomParameters.json. lspg_solving_technique: "qr_decomposition" (least squares on A Phi) or
+        "normal_equations" ((A Phi)^T A Phi); None: the one of the 'rom_bns_settings' of the RomParameters.json, else "normal_equations".
+        monotonicity_preserving: the correction of the legacy ROM builders on the assembled system before it is projected: every positive
+        off-diagonal entry is removed and added to the diagonal (and the residual changed accordingly), which makes the matrix an
+        M-matrix. None: the 'monotonicity_preserving' of the 'rom_bns_settings' of the RomParameters.json, else False.
         initial_reduced_coordinates: None (q = 0 and the initial state as it is, enough for a linear decoder, whose Jacobian does not
         depend on q), "encode" (the q whose decoding is closest to the initial state on the free DOFs, by Gauss-Newton) or a function
         (decoder, dof_set) -> q. With the last two the free DOFs are set to D(q) before the first step, as the legacy ANN and RBF
@@ -122,6 +133,22 @@ class FutureRomStrategy:
         self.train_hrom, self.hrom_residual_snapshots = train_hrom, []
         self.name, self.decoder_factory = name, decoder_factory
         self.snapshots = snapshots
+        with open(pathlib.Path(rom_data_folder) / "RomParameters.json") as parameter_file:
+            rom_parameters = json.load(parameter_file)
+        if projection == "auto":
+            projection = {"lspg": "lspg", "petrov_galerkin": "petrov_galerkin"}.get(rom_parameters.get("projection_strategy", "galerkin"), "galerkin")
+        if projection not in ("galerkin", "petrov_galerkin", "lspg"):
+            raise Exception("Unknown 'projection' \'{}\'. Options: 'auto', 'galerkin', 'petrov_galerkin', 'lspg'.".format(projection))
+        self.projection = projection
+        self.lspg_solving_technique = lspg_solving_technique or rom_parameters["rom_settings"].get("rom_bns_settings", {}).get("solving_technique", "normal_equations")
+        if self.lspg_solving_technique not in ("qr_decomposition", "normal_equations"):
+            raise Exception("Unknown 'lspg_solving_technique' \'{}\'.".format(self.lspg_solving_technique))
+        if projection == "lspg" and train_hrom:
+            raise Exception("The HROM training is not available with the LSPG projection.")
+        if projection == "lspg" and run_hrom and self.lspg_solving_technique != "normal_equations":
+            raise Exception("The LSPG HROM requires the 'normal_equations' solving technique (as the legacy one).")
+        self.monotonicity_preserving = bool(rom_parameters["rom_settings"].get("rom_bns_settings", {}).get("monotonicity_preserving", False)) if monotonicity_preserving is None else monotonicity_preserving
+        self.petrov_galerkin_number_of_rom_dofs = rom_parameters["rom_settings"].get("petrov_galerkin_number_of_rom_dofs", 0)
         self.initial_reduced_coordinates, self.initial_state_encoded = initial_reduced_coordinates, False
         self.scheme, self.scheme_origin = CreateFutureScheme(self.model_part, scheme_settings, self.legacy_scheme, run_hrom,
                                                              scheme if use_native_schemes else "adapter")
@@ -149,6 +176,10 @@ class FutureRomStrategy:
             # Decoder of the ROM folder with its rows on the (effective) DOFs of this solver
             self.decoder = (self.decoder_factory or CreateDecoder)(self.rom_data_folder, self.strategy_data.GetEffectiveDofSet())
             self.q = numpy.zeros(self.decoder.NumberOfRomDofs())
+            if self.projection == "petrov_galerkin":
+                left_modes = numpy.load(pathlib.Path(self.rom_data_folder) / "LeftBasisMatrix.npy")
+                rows = GetBasisRows(self.rom_data_folder, self.strategy_data.GetEffectiveDofSet())
+                self.left_basis = numpy.ascontiguousarray(left_modes[rows, :self.petrov_galerkin_number_of_rom_dofs or left_modes.shape[1]])
             # Distance of the decoder at q = 0 to the initial state (with "increment" it stays in the state as a constant offset)
             self.initial_decoder_offset = float(numpy.linalg.norm(self.decoder.Decode(self.q) - numpy.array(self.strategy_data.GetEffectiveDofSet().GetValues())))
             if self.run_hrom:
@@ -222,6 +253,67 @@ class FutureRomStrategy:
         self.q = self.q + dq
         return dx
 
+    def _Project(self):
+        """Reduced system of the assembled effective system for the projection of this strategy. Returns the reduced matrix and the
+        vector whose norm measures the reduced residual (W^T b; for LSPG the gradient (A Phi)^T b of the least squares)."""
+        phi = self.decoder.Jacobian(self.q)
+        if self.projection == "galerkin" and not self.monotonicity_preserving:
+            self.reduced_system = None
+            return self.projector.Project(phi)  # C++
+        # Other test bases: the assembled matrix in SciPy (as the NumpyRomProjector of rom_future_solver.py). The rows of the fixed
+        # DOFs do not enter, in the trial basis nor in the test one
+        effective_linear_system = self.strategy_data.GetEffectiveLinearSystem()
+        lhs = scipy_conversion_tools.to_csr(effective_linear_system.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS))
+        free = numpy.array([not dof.IsFixed() for dof in self.strategy_data.GetEffectiveDofSet()])
+        rhs = numpy.array(effective_linear_system.GetVector(KratosMultiphysics.Future.DenseVectorTag.RHS)) * free
+        if self.monotonicity_preserving:
+            # As MonotonicityPreserving of the legacy GlobalROMBuilderAndSolver: with S the positive entries above the diagonal and
+            # their transpose, and L = diag(S 1) - S, the system becomes A + L and b - L u
+            positive = scipy.sparse.triu(lhs, k=1).tocsr()
+            positive.data = numpy.where(positive.data > 0.0, positive.data, 0.0)
+            symmetric = positive + positive.T
+            laplacian = scipy.sparse.diags(numpy.asarray(symmetric.sum(axis=1)).ravel()) - symmetric
+            lhs = (lhs + laplacian).tocsr()
+            rhs = (rhs - laplacian @ numpy.array(self.strategy_data.GetEffectiveDofSet().GetValues())) * free
+        a_phi = (lhs @ (phi * free[:, None])) * free[:, None]  # computed before any further assembly
+        if self.projection == "galerkin":
+            trial = phi * free[:, None]
+            self.reduced_system = (trial.T @ a_phi, trial.T @ rhs, "solve")
+            return self.reduced_system[0], self.reduced_system[1]
+        if self.projection == "petrov_galerkin":
+            psi = self.left_basis * free[:, None]
+            self.reduced_system = (psi.T @ a_phi, psi.T @ rhs, "least_squares" if psi.shape[1] != phi.shape[1] else "solve")
+            return self.reduced_system[0], self.reduced_system[1]
+        if self.run_hrom:
+            # Second assembly, on the complementary mesh without weights, for the test basis
+            if not hasattr(self, "lspg_complementary_entities"):
+                self._SetLspgComplementaryMesh()
+            self.scheme.SetHRomEntities(*self.lspg_complementary_entities)
+            self.projector.BuildEffectiveSystem()
+            complementary_lhs = scipy_conversion_tools.to_csr(effective_linear_system.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS))
+            test_basis = (complementary_lhs @ (phi * free[:, None])) * (free & self.lspg_selected_rows)[:, None]
+            self.scheme.SetHRomEntities(*self.hrom_entities)
+            self.reduced_system = (test_basis.T @ a_phi, test_basis.T @ rhs, "solve")
+            return self.reduced_system[0], self.reduced_system[1]
+        if self.lspg_solving_technique == "qr_decomposition":
+            self.reduced_system = (a_phi, rhs, "least_squares")
+        else:
+            self.reduced_system = (a_phi.T @ a_phi, a_phi.T @ rhs, "solve")
+        return self.reduced_system[0], a_phi.T @ rhs
+
+    def _SolveReduced(self):
+        """Increment of the reduced coordinates from the last projection"""
+        if self.reduced_system is None:
+            return self.projector.SolveReduced()
+        reduced_lhs, reduced_rhs, technique = self.reduced_system
+        if technique == "least_squares":
+            return numpy.linalg.lstsq(reduced_lhs, reduced_rhs, rcond=None)[0]
+        return numpy.linalg.solve(reduced_lhs, reduced_rhs)
+
+    def _TestBasis(self):
+        """The test basis on which the entity residuals of the HROM training are projected"""
+        return self.left_basis if self.projection == "petrov_galerkin" else self.decoder.Jacobian(self.q)
+
     def _SolveWithReducedResidualCriterion(self):
         """Newton loop with the reduced residual criterion of the Future ROM (#14955): checked before each solve; the step ends without
         a further update, and the system is built once more after the last iteration to check it."""
@@ -232,7 +324,7 @@ class FutureRomStrategy:
                 self._SetState(self.q)
             self.scheme.InitializeNonLinIteration(self.strategy_data)
             self.projector.BuildEffectiveSystem()
-            _, reduced_rhs = self.projector.Project(self.decoder.Jacobian(self.q))
+            _, reduced_rhs = self._Project()
             residual_norm = float(numpy.linalg.norm(reduced_rhs))
             if initial_residual_norm is None:
                 initial_residual_norm = residual_norm
@@ -242,7 +334,7 @@ class FutureRomStrategy:
             if is_converged or iteration > self.max_iterations:
                 self.scheme.FinalizeNonLinIteration(self.strategy_data)
                 break
-            self._ApplyReducedIncrement(self.projector.SolveReduced())
+            self._ApplyReducedIncrement(self._SolveReduced())
             solves += 1
             self.scheme.FinalizeNonLinIteration(self.strategy_data)
         self.iterations.append(solves)
@@ -291,9 +383,9 @@ class FutureRomStrategy:
             if self.update == "absolute":
                 self._SetState(self.q)
             self.projector.BuildEffectiveSystem()
-            reduced_lhs, _ = self.projector.Project(self.decoder.Jacobian(self.q))
+            reduced_lhs, _ = self._Project()
             self.max_condition_number = max(getattr(self, "max_condition_number", 0.0), numpy.linalg.cond(reduced_lhs))
-            dq = self.projector.SolveReduced()
+            dq = self._SolveReduced()
 
             # Update of the decoder, applied by the scheme (free DOFs and its time derivatives)
             dx = self._ApplyReducedIncrement(dq)
@@ -313,7 +405,7 @@ class FutureRomStrategy:
                 # Control of the study: the residual asked to the entity alone (RomProjector of #14953), without the scheme
                 self.hrom_residual_snapshots.append(self.projector.ProjectEntityResiduals(self.decoder.Jacobian(self.q)))
             else:
-                self.hrom_residual_snapshots.append(self.scheme.ProjectEntityResiduals(self.decoder.Jacobian(self.q), self.strategy_data))
+                self.hrom_residual_snapshots.append(self.scheme.ProjectEntityResiduals(self._TestBasis(), self.strategy_data))
         self.scheme.FinalizeSolutionStep(self.strategy_data)
         self.criterion.FinalizeSolutionStep(self.model_part, self.dof_set, self.criterion_A, self.criterion_dx, self.criterion_b)
 
@@ -339,8 +431,22 @@ class FutureRomStrategy:
                 return []
             return [float(w) for w in weights.reshape(number_of_entities, -1)[:, self.hrom_weights_set]]
         element_ids, condition_ids = numpy.load(folder / "HROM_ElementIds.npy"), numpy.load(folder / "HROM_ConditionIds.npy")
-        self.scheme.SetHRomEntities([int(i) for i in element_ids], Weights("Element", len(element_ids)),
-                                    [int(i) for i in condition_ids], Weights("Condition", len(condition_ids)))
+        self.hrom_entities = ([int(i) for i in element_ids], Weights("Element", len(element_ids)), [int(i) for i in condition_ids], Weights("Condition", len(condition_ids)))
+        self.scheme.SetHRomEntities(*self.hrom_entities)
+
+    def _SetLspgComplementaryMesh(self):
+        """For the LSPG HROM (as the legacy LSPG builder): a row of A Phi needs every entity sharing its DOF, so the test basis is
+        assembled without weights on the selected entities and their nodal neighbours (complementary mesh), and only its rows of the DOFs
+        of the selected entities are used."""
+        element_ids, _, condition_ids, _ = self.hrom_entities
+        elements, conditions = self.model_part.Elements, self.model_part.Conditions
+        element_nodes = {node.Id for i in element_ids for node in elements[i].GetGeometry()}
+        condition_nodes = {node.Id for i in condition_ids for node in conditions[i].GetGeometry()}
+        complementary_elements = sorted(set(element_ids) | {e.Id for e in elements if any(node.Id in element_nodes for node in e.GetGeometry())})
+        complementary_conditions = sorted(set(condition_ids) | {c.Id for c in conditions if any(node.Id in element_nodes | condition_nodes for node in c.GetGeometry())})
+        self.lspg_complementary_entities = (complementary_elements, [1.0] * len(complementary_elements), complementary_conditions, [1.0] * len(complementary_conditions))
+        selected_nodes = element_nodes | condition_nodes
+        self.lspg_selected_rows = numpy.array([dof.Id() in selected_nodes for dof in self.strategy_data.GetEffectiveDofSet()])
 
     def _CriterionResidual(self):
         if self.criterion_residual == "full" and self.criterion.GetActualizeRHSflag():
@@ -457,6 +563,7 @@ def DescribeStrategies(solvers):
             "scheme of the solver": type(strategy.legacy_scheme).__name__,
             "Future scheme": "{} ({})".format(type(strategy.scheme).__name__, strategy.scheme_origin),
             "criterion": type(strategy.criterion).__name__ + " (solver)" if strategy.convergence_criterion == "solver" else "reduced residual (ROM)",
+            "projection": strategy.projection + (" ({})".format(strategy.lspg_solving_technique) if strategy.projection == "lspg" else ""),
             "decoder": "{} {}".format(type(strategy.decoder).__name__, numpy.shape(strategy.decoder.Jacobian(strategy.q))),
             "update": strategy.update,
             "Newton solves": int(sum(strategy.iterations)),
