@@ -73,7 +73,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements CrLinearBeamElement2D2N// GUI group identifier: Beam Auto1
+Begin Elements LegacyCrLinearBeamElement2D2N// GUI group identifier: Beam Auto1
     1	0	1	2
     2	0	2	3
     3	0	3	4
@@ -118,7 +118,7 @@ Begin Elements CrLinearBeamElement2D2N// GUI group identifier: Beam Auto1
     42	0	61	62
 End Elements
 
-Begin Elements CrLinearBeamElement2D2N// GUI group identifier: Beam Auto2
+Begin Elements LegacyCrLinearBeamElement2D2N// GUI group identifier: Beam Auto2
     43	0	15	14
     44	0	16	15
     45	0	17	16

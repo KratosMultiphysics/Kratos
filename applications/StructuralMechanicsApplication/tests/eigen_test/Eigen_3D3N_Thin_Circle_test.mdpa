@@ -285,7 +285,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements ShellThinElement3D3N// GUI group identifier: plate
+Begin Elements LegacyShellThinElement3D3N// GUI group identifier: plate
 1	0	105	118	125
 2	0	125	142	144
 3	0	125	118	142

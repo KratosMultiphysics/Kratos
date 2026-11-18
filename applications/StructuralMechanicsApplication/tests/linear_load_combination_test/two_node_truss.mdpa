@@ -6,7 +6,7 @@ Begin Nodes
     2   1000.0 0.0 0.0
 End Nodes
 
-Begin Elements TrussLinearElement3D2N
+Begin Elements LegacyTrussLinearElement3D2N
 1 0 1 2
 End Elements
 
