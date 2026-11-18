@@ -79,7 +79,7 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
         mp.CreateNewNode(4, -0.48,  0.65,  0.0)
         mp.CreateNewNode(5,  0.02, -0.01, -0.15)
 
-    def _create_shell_elements(self,mp,element_name = "ShellThinElementCorotational3D3N"):
+    def _create_shell_elements(self,mp,element_name = "LegacyShellThinElementCorotational3D3N"):
         mp.CreateNewElement(element_name, 1, [1,2,5], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 2, [2,3,5], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 3, [3,4,5], mp.GetProperties()[1])
@@ -139,7 +139,7 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
 
         #create Element
         for i in range(nr_elements):
-            elem = mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2], mp.GetProperties()[0])
+            elem = mp.CreateNewElement("LegacyCrLinearBeamElement3D2N", i+1, [i+1,i+2], mp.GetProperties()[0])
 
         cog_process = StructuralMechanicsApplication.ComputeCenterOfGravityProcess(mp)
         cog_process.Execute()

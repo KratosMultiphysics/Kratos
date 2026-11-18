@@ -45,7 +45,7 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         mp.CreateNewNode(11,0.0000000000,0.0000000000,0.0000000000)
 
     def _create_elements(self,mp):
-        element_name = "CrLinearBeamElement2D2N"
+        element_name = "LegacyCrLinearBeamElement2D2N"
         mp.CreateNewElement(element_name,1,[11,10],mp.GetProperties()[0])
         mp.CreateNewElement(element_name,2,[10, 9],mp.GetProperties()[0])
         mp.CreateNewElement(element_name,3,[9, 8],mp.GetProperties()[0])

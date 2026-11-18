@@ -182,7 +182,7 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
 
 
     def test_thin_shell_triangle(self):
-        element_name = "ShellThinElementCorotational3D3N"
+        element_name = "LegacyShellThinElementCorotational3D3N"
         displacement_results = [0.000232466935 , -0.00022337867 , 0.000256728258]
         rotation_results     = [0.000362805651 , -0.000192603777 , -0.000468264833]
         shell_stress_middle_surface_results = [1.330532185831 , 0.264532374393 , 0.0 , 5.017119730101 , 0.0 , 0.0]
@@ -203,7 +203,7 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
 
 
     def test_thick_shell_triangle(self):
-        element_name = "ShellThickElementCorotational3D3N"
+        element_name = "LegacyShellThickElementCorotational3D3N"
         displacement_results = [7.18429456e-05 , -0.0001573361523 , 0.0005263535842]
         rotation_results     = [0.0003316611414 , -0.0002797797097 , 4.922597e-07]
         shell_stress_middle_surface_results = [0.32465769837 , 2.916044245593 , 0.281946444464 , -3.126126456163 , -1.805596378534 , 0.0]
@@ -224,7 +224,7 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
 
 
     def test_thin_shell_quadrilateral(self):
-        element_name = "ShellThinElementCorotational3D4N"
+        element_name = "LegacyShellThinElementCorotational3D4N"
         displacement_results = [0.0021867287711 , -0.002169253367 , 0.0007176841015]
         rotation_results     = [0.002816872164 , 0.0008161241026 , -0.0069076664086]
         shell_stress_middle_surface_results = [3.272955597478 , -11.215566923738 , 0.0 , 3.360152391538 , 0.0 , 0.0]
