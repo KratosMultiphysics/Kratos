@@ -63,6 +63,10 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
                 1.0,
             )
 
+    @staticmethod
+    def _x_suffix(plot_x):
+        return f"{plot_x:.2f}".replace(".", "_")
+
     def _create_effective_saturation_plot(
         self, expected_results_for_variable, file_path, output_data, simulation, plot_x
     ):
@@ -95,7 +99,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
 
         data_points = []
         with open(
-            os.path.join(file_path, "expected_saturation_at_x_1_52.csv"),
+            os.path.join(file_path, f"expected_saturation_at_x_{self._x_suffix(plot_x)}.csv"),
             newline="",
         ) as csv_file:
             reader = csv.DictReader(csv_file, skipinitialspace=True)
@@ -129,7 +133,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
         )
         plot_utils._make_plot(
             data_series_collection,
-            os.path.join(file_path, "saturation_for_x_1_52.svg"),
+            os.path.join(file_path, f"saturation_for_x_{self._x_suffix(plot_x)}.svg"),
             xlabel="Effective Saturation [%]",
             ylabel="Y [m]",
             yaxis_inverted=False,
@@ -169,7 +173,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
 
         data_points = []
         with open(
-            os.path.join(file_path, "expected_flux_at_x_1_52.csv"),
+            os.path.join(file_path, f"expected_flux_at_x_{self._x_suffix(plot_x)}.csv"),
             newline="",
         ) as csv_file:
             reader = csv.DictReader(csv_file, skipinitialspace=True)
@@ -183,7 +187,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
 
         plot_utils._make_plot(
             data_series_collection,
-            os.path.join(file_path, "fluxes_for_x_1_52.svg"),
+            os.path.join(file_path, f"fluxes_for_x_{self._x_suffix(plot_x)}.svg"),
             xlabel="|Flux| [m/d]",
             ylabel="Y [m]",
             yaxis_inverted=False,
