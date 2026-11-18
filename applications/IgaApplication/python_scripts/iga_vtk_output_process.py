@@ -163,7 +163,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                     # Store curve coordinates in the same format as surface coordinates
                     curve_uv = [(u, 0.0) for u in u_coordinates]
                     all_local_coordinates.extend(curve_uv)
-                    all_shape_function_data.extend(self.__compute_shape_function_data(curve, curve_uv, is_curve=True))
+                    all_shape_function_data.extend(self.__compute_shape_function_data(curve, curve_uv))
                     self.cached_uv_sizes.append(len(u_coordinates))
 
                 self.cached_uv = all_local_coordinates
@@ -243,7 +243,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                     # Store curve coordinates using the same (u, v) format
                     curve_uv = [(u, 0.0) for u in u_coordinates]
                     all_uv.extend(curve_uv)
-                    all_shape_function_data.extend(self.__compute_shape_function_data(curve, curve_uv, is_curve=True))
+                    all_shape_function_data.extend(self.__compute_shape_function_data(curve, curve_uv))
 
                     point_shift += len(pts)
                     conn_shift += len(conn)
@@ -557,10 +557,10 @@ class IgaVTKOutputProcess(KM.OutputProcess):
             np.array(types,np.uint8),
             uv_coords
         )
-    
+
     # Compute the visualization grid for a BRep curve
     def __compute_full_grid_brep_curve(self, brep_curve):
-        knots = (KratosMultiphysics.IgaApplication.GetNurbsCurveKnots(brep_curve))
+        knots = brep_curve.Knots()
 
         if len(knots) < 2:
             raise RuntimeError(
@@ -656,20 +656,16 @@ class IgaVTKOutputProcess(KM.OutputProcess):
         )
 
     # Evaluate the active control points and shape function values at a local coordinate position
-    def __compute_shape_function_data(self, brep, local_coords, is_curve=False):
-        
+    def __compute_shape_function_data(self, brep, local_coords):
         shape_function_data = []
 
         for u, v in local_coords:
-            if is_curve:
-                ids, N = (KratosMultiphysics.IgaApplication.EvaluateNurbsCurveShapeFunctions(brep, u))
-            else:
-                lc = KM.Array3()
-                lc[0] = u
-                lc[1] = v
-                lc[2] = 0.0
+            lc = KM.Array3()
+            lc[0] = u
+            lc[1] = v
+            lc[2] = 0.0
 
-                ids, N = brep.EvaluateShapeFunctionsAtLocalCoordinates(lc, 0)
+            ids, N = brep.EvaluateShapeFunctionsAtLocalCoordinates(lc, 0)
 
             if len(ids) == 0:
                 raise RuntimeError(
@@ -677,11 +673,7 @@ class IgaVTKOutputProcess(KM.OutputProcess):
                     f"at local coordinates ({u}, {v})."
                 )
 
-            nodes = [
-                self.model_part.GetNode(node_id)
-                for node_id in ids
-            ]
-
+            nodes = [self.model_part.GetNode(node_id) for node_id in ids]
             shape_function_data.append((nodes, N))
 
         return shape_function_data

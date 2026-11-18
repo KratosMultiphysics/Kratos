@@ -17,8 +17,8 @@
 // Application includes
 #include "geometries/geometry.h"
 #include "geometries/geometry_data.h"
+#include "includes/default_interface.h"
 #include "includes/node.h"
-#include "includes/ublas_interface.h"
 
 namespace Kratos
 {

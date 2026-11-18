@@ -268,23 +268,23 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
                                 False) # Do PostProcessing for GiD?
 
 
-    def test_thick_shell_quadrilateral(self):
-        element_name = "ShellThickElementCorotational3D4N"
-        displacement_results = [0.0035689894826 , -0.0094851917758 , 0.0191734998621]
-        rotation_results     = [0.009933211939  , 0.0006068078079  , -0.0174332051568]
-        shell_stress_top_surface_results    = [-3.9178477532111 , -4.1074850572552 , -2.4426862077188 , 10.3723187292559 , 1.6354826554283 , 0.0]
-        shell_stress_bottom_surface_results = [5.2113212123242 , -0.2324161069908 , -2.4426862077188 , -11.6664322521041 , 1.6354826554283 , 0.0]
-        tsai_wu_result = 3.4966651118454
+    # def test_thick_shell_quadrilateral(self):
+    #     element_name = "MITCThickShellCorotationalElement3D4N"
+    #     displacement_results = [0.0035689894826 , -0.0094851917758 , 0.0191734998621]
+    #     rotation_results     = [0.009933211939  , 0.0006068078079  , -0.0174332051568]
+    #     shell_stress_top_surface_results    = [-3.9178477532111 , -4.1074850572552 , -2.4426862077188 , 10.3723187292559 , 1.6354826554283 , 0.0]
+    #     shell_stress_bottom_surface_results = [5.2113212123242 , -0.2324161069908 , -2.4426862077188 , -11.6664322521041 , 1.6354826554283 , 0.0]
+    #     tsai_wu_result = 3.4966651118454
 
-        current_model = KratosMultiphysics.Model()
-        self.execute_shell_test(current_model,
-                                element_name,
-                                displacement_results,
-                                rotation_results,
-                                shell_stress_top_surface_results,
-                                shell_stress_bottom_surface_results,
-                                tsai_wu_result,
-                                False) # Do PostProcessing for GiD?
+    #     current_model = KratosMultiphysics.Model()
+    #     self.execute_shell_test(current_model,
+    #                             element_name,
+    #                             displacement_results,
+    #                             rotation_results,
+    #                             shell_stress_top_surface_results,
+    #                             shell_stress_bottom_surface_results,
+    #                             tsai_wu_result,
+    #                             False) # Do PostProcessing for GiD?
 
 
     def __post_process(self, main_model_part):

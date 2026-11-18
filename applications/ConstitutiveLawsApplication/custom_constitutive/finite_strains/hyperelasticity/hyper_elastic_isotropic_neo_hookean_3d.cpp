@@ -142,6 +142,11 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
     // Calculate the PK2 material response
     CalculateMaterialResponsePK2(rValues);
 
+    // The PK2 response provides the Green-Lagrange strain, while the Kirchhoff one must provide the Almansi strain
+    if(r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        this->CalculateAlmansiStrain(rValues, rValues.GetStrainVector());
+    }
+
     // Calculate the Kirchhoff elasticity tensor
     if(r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         double determinant_f = rValues.GetDeterminantF();

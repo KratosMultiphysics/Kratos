@@ -62,7 +62,7 @@ namespace Kratos
                         if (!(int_point.x == new_int_point.x && int_point.y == new_int_point.y)) {
                             all_loops[i_inner_loops + 1].push_back(new_int_point);
                             int_point.x = new_int_point.x;
-                            int_point.y = new_int_point.x;
+                            int_point.y = new_int_point.y;
                         }
                     }
                 }

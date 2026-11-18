@@ -21,10 +21,9 @@
 #include <array>
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/cfd_variables.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
@@ -522,7 +521,7 @@ public:
     {
         BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> LHS;
         this->CalculateFirstDerivativesLHS(LHS, rCurrentProcessInfo);
-        rLeftHandSideMatrix.resize(LHS.size1(), LHS.size2());
+        rLeftHandSideMatrix.resize(LHS.size1(), LHS.size2(), false);
         noalias(rLeftHandSideMatrix) = LHS;
     }
 

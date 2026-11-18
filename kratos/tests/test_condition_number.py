@@ -1,4 +1,4 @@
-﻿import KratosMultiphysics
+import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import eigen_solver_factory
 import os

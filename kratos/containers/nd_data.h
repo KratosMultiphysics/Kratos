@@ -21,7 +21,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
+#include "includes/serializer.h"
 
 namespace Kratos {
 
@@ -54,9 +55,10 @@ public:
      * @details This class wraps around a pointer to an array with an @p intrusive_ptr.
      *          It needs to be an @p intrusive_ptr to enable sharing the internal data
      *          represented by @p mpData with numpy, whilst having the possibility to extend
-     *          the life time.
+     *          the life time. On load, an existing buffer of the saved size is overwritten in place
+     *          (ownership kept, so numpy views stay valid); otherwise a new, managed buffer is allocated.
      */
-    class PointerWrapper
+    class KRATOS_API(KRATOS_CORE) PointerWrapper
     {
     public:
         ///@name Type definitions
@@ -69,6 +71,13 @@ public:
         ///@{
 
         /**
+         * @brief Default constructor, only intended as a @ref Serializer load target.
+         * @details Until loaded, the accessors and @ref save throw. Such an instance is detected by
+         *          a null @p mpData, since the other constructors always get a buffer (@p new T[0] is non-null).
+         */
+        PointerWrapper() = default;
+
+        /**
          * @brief Construct a new Pointer Wrapper for a given @p pData pointer.
          * @details This construct a PointerWrapper for the given @p pData pointer.
          *              - @p if IsManaged is true, then the data will be deallocated when the last instance of the
@@ -76,19 +85,42 @@ public:
          *              - @p if IsManaged is false, then the data will not be managed by this @ref PointerWrapper.
          *
          * @param pData         Pointer to the data
+         * @param Size          Number of entries pointed by @p pData.
          * @param IsManaged     Whether the data pointed by @p pData is managed by this class or not.
          */
         PointerWrapper(
             TDataType * pData,
+            const std::size_t Size,
             const bool IsManaged)
         : mIsManaged(IsManaged),
+          mSize(Size),
           mpData(pData) {}
 
         ~PointerWrapper() { if (mIsManaged && mpData) delete[] mpData; }
 
-        TDataType * Data() { return mpData; }
+        TDataType * Data()
+        {
+            KRATOS_ERROR_IF_NOT(mpData) << "Uninitialized PointerWrapper (default-constructed, only valid as a Serializer load target).\n";
+            return mpData;
+        }
 
-        TDataType const * Data() const { return mpData; }
+        TDataType const * Data() const
+        {
+            KRATOS_ERROR_IF_NOT(mpData) << "Uninitialized PointerWrapper (default-constructed, only valid as a Serializer load target).\n";
+            return mpData;
+        }
+
+        std::size_t Size() const
+        {
+            KRATOS_ERROR_IF_NOT(mpData) << "Uninitialized PointerWrapper (default-constructed, only valid as a Serializer load target).\n";
+            return mSize;
+        }
+
+        bool IsManaged() const
+        {
+            KRATOS_ERROR_IF_NOT(mpData) << "Uninitialized PointerWrapper (default-constructed, only valid as a Serializer load target).\n";
+            return mIsManaged;
+        }
 
         ///@}
 
@@ -96,9 +128,24 @@ public:
         ///@name Private member variables
         ///@{
 
-        const bool mIsManaged;
+        bool mIsManaged = false;
+
+        std::size_t mSize = 0;
 
         TDataType * mpData = nullptr;
+
+        ///@}
+        ///@name Serialization
+        ///@{
+
+        friend class Serializer;
+
+        // NDData::load reads mSize directly, since Size() throws for an unloaded wrapper.
+        friend class NDData;
+
+        void save(Serializer& rSerializer) const;
+
+        void load(Serializer& rSerializer);
 
         ///@}
         ///@name Private operations
@@ -138,6 +185,14 @@ public:
     ///@}
     ///@name Life cycle
     ///@{
+
+    /**
+     * @brief Construct an empty instance, only intended as a @ref Serializer load target.
+     * @details It holds a default-constructed @ref PointerWrapper, so @ref ViewData, @ref Shape,
+     *          @ref Size and save throw until loaded. Loading into an existing instance reuses its
+     *          buffer when the size matches.
+     */
+    NDData();
 
     /**
      * @brief Construct a new instance with a provided shape.
@@ -242,9 +297,19 @@ private:
     ///@name private member variables
     ///@{
 
-    const DenseVector<unsigned int> mShape;
+    DenseVector<unsigned int> mShape;
 
     typename PointerWrapper::Pointer mpData;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const;
+
+    void load(Serializer& rSerializer);
 
     ///@}
 };

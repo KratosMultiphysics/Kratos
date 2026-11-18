@@ -14,6 +14,7 @@
 
 #include "custom_geometries/interface_geometry.hpp"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
@@ -32,6 +33,10 @@
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
 #include "lumped_integration_scheme.h"
+
+#include <string>
+
+using namespace std::string_literals;
 
 namespace
 {
@@ -88,11 +93,6 @@ Geo::ProcessInfoGetter CreateProcessInfoGetter(const ProcessInfo& rProcessInfo)
     return [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
 }
 
-bool GetIgnoreUndrained(const Properties& rProperties)
-{
-    return rProperties.Has(IGNORE_UNDRAINED) ? rProperties[IGNORE_UNDRAINED] : false;
-}
-
 } // namespace
 
 namespace Kratos
@@ -103,12 +103,15 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
                                          const Properties::Pointer&         rpProperties,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                          IsDiffOrderElement                 IsDiffOrder,
-                                         const std::vector<CalculationContribution>& rContributions)
+                                         const std::vector<CalculationContribution>& rContributions,
+                                         std::unique_ptr<IntegrationCoefficientModifier> pIntegrationCoefficientModifier)
     : Element(NewId, rpGeometry, rpProperties),
       mpStressStatePolicy(std::move(pStressStatePolicy)),
-      mContributions(rContributions)
+      mContributions(rContributions),
+      mIntegrationCoefficientsCalculator(std::move(pIntegrationCoefficientModifier))
 {
-    MakeIntegrationSchemeAndAssignFunction();
+    MakeIntegrationScheme();
+    InitializeRotationMatrixCalculator();
     mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
 }
 
@@ -116,23 +119,28 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
                                          const GeometryType::Pointer&       rpGeometry,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                          IsDiffOrderElement                 IsDiffOrder,
-                                         const std::vector<CalculationContribution>& rContributions)
-    : UPwInterfaceElement(
-          NewId, rpGeometry, nullptr /* no properties */, std::move(pStressStatePolicy), IsDiffOrder, rContributions)
+                                         const std::vector<CalculationContribution>& rContributions,
+                                         std::unique_ptr<IntegrationCoefficientModifier> pIntegrationCoefficientModifier)
+    : UPwInterfaceElement(NewId,
+                          rpGeometry,
+                          nullptr /* no properties */,
+                          std::move(pStressStatePolicy),
+                          IsDiffOrder,
+                          rContributions,
+                          std::move(pIntegrationCoefficientModifier))
 {
 }
 
-void UPwInterfaceElement::MakeIntegrationSchemeAndAssignFunction()
+void UPwInterfaceElement::MakeIntegrationScheme()
 {
-    if (GetDisplacementGeometry().GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear) {
-        mpIntegrationScheme =
-            std::make_unique<LobattoIntegrationScheme>(GetDisplacementMidGeometry().PointsNumber());
-        mfpCalculateRotationMatrix = GeometryUtilities::Calculate2DRotationMatrixForLineGeometry;
-    } else {
-        mpIntegrationScheme =
-            std::make_unique<LumpedIntegrationScheme>(GetDisplacementMidGeometry().PointsNumber());
-        mfpCalculateRotationMatrix = GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry;
-    }
+    const auto is_line_interface = GetDisplacementGeometry().GetGeometryFamily() ==
+                                   GeometryData::KratosGeometryFamily::Kratos_Linear;
+    mpIntegrationScheme =
+        is_line_interface
+            ? std::unique_ptr<IntegrationScheme>{std::make_unique<LobattoIntegrationScheme>(
+                  GetDisplacementMidGeometry().PointsNumber())}
+            : std::unique_ptr<IntegrationScheme>{std::make_unique<LumpedIntegrationScheme>(
+                  GetDisplacementMidGeometry().PointsNumber())};
 }
 
 Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
@@ -147,8 +155,9 @@ Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
                                              PropertiesType::Pointer pProperties) const
 {
     const auto is_diff_order = mpOptionalPressureGeometry ? IsDiffOrderElement::Yes : IsDiffOrderElement::No;
-    return make_intrusive<UPwInterfaceElement>(
-        NewId, pGeometry, pProperties, mpStressStatePolicy->Clone(), is_diff_order, mContributions);
+    return make_intrusive<UPwInterfaceElement>(NewId, pGeometry, pProperties,
+                                               mpStressStatePolicy->Clone(), is_diff_order, mContributions,
+                                               mIntegrationCoefficientsCalculator.CloneModifier());
 }
 
 void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
@@ -158,9 +167,9 @@ void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const 
 
 void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo)
 {
-    const auto number_of_dofs   = GetDofs().size();
-    const auto ignore_undrained = GetIgnoreUndrained(GetProperties());
-    rLeftHandSideMatrix         = ZeroMatrix{number_of_dofs, number_of_dofs};
+    const auto number_of_dofs = GetDofs().size();
+    const auto is_constant_pw_field = ConstitutiveLawUtilities::IsConstantWaterPressure(GetProperties());
+    rLeftHandSideMatrix = ZeroMatrix{number_of_dofs, number_of_dofs};
 
     for (auto contribution : mContributions) {
         switch (contribution) {
@@ -172,10 +181,10 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
             CalculateAndAssignUPCouplingMatrix(rLeftHandSideMatrix);
             break;
         case PUCoupling:
-            if (!ignore_undrained) CalculateAndAssignPUCouplingMatrix(rLeftHandSideMatrix);
+            if (!is_constant_pw_field) CalculateAndAssignPUCouplingMatrix(rLeftHandSideMatrix);
             break;
         case Permeability:
-            if (!ignore_undrained) CalculateAndAssignPermeabilityMatrix(rLeftHandSideMatrix);
+            if (!is_constant_pw_field) CalculateAndAssignPermeabilityMatrix(rLeftHandSideMatrix);
             break;
         case FluidBodyFlow:
             break;
@@ -267,8 +276,8 @@ void UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix(Element::MatrixTy
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                  const ProcessInfo&   rProcessInfo)
 {
-    const auto ignore_undrained = GetIgnoreUndrained(GetProperties());
-    rRightHandSideVector        = ZeroVector{GetDofs().size()};
+    const auto is_constant_pw_field = ConstitutiveLawUtilities::IsConstantWaterPressure(GetProperties());
+    rRightHandSideVector = ZeroVector{GetDofs().size()};
 
     for (auto contribution : mContributions) {
         switch (contribution) {
@@ -280,13 +289,16 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
             CalculateAndAssembleUPCouplingForceVector(rRightHandSideVector);
             break;
         case PUCoupling:
-            if (!ignore_undrained) CalculateAndAssemblePUCouplingForceVector(rRightHandSideVector);
+            if (!is_constant_pw_field)
+                CalculateAndAssemblePUCouplingForceVector(rRightHandSideVector);
             break;
         case Permeability:
-            if (!ignore_undrained) CalculateAndAssemblePermeabilityFlowVector(rRightHandSideVector);
+            if (!is_constant_pw_field)
+                CalculateAndAssemblePermeabilityFlowVector(rRightHandSideVector);
             break;
         case FluidBodyFlow:
-            if (!ignore_undrained) CalculateAndAssembleFluidBodyFlowVector(rRightHandSideVector);
+            if (!is_constant_pw_field)
+                CalculateAndAssembleFluidBodyFlowVector(rRightHandSideVector);
             break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";
@@ -464,6 +476,8 @@ void UPwInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const Pr
 void UPwInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     Element::Initialize(rCurrentProcessInfo);
+    // IGNORE_UNDRAINED is deprecated
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(GetProperties());
 
     mConstitutiveLaws.clear();
     mRetentionLaws.clear();
@@ -510,6 +524,19 @@ int UPwInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
         const auto expected_size = mpStressStatePolicy->GetVoigtSize();
         ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, Id());
 
+        const auto is_surface_interface = GetDisplacementGeometry().GetGeometryFamily() !=
+                                          GeometryData::KratosGeometryFamily::Kratos_Linear;
+        KRATOS_ERROR_IF(is_surface_interface && r_properties.Has(GEO_CONTACT_SURFACE_PERIMETER))
+            << "GEO_CONTACT_SURFACE_PERIMETER is not supported for surface interface elements, "
+               "but it is defined for element "
+            << Id() << ".\n";
+
+        if (r_properties.Has(GEO_CONTACT_SURFACE_PERIMETER)) {
+            const CheckProperties check_properties(r_properties, "properties", Id(),
+                                                   CheckProperties::Bounds::AllExclusive);
+            check_properties.Check(GEO_CONTACT_SURFACE_PERIMETER);
+        }
+
         error = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, GetDisplacementGeometry(), rCurrentProcessInfo);
         return error;
     }
@@ -526,6 +553,15 @@ const Geometry<Node>& UPwInterfaceElement::GetDisplacementMidGeometry() const
 {
     constexpr auto unused_part_index = std::size_t{0};
     return GetDisplacementGeometry().GetGeometryPart(unused_part_index);
+}
+
+void UPwInterfaceElement::InitializeRotationMatrixCalculator()
+{
+    const auto is_line_interface = GetDisplacementGeometry().GetGeometryFamily() ==
+                                   GeometryData::KratosGeometryFamily::Kratos_Linear;
+    mfpCalculateRotationMatrix = is_line_interface
+                                     ? GeometryUtilities::Calculate2DRotationMatrixForLineGeometry
+                                     : GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry;
 }
 
 Element::DofsVectorType UPwInterfaceElement::GetDofs() const
@@ -1090,6 +1126,44 @@ void UPwInterfaceElement::CalculateAndAssembleFluidBodyFlowVector(VectorType& rR
 {
     GeoElementUtilities::AssemblePBlockVector(
         rRightHandSideVector, CreateFluidBodyFlowCalculator<TNumNodes>().RHSContribution());
+}
+
+void UPwInterfaceElement::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+
+    rSerializer.save("IntegrationScheme"s, mpIntegrationScheme);
+    rSerializer.save("StressStatePolicy"s, mpStressStatePolicy);
+    rSerializer.save("ConstitutiveLaws"s, mConstitutiveLaws);
+    rSerializer.save("RetentionLaws"s, mRetentionLaws);
+    rSerializer.save("IntegrationCoefficientsCalculator"s, mIntegrationCoefficientsCalculator);
+    rSerializer.save("OptionalPressureGeometry"s, mpOptionalPressureGeometry);
+    auto contributions = std::vector<int>{};
+    std::ranges::transform(mContributions, std::back_inserter(contributions),
+                           [](auto contribution) { return static_cast<int>(contribution); });
+    rSerializer.save("Contributions"s, contributions);
+
+    // No need to save data member `mfpCalculateRotationMatrix`, it can be reinitialized based on the geometry family
+}
+
+void UPwInterfaceElement::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+
+    rSerializer.load("IntegrationScheme"s, mpIntegrationScheme);
+    rSerializer.load("StressStatePolicy"s, mpStressStatePolicy);
+    rSerializer.load("ConstitutiveLaws"s, mConstitutiveLaws);
+    rSerializer.load("RetentionLaws"s, mRetentionLaws);
+    rSerializer.load("IntegrationCoefficientsCalculator"s, mIntegrationCoefficientsCalculator);
+    rSerializer.load("OptionalPressureGeometry"s, mpOptionalPressureGeometry);
+    auto contributions = std::vector<int>{};
+    rSerializer.load("Contributions"s, contributions);
+    mContributions.clear();
+    std::ranges::transform(contributions, std::back_inserter(mContributions), [](auto contribution) {
+        return static_cast<CalculationContribution>(contribution);
+    });
+
+    InitializeRotationMatrixCalculator();
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.

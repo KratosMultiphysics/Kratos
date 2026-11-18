@@ -114,11 +114,11 @@ void LoadSolidCondition::CalculateLocalSystem(
     const SizeType mat_size = GetGeometry().size() * 2;
 
     if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
+        rRightHandSideVector.resize(mat_size, false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
-        rLeftHandSideMatrix.resize(mat_size, mat_size);
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
@@ -189,9 +189,6 @@ void LoadSolidCondition::CalculateRightHandSide(
     // Calculating inverse jacobian and jacobian determinant
     MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
-    // retrieve the normal of the physical space
-    array_1d<double, 3> normal_physical_space = GetValue(NORMAL);
-    
     // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
     Matrix sub_inv_jacobian = ZeroMatrix(2,2);
     sub_inv_jacobian(0,0) = InvJ0(0,0);
@@ -283,7 +280,7 @@ void LoadSolidCondition::CalculateRightHandSide(
         const SizeType mat_size = number_of_control_points * 2;
 
         if (rB.size1() != 3 || rB.size2() != mat_size)
-            rB.resize(3, mat_size);
+            rB.resize(3, mat_size, false);
         noalias(rB) = ZeroMatrix(3, mat_size);
 
         for (IndexType r = 0; r < mat_size; r++)

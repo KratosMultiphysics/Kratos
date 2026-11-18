@@ -628,7 +628,7 @@ public:
         if (number_of_new_nodes != 0)
         {
             ///* New Id de los Nodos
-            List_New_Nodes.resize(number_of_new_nodes);
+            List_New_Nodes.resize(number_of_new_nodes, false);
             //int total_node = pNodes.size();
 
             if (new_model_part.Nodes().size()!=0) //it means this is not the first surface that has to be created
@@ -653,7 +653,7 @@ public:
             }
 
             ///* setting edges -2 to the new id of the new node
-            Position_Node.resize(number_of_new_nodes);
+            Position_Node.resize(number_of_new_nodes, false);
             unsigned int index = 0;
             for (i1_t i1 = Coord.begin1(); i1 != Coord.end1(); ++i1)
             {
@@ -686,7 +686,7 @@ public:
         double diff_neigh_node_value;
         double weight;
         boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node;
-        Coordinate_New_Node.resize(Position_Node.size());
+        Coordinate_New_Node.resize(Position_Node.size(), false);
 
         new_model_part.GetNodalSolutionStepVariablesList() = this_model_part.GetNodalSolutionStepVariablesList();
         new_model_part.AddNodalSolutionStepVariable(FATHER_NODES);
@@ -763,7 +763,7 @@ public:
         double weight1;
         double weight2;
         boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node;
-        Coordinate_New_Node.resize(Position_Node.size());
+        Coordinate_New_Node.resize(Position_Node.size(), false);
 
         new_model_part.GetNodalSolutionStepVariablesList() = this_model_part.GetNodalSolutionStepVariablesList();
         new_model_part.AddNodalSolutionStepVariable(FATHER_NODES);
@@ -858,7 +858,7 @@ public:
 
     ///************************************************************************************************
 
-    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, const boost::numeric::ublas::vector<array_1d<int, 4 > >& Position_Node, vector<int> Elems_In_Isosurface, compressed_matrix<int>& Coord, Variable<double>& variable, int surface_number)
+    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node, vector<int> Elems_In_Isosurface, compressed_matrix<int>& Coord, Variable<double>& variable, int surface_number)
     {
         array_1d<double, 3 > temp_vector1;
         array_1d<double, 3 > temp_vector2;
@@ -890,7 +890,7 @@ public:
         ElementsArrayType::iterator it_end_new = rElements_new.ptr_end();
 
         boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node;
-        Coordinate_New_Node.resize(Position_Node.size());
+        Coordinate_New_Node.resize(Position_Node.size(), false);
 
         if (first_cutting_surface == false) //it means this is not the first surface that has to be created
         {
@@ -1204,7 +1204,7 @@ public:
 
     }
 
-    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, const boost::numeric::ublas::vector<array_1d<int, 4 > >& Position_Node, vector<int> Elems_In_Isosurface, compressed_matrix<int>& Coord, Variable<array_1d<double, 3 > >& variable, int surface_number)
+    void GenerateElements (ModelPart& this_model_part, ModelPart& new_model_part, const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node, vector<int> Elems_In_Isosurface, compressed_matrix<int>& Coord, Variable<array_1d<double, 3 > >& variable, int surface_number)
     {
         array_1d<double, 3 > temp_vector1;
         array_1d<double, 3 > temp_vector2;
@@ -1234,7 +1234,7 @@ public:
         ElementsArrayType::iterator it_end_new = rElements_new.ptr_end();
 
         boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node;
-        Coordinate_New_Node.resize(Position_Node.size());
+        Coordinate_New_Node.resize(Position_Node.size(), false);
 
         if (first_cutting_surface == false)  //it means this is not the first surface that has to be created
         {

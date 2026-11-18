@@ -18,7 +18,7 @@
 #include "solving_strategies/builder_and_solvers/p_multigrid/p_grid.hpp" // PGrid
 #include "solving_strategies/builder_and_solvers/p_multigrid/status_stream.hpp" // PMGStatusStream
 #include "includes/model_part.h" // ModelPart
-#include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
+#include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h" // LinearSolver
 #include "factories/linear_solver_factory.h" // LinearSolverFactory
 #include "includes/kratos_components.h" // KratosComponents
@@ -55,8 +55,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
     std::shared_ptr<ConstraintAssembler<TSparse,TDense>> mpConstraintAssembler;
 
     std::optional<std::variant<
-        PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>,
-        PGrid<TUblasSparseSpace<float>,TUblasDenseSpace<double>>
+        PGrid<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>,
+        PGrid<TDefaultSparseSpace<float>,TDefaultDenseSpace<double>>
     >> mMaybeHierarchy;
 
     struct LinearSystem {
@@ -1068,12 +1068,13 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::AssignSettings(const Parameters
             << "Make sure you imported the application it is defined in and that the spelling is correct.";
         const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
         this->mpImpl->mpRootGridSolver = r_factory.Create(smoother_settings);
+        Interface::mpLinearSystemSolver = mpImpl->mpRootGridSolver;
 
         // Construct the coarse hierarchy.
         const std::string coarse_build_precision = coarse_hierarchy_settings["precision"].Get<std::string>();
         if (coarse_build_precision == "double") {
-            using CoarseSparseSpace = TUblasSparseSpace<double>;
-            using CoarseDenseSpace = TUblasDenseSpace<double>;
+            using CoarseSparseSpace = TDefaultSparseSpace<double>;
+            using CoarseDenseSpace = TDefaultDenseSpace<double>;
             using GridType = PGrid<CoarseSparseSpace,CoarseDenseSpace>;
 
             coarse_hierarchy_settings.ValidateAndAssignDefaults(GridType().GetDefaultParameters());
@@ -1084,8 +1085,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::AssignSettings(const Parameters
                                                    settings["diagonal_scaling"]);
             }
         } /* if coarse_build_precision == "double" */ else if (coarse_build_precision == "single") {
-            using CoarseSparseSpace = TUblasSparseSpace<float>;
-            using CoarseDenseSpace = TUblasDenseSpace<double>;
+            using CoarseSparseSpace = TDefaultSparseSpace<float>;
+            using CoarseDenseSpace = TDefaultDenseSpace<double>;
             using GridType = PGrid<CoarseSparseSpace,CoarseDenseSpace>;
 
             coarse_hierarchy_settings.ValidateAndAssignDefaults(GridType().GetDefaultParameters());
@@ -1102,19 +1103,21 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::AssignSettings(const Parameters
         KRATOS_CATCH("")
     } /* if coarse_hierarchy_settings["max_depth"].Get<int>() */ else {
         KRATOS_TRY
-        KRATOS_ERROR_IF_NOT(leaf_solver_settings.Has("solver_type"));
-        const std::string solver_name = leaf_solver_settings["solver_type"].Get<std::string>();
-        using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
-        KRATOS_ERROR_IF_NOT(SolverFactoryRegistry::Has(solver_name))
-                << "'" << solver_name << "' does not name a registered linear solver. Options are:\n"
-                << []() -> std::string {
-                    std::stringstream message;
-                    for (const auto& r_pair : SolverFactoryRegistry::GetComponents())
-                        message << "\t" << r_pair.first << "\n";
-                    return message.str();
-                }();
-        const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
-        this->mpImpl->mpRootGridSolver = r_factory.Create(leaf_solver_settings);
+        if (leaf_solver_settings.Has("solver_type")) {
+            const std::string solver_name = leaf_solver_settings["solver_type"].Get<std::string>();
+            using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
+            KRATOS_ERROR_IF_NOT(SolverFactoryRegistry::Has(solver_name))
+                    << "'" << solver_name << "' does not name a registered linear solver. Options are:\n"
+                    << []() -> std::string {
+                        std::stringstream message;
+                        for (const auto& r_pair : SolverFactoryRegistry::GetComponents())
+                            message << "\t" << r_pair.first << "\n";
+                        return message.str();
+                    }();
+            const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
+            this->mpImpl->mpRootGridSolver = r_factory.Create(leaf_solver_settings);
+            Interface::mpLinearSystemSolver = mpImpl->mpRootGridSolver;
+        }
         KRATOS_CATCH("")
     }
 
@@ -1154,15 +1157,13 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense>::GetDefaultParameters() co
         "smoother_settings" : {
             "solver_type" : ""
         },
-        "linear_solver_settings" : {
-            "solver_type" : "amgcl"
-        },
+        "linear_solver_settings" : {},
         "constraint_imposition_settings" : {
             "method" : "master_slave"
         },
         "coarse_hierarchy_settings" : {}
     })");
-    parameters.SetValue("coarse_hierarchy_settings", PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>::GetDefaultParameters());
+    parameters.SetValue("coarse_hierarchy_settings", PGrid<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>::GetDefaultParameters());
     parameters.RecursivelyAddMissingParameters(Interface::GetDefaultParameters());
     return parameters;
 }
@@ -1206,8 +1207,8 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::ProjectGrid(int GridLevel,
 
         // Construct a flat vector of coarse grids.
         std::variant<
-            std::vector<const PGrid<TUblasSparseSpace<double>,TUblasDenseSpace<double>>*>,
-            std::vector<const PGrid<TUblasSparseSpace<float>,TUblasDenseSpace<double>>*>
+            std::vector<const PGrid<TDefaultSparseSpace<double>,TDefaultDenseSpace<double>>*>,
+            std::vector<const PGrid<TDefaultSparseSpace<float>,TDefaultDenseSpace<double>>*>
         > coarse_grids;
 
         std::visit([&coarse_grids](const auto& r_coarse_grid){
@@ -1286,10 +1287,10 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::ProjectGrid(int GridLevel,
 // Template Instantiations
 // --------------------------------------------------------- //
 
-template class KRATOS_API(KRATOS_CORE) PMultigridBuilderAndSolver<TUblasSparseSpace<double>,
-                                                                  TUblasDenseSpace<double>>;
+template class KRATOS_API(KRATOS_CORE) PMultigridBuilderAndSolver<TDefaultSparseSpace<double>,
+                                                                  TDefaultDenseSpace<double>>;
 
-template class KRATOS_API(KRATOS_CORE) PMultigridBuilderAndSolver<TUblasSparseSpace<float>,
-                                                                  TUblasDenseSpace<double>>;
+template class KRATOS_API(KRATOS_CORE) PMultigridBuilderAndSolver<TDefaultSparseSpace<float>,
+                                                                  TDefaultDenseSpace<double>>;
 
 } // namespace Kratos

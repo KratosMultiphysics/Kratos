@@ -30,7 +30,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(LineSensitivityUtility);
 
-    typedef DenseMatrix<double> MatrixType;
+    typedef Matrix MatrixType;
 
     typedef MatrixType JacobianType;
 

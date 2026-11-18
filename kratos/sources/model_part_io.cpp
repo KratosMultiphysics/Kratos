@@ -2190,11 +2190,11 @@ void ModelPartIO::ReadGeometriesBlock(ModelPart& rModelPart)
         KRATOS_ERROR << buffer.str() << std::endl;
         return;
     }
-
     GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(geometry_name);
     SizeType number_of_nodes = r_clone_geometry.size();
     Element::NodesArrayType temp_geometry_nodes;
-    ModelPart::GeometryContainerType aux_geometries;
+    std::vector<GeometryType::Pointer> aux_geometries;
+    aux_geometries.reserve(1024);
 
     while(!mpStream->eof()) {
         ReadWord(word); // Reading the geometry id or End
@@ -2203,16 +2203,17 @@ void ModelPartIO::ReadGeometriesBlock(ModelPart& rModelPart)
 
         ExtractValue(word,id);
         temp_geometry_nodes.clear();
-        for(SizeType i = 0 ; i < number_of_nodes ; i++) {
+        for(SizeType i = 0; i < number_of_nodes; ++i) {
             ReadWord(word); // Reading the node id;
             ExtractValue(word, node_id);
-            temp_geometry_nodes.push_back( *(FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node").base()));
+            temp_geometry_nodes.push_back(*(FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node").base()));
         }
 
-        rModelPart.AddGeometry(r_clone_geometry.Create(ReorderedGeometryId(id), temp_geometry_nodes));
-        number_of_read_geometries++;
-
+        aux_geometries.push_back(r_clone_geometry.Create(ReorderedGeometryId(id), temp_geometry_nodes));
+        ++number_of_read_geometries;
     }
+    
+    rModelPart.AddGeometries(aux_geometries.begin(), aux_geometries.end());
     KRATOS_INFO("") << number_of_read_geometries << " geometries read] [Type: " <<geometry_name << "]" << std::endl;
 
     KRATOS_CATCH("")
@@ -2982,6 +2983,8 @@ void ModelPartIO::ReadElementalDataBlock(ElementsContainerType& rThisElements)
         ReadElementalScalarVariableData(rThisElements, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
     } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
         ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<array_1d<double, 3> > const& >(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)), Vector(3));
+    } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
+        ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<array_1d<double, 6> > const& >(KratosComponents<Variable<array_1d<double, 6> > >::Get(variable_name)), Vector(6));
     } else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name)) {
         ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<Quaternion<double> > const& >(KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)), Vector(4));
     } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
@@ -5418,6 +5421,8 @@ void ModelPartIO::DivideElementalDataBlock(OutputFilesContainerType& OutputFiles
         DivideScalarVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
     } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
         DivideVectorialVariableData<Vector>(OutputFiles, ElementsAllPartitions, "ElementalData");
+    } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
+        DivideVectorialVariableData<Vector>(OutputFiles, ElementsAllPartitions, "ElementalData");
     } else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name)) {
         DivideVectorialVariableData<Vector>(OutputFiles, ElementsAllPartitions, "ElementalData");
     } else if(KratosComponents<Variable<Vector> >::Has(variable_name)) {
@@ -6253,7 +6258,7 @@ void ModelPartIO::WriteCommunicatorData(
     std::vector<PartitionIndicesContainerType> local_nodes_indices(NumberOfPartitions, PartitionIndicesContainerType(number_of_colors));
     std::vector<PartitionIndicesContainerType> ghost_nodes_indices(NumberOfPartitions, PartitionIndicesContainerType(number_of_colors));
 
-    DenseMatrix<int> interface_indices = boost::numeric::ublas::scalar_matrix<int>(NumberOfPartitions, NumberOfPartitions, -1);
+    DenseMatrix<int> interface_indices = scalar_matrix<int>(NumberOfPartitions, NumberOfPartitions, -1);
 
     for(SizeType i_partition = 0 ; i_partition < NumberOfPartitions ; i_partition++)
     {
@@ -6567,7 +6572,7 @@ void ModelPartIO::SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream)
 
 inline void ModelPartIO::CreatePartition(unsigned int NumberOfThreads,const int number_of_rows, DenseVector<unsigned int>& partitions)
 {
-    partitions.resize(NumberOfThreads+1);
+    partitions.resize(NumberOfThreads+1, false);
     int partition_size = number_of_rows / NumberOfThreads;
     partitions[0] = 0;
     partitions[NumberOfThreads] = number_of_rows;

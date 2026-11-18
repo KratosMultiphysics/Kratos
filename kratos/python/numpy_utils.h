@@ -62,7 +62,7 @@ pybind11::array_t<TDataType> AllocateNumpyArray(
     std::vector<std::size_t> strides(c_shape.size());
     std::size_t stride_items = 1;
     for (int i = c_shape.size() - 1; i >= 0; --i) {
-        strides[i] = sizeof(double) * stride_items;
+        strides[i] = sizeof(TDataType) * stride_items;
         stride_items *= c_shape[i];
     }
 

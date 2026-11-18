@@ -301,7 +301,7 @@ class TestMassResponseFunctionQuads(TestMassResponseFunctionBase):
         properties = cls.model_part.CreateNewProperties(1)
         properties[Kratos.DENSITY] = 2.0
         properties[Kratos.THICKNESS] = 0.01
-        cls.model_part.CreateNewElement("ShellThickElement3D4N", 1, [1, 2, 3, 4], properties)
+        cls.model_part.CreateNewElement("MITCThickShellElement3D4N", 1, [1, 2, 3, 4], properties)
 
     def test_CalculateValue(self):
         v = 0.0

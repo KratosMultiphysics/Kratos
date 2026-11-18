@@ -1,7 +1,5 @@
-# import Kratos
-
-from KratosMultiphysics import *
-from KratosMultiphysics.GeoMechanicsApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.GeoMechanicsApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -9,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests of test_classes to create the suits
 from test_excavation import KratosGeoMechanicsExcavationTests
 from test_interface import KratosGeoMechanicsInterfaceTests
-from test_reset_displacement import KratosGeoMechanicsResetDisplacementTests
+from test_reset_totals import KratosGeoMechanicsResetTotalsTests
 from test_benchmark_set_1 import KratosGeoMechanicsBenchmarkSet1
 from test_benchmark_set_2 import KratosGeoMechanicsBenchmarkSet2
 from test_soil_structure_interactions import KratosGeoMechanicsSoilStructureInteractionTests
@@ -71,7 +69,15 @@ from test_surface_interface_elements import KratosGeoMechanicsSurfaceInterfaceEl
 from test_dsettlement_validation import  KratosGeoMechanicsDSettlementValidationTests
 from test_dirichlet_u_constant import KratosGeoMechanicsDirichletUConstantTests
 from interface_prestress import KratosGeoMechanicsInterfacePreStressTests
+from test_upw_interface import KratosGeoMechanicsUPwInterfaceTests
 from test_building_pit import KratosGeoMechanicsBuildingPit
+from test_CROW_case import KratosGeoMechanicsCrowValidation
+from test_piecewise_linear_moment_capacity import KratosGeoMechanicsPiecewiseLinearMomentCapacityTests
+from test_udsm_serialization import KratosGeoMechanicsUDSMSerializationTest
+from test_Muskat import KratosGeoMechanicsMuskatTests
+from test_seepage import KratosGeoMechanicsSeepageTests
+from test_grouted_anchor import KratosGeoMechanicsGroutedAnchorTests
+from test_levee_seepage import KratosGeoMechanicsLeveeSeepageTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -89,7 +95,7 @@ def AssembleTestSuites():
     # Create an array with the selected tests (Small tests):
     small_test_cases = [
                         KratosGeoMechanicsExcavationTests,
-                        KratosGeoMechanicsResetDisplacementTests,
+                        KratosGeoMechanicsResetTotalsTests,
                         KratosGeoMechanicsSoilStructureInteractionTests,
                         KratosGeoMechanicsWaterPressureTests,
                         KratosGeoMechanicsElementTypeTests,
@@ -129,6 +135,12 @@ def AssembleTestSuites():
                         KratosGeoMechanicsAvoidSmallEndStepCppRoute,
                         KratosGeoMechanicsDirichletUConstantTests,
                         KratosGeoMechanicsInterfacePreStressTests,
+                        KratosGeoMechanicsUPwInterfaceTests,
+                        KratosGeoMechanicsPiecewiseLinearMomentCapacityTests,
+                        KratosGeoMechanicsUDSMSerializationTest,
+                        KratosGeoMechanicsMuskatTests,
+                        KratosGeoMechanicsSeepageTests,
+                        KratosGeoMechanicsGroutedAnchorTests,
                         ]
 
     night_test_cases = [
@@ -143,7 +155,6 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTransientThermalTests,
                         KratosGeoMechanicsTransientPressureLineElementTests,
                         KratosGeoMechanicsTransientPressurePointFluxTests,
-                        KratosGeoMechanicsPartialSaturation,
                         KratosGeoMechanics1DConsolidation,
                         KratosGeoMechanics1DConsolidationCppRoute,
                         KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine,
@@ -163,6 +174,9 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTransientThermalValidationTests,
                         KratosGeoMechanicsDSettlementValidationTests,
                         KratosGeoMechanicsBuildingPit,
+                        KratosGeoMechanicsCrowValidation,
+                        KratosGeoMechanicsPartialSaturation,
+                        KratosGeoMechanicsLeveeSeepageTests,
                         ]
 
     # Create an array that contains all the tests from every testCase

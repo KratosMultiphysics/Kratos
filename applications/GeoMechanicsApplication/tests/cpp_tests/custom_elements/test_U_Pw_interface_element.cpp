@@ -1,4 +1,4 @@
-// KRATOS___
+﻿// KRATOS___
 //     //   ) )
 //    //         ___      ___
 //   //  ____  //___) ) //   ) )
@@ -18,6 +18,7 @@
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_elements/U_Pw_interface_element.h"
+#include "custom_elements/integration_coefficient_modifier_for_interface_element.h"
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/ublas_utilities.h"
@@ -30,6 +31,7 @@
 #include <numbers>
 
 using namespace std::numbers;
+using namespace std::string_literals;
 
 namespace
 {
@@ -88,6 +90,7 @@ std::shared_ptr<Properties> CreateElasticMaterialProperties(double NormalStiffne
     result->GetValue(INTERFACE_SHEAR_STIFFNESS)  = ShearStiffness;
     result->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(
         std::make_unique<TConstitutiveLawDimension>());
+    result->GetValue(GEO_DRAINAGE_TYPE) = "FULLY_COUPLED"s;
 
     return result;
 }
@@ -105,11 +108,12 @@ template <typename TInterfaceDimension>
 UPwInterfaceElement CreateInterfaceElementWithUPwDofs(const Properties::Pointer&     rpProperties,
                                                       const Geometry<Node>::Pointer& rpGeometry,
                                                       IsDiffOrderElement             IsDiffOrder,
-                                                      const std::vector<CalculationContribution>& rContributions)
+                                                      const std::vector<CalculationContribution>& rContributions,
+                                                      std::unique_ptr<IntegrationCoefficientModifier> pModifier = nullptr)
 {
     auto result = UPwInterfaceElement{
-        1,           rpGeometry,    rpProperties, std::make_unique<TInterfaceDimension>(),
-        IsDiffOrder, rContributions};
+        1,           rpGeometry,     rpProperties,        std::make_unique<TInterfaceDimension>(),
+        IsDiffOrder, rContributions, std::move(pModifier)};
     const auto solution_step_variables =
         Geo::ConstVariableDataRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT),
                                    std::cref(VELOCITY), std::cref(VOLUME_ACCELERATION)};
@@ -119,17 +123,18 @@ UPwInterfaceElement CreateInterfaceElementWithUPwDofs(const Properties::Pointer&
     auto p_interface_element = &result;
     // Note that we're a bit sloppy here, since we add the degrees of freedom to _all_ nodes (even for diff-order elements).
     // However, you'll find the same sloppiness in the fully integrated workflow. That needs to be improved later.
-    Testing::ElementSetupUtilities::AddVariablesToEntity(
-        p_interface_element, solution_step_variables, degrees_of_freedom);
+    Testing::ElementSetupUtilities::AddVariablesToNodes(
+        p_interface_element->GetGeometry(), solution_step_variables, degrees_of_freedom);
 
     return result;
 }
 
-UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs(
-    Model&                                      rModel,
-    const Properties::Pointer&                  rpProperties,
-    IsDiffOrderElement                          IsDiffOrder,
-    const std::vector<CalculationContribution>& rContributions)
+UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofsAndModifier(
+    Model&                                          rModel,
+    const Properties::Pointer&                      rpProperties,
+    IsDiffOrderElement                              IsDiffOrder,
+    const std::vector<CalculationContribution>&     rContributions,
+    std::unique_ptr<IntegrationCoefficientModifier> pModifier)
 {
     auto& r_model_part = CreateModelPartWithUPwVariables(rModel);
 
@@ -139,7 +144,18 @@ UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWit
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    return CreateInterfaceElementWithUPwDofs<Interface2D>(rpProperties, p_geometry, IsDiffOrder, rContributions);
+    return CreateInterfaceElementWithUPwDofs<Interface2D>(rpProperties, p_geometry, IsDiffOrder,
+                                                          rContributions, std::move(pModifier));
+}
+
+UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs(
+    Model&                                      rModel,
+    const Properties::Pointer&                  rpProperties,
+    IsDiffOrderElement                          IsDiffOrder,
+    const std::vector<CalculationContribution>& rContributions)
+{
+    return CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofsAndModifier(
+        rModel, rpProperties, IsDiffOrder, rContributions, nullptr);
 }
 
 UPwInterfaceElement CreateHorizontalOpenUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs(
@@ -530,6 +546,8 @@ void GeneralizedCouplingContributionTest(TElementFactory&&                      
     p_properties->SetValue(RESIDUAL_SATURATION, 0.06203);
     p_properties->SetValue(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE, 2.561);
     p_properties->SetValue(VAN_GENUCHTEN_GN, 1.377);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
+
     Model model;
     auto  interface_element = ElementFactory(model, p_properties, DiffOrder, rContributions);
 
@@ -727,6 +745,43 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialCo
                                  expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideIsScaledByContactSurfacePerimeter,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto perimeter                = 3.0;
+    const auto     calculate_left_hand_side = [perimeter](bool UsePerimeter) {
+        constexpr auto normal_stiffness = 20.0;
+        constexpr auto shear_stiffness  = 10.0;
+        auto           p_properties =
+            CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+        p_properties->SetValue(TRANSVERSAL_PERMEABILITY, 5.0E-3);
+        p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
+        p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
+        if (UsePerimeter) p_properties->SetValue(GEO_CONTACT_SURFACE_PERIMETER, perimeter);
+
+        Model model;
+        auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofsAndModifier(
+            model, p_properties, IsDiffOrderElement::No,
+            {CalculationContribution::Stiffness, CalculationContribution::Permeability},
+            std::make_unique<IntegrationCoefficientModifierForInterfaceElement>());
+        element.Initialize(ProcessInfo{});
+
+        Matrix result;
+        element.CalculateLeftHandSide(result, ProcessInfo{});
+        return result;
+    };
+
+    // Act
+    const auto reference_left_hand_side = calculate_left_hand_side(false);
+    const auto scaled_left_hand_side    = calculate_left_hand_side(true);
+
+    // Assert
+    const Matrix expected_left_hand_side = perimeter * reference_left_hand_side;
+    KRATOS_EXPECT_EQ(scaled_left_hand_side.size1(), reference_left_hand_side.size1());
+    KRATOS_EXPECT_MATRIX_NEAR(scaled_left_hand_side, expected_left_hand_side, Defaults::absolute_tolerance);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -862,6 +917,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
@@ -886,6 +942,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_HasCorrectNumberOfConstitutiveLaws
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
@@ -1360,7 +1417,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_GetInitializedConstitutive
     const auto p_properties = std::make_shared<Properties>();
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
-
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     auto element = CreateAndInitializeElement(
         CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness});
@@ -1385,7 +1442,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_HasCorrectNumberOfConstitu
     const auto p_properties = std::make_shared<Properties>();
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
-
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     Model model;
     auto  element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs(
         model, p_properties, IsDiffOrderElement::No, {CalculationContribution::Stiffness});
@@ -1706,6 +1763,51 @@ KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckThrowsWhenElementIsNotInitial
     KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckThrowsWhenContactSurfacePerimeterIsNotPositive,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+
+    Model model;
+    auto  element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF(
+        model, p_properties, IsDiffOrderElement::No, {CalculationContribution::Stiffness});
+    const auto dummy_process_info = ProcessInfo{};
+    element.Initialize(dummy_process_info);
+
+    p_properties->SetValue(GEO_CONTACT_SURFACE_PERIMETER, -1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element.Check(dummy_process_info),
+                                      "GEO_CONTACT_SURFACE_PERIMETER")
+
+    p_properties->SetValue(GEO_CONTACT_SURFACE_PERIMETER, 0.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element.Check(dummy_process_info),
+                                      "GEO_CONTACT_SURFACE_PERIMETER")
+
+    p_properties->SetValue(GEO_CONTACT_SURFACE_PERIMETER, 0.5);
+    KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwSurfaceInterfaceElement_CheckThrowsWhenContactSurfacePerimeterIsDefined,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_CONTACT_SURFACE_PERIMETER, 0.5);
+
+    Model model;
+    auto  element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs(
+        model, p_properties, IsDiffOrderElement::No, {CalculationContribution::Stiffness});
+    const auto dummy_process_info = ProcessInfo{};
+    element.Initialize(dummy_process_info);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(element.Check(dummy_process_info),
+                                      "GEO_CONTACT_SURFACE_PERIMETER")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckDoesNotThrowWhenElementIsNotActive, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr auto normal_stiffness = 20.0;
@@ -1744,6 +1846,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_InterpolatesNodalStresses, Kra
                                                  std::make_unique<PlaneStrain>()));
     p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
     p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     // create a triangle neighbour element
     auto p_neighbour_element = make_intrusive<MockElementWithEffectiveStressVectors>(
         2, std::make_shared<Triangle2D3<Node>>(nodes), p_properties);
@@ -1839,6 +1942,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwPlaneInterfaceElement_InterpolatesNodalStresses, Kr
                                                  std::make_unique<ThreeDimensional>()));
     p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
     p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     // create a hexagonal neighbour element
     auto p_neighbour_element = make_intrusive<MockElementWithEffectiveStressVectors>(
         2, std::make_shared<Hexahedra3D8<Node>>(nodes), p_properties);

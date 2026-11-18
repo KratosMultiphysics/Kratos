@@ -10,6 +10,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_conve
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.utilities.array_backend import HostArrayBoundary
 
 # Other imports
 import numpy as np
@@ -48,7 +49,9 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param x solution x_k
     # Computes the approximated update in each iteration.
 
+    @HostArrayBoundary
     def UpdateSolution(self, r, x):
+        xp = self.xp
 
         self.V.appendleft( deepcopy(r) )
         self.W.appendleft( deepcopy(x) )
@@ -61,8 +64,8 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
                 cs_tools.cs_print_info(self._ClassName(), ": Doing relaxation in the first iteration with factor = {}".format(self.alpha))
             return self.alpha * r
         else:
-            self.F = np.empty( shape = (col, row) ) # will be transposed later
-            self.X = np.empty( shape = (col, row) ) # will be transposed later
+            self.F = xp.empty( shape = (col, row) ) # will be transposed later
+            self.X = xp.empty( shape = (col, row) ) # will be transposed later
             for i in range(0, col):
                 self.F[i] = self.V[i] - self.V[i + 1]
                 self.X[i] = self.W[i] - self.W[i + 1]
@@ -70,16 +73,16 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             self.X = self.X.T
 
             #compute Moore-Penrose inverse of F^T F
-            A = np.linalg.pinv(self.F.T @ self.F)
+            A = xp.linalg.pinv(self.F.T @ self.F)
 
             switch = (self.iteration_counter + 1)/self.p
 
             if switch.is_integer():
-                B = self.beta * np.identity(row) - (self.X + self.beta * self.F) @ A @ self.F.T
+                B = self.beta * xp.identity(row) - (self.X + self.beta * self.F) @ A @ self.F.T
                 if self.echo_level > 3:
                     cs_tools.cs_print_info(self._ClassName(), "Compute B with Anderson")
             else:
-                B = self.alpha * np.identity(row)
+                B = self.alpha * xp.identity(row)
                 if self.echo_level > 3:
                     cs_tools.cs_print_info(self._ClassName(), "Constant underrelaxtion")
 

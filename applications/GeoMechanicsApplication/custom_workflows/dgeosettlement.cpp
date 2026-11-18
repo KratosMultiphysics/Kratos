@@ -37,6 +37,7 @@
 #include "custom_utilities/process_utilities.h"
 #include "custom_utilities/solving_strategy_factory.hpp"
 #include "solving_strategy_wrapper.hpp"
+#include "spaces/default_spaces.h"
 #include "spaces/ublas_space.h"
 
 namespace
@@ -44,10 +45,16 @@ namespace
 
 using namespace Kratos;
 
-using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;
-using DenseSpaceType   = UblasSpace<double, Matrix, Vector>;
-using LinearSolverType = LinearSolver<SparseSpaceType, DenseSpaceType>;
-using SolvingStrategyFactoryType = SolvingStrategyFactory<SparseSpaceType, DenseSpaceType, LinearSolverType>;
+// Named Geo* (not SparseSpaceType/DenseSpaceType): the out-of-line
+// KratosGeoSettlement member definitions below live inside namespace Kratos,
+// where unqualified lookup finds Kratos::SparseSpaceType (declared by
+// factories/linear_solver_factory.h) BEFORE this anonymous namespace — so
+// aliases with those names would be silently bypassed there.
+using GeoSparseSpaceType  = TDefaultSparseSpace<double>;
+using GeoDenseSpaceType   = TDefaultDenseSpace<double>;
+using GeoLinearSolverType = LinearSolver<GeoSparseSpaceType, GeoDenseSpaceType>;
+using GeoSolvingStrategyFactoryType =
+    SolvingStrategyFactory<GeoSparseSpaceType, GeoDenseSpaceType, GeoLinearSolverType>;
 
 double GetStartTimeFrom(const Parameters& rProjectParameters)
 {
@@ -106,9 +113,9 @@ std::size_t GetMaxNumberOfIterationsFrom(const Parameters& rProjectParameters)
     return static_cast<std::size_t>(rProjectParameters["solver_settings"]["max_iterations"].GetInt());
 }
 
-bool GetResetDisplacementsFrom(const Parameters& rProjectParameters)
+bool GetResetTotalsFrom(const Parameters& rProjectParameters)
 {
-    return rProjectParameters["solver_settings"]["reset_displacements"].GetBool();
+    return rProjectParameters["solver_settings"]["reset_totals"].GetBool();
 }
 
 } // namespace
@@ -152,7 +159,7 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility>      pInp
 void KratosGeoSettlement::InitializeProcessFactory()
 {
     mProcessFactory->AddCreator("ApplyScalarConstraintTableProcess",
-                                MakeCreatorFor<ApplyScalarConstraintTableProcess>());
+                                MakeCreatorWithModelFor<ApplyScalarConstraintTableProcess>());
     mProcessFactory->AddCreator("ApplyNormalLoadTableProcess", MakeCreatorFor<ApplyNormalLoadTableProcess>());
     mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
                                 MakeCreatorWithModelFor<ApplyVectorConstraintTableProcess>());
@@ -350,7 +357,7 @@ std::unique_ptr<TimeIncrementor> KratosGeoSettlement::MakeTimeIncrementor(const 
 std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const Parameters& rProjectParameters,
                                                                           const std::filesystem::path& rWorkingDirectory)
 {
-    auto solving_strategy = SolvingStrategyFactoryType::Create(
+    auto solving_strategy = GeoSolvingStrategyFactoryType::Create(
         rProjectParameters["solver_settings"], GetComputationalModelPart());
     KRATOS_ERROR_IF_NOT(solving_strategy) << "No solving strategy was created!" << std::endl;
 
@@ -361,7 +368,7 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
     ResetValuesOfNodalVariable(DISPLACEMENT);
     ResetValuesOfNodalVariable(ROTATION);
 
-    if (GetResetDisplacementsFrom(rProjectParameters)) {
+    if (GetResetTotalsFrom(rProjectParameters)) {
         ResetValuesOfNodalVariable(TOTAL_DISPLACEMENT);
 
         VariableUtils{}.UpdateCurrentToInitialConfiguration(GetComputationalModelPart().Nodes());
@@ -374,9 +381,9 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
     GetComputationalModelPart().GetProcessInfo()[END_TIME]   = GetEndTimeFrom(rProjectParameters);
 
     // For now, we can create solving strategy wrappers only
-    using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
+    using SolvingStrategyWrapperType = SolvingStrategyWrapper<GeoSparseSpaceType, GeoDenseSpaceType>;
     return std::make_shared<SolvingStrategyWrapperType>(std::move(solving_strategy),
-                                                        GetResetDisplacementsFrom(rProjectParameters),
+                                                        GetResetTotalsFrom(rProjectParameters),
                                                         rWorkingDirectory, rProjectParameters);
 }
 

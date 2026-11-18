@@ -209,7 +209,7 @@ Vector GeoElementUtilities::GetNodalVariableVector(const Element::GeometryType& 
     auto        result   = Vector(NumberOfDofs);
     std::size_t position = 0;
     for (const auto& values : nodal_values) {
-        std::copy(values.begin(), values.begin() + Dimension, result.begin() + position);
+        std::copy_n(values.begin(), Dimension, result.begin() + static_cast<std::ptrdiff_t>(position));
         position += Dimension;
     }
     return result;

@@ -23,6 +23,7 @@
 
 // Application include
 #include "dam_application_variables.h"
+#include "custom_utilities/nodal_young_modulus_utilities.h"
 
 namespace Kratos
 {
@@ -67,7 +68,6 @@ class DamNodalYoungModulusProcess : public Process
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
-        mIsFixed = rParameters["constrained"].GetBool();
         mYoung1 = rParameters["Young_Modulus_1"].GetDouble();
         mYoung2 = rParameters["Young_Modulus_2"].GetDouble();
         mYoung3 = rParameters["Young_Modulus_3"].GetDouble();
@@ -94,33 +94,13 @@ class DamNodalYoungModulusProcess : public Process
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
+        AssignYoungModulus();
 
-        if (nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
-
-#pragma omp parallel for
-            for (int i = 0; i < nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
-
-                double Young = mYoung1 + (mYoung2 * it->X()) + (mYoung3 * it->Y()) + (mYoung4 * it->Z());
-
-                if (Young <= 0.0)
-                {
-                    it->FastGetSolutionStepValue(var) = 0.0;
-                }
-                else
-                    it->FastGetSolutionStepValue(var) = Young;
-            }
-        }
+        // Expose the nodal YOUNG_MODULUS field through the standard
+        // DatabaseAccessor so accessor-aware standard constitutive laws retrieve
+        // the spatially varying Young's modulus through
+        // Properties::GetValue(YOUNG_MODULUS, geometry, N, process_info).
+        NodalYoungModulusUtilities::InstallDatabaseAccessor(mrModelPart);
 
         KRATOS_CATCH("");
     }
@@ -132,33 +112,7 @@ class DamNodalYoungModulusProcess : public Process
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-
-        if (nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
-
-#pragma omp parallel for
-            for (int i = 0; i < nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
-
-                double Young = mYoung1 + (mYoung2 * it->X()) + (mYoung3 * it->Y()) + (mYoung4 * it->Z());
-
-                if (Young <= 0.0)
-                {
-                    it->FastGetSolutionStepValue(var) = 0.0;
-                }
-                else
-                    it->FastGetSolutionStepValue(var) = Young;
-            }
-        }
+        AssignYoungModulus();
 
         KRATOS_CATCH("");
     }
@@ -187,7 +141,6 @@ class DamNodalYoungModulusProcess : public Process
 
     ModelPart &mrModelPart;
     std::string mVariableName;
-    bool mIsFixed;
     double mYoung1;
     double mYoung2;
     double mYoung3;
@@ -196,6 +149,26 @@ class DamNodalYoungModulusProcess : public Process
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   private:
+    void AssignYoungModulus()
+    {
+        // The nodal field is stored as the standard YOUNG_MODULUS; the historical
+        // variable_name is accepted for input compatibility.
+        const Variable<double>& var =
+            NodalYoungModulusUtilities::ResolveYoungModulusVariable(mVariableName);
+        auto& r_nodes = mrModelPart.GetMesh(0).Nodes();
+        const int number_of_nodes = static_cast<int>(r_nodes.size());
+
+#pragma omp parallel for
+        for (int i = 0; i < number_of_nodes; i++)
+        {
+            auto it_node = r_nodes.begin() + i;
+
+            const double young = mYoung1 + (mYoung2 * it_node->X()) + (mYoung3 * it_node->Y()) + (mYoung4 * it_node->Z());
+
+            it_node->FastGetSolutionStepValue(var) = (young <= 0.0) ? 0.0 : young;
+        }
+    }
+
     /// Assignment operator.
     DamNodalYoungModulusProcess &operator=(DamNodalYoungModulusProcess const &rOther);
 

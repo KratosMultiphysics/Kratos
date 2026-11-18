@@ -11,29 +11,45 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import KratosUtilities
 from KratosMultiphysics.kratos_utilities import DeleteFilesEndingWith
 
+# Import MeshingApplication
+import KratosMultiphysics.MeshingApplication as MeshingApplication
+
 # TODO: Add fluid counter part
 class StructuralMechanicsRemeshingTest(KratosUnittest.TestCase):
 
     def setUp(self):
         self.work_folder = "mmg_lagrangian_test"
+        self.mmg_version = float(MeshingApplication.MmgUtilities2D.GetMmgVersion())
 
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def testTwoDDynamicBeamTest(self):
+        # Skip the test if the MMG version is greater than 5.5.0
+        if self.mmg_version > 5.5:
+            self.skipTest("MMG version is greater than 5.5.0")
         self.file_name = "beam2D_test"
         self.__test_execution()
 
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def testThreeDDynamicBeamTest(self):
+        # Skip the test if the MMG version is greater than 5.5.0
+        if self.mmg_version > 5.5:
+            self.skipTest("MMG version is greater than 5.5.0")
         self.file_name = "beam3D_test"
         self.__test_execution()
 
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def testTwoDDynamicBeamLineLoadTest(self):
+        # Skip the test if the MMG version is greater than 5.5.0
+        if self.mmg_version > 5.5:
+            self.skipTest("MMG version is greater than 5.5.0")
         self.file_name = "beam2D_line_load_test"
         self.__test_execution()
 
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def testThreeDShellTest(self):
+        # Skip the test if the MMG version is greater than 5.5.0
+        if self.mmg_version > 5.5:
+            self.skipTest("MMG version is greater than 5.5.0")
         self.file_name = "test_remesh_shell"
         self.__test_execution()
 

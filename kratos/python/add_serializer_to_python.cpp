@@ -25,6 +25,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "containers/model.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 namespace Kratos::Python
 {
@@ -87,6 +88,16 @@ void  AddSerializerToPython(pybind11::module& m)
     .def("Load",SerializerLoad<Flags>)
     .def("LoadFromBeginning",SerializerLoadFromBeginning<Flags>)
     .def("Save",SerializerSave<Flags>)
+
+    .def("Load",SerializerLoad<TensorAdaptor<double>>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<TensorAdaptor<double>>)
+    .def("Save",SerializerSave<TensorAdaptor<double>>)
+    .def("Load",SerializerLoad<TensorAdaptor<int>>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<TensorAdaptor<int>>)
+    .def("Save",SerializerSave<TensorAdaptor<int>>)
+    .def("Load",SerializerLoad<TensorAdaptor<bool>>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<TensorAdaptor<bool>>)
+    .def("Save",SerializerSave<TensorAdaptor<bool>>)
 
     .def("Set",   &Serializer::Set)
     .def("Print", SerializerPrint)

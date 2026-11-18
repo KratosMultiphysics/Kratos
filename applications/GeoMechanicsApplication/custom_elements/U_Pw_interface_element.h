@@ -20,8 +20,8 @@
 #include "custom_elements/contribution_calculators/pu_coupling_calculator.hpp"
 #include "custom_elements/contribution_calculators/up_coupling_calculator.hpp"
 #include "geo_aliases.h"
+#include "includes/default_interface.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "integration_coefficients_calculator.hpp"
 #include "integration_scheme.h"
 #include "stress_state_policy.h"
@@ -32,6 +32,9 @@
 
 namespace Kratos
 {
+
+class Serializer;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwInterfaceElement : public Element
 {
 public:
@@ -53,13 +56,15 @@ public:
                         const PropertiesType::Pointer&              rpProperties,
                         std::unique_ptr<StressStatePolicy>          pStressStatePolicy,
                         IsDiffOrderElement                          IsDiffOrder,
-                        const std::vector<CalculationContribution>& rContributions);
+                        const std::vector<CalculationContribution>& rContributions,
+                        std::unique_ptr<IntegrationCoefficientModifier> pIntegrationCoefficientModifier = nullptr);
 
     UPwInterfaceElement(IndexType                                   NewId,
                         const GeometryType::Pointer&                rpGeometry,
                         std::unique_ptr<StressStatePolicy>          pStressStatePolicy,
                         IsDiffOrderElement                          IsDiffOrder,
-                        const std::vector<CalculationContribution>& rContributions);
+                        const std::vector<CalculationContribution>& rContributions,
+                        std::unique_ptr<IntegrationCoefficientModifier> pIntegrationCoefficientModifier = nullptr);
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
@@ -103,6 +108,8 @@ public:
 private:
     UPwInterfaceElement() = default;
 
+    void InitializeRotationMatrixCalculator();
+
     Element::DofsVectorType GetDofs() const;
 
     const GeometryType&       GetDisplacementGeometry() const;
@@ -113,7 +120,7 @@ private:
     std::vector<double> CalculateIntegrationCoefficients() const;
     std::vector<Vector> CalculateRelativeDisplacementsAtIntegrationPoints(const std::vector<Matrix>& rLocalBMatrices) const;
     void ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix& rRotationMatrix) const;
-    void MakeIntegrationSchemeAndAssignFunction();
+    void MakeIntegrationScheme();
     void InterpolateNodalStressesToInitialTractions(const std::vector<std::optional<Vector>>& rInterfaceNodalCauchyStresses) const;
     Vector InterpolateNodalStressToIntegrationPoints(const Geo::IntegrationPointType& rIntegrationPoint,
                                                      const std::vector<Vector>& rNodalStresses) const;
@@ -208,16 +215,18 @@ private:
     template <unsigned int TnumNodes>
     void CalculateAndAssembleFluidBodyFlowVector(VectorType& rRightHandSideVector) const;
 
+    friend Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
+
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
     std::unique_ptr<IntegrationScheme>    mpIntegrationScheme;
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     std::vector<RetentionLaw::Pointer>    mRetentionLaws;
-    IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     Geo::GeometryUniquePtr                mpOptionalPressureGeometry;
     std::vector<CalculationContribution>  mContributions;
-
-    friend class Serializer;
+    IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
 };
 } // namespace Kratos

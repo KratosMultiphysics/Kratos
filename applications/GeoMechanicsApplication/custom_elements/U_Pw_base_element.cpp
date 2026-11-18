@@ -15,6 +15,7 @@
 #include "custom_elements/U_Pw_base_element.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/check_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.hpp"
@@ -94,6 +95,9 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
+    // IGNORE_UNDRAINED is deprecated.
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(GetProperties());
+
     const auto& r_properties = this->GetProperties();
     const auto& r_geometry   = this->GetGeometry();
     const auto number_of_integration_points = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
@@ -113,7 +117,7 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     if (mStressVector.size() != number_of_integration_points) {
         mStressVector.resize(number_of_integration_points);
         for (auto& r_stress_vector : mStressVector) {
-            r_stress_vector.resize(GetStressStatePolicy().GetVoigtSize());
+            r_stress_vector.resize(GetStressStatePolicy().GetVoigtSize(), false);
             std::fill(r_stress_vector.begin(), r_stress_vector.end(), 0.0);
         }
     }

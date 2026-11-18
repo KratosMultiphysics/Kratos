@@ -76,13 +76,25 @@ class TestRomManager(KratosUnittest.TestCase):
 
                 return parameters
 
+            def CustomizeSimulation(cls, global_model, parameters, mu):
+                """
+                'mu' is a required argument and it is used in Initialize, so every simulation (including the dummy ones) must be created with an actual parameter
+                """
+                class CustomSimulation(cls):
+
+                    def Initialize(self):
+                        super().Initialize()
+                        self.first_parameter = mu[0]
+
+                return CustomSimulation(global_model, parameters)
+
             parameters = KratosMultiphysics.Parameters("""{
                 "projection_strategy": "galerkin",
                 "ROM":{
                     "rom_basis_output_name": "RomParameters_test_to_erase"
                 }
                 }""")
-            rom_manager_object = RomManager(general_rom_manager_parameters=parameters, UpdateProjectParameters = UpdateProjectParameters)
+            rom_manager_object = RomManager(general_rom_manager_parameters=parameters, CustomizeSimulation = CustomizeSimulation, UpdateProjectParameters = UpdateProjectParameters)
             train_mu = [[0.1, 0.1, 0.1]]
             rom_manager_object.Fit(train_mu)
             right_basis = 'RightBasisMatrix'
@@ -99,17 +111,16 @@ class TestRomManager(KratosUnittest.TestCase):
             self.assertEqual(np.load(f'rom_data/{cond_ids}.npy').size,np.load(f'ExpectedOutputs/galerkin/{cond_ids}.npy').size)
             self.clear_npys()
 
-            # TODO: Uncomment this test section after reviewing LSPG HROM (it is not working properly).
-
-            # parameters["projection_strategy"].SetString("lspg")
-            # rom_manager_object.Fit(train_mu)
-            # self.assertEqual(np.load(f'rom_data/{right_basis}.npy').shape[1], np.load(f'ExpectedOutputs/lspg/{right_basis}.npy').shape[1]) #number of right modes
-            # self.assertListEqual(np.load(f'rom_data/{node_ids}.npy').tolist(),np.load(f'ExpectedOutputs/lspg/{node_ids}.npy').tolist())
-            # self.assertEqual(np.load(f'rom_data/{elem_weights}.npy').size, np.load(f'ExpectedOutputs/lspg/{elem_weights}.npy').size)
-            # self.assertEqual(np.load(f'rom_data/{elem_ids}.npy').size,np.load(f'ExpectedOutputs/lspg/{elem_ids}.npy').size)
-            # self.assertEqual(np.load(f'rom_data/{cond_weights}.npy').size,np.load(f'ExpectedOutputs/lspg/{cond_weights}.npy').size)
-            # self.assertEqual(np.load(f'rom_data/{cond_ids}.npy').size,np.load(f'ExpectedOutputs/lspg/{cond_ids}.npy').size)
-            # self.clear_npys()
+            parameters["projection_strategy"].SetString("lspg")
+            rom_manager_object.Fit(train_mu)
+            self.assertLess(rom_manager_object.ROMvsHROM["Fit"], 1.0e-8)
+            self.assertEqual(np.load(f'rom_data/{right_basis}.npy').shape[1], np.load(f'ExpectedOutputs/lspg/{right_basis}.npy').shape[1]) #number of right modes
+            self.assertListEqual(np.load(f'rom_data/{node_ids}.npy').tolist(),np.load(f'ExpectedOutputs/lspg/{node_ids}.npy').tolist())
+            self.assertEqual(np.load(f'rom_data/{elem_weights}.npy').size, np.load(f'ExpectedOutputs/lspg/{elem_weights}.npy').size)
+            self.assertEqual(np.load(f'rom_data/{elem_ids}.npy').size,np.load(f'ExpectedOutputs/lspg/{elem_ids}.npy').size)
+            self.assertEqual(np.load(f'rom_data/{cond_weights}.npy').size,np.load(f'ExpectedOutputs/lspg/{cond_weights}.npy').size)
+            self.assertEqual(np.load(f'rom_data/{cond_ids}.npy').size,np.load(f'ExpectedOutputs/lspg/{cond_ids}.npy').size)
+            self.clear_npys()
 
             parameters["projection_strategy"].SetString("petrov_galerkin")
             rom_manager_object.Fit(train_mu)
@@ -124,6 +135,37 @@ class TestRomManager(KratosUnittest.TestCase):
 
 
 
+
+    def test_create_hrom_model_part(self):
+        # The HROM model part is recomputed from the stored ECM selection with new HROM settings, without running any simulation
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            def UpdateProjectParameters(parameters, mu=None):
+                for i in range(3):
+                    parameters["processes"]["loads_process_list"][i]["Parameters"]["value"].SetString("("+ str(mu[i]) + ")")
+                return parameters
+
+            parameters = KratosMultiphysics.Parameters("""{
+                "projection_strategy": "galerkin",
+                "ROM":{
+                    "rom_basis_output_name": "RomParameters_test_to_erase"
+                }
+                }""")
+            rom_manager_object = RomManager(general_rom_manager_parameters=parameters, UpdateProjectParameters = UpdateProjectParameters)
+            train_mu = [[0.1, 0.1, 0.1]]
+            rom_manager_object.Fit(train_mu)
+            with open("rom_data/HROM_Summary.json") as f:
+                summary = json.load(f)
+            self.assertEqual(summary["added"], [])
+
+            rom_manager_object.general_rom_manager_parameters["HROM"]["include_element_children"].SetBool(True)
+            rom_manager_object.CreateHROMModelPart(train_mu)
+            with open("rom_data/HROM_Summary.json") as f:
+                new_summary = json.load(f)
+
+            # Same ECM selection, plus the conditions attached to its elements
+            self.assertEqual(new_summary["ecm"], summary["ecm"])
+            self.assertEqual([added["setting"] for added in new_summary["added"]], ["include_element_children"])
+            self.assertEqual(new_summary["hrom_model_part"]["conditions"], summary["hrom_model_part"]["conditions"] + new_summary["added"][0]["conditions"])
 
     def test_error_raising(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
@@ -268,8 +310,9 @@ class TestRomManager(KratosUnittest.TestCase):
                     kratos_utilities.DeleteFileIfExisting(file_name)
         with KratosUnittest.WorkFolderScope(self.work_folder+'/rom_data', __file__):
             kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_database/'))
+            kratos_utilities.DeleteDirectoryIfExisting(Path('./Residuals/'))
             for file_name in os.listdir():
-                if file_name.endswith("test_to_erase.json"):
+                if file_name.endswith("test_to_erase.json") or file_name == "HROM_Summary.json":
                     kratos_utilities.DeleteFileIfExisting(file_name)
             self.clear_npys()
 

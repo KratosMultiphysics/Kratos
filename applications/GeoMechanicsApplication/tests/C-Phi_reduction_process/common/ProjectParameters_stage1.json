@@ -1,25 +1,22 @@
 {
     "problem_data": {
-        "echo_level": 1,
-        "end_time": 0.0,
-        "number_of_threads": 1,
-        "parallel_type": "OpenMP",
         "problem_name": "slope_stage1",
-        "start_time": -1e-06
+        "start_time": -1.0e-06,
+        "end_time": 0.0,
+        "echo_level": 1,
+        "parallel_type": "OpenMP",
+        "number_of_threads": 1
     },
     "solver_settings": {
         "block_builder": true,
-        "body_domain_sub_model_part_list": [
-            "Material_1"
-        ],
+        "body_domain_sub_model_part_list": ["Material_1"],
         "buffer_size": 2,
-        "calculate_reactions": true,
         "clear_storage": false,
         "compute_reactions": true,
         "convergence_criterion": "displacement_criterion",
         "desired_iterations": 4,
-        "displacement_absolute_tolerance": 1e-09,
-        "displacement_relative_tolerance": 0.0001,
+        "displacement_absolute_tolerance": 1.0e-09,
+        "displacement_relative_tolerance": 1.0e-04,
         "domain_size": 2,
         "echo_level": 1,
         "linear_solver_settings": {
@@ -48,9 +45,9 @@
         "number_cycles": 1,
         "problem_domain_sub_model_part_list": ["Material_1"],
         "reform_dofs_at_each_step": false,
-        "reset_displacements": true,
-        "residual_absolute_tolerance": 1e-09,
-        "residual_relative_tolerance": 0.0001,
+        "reset_totals": true,
+        "residual_absolute_tolerance": 1.0e-09,
+        "residual_relative_tolerance": 1.0e-04,
         "rotation_dofs": true,
         "scheme_type": "Newmark",
         "second_alpha_value": 1.0,
@@ -59,107 +56,107 @@
         "strategy_type": "linear",
         "time_stepping": {
             "max_delta_time_factor": 1000,
-            "time_step": 1e-06
+            "time_step": 1.0e-06
         }
     },
     "processes": {
         "auxiliary_process_list": [
             {
+                "process_name": "ApplyK0ProcedureProcess",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "python_module": "apply_k0_procedure_process",
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous_computational_model_part"
-                },
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyK0ProcedureProcess",
-                "python_module": "apply_k0_procedure_process"
+                }
             }
         ],
         "constraints_process_list": [
             {
-                "Parameters": {
-                    "active": [ true, false, false ],
-                    "is_fixed": [ true, false, false ],
-                    "model_part_name": "PorousDomain.Side_Nodes",
-                    "table": [ 0, 0, 0 ],
-                    "value": [ 0.0, 0.0, 0.0 ],
-                    "variable_name": "DISPLACEMENT"
-                },
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
-                "python_module": "apply_vector_constraint_table_process"
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "python_module": "apply_vector_constraint_table_process",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Side_Nodes",
+                    "variable_name": "DISPLACEMENT",
+                    "active": [true, false, false],
+                    "is_fixed": [true, false, false],
+                    "table": [0, 0, 0],
+                    "value": [0.0, 0.0, 0.0]
+                }
             },
             {
-                "Parameters": {
-                    "active": [ true, true, false ],
-                    "is_fixed": [ true, true, false ],
-                    "model_part_name": "PorousDomain.Base_Nodes",
-                    "table": [ 0, 0, 0 ],
-                    "value": [ 0.0, 0.0, 0.0 ],
-                    "variable_name": "DISPLACEMENT"
-                },
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
-                "python_module": "apply_vector_constraint_table_process"
-            },{
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "python_module": "apply_vector_constraint_table_process",
                 "Parameters": {
-                    "first_reference_coordinate": [ 0.0, -10.0, 0.0 ],
+                    "model_part_name": "PorousDomain.Base_Nodes",
+                    "variable_name": "DISPLACEMENT",
+                    "active": [true, true, false],
+                    "is_fixed": [true, true, false],
+                    "table": [0, 0, 0],
+                    "value": [0.0, 0.0, 0.0]
+                }
+            },
+            {
+                "process_name": "ApplyScalarConstraintTableProcess",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "python_module": "apply_scalar_constraint_table_process",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.All_Nodes",
+                    "variable_name": "WATER_PRESSURE",
+                    "first_reference_coordinate": [0.0, -10.0, 0.0],
                     "fluid_pressure_type": "Phreatic_Line",
                     "gravity_direction": 1,
                     "is_fixed": true,
-                    "model_part_name": "PorousDomain.All_Nodes",
                     "out_of_plane_direction": 2,
-                    "second_reference_coordinate": [ 40.0, -10.0, 0.0 ],
-                    "specific_weight": 10000.0,
-                    "table": [ 0, 0 ],
-                    "value": 0.0,
-                    "variable_name": "WATER_PRESSURE"
-                },
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyScalarConstraintTableProcess",
-                "python_module": "apply_scalar_constraint_table_process"
+                    "second_reference_coordinate": [40.0, -10.0, 0.0],
+                    "specific_weight": 1.0e+04,
+                    "table": [0, 0]
+                }
             }
-
         ],
         "loads_process_list": [
             {
-                "Parameters": {
-                    "active": [ false, true, false ],
-                    "model_part_name": "PorousDomain.Material_1",
-                    "table": [ 0, 0, 0 ],
-                    "value": [ 0.0, -9.81, 0.0 ],
-                    "variable_name": "VOLUME_ACCELERATION"
-                },
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
-                "python_module": "apply_vector_constraint_table_process"
+                "python_module": "apply_vector_constraint_table_process",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Material_1",
+                    "variable_name": "VOLUME_ACCELERATION",
+                    "active": [false, true, false],
+                    "table": [0, 0, 0],
+                    "value": [0.0, -9.81, 0.0]
+                }
             }
         ]
     },
     "output_processes": {
-        "gid_output": [{
-            "python_module": "gid_output_process",
-            "kratos_module": "KratosMultiphysics",
-            "process_name": "GiDOutputProcess",
-            "Parameters":    {
-                "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "stage1",
-                "postprocess_parameters": {
-                    "result_file_configuration": {
-                        "gidpost_flags":       {
-                            "WriteDeformedMeshFlag": "WriteUndeformed",
-                            "WriteConditionsFlag":   "WriteElementsOnly",
-                            "GiDPostMode":           "GiD_PostAscii",
-                            "MultiFileFlag":         "SingleFile"
-                        },
-                        "file_label":          "step",
-                        "output_control_type": "step",
-                        "output_interval":     1,
-                        "body_output":         true,
-                        "node_output":         false,
-                        "skin_output":         false,
-                        "plane_output":        []
+        "gid_output": [
+            {
+                "python_module": "gid_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "GiDOutputProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.porous_computational_model_part",
+                    "output_name": "stage1",
+                    "postprocess_parameters": {
+                        "result_file_configuration": {
+                            "gidpost_flags": {
+                                "WriteDeformedMeshFlag": "WriteUndeformed",
+                                "WriteConditionsFlag": "WriteElementsOnly",
+                                "GiDPostMode": "GiD_PostAscii",
+                                "MultiFileFlag": "SingleFile"
+                            },
+                            "file_label": "step",
+                            "output_control_type": "step",
+                            "output_interval": 1,
+                            "body_output": true,
+                            "node_output": false,
+                            "skin_output": false
+                        }
                     }
                 }
             }
-        }]
+        ]
     }
 }

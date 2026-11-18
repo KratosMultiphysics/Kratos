@@ -19,8 +19,9 @@
 
 #include "processes/process.h"
 #include "custom_utilities/solver_settings.h"
+#include "custom_utilities/compute_div_sigma_utility.h"
 
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 // builder_and_solvers
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
@@ -32,6 +33,7 @@
 
 //schemes
 #include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
+#include "custom_strategies/schemes/bdf2_higher_order_vms_scheme.h"
 #include "custom_strategies/schemes/incremental_update_rotation_scheme.h"
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
@@ -58,8 +60,8 @@ void AddCustomStrategiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
     typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
@@ -157,6 +159,32 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<>())                 // default constructor
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;
+
+    py::class_<
+        BDF2HigherOrderVMSScheme<SparseSpaceType, LocalSpaceType>,
+        typename BDF2HigherOrderVMSScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        BaseSchemeType>(m, "BDF2HigherOrderVMSScheme")
+    .def(py::init<>())
+    .def(py::init<Process::Pointer>())
+    ;
+
+    py::class_<ComputeDivSigmaUtility>(m, "ComputeDivSigmaUtility")
+    .def(py::init<>())
+    .def(
+        "ComputeDivergence",
+        py::overload_cast<
+            const Matrix&,
+            const Matrix&,
+            const Matrix&,
+            const Matrix&>(&ComputeDivSigmaUtility::ComputeDivergence, py::const_))
+    .def(
+        "ComputeDivergence",
+        py::overload_cast<
+            const Matrix&,
+            const Matrix&,
+            const Matrix&,
+            const Matrix&,
+            const Matrix&>(&ComputeDivSigmaUtility::ComputeDivergence, py::const_));
 
     using  SimpleSteadyAdjointSchemeType = SimpleSteadyAdjointScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<SimpleSteadyAdjointSchemeType, typename SimpleSteadyAdjointSchemeType::Pointer, BaseSchemeType>

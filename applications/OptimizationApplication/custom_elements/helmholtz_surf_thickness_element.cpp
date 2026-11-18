@@ -434,7 +434,7 @@ void HelmholtzSurfThicknessElement::CalculateAvgSurfUnitNormal(VectorType & rNor
     const IntegrationMethod& integration_method = r_geom.GetDefaultIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
 
-    rNormal.resize(3);
+    rNormal.resize(3, false);
     rNormal = ZeroVector(3);
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number )
         rNormal += r_geom.UnitNormal(point_number,integration_method);

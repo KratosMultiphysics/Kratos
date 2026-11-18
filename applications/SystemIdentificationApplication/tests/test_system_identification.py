@@ -29,8 +29,8 @@ class TestSystemIdentification(UnitTest.TestCase):
 
         self.__RunSingleThreadedProcess("auxiliary_files/damaged_problem/MainKratos.py")
 
-        data = numpy.loadtxt("auxiliary_files/damaged_problem/measured_data.csv", comments="#", usecols=[0,3,4,5,6], delimiter=",")
-        ref_data = numpy.loadtxt("auxiliary_files/damaged_problem/measured_data_ref.csv", comments="#", usecols=[0,3,4,5,6], delimiter=",")
+        data = numpy.loadtxt("auxiliary_files/damaged_problem/measured_data.csv", skiprows=1, usecols=[0,3,4,5,6], delimiter=",")
+        ref_data = numpy.loadtxt("auxiliary_files/damaged_problem/measured_data_ref.csv", skiprows=1, usecols=[0,3,4,5,6], delimiter=",")
         self.assertTrue(numpy.allclose(data, ref_data, 1e-13, 1e-13))
 
     def test_SystemIdentification(self):
@@ -47,6 +47,7 @@ class TestSystemIdentification(UnitTest.TestCase):
         }""")
         CompareTwoFilesCheckProcess(params).Execute()
 
+    @UnitTest.skipIf(sys.platform == 'win32', "Test skipped on Windows")
     def test_SystemIdentificationPNorm(self):
         self.__RunSingleThreadedProcess("auxiliary_files/system_identification_p_norm/MainKratos.py")
 

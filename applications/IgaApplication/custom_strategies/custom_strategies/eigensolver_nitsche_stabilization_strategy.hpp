@@ -431,7 +431,7 @@ public:
 
             // 2. create the result vector
             Vector rResult;
-            rResult.resize((number_of_nodes_master+number_of_nodes_slave)*3);
+            rResult.resize((number_of_nodes_master+number_of_nodes_slave)*3, false);
 
             IndexType i_master = 0;
             for (auto& r_node : reduced_model_part_master.Nodes()) {
@@ -506,7 +506,7 @@ public:
 
             // 2. create the result vector
             Vector rResult;
-            rResult.resize((number_of_nodes)*3);
+            rResult.resize((number_of_nodes)*3, false);
 
             IndexType i = 0;
             for (auto& r_node : reduced_model_part.Nodes()) {

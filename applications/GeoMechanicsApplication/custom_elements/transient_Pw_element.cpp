@@ -77,7 +77,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassM
 {
     KRATOS_TRY
 
-    const unsigned int n_DoF = this->GetNumberOfDOF();
+    const auto n_DoF = this->GetNumberOfDOF();
 
     // Resizing mass matrix
     if (rMassMatrix.size1() != n_DoF) rMassMatrix.resize(n_DoF, n_DoF, false);
@@ -92,7 +92,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDa
 {
     KRATOS_TRY
 
-    const unsigned int n_DoF = this->GetNumberOfDOF();
+    const auto n_DoF = this->GetNumberOfDOF();
 
     // Compute Damping Matrix
     if (rDampingMatrix.size1() != n_DoF) rDampingMatrix.resize(n_DoF, n_DoF, false);
@@ -106,9 +106,8 @@ void TransientPwElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int S
 {
     KRATOS_TRY
 
-    const unsigned int n_DoF = this->GetNumberOfDOF();
-
-    if (rValues.size() != n_DoF) rValues.resize(n_DoF, false);
+    if (const auto n_DoF = this->GetNumberOfDOF(); rValues.size() != n_DoF)
+        rValues.resize(n_DoF, false);
 
     // Why are we constructing a zero vector here?
     for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -123,9 +122,8 @@ void TransientPwElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rVal
 {
     KRATOS_TRY
 
-    const unsigned int n_DoF = this->GetNumberOfDOF();
-
-    if (rValues.size() != n_DoF) rValues.resize(n_DoF, false);
+    if (const auto n_DoF = this->GetNumberOfDOF(); rValues.size() != n_DoF)
+        rValues.resize(n_DoF, false);
 
     // Why are we constructing a zero vector here?
     for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -140,9 +138,8 @@ void TransientPwElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rVa
 {
     KRATOS_TRY
 
-    const unsigned int n_DoF = this->GetNumberOfDOF();
-
-    if (rValues.size() != n_DoF) rValues.resize(n_DoF, false);
+    if (const auto n_DoF = this->GetNumberOfDOF(); rValues.size() != n_DoF)
+        rValues.resize(n_DoF, false);
 
     // Why are we constructing a zero vector here?
     for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -254,7 +251,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Var
         if (rOutput.size() != mRetentionLawVector.size())
             rOutput.resize(mRetentionLawVector.size());
 
-        std::fill(rOutput.begin(), rOutput.end(), 0.0);
+        std::ranges::fill(rOutput, 0.0);
     }
 
     KRATOS_CATCH("")
@@ -335,8 +332,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NContainer, Variables.PressureVector);
     const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
@@ -347,7 +342,8 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     const auto degrees_of_saturation     = this->CalculateDegreesOfSaturation(fluid_pressures);
     const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_properties);
+        biot_coefficients, degrees_of_saturation, derivatives_of_saturation,
+        r_properties[BULK_MODULUS_FLUID], r_properties);
 
     // Loop over integration points
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
@@ -419,6 +415,23 @@ void TransientPwElement<TDim, TNumNodes>::InitializeElementVariables(ElementVari
     rVariables.DegreeOfSaturation   = 1.0;
     rVariables.RelativePermeability = 1.0;
     rVariables.BishopCoefficient    = 1.0;
+
+    KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void TransientPwElement<TDim, TNumNodes>::InitializeProperties(ElementVariables& rVariables)
+{
+    KRATOS_TRY
+
+    const auto& r_properties = this->GetProperties();
+
+    rVariables.IsConstantWaterPressure    = false;
+    rVariables.UseHenckyStrain            = false;
+    rVariables.ConsiderGeometricStiffness = false;
+
+    rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
+    GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, r_properties);
 
     KRATOS_CATCH("")
 }

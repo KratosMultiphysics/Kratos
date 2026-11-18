@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -14,23 +14,16 @@
 #if !defined(KRATOS_SPACE_H_INCLUDED )
 #define  KRATOS_SPACE_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 #include <cstddef>
 #include <numeric>
 
-
-
-
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/matrix_market_interface.h"
 #include "utilities/dof_updater.h"
 #include "containers/csr_matrix.h"

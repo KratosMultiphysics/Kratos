@@ -32,7 +32,6 @@ ApplyConstantPhreaticSurfacePressureProcess::ApplyConstantPhreaticSurfacePressur
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed": false,
-                "is_seepage": false,
                 "gravity_direction": 1,
                 "first_reference_coordinate":          [0.0,1.0,0.0],
                 "second_reference_coordinate":         [1.0,0.5,0.0],
@@ -58,7 +57,6 @@ ApplyConstantPhreaticSurfacePressureProcess::ApplyConstantPhreaticSurfacePressur
 
     mVariableName              = rParameters["variable_name"].GetString();
     mIsFixed                   = rParameters["is_fixed"].GetBool();
-    mIsSeepage                 = rParameters["is_seepage"].GetBool();
     mGravityDirection          = rParameters["gravity_direction"].GetInt();
     mFirstReferenceCoordinate  = rParameters["first_reference_coordinate"].GetVector();
     mSecondReferenceCoordinate = rParameters["second_reference_coordinate"].GetVector();
@@ -85,19 +83,10 @@ void ApplyConstantPhreaticSurfacePressureProcess::ExecuteInitialize()
         const double d        = inner_prod(mNormalVector, direction);
         distance              = -(distance - mEqRHS) / d;
         const double pressure = -PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
-        if (mIsSeepage) {
-            if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) {
-                rNode.FastGetSolutionStepValue(var) = pressure;
-                if (mIsFixed) rNode.Fix(var);
-            } else {
-                if (mIsFixedProvided) rNode.Free(var);
-            }
-        } else {
-            if (mIsFixed) rNode.Fix(var);
-            else if (mIsFixedProvided) rNode.Free(var);
-            rNode.FastGetSolutionStepValue(var) =
-                std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
-        }
+        if (mIsFixed) rNode.Fix(var);
+        else if (mIsFixedProvided) rNode.Free(var);
+        rNode.FastGetSolutionStepValue(var) =
+            std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
     });
 
     KRATOS_CATCH("")

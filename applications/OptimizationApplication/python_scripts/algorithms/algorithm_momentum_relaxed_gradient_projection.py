@@ -54,12 +54,12 @@ class AlgorithmMomentumRelaxedGradientProjection(AlgorithmRelaxedGradientProject
             mom_update.data[:] += self.prev_update.data * self.eta
             mom_update.StoreData()
 
-            full_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_collect_data_recursively=False)
+            full_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)
             full_update.data[:] += mom_update.data * self.eta
             full_update.StoreData()
             self.prev_update = mom_update
         else:
-            full_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_collect_data_recursively=False)
+            full_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)
             full_update.data[:] *= (1 + self.eta)
             full_update.StoreData()
             self.prev_update = update

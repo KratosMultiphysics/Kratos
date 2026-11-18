@@ -23,6 +23,7 @@
 #include "custom_utilities/director_utilities.h"
 #include "custom_utilities/iga_flags.h"
 #include "geometries/nurbs_curve_geometry.h"
+#include "custom_utilities/compute_interface_traction_shell_3p.h"
 
 
 namespace Kratos {
@@ -118,6 +119,12 @@ void AddCustomUtilitiesToPython(
 
             return p_nurbs_curve->Knots();
         });
+
+    pybind11::class_< ComputeInterfaceTractionShell3pUtility >(m, "ComputeInterfaceTractionShell3pUtility")
+        .def_static(
+            "ComputeAndSetInterfaceTraction",
+            &ComputeInterfaceTractionShell3pUtility::ComputeAndSetInterfaceTraction)
+        ;
 }
 
 } // namespace Python
