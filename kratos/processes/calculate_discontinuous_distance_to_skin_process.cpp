@@ -818,7 +818,14 @@ namespace Kratos
         for (std::size_t i_edge = 0; i_edge < mNumEdges; ++i_edge){
             if (rEdgeRatiosVector[i_edge] >= 0.0){
                 avg_pt = ConvertEdgeRatioToIntersectionPoint(rEdgesContainer[i_edge], rEdgeRatiosVector[i_edge]);
-                rIntersectionPointsVector.push_back(avg_pt);
+                // If the skin cuts the element exactly through one of its nodes, two consecutive
+                // cut edges give (numerically) the same intersection point. Keep only one of them,
+                // otherwise SetIntersectionPlane builds a degenerate Plane3D (zero normal).
+                // This mirrors the deduplication done in CalculateElementalAndEdgeDistances.
+                const double edge_tolerance = 1e-6 * rEdgesContainer[i_edge][0].Distance(rEdgesContainer[i_edge][1]);
+                if (!CheckIfPointIsRepeated(avg_pt, rIntersectionPointsVector, edge_tolerance)) {
+                    rIntersectionPointsVector.push_back(avg_pt);
+                }
             }
         }
     }
