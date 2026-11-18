@@ -111,6 +111,15 @@ namespace Kratos
 
         void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
+        /**
+         * @brief Calculates a Vector variable on the element (in global axes)
+         * @details Supported variables are INTERNAL_FORCES_VECTOR and EXTERNAL_FORCES_VECTOR
+         * @param rVariable The variable we want to calculate
+         * @param rOutput The calculated vector
+         * @param rCurrentProcessInfo the current process info instance
+         */
+        void Calculate(const Variable<Vector>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
         void CalculateOnIntegrationPoints(
             const Variable<double>& rVariable,
             std::vector<double>& rOutput,
@@ -264,6 +273,19 @@ namespace Kratos
 
 protected:
     double ReturnTangentModulus1D(double Strain, const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+     * @brief This function calculates the internal forces vector (in global axes), as subtracted in the right hand side
+     * @param rInternalForces The internal forces vector
+     * @param rCurrentProcessInfo The current process information
+     */
+    virtual void CalculateInternalForces(VectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief This function calculates the external (self-weight) forces vector (in global axes), as added in the right hand side
+     * @param rExternalForces The external forces vector
+     */
+    virtual void CalculateExternalForces(VectorType& rExternalForces);
 
 private:
     /**

@@ -1208,7 +1208,11 @@ void Stokes3DTwoFluid::ComputeGaussPointEnrichmentContributions(
     const element_data<4,3>& data,
     const array_1d<double,4>& distances,
     const array_1d<double,4>& Nenr,
-    const BoundedMatrix<double,4,4>& DNenr
+    // The enriched gradients are 4 x 3 dynamic matrices (one per partition);
+    // a uBLAS bounded_matrix used to absorb them through its
+    // runtime-size-within-capacity semantics, which the fixed-size Eigen
+    // bounded type does not have.
+    const Matrix& DNenr
     )
     {
         const int nnodes = 4;

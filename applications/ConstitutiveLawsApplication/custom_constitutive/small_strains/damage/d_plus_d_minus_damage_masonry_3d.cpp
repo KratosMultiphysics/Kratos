@@ -393,7 +393,7 @@ Vector& DamageDPlusDMinusMasonry3DLaw::GetValue(
     )
 {
     if(rThisVariable == INTERNAL_VARIABLES){
-        rValue.resize(6);
+        rValue.resize(6, false);
         rValue[0] = mTensionDamage;
         rValue[1] = mTensionThreshold;
         rValue[2] = mCompressionDamage;

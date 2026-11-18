@@ -17,8 +17,8 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_aliases.h"
 #include "includes/constitutive_law.h"
-#include "includes/properties.h"
 #include "includes/default_interface.h"
+#include "includes/properties.h"
 
 #include <utility>
 

@@ -24,6 +24,7 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/dam_application_variables.cpp
 
     # Utilities
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/dam_initial_state_transfer_utility.cpp
 
     # Pocesses
 
@@ -31,12 +32,8 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_2D_plane_strain.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_2D_plane_stress.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_3D_law_nodal.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_2D_plane_strain_nodal.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_2D_plane_stress_nodal.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_3D_law_nodal.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_2D_plane_strain_nodal.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_2D_plane_stress_nodal.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_local_damage_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_local_damage_plane_strain_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_local_damage_plane_stress_2D_law.cpp

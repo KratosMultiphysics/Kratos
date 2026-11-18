@@ -68,7 +68,8 @@ class SbmSolidTests(KratosUnittest.TestCase):
                             "name": "SbmSolidCondition",
                             "shape_function_derivatives_order": 8, 
                             "sbm_parameters": {
-                                "is_inner" : false
+                                "is_inner" : false,
+                                "projection_type" : "linealized"
                             }
                         }
                     ] // element condition list
@@ -190,7 +191,8 @@ class SbmSolidTests(KratosUnittest.TestCase):
                             "name": "SbmLoadSolidCondition",
                             "shape_function_derivatives_order": 4, 
                             "sbm_parameters": {
-                                "is_inner" : false
+                                "is_inner" : false,
+                                "projection_type" : "linealized"
                             }
                         }
                     ] // element condition list

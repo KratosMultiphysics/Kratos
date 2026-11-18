@@ -20,8 +20,8 @@
 #include "custom_elements/contribution_calculators/pu_coupling_calculator.hpp"
 #include "custom_elements/contribution_calculators/up_coupling_calculator.hpp"
 #include "geo_aliases.h"
-#include "includes/element.h"
 #include "includes/default_interface.h"
+#include "includes/element.h"
 #include "integration_coefficients_calculator.hpp"
 #include "integration_scheme.h"
 #include "stress_state_policy.h"
@@ -56,13 +56,15 @@ public:
                         const PropertiesType::Pointer&              rpProperties,
                         std::unique_ptr<StressStatePolicy>          pStressStatePolicy,
                         IsDiffOrderElement                          IsDiffOrder,
-                        const std::vector<CalculationContribution>& rContributions);
+                        const std::vector<CalculationContribution>& rContributions,
+                        std::unique_ptr<IntegrationCoefficientModifier> pIntegrationCoefficientModifier = nullptr);
 
     UPwInterfaceElement(IndexType                                   NewId,
                         const GeometryType::Pointer&                rpGeometry,
                         std::unique_ptr<StressStatePolicy>          pStressStatePolicy,
                         IsDiffOrderElement                          IsDiffOrder,
-                        const std::vector<CalculationContribution>& rContributions);
+                        const std::vector<CalculationContribution>& rContributions,
+                        std::unique_ptr<IntegrationCoefficientModifier> pIntegrationCoefficientModifier = nullptr);
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
@@ -223,8 +225,8 @@ private:
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     std::vector<RetentionLaw::Pointer>    mRetentionLaws;
-    IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     Geo::GeometryUniquePtr                mpOptionalPressureGeometry;
     std::vector<CalculationContribution>  mContributions;
+    IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
 };
 } // namespace Kratos

@@ -329,9 +329,6 @@ void GeometriesTensorAdaptor::Check() const {}
 
 void GeometriesTensorAdaptor::CollectData()
 {
-    if (!mpStorage)
-        return;
-
     std::visit(
         [this](auto &&p_container)
     {
@@ -340,10 +337,10 @@ void GeometriesTensorAdaptor::CollectData()
         {
             auto method = GetIntegrationMethod(*p_container, mIntegrationMethod);
             FillData(this->ViewData().data(), *p_container, mDatum, method,
-                     mpStorage->Shape());
+                     this->Shape());
         }
     },
-    *mpContainer);
+    this->GetContainer());
 }
 
 void GeometriesTensorAdaptor::StoreData()
@@ -354,7 +351,24 @@ void GeometriesTensorAdaptor::StoreData()
 
 std::string GeometriesTensorAdaptor::Info() const
 {
-    return "GeometriesTensorAdaptor";
+    return "GeometriesTensorAdaptor: " + BaseType::Info();
+}
+
+void GeometriesTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+    rSerializer.save("Datum", static_cast<int>(mDatum));
+    rSerializer.save("IntegrationMethod", static_cast<int>(mIntegrationMethod));
+}
+
+void GeometriesTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    int datum, integration_method;
+    rSerializer.load("Datum", datum);
+    rSerializer.load("IntegrationMethod", integration_method);
+    mDatum = static_cast<DatumType>(datum);
+    mIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(integration_method);
 }
 
 } // namespace Kratos

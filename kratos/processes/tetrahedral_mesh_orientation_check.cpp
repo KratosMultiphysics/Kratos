@@ -237,7 +237,7 @@ void TetrahedralMeshOrientationCheck::Execute()
         GeometryType& r_geometry = it_elem->GetGeometry();
         if (SupportedElement(r_geometry)){ //acceptable quadratic geoms
             IndexType n_boundaries = BoundariesEntitiesNumber(r_geometry);
-            aux.resize(NumberOfNodesInEachBoundary(r_geometry));
+            aux.resize(NumberOfNodesInEachBoundary(r_geometry), false);
             NodesOfBoundaries(r_geometry, boundaries_nodes); //getting the nodes of each of the n_boundaries of the element
             const array_1d<double,3> elem_center = r_geometry.Center();
             const SizeType first_node_id_of_elem = r_geometry[0].Id();
@@ -490,7 +490,7 @@ TetrahedralMeshOrientationCheck::SizeType TetrahedralMeshOrientationCheck::Numbe
 void TetrahedralMeshOrientationCheck::NodesOfBoundaries(const GeometryType& rGeometry, DenseMatrix<int>& rNodesIds){
     IndexType n_boundaries = BoundariesEntitiesNumber(rGeometry);
     IndexType nodes_in_boundary = NumberOfNodesInEachBoundary(rGeometry);
-    rNodesIds.resize(n_boundaries,nodes_in_boundary);
+    rNodesIds.resize(n_boundaries,nodes_in_boundary, false);
     if(LinearElement(rGeometry)){
         for(IndexType outer_node_index=0; outer_node_index< BoundariesEntitiesNumber(rGeometry); outer_node_index++) {
             // We put in rNodesIds the indices of all of the nodes which do not

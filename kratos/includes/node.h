@@ -75,6 +75,12 @@ public:
     /// Base type
     using BaseType = Point;
 
+    /// Disambiguation: under the Eigen backend the Point base (through
+    /// array_1d -> Eigen::Matrix) also inherits an enum constant named Flags
+    /// from Eigen::DenseBase, so the Kratos flags base must be named
+    /// explicitly inside this class.
+    using Flags = Kratos::Flags;
+
     /// Point type definition
     using PointType = Point;
 

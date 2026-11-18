@@ -115,7 +115,7 @@ public:
         const auto first = ci.begin() + b;
         const auto last  = ci.begin() + e;
         const auto it = std::lower_bound(first, last, j);
-        if (it != last && *it == j) return static_cast<std::size_t>(it - ci.begin());
+        if (it != last && static_cast<std::size_t>(*it) == j) return static_cast<std::size_t>(it - ci.begin());
         return static_cast<std::size_t>(-1);
     }
 
@@ -795,7 +795,7 @@ void BernsteinBasis(const int p, const double t, std::vector<double>& B) const
 void BuildBezierKnots(const int p, Vector& rKnots) const
 {
     const int nkn = 2*(p+1);
-    if ((int)rKnots.size() != nkn) rKnots.resize(nkn);
+    if ((int)rKnots.size() != nkn) rKnots.resize(nkn, false);
     for (int i=0; i<=p;   ++i) rKnots[i]      = 0.0;
     for (int i=p+1;i<nkn;++i) rKnots[i]      = 1.0;
 }

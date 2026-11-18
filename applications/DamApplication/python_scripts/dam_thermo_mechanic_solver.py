@@ -136,7 +136,7 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Viii_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_YOUNG_MODULUS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.INITIAL_STRESS_TENSOR)
 
         ## Thermal variables
@@ -248,6 +248,11 @@ class DamThermoMechanicSolver(object):
         # Check if everything is assigned correctly
         self.Thermal_Solver.Check()
         self.Mechanical_Solver.Check()
+
+        # Initialize the strategies (elements, scheme, convergence criterion) now, so
+        # that the constitutive laws are ready before the first gauss-point output
+        self.Thermal_Solver.Initialize()
+        self.Mechanical_Solver.Initialize()
 
         print ("Initialization DamThermoMechanicSolver finished")
 
@@ -409,6 +414,12 @@ class DamThermoMechanicSolver(object):
             else:
                 damp_factor_m = -0.01
             scheme = KratosDam.BossakDisplacementSmoothingScheme(damp_factor_m,rayleigh_m,rayleigh_k)
+
+        self._recomputes_nodal_cauchy_stress = isinstance(
+            scheme,
+            (KratosDam.IncrementalUpdateStaticSmoothingScheme,
+             KratosDam.IncrementalUpdateStaticDampedSmoothingScheme,
+             KratosDam.BossakDisplacementSmoothingScheme))
 
         return scheme
 

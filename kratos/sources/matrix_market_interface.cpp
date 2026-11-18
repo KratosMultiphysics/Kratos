@@ -17,7 +17,7 @@
 // Project includes
 #include "includes/default_interface.h"
 #include "includes/ublas_complex_interface.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "includes/matrix_market_interface.h"
 
 namespace Kratos {
@@ -607,18 +607,18 @@ bool WriteMatrixMarketVector(const char *FileName, const VectorType &V)
 }
 
 template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::CompressedMatrix>(const char *FileName, Kratos::CompressedMatrix &M);
-template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::TUblasSparseSpace<float>::MatrixType>(const char *FileName, Kratos::TUblasSparseSpace<float>::MatrixType &M);
+template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::TDefaultSparseSpace<float>::MatrixType>(const char *FileName, Kratos::TDefaultSparseSpace<float>::MatrixType &M);
 template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketMatrix<Kratos::ComplexCompressedMatrix>(const char *FileName, Kratos::ComplexCompressedMatrix &M);
 
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::CompressedMatrix>(const char *FileName, const Kratos::CompressedMatrix &M, bool Symmetric);
-template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::TUblasSparseSpace<float>::MatrixType>(const char *FileName, const Kratos::TUblasSparseSpace<float>::MatrixType &M, bool Symmetric);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::TDefaultSparseSpace<float>::MatrixType>(const char *FileName, const Kratos::TDefaultSparseSpace<float>::MatrixType &M, bool Symmetric);
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketMatrix<Kratos::ComplexCompressedMatrix>(const char *FileName, const Kratos::ComplexCompressedMatrix &M, bool Symmetric);
 
 template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::Vector>(const char *FileName, Kratos::Vector &V);
-template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::TUblasSparseSpace<float>::VectorType>(const char *FileName, Kratos::TUblasSparseSpace<float>::VectorType &V);
+template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::TDefaultSparseSpace<float>::VectorType>(const char *FileName, Kratos::TDefaultSparseSpace<float>::VectorType &V);
 template KRATOS_API(KRATOS_CORE) bool ReadMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, Kratos::ComplexVector &V);
 
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::Vector>(const char *FileName, const Kratos::Vector &V);
-template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::TUblasSparseSpace<float>::VectorType>(const char *FileName, const Kratos::TUblasSparseSpace<float>::VectorType &V);
+template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::TDefaultSparseSpace<float>::VectorType>(const char *FileName, const Kratos::TDefaultSparseSpace<float>::VectorType &V);
 template KRATOS_API(KRATOS_CORE) bool WriteMatrixMarketVector<Kratos::ComplexVector>(const char *FileName, const Kratos::ComplexVector &V);
 }

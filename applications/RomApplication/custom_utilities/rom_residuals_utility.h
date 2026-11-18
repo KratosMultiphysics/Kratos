@@ -172,7 +172,7 @@ namespace Kratos
             Element::EquationIdVectorType equation_id;
             Matrix matrix_residuals( (n_elements + n_conditions), mPetrovGalerkinRomDofs); // Matrix of reduced residuals.
             Matrix psi_elemental;
-            
+
             //dofs container initialization
             Element::DofsVectorType elem_dofs;
             Condition::DofsVectorType cond_dofs;
@@ -283,6 +283,72 @@ namespace Kratos
             }
             return matrix_residuals;
         }
+
+        Matrix GetProjectedResidualsOntoV(
+            Matrix& rV
+        )
+        {
+            const int n_elements = static_cast<int>(mrModelPart.Elements().size());
+            const int n_conditions = static_cast<int>(mrModelPart.Conditions().size());
+
+            const auto& r_current_process_info = mrModelPart.GetProcessInfo();
+
+            //contributions to the system
+            Vector rhs_contribution;
+            int NumberOfLowerModes = rV.size2();
+
+            //vector containing the localization in the system of the different terms
+            Element::EquationIdVectorType equation_id;
+            Matrix matrix_residuals( (n_elements + n_conditions), NumberOfLowerModes);
+            Matrix V_elemental;
+
+            const auto el_begin = mrModelPart.ElementsBegin();
+            const auto cond_begin = mrModelPart.ConditionsBegin();
+
+            //dofs container initialization
+            Element::DofsVectorType elem_dofs;
+            Condition::DofsVectorType cond_dofs;
+            #pragma omp parallel firstprivate(n_elements, n_conditions, rhs_contribution, equation_id, V_elemental, el_begin, cond_begin, elem_dofs, cond_dofs)
+            {
+                #pragma omp for
+                for (int k = 0; k < n_elements; k++){
+                    auto r_element = el_begin + k;
+                    if (r_element->IsDefined(ACTIVE) && r_element->IsNot(ACTIVE)) continue;
+
+                    mpScheme->CalculateRHSContribution(*r_element, rhs_contribution, equation_id, r_current_process_info);
+                    r_element->GetDofList(elem_dofs, r_current_process_info);
+
+                    const std::size_t ndofs = elem_dofs.size();
+                    ResizeIfNeeded(V_elemental, ndofs, NumberOfLowerModes);
+                    RomAuxiliaryUtilities::GetJPhiElemental(V_elemental, elem_dofs, rV);
+
+                    #pragma omp critical
+                    {
+                        noalias(row(matrix_residuals, k)) = prod(trans(V_elemental), rhs_contribution);
+                    }
+                }
+
+                #pragma omp for
+                for (int k = 0; k < n_conditions; k++){
+                    auto r_condition = cond_begin + k;
+                    if (r_condition->IsDefined(ACTIVE) && r_condition->IsNot(ACTIVE)) continue;
+
+                    mpScheme->CalculateRHSContribution(*r_condition, rhs_contribution, equation_id, r_current_process_info);
+                    r_condition->GetDofList(cond_dofs, r_current_process_info);
+
+                    const std::size_t ndofs = cond_dofs.size();
+                    ResizeIfNeeded(V_elemental, ndofs, NumberOfLowerModes);
+                    RomAuxiliaryUtilities::GetJPhiElemental(V_elemental, cond_dofs, rV);
+
+                    #pragma omp critical
+                    {
+                        noalias(row(matrix_residuals, n_elements + k)) = prod(trans(V_elemental), rhs_contribution);
+                    }
+                }
+            }
+            return matrix_residuals;
+        }
+
 
     protected:
         std::vector< std::string > mNodalVariablesNames;

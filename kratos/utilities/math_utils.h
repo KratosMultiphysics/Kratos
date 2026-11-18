@@ -177,7 +177,7 @@ public:
             if (k != j)
                 ia2(j_sub++) = k;
 
-        boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+        matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
         const double first_minor = Det(sub_mat);
         return ((i + j) % 2) ? -first_minor : first_minor;
     }
@@ -1112,7 +1112,7 @@ public:
     {
         KRATOS_TRY
 
-        for(IndexType i = 0; i < rInputVector.size(); ++i) {
+        for(IndexType i = 0; i < static_cast<IndexType>(rInputVector.size()); ++i) {
             rDestination[InitialIndex+i] += rInputVector[i];
         }
         KRATOS_CATCH("")

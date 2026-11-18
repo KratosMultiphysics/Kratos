@@ -90,23 +90,28 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     typedef AnnPromGlobalROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromGlobalROMBuilderAndSolverType;
-    
+
     py::class_<AnnPromGlobalROMBuilderAndSolverType, typename AnnPromGlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromGlobalROMBuilderAndSolver")
     .def(py::init< LinearSolverType::Pointer, Parameters>() )
     .def("SetNumberOfROMModes", &AnnPromGlobalROMBuilderAndSolverType::SetNumberOfROMModes)
     .def("SetDecoderParameters", &AnnPromGlobalROMBuilderAndSolverType::SetDecoderParameters)
     .def("SetNNLayer", &AnnPromGlobalROMBuilderAndSolverType::SetNNLayer)
+    .def("SetRbfDecoderParameters", &AnnPromGlobalROMBuilderAndSolverType::SetRbfDecoderParameters)
     .def("RunDecoder", &AnnPromGlobalROMBuilderAndSolverType::RunDecoder)
+    .def("GetTangentOperatorV", &AnnPromGlobalROMBuilderAndSolverType::GetTangentOperatorV)
     ;
 
     typedef AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
-    
+
     py::class_<AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver")
     .def(py::init< LinearSolverType::Pointer, Parameters>() )
     .def("SetNumberOfROMModes", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNumberOfROMModes)
     .def("SetDecoderParameters", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetDecoderParameters)
     .def("SetNNLayer", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNNLayer)
+    .def("SetRbfDecoderParameters", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetRbfDecoderParameters)
     .def("RunDecoder", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::RunDecoder)
+    .def("GetTangentOperatorV", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::GetTangentOperatorV)
+    .def("BuildAndApplyDirichletConditions", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::BuildAndApplyDirichletConditions)
     ;
 
 }

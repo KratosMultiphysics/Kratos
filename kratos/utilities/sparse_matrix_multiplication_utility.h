@@ -80,6 +80,9 @@ public:
     /// A vector of indexes (signed)
     using SignedIndexVectorType = DenseVector<SignedIndexType>;
 
+    /// The index type of the CSR storage arrays of the compressed matrix
+    using CompressedMatrixIndexType = CompressedMatrix::index_array_type::value_type;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -662,7 +665,7 @@ public:
 
         // Fill the matrices if they are empty
         if (ContributionCoefficients.size1() == 0 && ContributionCoefficients.size2() == 0) {
-            ContributionCoefficients.resize(number_of_rows_blocks, number_of_columns_blocks);
+            ContributionCoefficients.resize(number_of_rows_blocks, number_of_columns_blocks, false);
             for (IndexType i = 0; i < number_of_rows_blocks; ++i) {
                 for (IndexType j = 0; j < number_of_columns_blocks; ++j) {
                     ContributionCoefficients(i, j) = 1.0;
@@ -672,12 +675,8 @@ public:
             KRATOS_ERROR_IF(ContributionCoefficients.size1() != number_of_rows_blocks || ContributionCoefficients.size2() != number_of_columns_blocks) << "The ContributionCoefficients dimensions" << ContributionCoefficients.size1() << " and " << ContributionCoefficients.size2() << "do not coincide with the dimensions of rMatricespBlocks" << number_of_rows_blocks << "and " << number_of_columns_blocks << std::endl;
         }
         if (TransposeBlocks.size1() == 0 && TransposeBlocks.size2() == 0) {
-            TransposeBlocks.resize(number_of_rows_blocks, number_of_columns_blocks);
-            for (IndexType i = 0; i < number_of_rows_blocks; ++i) {
-                for (IndexType j = 0; j < number_of_rows_blocks; ++j) {
-                    TransposeBlocks(i, j) = false;
-                }
-            }
+            TransposeBlocks.resize(number_of_rows_blocks, number_of_columns_blocks, false);
+            TransposeBlocks.clear();
         } else {
             KRATOS_ERROR_IF(TransposeBlocks.size1() != number_of_rows_blocks || TransposeBlocks.size2() != number_of_columns_blocks) << "The TransposeBlocks dimensions" << TransposeBlocks.size1() << " and " << TransposeBlocks.size2() << "do not coincide with the dimensions of rMatricespBlocks" << number_of_rows_blocks << "and " << number_of_columns_blocks << std::endl;
         }
@@ -795,8 +794,8 @@ public:
 
         // Fill the new matrix
         double* Matrix_values = rMatrix.value_data().begin();
-        IndexType* Matrix_index1 = rMatrix.index1_data().begin();
-        IndexType* Matrix_index2 = rMatrix.index2_data().begin();
+        CompressedMatrixIndexType* Matrix_index1 = rMatrix.index1_data().begin();
+        CompressedMatrixIndexType* Matrix_index2 = rMatrix.index2_data().begin();
 
         Matrix_index1[0] = 0;
         for (IndexType i = 0; i < nrows; ++i) {
@@ -848,7 +847,7 @@ public:
         )
     {
         // Get access to aux_K data
-        const IndexType* aux_matrix_index1 = rMatrix.index1_data().begin();
+        const CompressedMatrixIndexType* aux_matrix_index1 = rMatrix.index1_data().begin();
 
         const IndexType row_begin = aux_matrix_index1[CurrentRow];
         const IndexType row_end   = aux_matrix_index1[CurrentRow + 1];
@@ -867,9 +866,10 @@ public:
      * @param RowEnd The last column computed
      * @param InitialIndexColumn The initial column index of the auxiliary block in the final matrix
      */
+    template<class TIndexType>
     static inline void ComputeAuxiliarValuesBlocks(
         const CompressedMatrix& rMatrix,
-        IndexType* AuxIndex2,
+        TIndexType* AuxIndex2,
         double* AuxVals,
         const int CurrentRow,
         IndexType& RowEnd,
@@ -879,8 +879,8 @@ public:
     {
         // Get access to aux_K data
         const double* aux_values = rMatrix.value_data().begin();
-        const IndexType* aux_Matrix_index1 = rMatrix.index1_data().begin();
-        const IndexType* aux_Matrix_index2 = rMatrix.index2_data().begin();
+        const CompressedMatrixIndexType* aux_Matrix_index1 = rMatrix.index1_data().begin();
+        const CompressedMatrixIndexType* aux_Matrix_index2 = rMatrix.index2_data().begin();
 
         const IndexType aux_Matrix_row_begin = aux_Matrix_index1[CurrentRow];
         const IndexType aux_Matrix_row_end   = aux_Matrix_index1[CurrentRow + 1];

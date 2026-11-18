@@ -13,7 +13,8 @@ if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication
 class TestStructuralPGRom(KratosUnittest.TestCase):
 
     def setUp(self):
-        self.relative_tolerance = 1.0e-10
+        # A relative change of 1e-14 in the bases or in the node coordinates changes the static results by 2e-11
+        self.relative_tolerance = 1.0e-9
 
     def testStructuralStaticPGRom2D(self):
         self.work_folder = "structural_static_test_files/PGROM/"
@@ -36,13 +37,7 @@ class TestStructuralPGRom(KratosUnittest.TestCase):
             aux_nodal_area = rom_testing_utilities.GetNodalAreaVector(self.simulation._GetSolver().GetComputingModelPart())
             nodal_area = [aux_nodal_area[int((i-1)/2) if i%2 != 0 else int(i/2)] for i in range(2*len(aux_nodal_area))]
 
-            numerator = 0.0
-            denominator = 0.0
-            for i in range(len(obtained_output)):
-                if expected_output[i] > 1.0e-12:
-                    numerator += nodal_area[i]*((1 - (obtained_output[i]/expected_output[i]))**2)
-                    denominator += nodal_area[i]
-            l2 = np.sqrt(numerator/denominator)*100
+            l2 = rom_testing_utilities.GetRelativeL2Error(expected_output, obtained_output, nodal_area)
             self.assertLess(l2, self.relative_tolerance)
 
 

@@ -39,7 +39,6 @@
 #include "custom_strategies/schemes/incrementalupdate_static_smoothing_scheme.hpp"
 #include "custom_strategies/schemes/incrementalupdate_static_damped_smoothing_scheme.hpp"
 #include "custom_strategies/schemes/bossak_displacement_smoothing_scheme.hpp"
-#include "custom_utilities/transfer_selfweight_stress_utility.hpp"
 
 namespace Kratos
 {

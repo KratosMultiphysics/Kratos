@@ -257,10 +257,10 @@ void SmallStrainUDSMLaw::ResetStateVariables(const Properties& rMaterialProperti
 
     // reset state variables
     int n_state_variables = std::max(GetNumberOfStateVariablesFromUDSM(rMaterialProperties), 1);
-    mStateVariables.resize(n_state_variables);
+    mStateVariables.resize(n_state_variables, false);
     noalias(mStateVariables) = ZeroVector(n_state_variables);
 
-    mStateVariablesFinalized.resize(n_state_variables);
+    mStateVariablesFinalized.resize(n_state_variables, false);
     noalias(mStateVariablesFinalized) = ZeroVector(n_state_variables);
 
     KRATOS_CATCH("")
@@ -875,10 +875,10 @@ Matrix& SmallStrainUDSMLaw::CalculateValue(Parameters& rParameterValues, const V
 Vector& SmallStrainUDSMLaw::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
     if (rVariable == STATE_VARIABLES) {
-        rValue.resize(mStateVariablesFinalized.size());
+        rValue.resize(mStateVariablesFinalized.size(), false);
         noalias(rValue) = mStateVariablesFinalized;
     } else if (rVariable == CAUCHY_STRESS_VECTOR) {
-        rValue.resize(GetStrainSize());
+        rValue.resize(GetStrainSize(), false);
         std::copy_n(mSig0.begin(), GetStrainSize(), rValue.begin());
     }
     return rValue;

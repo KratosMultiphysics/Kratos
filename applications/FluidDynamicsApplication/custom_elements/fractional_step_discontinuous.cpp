@@ -569,7 +569,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateGeometryData(ShapeFunctionDeriv
                 rGaussWeights.resize(ndivisions, false);
             if (rNContainer.size1() != ndivisions || rNContainer.size2() != TDim + 1)
                 rNContainer.resize(ndivisions, TDim + 1, false);
-            rDN_DX.resize(ndivisions);
+            rDN_DX.resize(ndivisions, false);
 
             //KRATOS_WATCH(this->Id())
             for (unsigned int g = 0; g < ndivisions; g++)
@@ -690,14 +690,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
             noalias(block) -= nn_matrix;
             //KRATOS_WATCH(block)
 
-            const auto tangential_projection = [&block](const array_1d<double, 3>& rVector) {
-                array_1d<double, TDim> result = ZeroVector(TDim);
-                for (unsigned int d = 0; d < TDim; ++d)
-                    for (unsigned int e = 0; e < TDim; ++e)
-                        result[d] += block(d, e) * rVector[e];
-                return result;
-            };
-            array_1d<double, TDim> tangent_vel_dirichlet = tangential_projection(embedded_vel);
+            const array_1d<double, TDim> tangent_vel_dirichlet = prod(block, subrange(embedded_vel, 0, TDim));
             //          KRATOS_WATCH(tangent_vel_dirichlet)
 
             //add tangential component
@@ -711,7 +704,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
                 {
                     unsigned int base_i = i * (TDim);
 
-                    const array_1d<double, TDim> tangent_vi = tangential_projection(this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
+                    const array_1d<double, TDim> tangent_vi = prod(block, subrange(this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY), 0, TDim));
 
                     const double di = std::max(min_dist_in_viscous_term, fabs(distances[i])); //avoid divisions by zero
 
@@ -719,7 +712,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
 
                     for (unsigned int j = i + 1; j < TDim + 1; j++)
                     {
-                        array_1d<double, TDim> tangent_vj = tangential_projection(this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY));
+                        const array_1d<double, TDim> tangent_vj = prod(block, subrange(this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY), 0, TDim));
 
                         const double dj = std::max(min_dist_in_viscous_term, fabs(distances[j])); //avoid divisions by zero
                         const double coeff_j = Viscosity / dj;

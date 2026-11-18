@@ -238,8 +238,8 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::QSVMSResidualData::Initialize(
                               r_geometry, mpElement->GetProperties(), rProcessInfo);
 
     // setting up adjoint derivative variables
-    mStrainRateDerivative.resize(TStrainSize);
-    mShearStressDerivative.resize(TStrainSize);
+    mStrainRateDerivative.resize(TStrainSize, false);
+    mShearStressDerivative.resize(TStrainSize, false);
 
     KRATOS_CATCH("");
 }
@@ -393,8 +393,8 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::InitializeConstitutiveLaw(
     const PropertiesType& rProperties,
     const ProcessInfo& rProcessInfo)
 {
-    rStrainVector.resize(TStrainSize);
-    rStressVector.resize(TStrainSize);
+    rStrainVector.resize(TStrainSize, false);
+    rStressVector.resize(TStrainSize, false);
     rConstitutiveMatrix.resize(TStrainSize, TStrainSize, false);
 
     rParameters = ConstitutiveLaw::Parameters(rGeometry, rProperties, rProcessInfo);
