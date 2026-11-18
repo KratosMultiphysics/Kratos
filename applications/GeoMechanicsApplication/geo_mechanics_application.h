@@ -439,12 +439,14 @@ private:
         std::make_unique<PlaneStrainStressState>()};
     // For 10-noded and 15-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
     // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
-    // const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D10N{
-    //     0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-    //     std::make_unique<PlaneStrainStressState>()};
-    // const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D15N{
-    //     0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-    //     std::make_unique<PlaneStrainStressState>()};
+#if 0
+    const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D10N{
+        0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
+        std::make_unique<PlaneStrainStressState>()};
+    const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D15N{
+        0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
+        std::make_unique<PlaneStrainStressState>()};
+#endif
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D10N{
         0, Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
         std::make_unique<ThreeDimensionalStressState>()};
@@ -508,14 +510,16 @@ private:
         std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     // For 10-noded and 15-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
     // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
-    // const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D10N{
-    //     0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-    //     std::make_unique<AxisymmetricStressState>(),
-    //     std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
-    // const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D15N{
-    //     0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-    //     std::make_unique<AxisymmetricStressState>(),
-    //     std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
+#if 0
+    const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D10N{
+        0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
+    const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderAxisymmetricElement2D15N{
+        0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
+#endif
 
     // interface elements
     const UPwSmallStrainInterfaceElement<2, 4> mUPwSmallStrainInterfaceElement2D4N{
@@ -617,12 +621,14 @@ private:
         std::make_unique<PlaneStrainStressState>()};
     // For 10-noded and 15-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
     // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
-    // const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D10N{
-    //     0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-    //     std::make_unique<PlaneStrainStressState>()};
-    // const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D15N{
-    //     0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-    //     std::make_unique<PlaneStrainStressState>()};
+#if 0
+    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D10N{
+        0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
+        std::make_unique<PlaneStrainStressState>()};
+    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement2D15N{
+        0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
+        std::make_unique<PlaneStrainStressState>()};
+#endif
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D10N{
         0, Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
         std::make_unique<ThreeDimensionalStressState>()};
@@ -677,14 +683,16 @@ private:
         std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
     // For 10-noded and 15-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
     // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
-    // const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D10N{
-    //     0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-    //     std::make_unique<AxisymmetricStressState>(),
-    //     std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
-    // const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D15N{
-    //     0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-    //     std::make_unique<AxisymmetricStressState>(),
-    //     std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
+#if 0
+    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D10N{
+        0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
+    const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D15N{
+        0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
+        std::make_unique<AxisymmetricStressState>(),
+        std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
+#endif
 
     const UPwUpdatedLagrangianFICElement<2, 3> mUPwUpdatedLagrangianAxisymmetricFICElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
