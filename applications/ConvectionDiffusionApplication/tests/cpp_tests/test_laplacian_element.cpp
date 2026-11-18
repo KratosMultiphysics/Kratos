@@ -17,6 +17,7 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/convection_diffusion_settings.h"
+#include "utilities/gap_quadrature_utility.h"
 
 // Application includes
 #include "convection_diffusion_application.h"
@@ -69,6 +70,43 @@ namespace Testing
 
         KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
         KRATOS_EXPECT_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(LaplacianElement2D4NGapQuadrature, KratosConvectionDiffusionFastSuite)
+    {
+        Model model;
+        auto& r_part = model.CreateModelPart("TestModelPart");
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_part);
+        r_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        r_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        r_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+        r_part.CreateNewNode(4, 0.0, 1.0, 0.0);
+        std::vector<ModelPart::IndexType> ids{1, 2, 3, 4};
+        auto p_parent = r_part.CreateNewElement("LaplacianElement2D4N", 1, ids, r_part.pGetProperties(0));
+        for (auto& r_node : r_part.Nodes()) {
+            r_node.FastGetSolutionStepValue(HEAT_FLUX) = 1.0;
+            r_node.FastGetSolutionStepValue(CONDUCTIVITY) = 1.0;
+        }
+        Geometry<Node>::IntegrationPointsArrayType points;
+        points.emplace_back(1.0 / 6.0, 1.0 / 6.0, 0.0, 1.0 / 6.0);
+        points.emplace_back(2.0 / 3.0, 1.0 / 6.0, 0.0, 1.0 / 6.0);
+        points.emplace_back(1.0 / 6.0, 2.0 / 3.0, 0.0, 1.0 / 6.0);
+        auto p_geometry = GapQuadratureUtility::Create(p_parent->GetGeometry(), points);
+        auto p_gap = p_parent->Create(2, p_geometry, p_parent->pGetProperties());
+        Matrix lhs;
+        Vector rhs;
+        p_gap->CalculateLocalSystem(lhs, rhs, r_part.GetProcessInfo());
+        double rhs_sum = 0.0;
+        for (std::size_t i = 0; i < 4; ++i) {
+            rhs_sum += rhs[i];
+            double row_sum = 0.0;
+            for (std::size_t j = 0; j < 4; ++j) {
+                KRATOS_EXPECT_NEAR(lhs(i, j), lhs(j, i), 1.0e-12);
+                row_sum += lhs(i, j);
+            }
+            KRATOS_EXPECT_NEAR(row_sum, 0.0, 1.0e-12);
+        }
+        KRATOS_EXPECT_NEAR(rhs_sum, 0.5, 1.0e-12);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(LaplacianElement3D4N, KratosConvectionDiffusionFastSuite)
