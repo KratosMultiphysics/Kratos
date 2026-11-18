@@ -574,8 +574,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(IMPOSED_Z_STRAIN_OPTION)
 
     //Register the truss element
-    KRATOS_REGISTER_ELEMENT("TrussElement3D2N", mTrussElement3D2N)
-    KRATOS_REGISTER_ELEMENT("TrussLinearElement3D2N", mTrussLinearElement3D2N)
+    // Deprecated elements, to be removed by Dec 2026
+    KRATOS_REGISTER_ELEMENT("LegacyTrussElement3D2N", mTrussElement3D2N)
+    KRATOS_REGISTER_ELEMENT("LegacyTrussLinearElement3D2N", mTrussLinearElement3D2N)
     KRATOS_REGISTER_ELEMENT("CableElement3D2N", mCableElement3D2N)
     KRATOS_REGISTER_ELEMENT("LinearTrussElement2D2N", mLinearTrussElement2D2N)
     KRATOS_REGISTER_ELEMENT("LinearTrussElement2D3N", mLinearTrussElement2D3N)
@@ -585,10 +586,11 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TotalLagrangianTrussElement3D2N", mTotalLagrangianTrussElement3D2N)
 
     // Register the beam element
-    KRATOS_REGISTER_ELEMENT("CrBeamElement3D2N", mCrBeamElement3D2N)
-    KRATOS_REGISTER_ELEMENT("CrLinearBeamElement3D2N", mCrLinearBeamElement3D2N)
-    KRATOS_REGISTER_ELEMENT("CrBeamElement2D2N", mCrBeamElement2D2N)
-    KRATOS_REGISTER_ELEMENT("CrLinearBeamElement2D2N", mCrLinearBeamElement2D2N)
+    // Deprecated elements, to be removed by Dec 2026
+    KRATOS_REGISTER_ELEMENT("LegacyCrBeamElement3D2N", mCrBeamElement3D2N)
+    KRATOS_REGISTER_ELEMENT("LegacyCrLinearBeamElement3D2N", mCrLinearBeamElement3D2N)
+    KRATOS_REGISTER_ELEMENT("LegacyCrBeamElement2D2N", mCrBeamElement2D2N)
+    KRATOS_REGISTER_ELEMENT("LegacyCrLinearBeamElement2D2N", mCrLinearBeamElement2D2N)
     KRATOS_REGISTER_ELEMENT("LinearTimoshenkoBeamElement2D2N", mLinearTimoshenkoBeamElement2D2N)
     KRATOS_REGISTER_ELEMENT("LinearTimoshenkoBeamElement3D2N", mLinearTimoshenkoBeamElement3D2N)
     KRATOS_REGISTER_ELEMENT("LinearTimoshenkoBeamElement2D3N", mLinearTimoshenkoBeamElement2D3N)
@@ -596,7 +598,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("LinearTimoshenkoCurvedBeamElement3D3N", mLinearTimoshenkoCurvedBeamElement3D3N)
 
     //Register the shells elements
-    KRATOS_REGISTER_ELEMENT("IsotropicShellElement3D3N", mIsotropicShellElement3D3N)
+    // Deprecated elements, to be removed by Dec 2026
+    KRATOS_REGISTER_ELEMENT("LegacyIsotropicShellElement3D3N", mIsotropicShellElement3D3N)
     KRATOS_REGISTER_ELEMENT("MITCThickShellElement3D4N", mMITCThickShellElement3D4N)
     KRATOS_REGISTER_ELEMENT("MITCThickShellCorotationalElement3D4N", mMITCThickShellCorotationalElement3D4N)
 
@@ -605,13 +608,13 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N) // It uses MITC
 
     // Deprecated elements, to be removed by Dec 2026
-    KRATOS_REGISTER_ELEMENT("LegacyThickShellElement3D4N", mLegacyThickShellElement3D4N)
-    KRATOS_REGISTER_ELEMENT("LegacyThickShellCorotationalElement3D4N", mLegacyThickShellCorotationalElement3D4N)
+    KRATOS_REGISTER_ELEMENT("LegacyShellThickElement3D4N", mLegacyThickShellElement3D4N)
+    KRATOS_REGISTER_ELEMENT("LegacyShellThickCorotationalElement3D4N", mLegacyThickShellCorotationalElement3D4N)
 
-    KRATOS_REGISTER_ELEMENT("ShellThinElementCorotational3D4N", mShellThinCorotationalElement3D4N)
-    KRATOS_REGISTER_ELEMENT("ShellThinElement3D3N", mShellThinElement3D3N)
-    KRATOS_REGISTER_ELEMENT("ShellThickElementCorotational3D3N", mShellThickCorotationalElement3D3N)
-    KRATOS_REGISTER_ELEMENT("ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N)
+    KRATOS_REGISTER_ELEMENT("LegacyShellThinElementCorotational3D4N", mShellThinCorotationalElement3D4N)
+    KRATOS_REGISTER_ELEMENT("LegacyShellThinElement3D3N", mShellThinElement3D3N)
+    KRATOS_REGISTER_ELEMENT("LegacyShellThickElementCorotational3D3N", mShellThickCorotationalElement3D3N)
+    KRATOS_REGISTER_ELEMENT("LegacyShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N)
 
     KRATOS_REGISTER_ELEMENT("CSDSG3ThickShellLinearElement3D3N", mCSDSG3ThickShellLinearElement3D3N)
     KRATOS_REGISTER_ELEMENT("CSDSG3ThickShellCorotationalElement3D3N", mCSDSG3ThickShellCorotationalElement3D3N)
