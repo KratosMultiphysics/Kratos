@@ -107,6 +107,45 @@ KRATOS_TEST_CASE_IN_SUITE(FunctionParser, KratosCoreFastSuite)
     KRATOS_EXPECT_DOUBLE_EQ(function4(0.25,0.15,0.0,1.5), 1.5*(std::cos(0.25*Globals::Pi) + std::sin(0.15*Globals::Pi)));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GenericFunctionUtilityCopyAndAssignment, KratosCoreFastSuite)
+{
+    //BasicGenericFunctionUtility owns raw te_expr* pointers (tinyexpr trees compiled against
+    //its own mValues). Copied and assigned instances must evaluate independently of the
+    //source and destruct safely (a shallow copy would double-free the trees and would read
+    //the values of the source object instead of its own ones).
+    auto function = GenericFunctionUtility("2*x");
+    function.CallFunction(5.0,0.0,0.0,0.0);  // leave the source at x=5 so a shared tree cannot mask errors
+
+    //Copy constructor
+    auto function_copy = GenericFunctionUtility(function);
+    KRATOS_EXPECT_DOUBLE_EQ(function_copy.CallFunction(3.0,0.0,0.0,0.0), 6.0);
+    KRATOS_EXPECT_DOUBLE_EQ(function.CallFunction(5.0,0.0,0.0,0.0), 10.0);
+
+    //Copy assignment
+    GenericFunctionUtility function_assigned("3*x");
+    function_assigned = function;
+    KRATOS_EXPECT_DOUBLE_EQ(function_assigned.CallFunction(3.0,0.0,0.0,0.0), 6.0);
+    KRATOS_EXPECT_DOUBLE_EQ(function.CallFunction(5.0,0.0,0.0,0.0), 10.0);
+    KRATOS_EXPECT_EQ(function_assigned.FunctionBody(), "2*x");
+
+    //Clone must also produce an independent instance
+    auto p_cloned = function.Clone();
+    KRATOS_EXPECT_DOUBLE_EQ(p_cloned->CallFunction(7.0,0.0,0.0,0.0), 14.0);
+    KRATOS_EXPECT_DOUBLE_EQ(function.CallFunction(5.0,0.0,0.0,0.0), 10.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GenericFunctionUtilityTernary, KratosCoreFastSuite)
+{
+    //A single (non-nested) ternary expression is supported and evaluates both branches
+    auto function = GenericFunctionUtility("x if t<1 else 2*x");
+    KRATOS_EXPECT_DOUBLE_EQ(function.CallFunction(3.0,0.0,0.0,0.5), 3.0);
+    KRATOS_EXPECT_DOUBLE_EQ(function.CallFunction(3.0,0.0,0.0,2.0), 6.0);
+
+    //Nested ternary expressions must be rejected with the intended error
+    //instead of being silently truncated to the first if/else pair
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GenericFunctionUtility("x if t<1 else 2*x if t<2 else 3*x"), "Nested ternary functions not supported");
+}
+
 KRATOS_TEST_CASE_IN_SUITE(FunctionParserHexNumbers, KratosCoreFastSuite)
 {
     auto fun_0 = GenericFunctionUtility("2 + 0xB0B0");

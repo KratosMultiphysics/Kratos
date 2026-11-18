@@ -84,6 +84,9 @@ public:
     ///Copy constructor
     BasicGenericFunctionUtility(BasicGenericFunctionUtility const& rOther);
 
+    ///Copy assignment operator
+    BasicGenericFunctionUtility& operator=(const BasicGenericFunctionUtility& rOther);
+
     /// Destructor.
     virtual ~BasicGenericFunctionUtility();
 

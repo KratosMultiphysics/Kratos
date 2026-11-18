@@ -80,6 +80,32 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(BasicGenericFunctionUti
 /***********************************************************************************/
 /***********************************************************************************/
 
+BasicGenericFunctionUtility& BasicGenericFunctionUtility::operator=(const BasicGenericFunctionUtility& rOther)
+{
+    if (this != &rOther) {
+        // This class owns the raw te_expr* pointers and the compiled trees are bound to its own
+        // mValues. The implicitly generated assignment would shallow-copy the pointers (double
+        // free at destruction) and the copy would evaluate against the values of rOther.
+        // Free the current trees and recompile an independent one, as the copy constructor does.
+        for (std::size_t i = 0; i < mpTinyExpr.size(); ++i) {
+            te_free(mpTinyExpr[i]);
+            mpTinyExpr[i] = nullptr;
+        }
+        mpTinyExpr = std::vector<te_expr*>(1, nullptr);
+
+        mValues = rOther.mValues;
+        mFunctionBody = rOther.mFunctionBody;
+        mDependsOnSpace = rOther.mDependsOnSpace;
+
+        // Initialize parser classes
+        InitializeParser();
+    }
+    return *this;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 BasicGenericFunctionUtility::~BasicGenericFunctionUtility()
 {
     for (std::size_t i = 0; i < mpTinyExpr.size(); ++i) {
@@ -197,11 +223,14 @@ void BasicGenericFunctionUtility::InitializeParser()
             std::vector<std::string> splitted_string;
             KRATOS_ERROR_IF_NOT(StringUtilities::ContainsPartialString(mFunctionBody, "else")) << "Parsing error in function: " << mFunctionBody << " if defined, but not else" << std::endl;
             std::string aux_string = StringUtilities::ReplaceAllSubstrings(mFunctionBody, "if", "$");
-            KRATOS_ERROR_IF(splitted_string.size() > 2) << "Nested ternary functions not supported" << std::endl;
             splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
+            KRATOS_ERROR_IF(splitted_string.size() > 2) << "Nested ternary functions not supported" << std::endl;
+            KRATOS_ERROR_IF(splitted_string.size() < 2) << "Parsing error in function: " << mFunctionBody << " malformed ternary expression" << std::endl;
             first_function = splitted_string[0];
             aux_string = StringUtilities::ReplaceAllSubstrings(splitted_string[1], "else", "$");
             splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
+            KRATOS_ERROR_IF(splitted_string.size() > 2) << "Nested ternary functions not supported" << std::endl;
+            KRATOS_ERROR_IF(splitted_string.size() < 2) << "Parsing error in function: " << mFunctionBody << " malformed ternary expression" << std::endl;
             condition = splitted_string[0];
             second_function = splitted_string[1];
 
