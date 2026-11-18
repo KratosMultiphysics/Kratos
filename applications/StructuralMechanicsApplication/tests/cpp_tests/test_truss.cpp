@@ -324,7 +324,7 @@ double CalculateExpectedAxialForceOfTrussElement3D2N(double Elongation)
         AddDisplacementDofsElement(r_model_part);
 
         std::vector<ModelPart::IndexType> element_nodes {1,2};
-        auto p_element = r_model_part.CreateNewElement("TrussElement3D2N", 1, element_nodes, p_elem_prop);
+        auto p_element = r_model_part.CreateNewElement("LegacyTrussElement3D2N", 1, element_nodes, p_elem_prop);
 
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
@@ -419,7 +419,7 @@ double CalculateExpectedAxialForceOfTrussElement3D2N(double Elongation)
         AddDisplacementDofsElement(r_model_part);
 
         std::vector<ModelPart::IndexType> element_nodes {1,2};
-        auto p_element = r_model_part.CreateNewElement("TrussElement3D2N", 1, element_nodes, p_elem_prop);
+        auto p_element = r_model_part.CreateNewElement("LegacyTrussElement3D2N", 1, element_nodes, p_elem_prop);
 
         const auto& r_process_info = r_model_part.GetProcessInfo();
 
@@ -471,7 +471,7 @@ double CalculateExpectedAxialForceOfTrussElement3D2N(double Elongation)
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, CreateStubBilinearLaw(elongation, length, tangent_modulus_1, tangent_modulus_2));
 
         std::vector<ModelPart::IndexType> element_nodes {p_bottom_node->Id(), p_top_node->Id()};
-        auto p_element = r_model_part.CreateNewElement("TrussElement3D2N", 1, element_nodes, p_elem_prop);
+        auto p_element = r_model_part.CreateNewElement("LegacyTrussElement3D2N", 1, element_nodes, p_elem_prop);
         p_element->Initialize(r_model_part.GetProcessInfo());
 
         p_bottom_node->FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
@@ -499,7 +499,7 @@ double CalculateExpectedAxialForceOfTrussElement3D2N(double Elongation)
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, CreateStubBilinearLaw(elongation, length, tangent_modulus_1, tangent_modulus_2));
 
         std::vector<ModelPart::IndexType> element_nodes {p_bottom_node->Id(), p_top_node->Id()};
-        auto p_element = r_model_part.CreateNewElement("TrussLinearElement3D2N", 1, element_nodes, p_elem_prop);
+        auto p_element = r_model_part.CreateNewElement("LegacyTrussLinearElement3D2N", 1, element_nodes, p_elem_prop);
         p_element->Initialize(r_model_part.GetProcessInfo());
 
         p_bottom_node->FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
@@ -521,7 +521,7 @@ double CalculateExpectedAxialForceOfTrussElement3D2N(double Elongation)
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, std::make_shared<StubBilinearLaw>());
         const std::vector<ModelPart::IndexType> element_nodes {p_bottom_node->Id(), p_top_node->Id()};
-        auto p_element = r_model_part.CreateNewElement("TrussLinearElement3D2N", 1, element_nodes, p_elem_prop);
+        auto p_element = r_model_part.CreateNewElement("LegacyTrussLinearElement3D2N", 1, element_nodes, p_elem_prop);
 
         p_element->Initialize(r_model_part.GetProcessInfo());
         std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
@@ -532,7 +532,7 @@ double CalculateExpectedAxialForceOfTrussElement3D2N(double Elongation)
 
     KRATOS_TEST_CASE_IN_SUITE(TrussElementLinear3D2N_CalculatesPK2Stress, KratosStructuralMechanicsFastSuite)
     {
-        CreateTrussModel2N_and_CheckPK2Stress("TrussLinearElement3D2N");
+        CreateTrussModel2N_and_CheckPK2Stress("LegacyTrussLinearElement3D2N");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(LinearTrussElement2D2N_CalculatesPK2Stress, KratosStructuralMechanicsFastSuite)
@@ -586,7 +586,7 @@ double CalculateExpectedAxialForceOfTrussElement3D2N(double Elongation)
     KRATOS_TEST_CASE_IN_SUITE(TrussElement3D2N_CalculatesInternalAndExternalForces, KratosStructuralMechanicsFastSuite)
     {
         constexpr auto elongation = 0.03;
-        CreateTruss3D2NModel_and_CheckInternalAndExternalForces("TrussElement3D2N", elongation,
+        CreateTruss3D2NModel_and_CheckInternalAndExternalForces("LegacyTrussElement3D2N", elongation,
             CalculateExpectedAxialForceOfTrussElement3D2N(elongation));
     }
 
@@ -595,7 +595,7 @@ double CalculateExpectedAxialForceOfTrussElement3D2N(double Elongation)
         constexpr auto elongation = 0.03;
         constexpr auto expected_axial_force =
             (truss_3D2N_youngs_modulus * elongation / truss_3D2N_length + truss_3D2N_pre_stress) * truss_3D2N_area;
-        CreateTruss3D2NModel_and_CheckInternalAndExternalForces("TrussLinearElement3D2N", elongation, expected_axial_force);
+        CreateTruss3D2NModel_and_CheckInternalAndExternalForces("LegacyTrussLinearElement3D2N", elongation, expected_axial_force);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(CableElement3D2N_CalculatesInternalAndExternalForcesInTension, KratosStructuralMechanicsFastSuite)
@@ -619,7 +619,7 @@ double CalculateExpectedAxialForceOfTrussElement3D2N(double Elongation)
         auto [p_bottom_node, p_top_node] = CreateEndNodes(r_model_part, 2.0);
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
         const std::vector<ModelPart::IndexType> element_nodes {p_bottom_node->Id(), p_top_node->Id()};
-        auto p_element = r_model_part.CreateNewElement("TrussElement3D2N", 1, element_nodes, p_elem_prop);
+        auto p_element = r_model_part.CreateNewElement("LegacyTrussElement3D2N", 1, element_nodes, p_elem_prop);
 
         Vector output;
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Calculate(PK2_STRESS_VECTOR, output, r_model_part.GetProcessInfo()),

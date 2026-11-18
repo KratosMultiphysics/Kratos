@@ -165,8 +165,8 @@ KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_3N_LumpedMassMatrix, KratosSt
         ref_mass_matrix(idx+2, idx+2) = ref_val;
     }
 
-    ConductShellMassMatrixTest("ShellThickElementCorotational3D3N", ref_mass_matrix, true);
-    ConductShellMassMatrixTest("ShellThinElementCorotational3D3N", ref_mass_matrix, true);
+    ConductShellMassMatrixTest("LegacyShellThickElementCorotational3D3N", ref_mass_matrix, true);
+    ConductShellMassMatrixTest("LegacyShellThinElementCorotational3D3N", ref_mass_matrix, true);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_4N_LumpedMassMatrix, KratosStructuralMechanicsFastSuite)
@@ -182,7 +182,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_4N_LumpedMassMatrix, KratosSt
     }
 
     ConductShellMassMatrixTest("MITCThickShellElement3D4N", ref_mass_matrix, true);
-    ConductShellMassMatrixTest("ShellThinElementCorotational3D4N", ref_mass_matrix, true);
+    ConductShellMassMatrixTest("LegacyShellThinElementCorotational3D4N", ref_mass_matrix, true);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_3N_ConsistentMassMatrix, KratosStructuralMechanicsFastSuite)
@@ -209,8 +209,8 @@ KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_3N_ConsistentMassMatrix, Krat
     ref_mass_matrix(16,4)=0.003472222222222; ref_mass_matrix(16,10)=0.003472222222222; ref_mass_matrix(16,16)=0.006944444444444;
     ref_mass_matrix(17,5)=0.003472222222222; ref_mass_matrix(17,11)=0.003472222222222; ref_mass_matrix(17,17)=0.006944444444444;
 
-    ConductShellMassMatrixTest("ShellThickElementCorotational3D3N", ref_mass_matrix, false);
-    ConductShellMassMatrixTest("ShellThinElementCorotational3D3N", ref_mass_matrix, false);
+    ConductShellMassMatrixTest("LegacyShellThickElementCorotational3D3N", ref_mass_matrix, false);
+    ConductShellMassMatrixTest("LegacyShellThinElementCorotational3D3N", ref_mass_matrix, false);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_4N_ConsistentMassMatrix, KratosStructuralMechanicsFastSuite)
@@ -252,7 +252,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_4N_ConsistentMassMatrix, Krat
     ref_mass_matrix(23,11)=0.009259259259259; ref_mass_matrix(23,17)=0.01851851851852; ref_mass_matrix(23,23)=0.03703703703704;
 
     ConductShellMassMatrixTest("MITCThickShellElement3D4N", ref_mass_matrix, false);
-    ConductShellMassMatrixTest("ShellThinElementCorotational3D4N", ref_mass_matrix, false);
+    ConductShellMassMatrixTest("LegacyShellThinElementCorotational3D4N", ref_mass_matrix, false);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ShellThickElementCorotational3D3N_DampingMatrix, KratosStructuralMechanicsFastSuite)
@@ -301,7 +301,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShellThickElementCorotational3D3N_DampingMatrix, Krato
     ref_damping_matrix(17,0)=-1.818216573204; ref_damping_matrix(17,1)=1.818216573203; ref_damping_matrix(17,2)=0.001817304966422;
     ref_damping_matrix(17,7)=-1.817307465144; ref_damping_matrix(17,12)=1.817307465144; ref_damping_matrix(17,17)=3.634615384615;
 
-    ConductShellDampingMatrixTest("ShellThickElementCorotational3D3N", ref_damping_matrix);
+    ConductShellDampingMatrixTest("LegacyShellThickElementCorotational3D3N", ref_damping_matrix);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ShellThinElementCorotational3D3N_DampingMatrix, KratosStructuralMechanicsFastSuite)
@@ -362,7 +362,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShellThinElementCorotational3D3N_DampingMatrix, Kratos
     ref_damping_matrix(17,11)=-139.2895299145; ref_damping_matrix(17,12)=695.5128205128; ref_damping_matrix(17,13)=706.7307692308;
     ref_damping_matrix(17,17)=580.5288461538;
 
-    ConductShellDampingMatrixTest("ShellThinElementCorotational3D3N", ref_damping_matrix);
+    ConductShellDampingMatrixTest("LegacyShellThinElementCorotational3D3N", ref_damping_matrix);
 }
 
 
@@ -586,7 +586,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShellThinElementCorotational3D4N_DampingMatrix, Kratos
     ref_damping_matrix(23,13)=48.46153846154; ref_damping_matrix(23,18)=759.2307692308; ref_damping_matrix(23,19)=759.2307692308;
     ref_damping_matrix(23,23)=1233.076923077;
 
-    ConductShellDampingMatrixTest("ShellThinElementCorotational3D4N", ref_damping_matrix);
+    ConductShellDampingMatrixTest("LegacyShellThinElementCorotational3D4N", ref_damping_matrix);
 }
 
 }
