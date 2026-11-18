@@ -162,7 +162,7 @@ class TestSerializer(KratosUnittest.TestCase):
 
             # create beam element
             for i in range(model_part.NumberOfNodes() - 1):
-                element: KratosMultiphysics.Element = model_part.CreateNewElement("CrBeamElement3D2N", i + 1, [i + 1, i + 2], properties)
+                element: KratosMultiphysics.Element = model_part.CreateNewElement("LegacyCrBeamElement3D2N", i + 1, [i + 1, i + 2], properties)
                 element.SetValue(KratosMultiphysics.PRESSURE, (10.0 + i) * factor * 2)
                 element.SetValue(KratosMultiphysics.VELOCITY, KratosMultiphysics.Array3([(1.1 + i) * factor * 2, (2.1 + i) * factor * 2, (3.1 + i) * factor * 2]))
                 element.SetValue(KratosMultiphysics.RECOVERED_STRESS, KratosMultiphysics.Vector([(1.1 + i) * factor * 2, (1.2 + i) * factor * 2, (2.3 + i) * factor * 2, (2.1 + i) * factor * 2, (2.4 + i) * factor * 2, (6.4 + i) * factor * 2]))
