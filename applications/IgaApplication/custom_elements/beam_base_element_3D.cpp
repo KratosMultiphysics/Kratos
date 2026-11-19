@@ -255,7 +255,7 @@ namespace Kratos
                 norm_2(rFirstBaseVector);
 
             const double first_base_vector_norm_cubed =
-                pow(first_base_vector_norm, 3);
+                std::pow(first_base_vector_norm, 3);
 
             Vector first_base_vector_variation;
             first_base_vector_variation.resize(
@@ -343,10 +343,10 @@ namespace Kratos
                 norm_2(rFirstBaseVector);
 
             const double first_base_vector_norm_cubed =
-                pow(first_base_vector_norm, 3);
+                std::pow(first_base_vector_norm, 3);
 
             const double first_base_vector_norm_fifth =
-                pow(first_base_vector_norm, 5);
+                std::pow(first_base_vector_norm, 5);
 
             Vector first_base_vector_variation;
             first_base_vector_variation.resize(
@@ -618,7 +618,7 @@ namespace Kratos
                         -
                         rSecondBaseVector[component] *
                             first_base_vector_dot_first_variation[dof_index] /
-                            pow(first_base_vector_norm, 3);
+                            std::pow(first_base_vector_norm, 3);
 
                     rTangentDerivativeVariation[
                         component * mNumberOfDofs + dof_index] +=
@@ -626,7 +626,7 @@ namespace Kratos
                             first_base_vector_dot_first_variation[dof_index] *
                             first_second_base_vector_product *
                             rFirstBaseVector[component] /
-                            pow(first_base_vector_norm, 5)
+                            std::pow(first_base_vector_norm, 5)
                         -
                         (
                             first_base_vector_variation[
@@ -640,7 +640,7 @@ namespace Kratos
                             ) *
                             rFirstBaseVector[component]
                         ) /
-                        pow(first_base_vector_norm, 3);
+                        std::pow(first_base_vector_norm, 3);
                 }
             }
         }
@@ -666,13 +666,13 @@ namespace Kratos
                 norm_2(rFirstBaseVector);
 
             const double first_base_vector_norm_cubed =
-                pow(first_base_vector_norm, 3);
+                std::pow(first_base_vector_norm, 3);
 
             const double first_base_vector_norm_fifth =
-                pow(first_base_vector_norm, 5);
+                std::pow(first_base_vector_norm, 5);
 
             const double first_base_vector_norm_seventh =
-                pow(first_base_vector_norm, 7);
+                std::pow(first_base_vector_norm, 7);
 
             Vector first_base_vector_variation =
                 ZeroVector(3 * mNumberOfDofs);
@@ -1114,7 +1114,7 @@ namespace Kratos
                         -
                         rThirdBaseVector[component] *
                             first_base_vector_dot_first_variation[dof_index] /
-                            pow(first_base_vector_norm, 3);
+                            std::pow(first_base_vector_norm, 3);
 
                     rTangentSecondDerivativeVariation[
                         component * mNumberOfDofs + dof_index] +=
@@ -1126,13 +1126,13 @@ namespace Kratos
                             rSecondBaseVector[component] *
                                 first_second_product_variation[dof_index]
                         ) /
-                        pow(first_base_vector_norm, 3)
+                        std::pow(first_base_vector_norm, 3)
                         +
                         3.0 *
                             rSecondBaseVector[component] *
                             first_second_base_vector_product *
                             first_base_vector_dot_first_variation[dof_index] /
-                            pow(first_base_vector_norm, 5);
+                            std::pow(first_base_vector_norm, 5);
 
                     rTangentSecondDerivativeVariation[
                         component * mNumberOfDofs + dof_index] +=
@@ -1151,7 +1151,7 @@ namespace Kratos
                             rFirstBaseVector[component] *
                                 first_second_product_derivative_variation[dof_index]
                         ) /
-                        pow(first_base_vector_norm, 3)
+                        std::pow(first_base_vector_norm, 3)
                         +
                         3.0 *
                             (
@@ -1162,7 +1162,7 @@ namespace Kratos
                                     first_second_base_vector_product_derivative
                             ) *
                             first_base_vector_dot_first_variation[dof_index] /
-                            pow(first_base_vector_norm, 5);
+                            std::pow(first_base_vector_norm, 5);
 
                     rTangentSecondDerivativeVariation[
                         component * mNumberOfDofs + dof_index] +=
@@ -1170,20 +1170,20 @@ namespace Kratos
                             (
                                 first_base_vector_variation[
                                     component * mNumberOfDofs + dof_index] *
-                                    pow(first_second_base_vector_product, 2)
+                                    std::pow(first_second_base_vector_product, 2)
                                 +
                                 rFirstBaseVector[component] *
                                     2.0 *
                                     first_second_base_vector_product *
                                     first_second_product_variation[dof_index]
                             ) /
-                            pow(first_base_vector_norm, 5)
+                            std::pow(first_base_vector_norm, 5)
                         -
                         15.0 *
                             rFirstBaseVector[component] *
-                            pow(first_second_base_vector_product, 2) *
+                            std::pow(first_second_base_vector_product, 2) *
                             first_base_vector_dot_first_variation[dof_index] /
-                            pow(first_base_vector_norm, 7);
+                            std::pow(first_base_vector_norm, 7);
                 }
             }
         }
@@ -1257,14 +1257,14 @@ namespace Kratos
             }
 
             for (SizeType i = 0; i < 3; ++i) {
-                rRodriguesMatrix(i, i) = cos(Phi);
+                rRodriguesMatrix(i, i) = std::cos(Phi);
             }
 
             rRodriguesMatrix +=
                 CrossProductVectorMatrix(
                     rAxis,
                     identity_matrix) *
-                sin(Phi);
+                std::sin(Phi);
         }
 
     void BeamBaseElement3D::ComputeRodriguesMatrixDerivative(
@@ -1286,21 +1286,21 @@ namespace Kratos
 
             for (SizeType i = 0; i < 3; ++i) {
                 rRodriguesMatrixDerivative(i, i) =
-                    -PhiDerivative * sin(Phi);
+                    -PhiDerivative * std::sin(Phi);
             }
 
             rRodriguesMatrixDerivative +=
                 CrossProductVectorMatrix(
                     rAxis,
                     identity_matrix) *
-                cos(Phi) *
+                std::cos(Phi) *
                 PhiDerivative;
 
             rRodriguesMatrixDerivative +=
                 CrossProductVectorMatrix(
                     rAxisDerivative,
                     identity_matrix) *
-                sin(Phi);
+                std::sin(Phi);
         }
 
     void BeamBaseElement3D::ComputeRodriguesMatrixVariation(
@@ -1338,7 +1338,7 @@ namespace Kratos
                                 rRodriguesMatrixVariation(
                                     row_component * NumberOfDofs + dof_index,
                                     column_component) +=
-                                    -sin(Phi) *
+                                    -std::sin(Phi) *
                                     rShapeFunctions[control_point_index];
                             }
                         } else if (dof_component > 2) {
@@ -1346,7 +1346,7 @@ namespace Kratos
                                 rRodriguesMatrixVariation(
                                     row_component * NumberOfDofs + dof_index,
                                     column_component) +=
-                                    cos(Phi) *
+                                    std::cos(Phi) *
                                     rShapeFunctions[control_point_index] *
                                     levi_civita[row_component][k][column_component] *
                                     rAxis[k];
@@ -1357,7 +1357,7 @@ namespace Kratos
                             rRodriguesMatrixVariation(
                                 row_component * NumberOfDofs + dof_index,
                                 column_component) +=
-                                sin(Phi) *
+                                std::sin(Phi) *
                                 levi_civita[row_component][k][column_component] *
                                 rAxisVariation[
                                     k * NumberOfDofs + dof_index];
@@ -1431,7 +1431,7 @@ namespace Kratos
                                     row_component * NumberOfDofs + dof_index,
                                     column_component * NumberOfDofs +
                                         second_dof_index) +=
-                                    -cos(Phi) *
+                                    -std::cos(Phi) *
                                     phi_variation[dof_index] *
                                     phi_variation[second_dof_index];
                             }
@@ -1445,21 +1445,21 @@ namespace Kratos
                                         row_component * NumberOfDofs + dof_index,
                                         column_component * NumberOfDofs +
                                             second_dof_index) +=
-                                        -sin(Phi) *
+                                        -std::sin(Phi) *
                                             phi_variation[dof_index] *
                                             phi_variation[second_dof_index] *
                                             levi_civita[row_component][k][column_component] *
                                             rAxis[k]
                                         +
                                         phi_variation[dof_index] *
-                                            cos(Phi) *
+                                            std::cos(Phi) *
                                             levi_civita[row_component][k][column_component] *
                                             rAxisVariation[
                                                 k * NumberOfDofs +
                                                 second_dof_index]
                                         +
                                         phi_variation[second_dof_index] *
-                                            cos(Phi) *
+                                            std::cos(Phi) *
                                             levi_civita[row_component][k][column_component] *
                                             rAxisVariation[
                                                 k * NumberOfDofs +
@@ -1469,7 +1469,7 @@ namespace Kratos
                                         row_component * NumberOfDofs + dof_index,
                                         column_component * NumberOfDofs +
                                             second_dof_index) +=
-                                        sin(Phi) *
+                                        std::sin(Phi) *
                                         levi_civita[row_component][k][column_component] *
                                         rAxisSecondVariation(
                                             k * NumberOfDofs + dof_index,
@@ -1551,9 +1551,9 @@ namespace Kratos
                                 row_component * NumberOfDofs + dof_index,
                                 column_component) +=
                                 -phi_derivative_variation(dof_index) *
-                                    sin(Phi)
+                                    std::sin(Phi)
                                 -
-                                cos(Phi) *
+                                std::cos(Phi) *
                                     PhiDerivative *
                                     rShapeFunctions[control_point_index];
                         }
@@ -1565,16 +1565,16 @@ namespace Kratos
                                     column_component) +=
                                     (
                                         phi_derivative_variation(dof_index) *
-                                            cos(Phi)
+                                            std::cos(Phi)
                                         -
                                         PhiDerivative *
                                             rShapeFunctions[control_point_index] *
-                                            sin(Phi)
+                                            std::sin(Phi)
                                     ) *
                                     levi_civita[row_component][k][column_component] *
                                     rAxis[k]
                                     +
-                                    cos(Phi) *
+                                    std::cos(Phi) *
                                     phi_variation(dof_index) *
                                     levi_civita[row_component][k][column_component] *
                                     rAxisDerivative[k];
@@ -1582,13 +1582,13 @@ namespace Kratos
                                 rRodriguesMatrixDerivativeVariation(
                                     row_component * NumberOfDofs + dof_index,
                                     column_component) +=
-                                    cos(Phi) *
+                                    std::cos(Phi) *
                                         PhiDerivative *
                                         levi_civita[row_component][k][column_component] *
                                         rAxisVariation[
                                             k * NumberOfDofs + dof_index]
                                     +
-                                    sin(Phi) *
+                                    std::sin(Phi) *
                                         levi_civita[row_component][k][column_component] *
                                         rAxisDerivativeVariation[
                                             k * NumberOfDofs + dof_index];
@@ -1652,9 +1652,9 @@ namespace Kratos
                 }
 
                 double cos_phi;
-                cos_phi = cos(Phi);
+                cos_phi = std::cos(Phi);
                 double sin_phi;
-                sin_phi = sin(Phi);
+                sin_phi = std::sin(Phi);
 
                 for (size_t t = 0;t < 3;t++)
                 {
@@ -1751,7 +1751,7 @@ namespace Kratos
                             if (t == u)
                             {
                                 if (xyz > 2)
-                                    rRodriguesMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += -rShapeFunctionSecondDerivatives[i] * sin(Phi) - cos(Phi) * PhiSecondDerivative * rShapeFunctions[i] - 2 * rShapeFunctionDerivatives[i] * PhiDerivative * cos(Phi) + sin(Phi) * pow(PhiDerivative, 2) * rShapeFunctions[i];
+                                    rRodriguesMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += -rShapeFunctionSecondDerivatives[i] * std::sin(Phi) - std::cos(Phi) * PhiSecondDerivative * rShapeFunctions[i] - 2 * rShapeFunctionDerivatives[i] * PhiDerivative * std::cos(Phi) + std::sin(Phi) * std::pow(PhiDerivative, 2) * rShapeFunctions[i];
                                 else
                                     rRodriguesMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += 0;
                             }
@@ -1760,9 +1760,9 @@ namespace Kratos
                                 for (int k = 0; k < 3; k++)
                                 {
                                     if (xyz > 2)
-                                        rRodriguesMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (rShapeFunctionSecondDerivatives[i] * cos(Phi) - PhiSecondDerivative * rShapeFunctions[i] * sin(Phi) - 2 * rShapeFunctionDerivatives[i] * PhiDerivative * sin(Phi) - pow(PhiDerivative, 2) * rShapeFunctions[i] * cos(Phi)) * levi_civita[t][k][u] * rAxis[k] + 2 * (cos(Phi) * rShapeFunctionDerivatives[i] - sin(Phi) * rShapeFunctions[i] * PhiDerivative) * levi_civita[t][k][u] * rAxisDerivative[k] + cos(Phi) * rShapeFunctions[i] * levi_civita[t][k][u] * rAxisSecondDerivative[k];
+                                        rRodriguesMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (rShapeFunctionSecondDerivatives[i] * std::cos(Phi) - PhiSecondDerivative * rShapeFunctions[i] * std::sin(Phi) - 2 * rShapeFunctionDerivatives[i] * PhiDerivative * std::sin(Phi) - std::pow(PhiDerivative, 2) * rShapeFunctions[i] * std::cos(Phi)) * levi_civita[t][k][u] * rAxis[k] + 2 * (std::cos(Phi) * rShapeFunctionDerivatives[i] - std::sin(Phi) * rShapeFunctions[i] * PhiDerivative) * levi_civita[t][k][u] * rAxisDerivative[k] + std::cos(Phi) * rShapeFunctions[i] * levi_civita[t][k][u] * rAxisSecondDerivative[k];
                                     else
-                                        rRodriguesMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (cos(Phi) * PhiSecondDerivative - pow(PhiDerivative, 2) * sin(Phi)) * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r] + 2 * PhiDerivative * cos(Phi) * levi_civita[t][k][u] * rAxisDerivativeVariation[k * NumberOfDofs + r] + sin(Phi) * levi_civita[t][k][u] * rAxisSecondDerivativeVariation[k * NumberOfDofs + r];
+                                        rRodriguesMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (std::cos(Phi) * PhiSecondDerivative - std::pow(PhiDerivative, 2) * std::sin(Phi)) * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r] + 2 * PhiDerivative * std::cos(Phi) * levi_civita[t][k][u] * rAxisDerivativeVariation[k * NumberOfDofs + r] + std::sin(Phi) * levi_civita[t][k][u] * rAxisSecondDerivativeVariation[k * NumberOfDofs + r];
                                 }
                             }
                         }
@@ -1832,9 +1832,9 @@ namespace Kratos
             }
 
             double cos_phi;
-            cos_phi = cos(Phi);
+            cos_phi = std::cos(Phi);
             double sin_phi;
-            sin_phi = sin(Phi);
+            sin_phi = std::sin(Phi);
 
             for (size_t t = 0;t < 3;t++)
             {
@@ -1848,21 +1848,21 @@ namespace Kratos
                         {
                             if (xyz_r > 2)
                             {
-                                rRodriguesMatrixVariation(t * NumberOfDofs + r, u) += -sin(Phi) * rShapeFunctions[i];
-                                rRodriguesMatrixDerivativeVariation(t * NumberOfDofs + r, u) += -phi_derivative_variation(r) * sin(Phi) - cos(Phi) * PhiDerivative * rShapeFunctions[i];
+                                rRodriguesMatrixVariation(t * NumberOfDofs + r, u) += -std::sin(Phi) * rShapeFunctions[i];
+                                rRodriguesMatrixDerivativeVariation(t * NumberOfDofs + r, u) += -phi_derivative_variation(r) * std::sin(Phi) - std::cos(Phi) * PhiDerivative * rShapeFunctions[i];
                             }
                         }
                         for (int k = 0; k < 3; k++)
                         {
                             if (xyz_r > 2)
                             {
-                                rRodriguesMatrixVariation(t * NumberOfDofs + r, u) += cos(Phi) * rShapeFunctions[i] * levi_civita[t][k][u] * rAxis[k];
-                                rRodriguesMatrixDerivativeVariation(t * NumberOfDofs + r, u) += (phi_derivative_variation(r) * cos(Phi) - PhiDerivative * rShapeFunctions[i] * sin(Phi)) * levi_civita[t][k][u] * rAxis[k] + cos(Phi) * phi_variation(r) * levi_civita[t][k][u] * rAxisDerivative[k];
+                                rRodriguesMatrixVariation(t * NumberOfDofs + r, u) += std::cos(Phi) * rShapeFunctions[i] * levi_civita[t][k][u] * rAxis[k];
+                                rRodriguesMatrixDerivativeVariation(t * NumberOfDofs + r, u) += (phi_derivative_variation(r) * std::cos(Phi) - PhiDerivative * rShapeFunctions[i] * std::sin(Phi)) * levi_civita[t][k][u] * rAxis[k] + std::cos(Phi) * phi_variation(r) * levi_civita[t][k][u] * rAxisDerivative[k];
                             }
                             else
                             {
-                                rRodriguesMatrixVariation(t * NumberOfDofs + r, u) += sin(Phi) * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r];
-                                rRodriguesMatrixDerivativeVariation(t * NumberOfDofs + r, u) += cos(Phi) * PhiDerivative * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r] + sin(Phi) * levi_civita[t][k][u] * rAxisDerivativeVariation[k * NumberOfDofs + r];
+                                rRodriguesMatrixVariation(t * NumberOfDofs + r, u) += std::sin(Phi) * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r];
+                                rRodriguesMatrixDerivativeVariation(t * NumberOfDofs + r, u) += std::cos(Phi) * PhiDerivative * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r] + std::sin(Phi) * levi_civita[t][k][u] * rAxisDerivativeVariation[k * NumberOfDofs + r];
                             }
                         }
                         for (size_t  s  = 0;s < NumberOfDofs;s++)
@@ -1871,7 +1871,7 @@ namespace Kratos
 
                             if (t == u)
                             {
-                                rRodriguesMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -cos(Phi) * phi_variation[r] * phi_variation[s];
+                                rRodriguesMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -std::cos(Phi) * phi_variation[r] * phi_variation[s];
                                 rRodriguesMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -phi_derivative_variation(r) * phi_variation(s) * cos_phi - phi_derivative_variation(s) * phi_variation(r) * cos_phi + sin_phi * PhiDerivative * phi_variation[r] * phi_variation[s];
                             }
 
@@ -1879,9 +1879,9 @@ namespace Kratos
                                 for (int k = 0; k < 3; k++)
                                 {
                                     if (xyz_r > 2 || xyz_s > 2)
-                                        rRodriguesMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -sin(Phi) * phi_variation[r] * phi_variation[s] * levi_civita[t][k][u] * rAxis[k] + phi_variation[r] * cos(Phi) * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + s] + phi_variation[s] * cos(Phi) * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r];
+                                        rRodriguesMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -std::sin(Phi) * phi_variation[r] * phi_variation[s] * levi_civita[t][k][u] * rAxis[k] + phi_variation[r] * std::cos(Phi) * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + s] + phi_variation[s] * std::cos(Phi) * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r];
                                     else
-                                        rRodriguesMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += sin(Phi) * levi_civita[t][k][u] * rAxisSecondVariation(k * NumberOfDofs + r, s);
+                                        rRodriguesMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += std::sin(Phi) * levi_civita[t][k][u] * rAxisSecondVariation(k * NumberOfDofs + r, s);
 
                                     rRodriguesMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -phi_derivative_variation(r) * phi_variation(s) * sin_phi * levi_civita[t][k][u] * rAxis[k]
                                         - phi_derivative_variation(s) * phi_variation(r) * sin_phi * levi_civita[t][k][u] * rAxis[k]
@@ -1923,10 +1923,10 @@ namespace Kratos
             identity_matrix.clear();
             for (int i = 0; i < 3; i++) { identity_matrix(i, i) = 1; }
 
-            for (int i = 0; i < 3; i++) { rRodriguesMatrixSecondDerivative(i, i) = -PhiSecondDerivative * sin(Phi) - pow(PhiDerivative, 2) * cos(Phi); }
-            rRodriguesMatrixSecondDerivative += CrossProductVectorMatrix(rAxis, identity_matrix) * (cos(Phi) * PhiSecondDerivative - pow(PhiDerivative, 2) * sin(Phi));
-            rRodriguesMatrixSecondDerivative += CrossProductVectorMatrix(rAxisDerivative, identity_matrix) * 2 * PhiDerivative * cos(Phi);
-            rRodriguesMatrixSecondDerivative += CrossProductVectorMatrix(rAxisSecondDerivative, identity_matrix) * sin(Phi);
+            for (int i = 0; i < 3; i++) { rRodriguesMatrixSecondDerivative(i, i) = -PhiSecondDerivative * std::sin(Phi) - std::pow(PhiDerivative, 2) * std::cos(Phi); }
+            rRodriguesMatrixSecondDerivative += CrossProductVectorMatrix(rAxis, identity_matrix) * (std::cos(Phi) * PhiSecondDerivative - std::pow(PhiDerivative, 2) * std::sin(Phi));
+            rRodriguesMatrixSecondDerivative += CrossProductVectorMatrix(rAxisDerivative, identity_matrix) * 2 * PhiDerivative * std::cos(Phi);
+            rRodriguesMatrixSecondDerivative += CrossProductVectorMatrix(rAxisSecondDerivative, identity_matrix) * std::sin(Phi);
         }
 
     void BeamBaseElement3D::ComputeLambdaMatrix(const array_1d<double, 3>& rReferenceTangent, const array_1d<double, 3>& rCurrentTangent, Matrix3d& rLambdaMatrix)
@@ -1997,7 +1997,7 @@ namespace Kratos
 
             for (int i = 0; i < 3; i++) { rLambdaMatrixDerivative(i, i) = reference_dot_current_derivative + reference_derivative_dot_current; }
             rLambdaMatrixDerivative += CrossProductVectorMatrix(tangent_cross_product_derivative, identity_matrix);
-            scaling_factor = -(reference_dot_current_derivative + reference_derivative_dot_current) / pow((1.0 + tangent_dot_product), 2);
+            scaling_factor = -(reference_dot_current_derivative + reference_derivative_dot_current) / std::pow((1.0 + tangent_dot_product), 2);
             rLambdaMatrixDerivative += outer_prod(reference_cross_current, reference_cross_current) * scaling_factor;
             scaling_factor = 1.0 / (1.0 + tangent_dot_product);
             rLambdaMatrixDerivative += outer_prod(tangent_cross_product_derivative, reference_cross_current) * scaling_factor;
@@ -2043,9 +2043,9 @@ namespace Kratos
             for (int i = 0; i < 3; i++) { rLambdaMatrixSecondDerivative(i, i) = tangent_dot_product_second_derivative; }
 
             rLambdaMatrixSecondDerivative += CrossProductVectorMatrix(tangent_cross_product_second_derivative, identity_matrix);
-            scaling_factor = 2 * pow(tangent_dot_product_derivative, 2) / pow((1.0 + tangent_dot_product), 3) - tangent_dot_product_second_derivative / pow((1.0 + tangent_dot_product), 2);
+            scaling_factor = 2 * std::pow(tangent_dot_product_derivative, 2) / std::pow((1.0 + tangent_dot_product), 3) - tangent_dot_product_second_derivative / std::pow((1.0 + tangent_dot_product), 2);
             rLambdaMatrixSecondDerivative += outer_prod(reference_cross_current, reference_cross_current) * scaling_factor;
-            scaling_factor = -tangent_dot_product_derivative / pow((1.0 + tangent_dot_product), 2) * 2;
+            scaling_factor = -tangent_dot_product_derivative / std::pow((1.0 + tangent_dot_product), 2) * 2;
             rLambdaMatrixSecondDerivative += outer_prod(tangent_cross_product_derivative, reference_cross_current) * scaling_factor;
             rLambdaMatrixSecondDerivative += outer_prod(reference_cross_current, tangent_cross_product_derivative) * scaling_factor;
             scaling_factor = 1.0 / (1.0 + tangent_dot_product);
@@ -2160,7 +2160,7 @@ namespace Kratos
                         {
                             rLambdaMatrixVariation(t * NumberOfDofs + r, u) += levi_civita[t][k][u] * reference_cross_current_variation[r + k * NumberOfDofs];
                         }
-                        rLambdaMatrixVariation(t * NumberOfDofs + r, u) += -tangent_dot_product_variation[r] / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current[t] * reference_cross_current[u]);
+                        rLambdaMatrixVariation(t * NumberOfDofs + r, u) += -tangent_dot_product_variation[r] / std::pow(1.0 + tangent_dot_product, 2) * (reference_cross_current[t] * reference_cross_current[u]);
                         rLambdaMatrixVariation(t * NumberOfDofs + r, u) += +1.0 / (1.0 + tangent_dot_product) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
                     }
                 }
@@ -2316,9 +2316,9 @@ namespace Kratos
                                     for (int k = 0; k < 3; k++)
                                         rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += levi_civita[t][k][u] * reference_cross_current_second_variation(k * NumberOfDofs + r, s);
                                 }
-                                rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 3) - tangent_dot_product_second_variation(r, s) / pow(1.0 + tangent_dot_product, 2)) * reference_cross_current[t] * reference_cross_current[u];
-                                rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -tangent_dot_product_variation(r) / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_variation[t * NumberOfDofs + s] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + s])
-                                    - tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
+                                rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / std::pow(1.0 + tangent_dot_product, 3) - tangent_dot_product_second_variation(r, s) / std::pow(1.0 + tangent_dot_product, 2)) * reference_cross_current[t] * reference_cross_current[u];
+                                rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -tangent_dot_product_variation(r) / std::pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_variation[t * NumberOfDofs + s] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + s])
+                                    - tangent_dot_product_variation(s) / std::pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
                                 rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += 1.0 / (1.0 + tangent_dot_product) * (reference_cross_current_second_variation(t * NumberOfDofs + r, s) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * reference_cross_current_variation(u * NumberOfDofs + s) +
                                     reference_cross_current_variation(t * NumberOfDofs + s) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * reference_cross_current_second_variation(u * NumberOfDofs + s, r));
                             }
@@ -2474,9 +2474,9 @@ namespace Kratos
                                 }
 
                             }
-                            rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += (2 * (tangent_dot_product_variation(r)) * (reference_dot_current_derivative + reference_derivative_dot_current) / pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) / pow(1.0 + tangent_dot_product, 2)) * reference_cross_current[t] * reference_cross_current[u];
-                            rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += -(reference_dot_current_derivative + reference_derivative_dot_current) / pow(1.0 + tangent_dot_product, 2) * ((reference_cross_current_variation[t * NumberOfDofs + r]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_variation[u * NumberOfDofs + r]));
-                            rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += -(tangent_dot_product_variation(r)) / pow(1.0 + tangent_dot_product, 2) * ((tangent_cross_product_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current[u] + reference_cross_current[t] * (tangent_cross_product_derivative[u] + reference_derivative_cross_current[u]));
+                            rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += (2 * (tangent_dot_product_variation(r)) * (reference_dot_current_derivative + reference_derivative_dot_current) / std::pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) / std::pow(1.0 + tangent_dot_product, 2)) * reference_cross_current[t] * reference_cross_current[u];
+                            rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += -(reference_dot_current_derivative + reference_derivative_dot_current) / std::pow(1.0 + tangent_dot_product, 2) * ((reference_cross_current_variation[t * NumberOfDofs + r]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_variation[u * NumberOfDofs + r]));
+                            rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += -(tangent_dot_product_variation(r)) / std::pow(1.0 + tangent_dot_product, 2) * ((tangent_cross_product_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current[u] + reference_cross_current[t] * (tangent_cross_product_derivative[u] + reference_derivative_cross_current[u]));
                             rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += 1.0 / (1.0 + tangent_dot_product) * ((reference_cross_current_derivative_variation[t * NumberOfDofs + r] + reference_derivative_cross_current_variation[t * NumberOfDofs + r]) * reference_cross_current[u] + (reference_cross_current_variation[t * NumberOfDofs + r]) * (tangent_cross_product_derivative[u] + reference_derivative_cross_current[u]) + (tangent_cross_product_derivative[t] + reference_derivative_cross_current[t]) * (reference_cross_current_variation[u * NumberOfDofs + r]) + reference_cross_current[t] * (reference_cross_current_derivative_variation[u * NumberOfDofs + r] + reference_derivative_cross_current_variation[u * NumberOfDofs + r]));
                         }
 
@@ -2684,9 +2684,9 @@ namespace Kratos
                     tangent_dot_product_derivative_variation = reference_derivative_dot_current_variation + reference_dot_current_derivative_variation;
                     tangent_dot_product_second_derivative_variation = reference_second_derivative_dot_current_variation + 2 * tangent_derivative_dot_product_variation + reference_dot_current_second_derivative_variation;
 
-                    double inverse_one_plus_tangent_dot_squared = 1.0 / pow(1.0 + tangent_dot_product, 2);
-                    double inverse_one_plus_tangent_dot_cubed = 1.0 / pow(1.0 + tangent_dot_product, 3);
-                    double inverse_one_plus_tangent_dot_fourth = 1.0 / pow(1.0 + tangent_dot_product, 4);
+                    double inverse_one_plus_tangent_dot_squared = 1.0 / std::pow(1.0 + tangent_dot_product, 2);
+                    double inverse_one_plus_tangent_dot_cubed = 1.0 / std::pow(1.0 + tangent_dot_product, 3);
+                    double inverse_one_plus_tangent_dot_fourth = 1.0 / std::pow(1.0 + tangent_dot_product, 4);
 
                     for (size_t t = 0; t < 3; t++)
                     {
@@ -2711,8 +2711,8 @@ namespace Kratos
                                         }
 
                                     }
-                                    rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (-tangent_dot_product_second_derivative_variation(r) * inverse_one_plus_tangent_dot_squared + 2 * (tangent_dot_product_variation(r) * tangent_dot_product_second_derivative + 2 * tangent_dot_product_derivative_variation[r] * tangent_dot_product_derivative) * inverse_one_plus_tangent_dot_cubed - 6 * (pow(tangent_dot_product_derivative, 2) * tangent_dot_product_variation[r]) * inverse_one_plus_tangent_dot_fourth) * reference_cross_current[t] * reference_cross_current[u];
-                                    rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (-tangent_dot_product_second_derivative * inverse_one_plus_tangent_dot_squared + 2 * pow(tangent_dot_product_derivative, 2) * inverse_one_plus_tangent_dot_cubed) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_variation[u * NumberOfDofs + r]));
+                                    rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (-tangent_dot_product_second_derivative_variation(r) * inverse_one_plus_tangent_dot_squared + 2 * (tangent_dot_product_variation(r) * tangent_dot_product_second_derivative + 2 * tangent_dot_product_derivative_variation[r] * tangent_dot_product_derivative) * inverse_one_plus_tangent_dot_cubed - 6 * (std::pow(tangent_dot_product_derivative, 2) * tangent_dot_product_variation[r]) * inverse_one_plus_tangent_dot_fourth) * reference_cross_current[t] * reference_cross_current[u];
+                                    rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (-tangent_dot_product_second_derivative * inverse_one_plus_tangent_dot_squared + 2 * std::pow(tangent_dot_product_derivative, 2) * inverse_one_plus_tangent_dot_cubed) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_variation[u * NumberOfDofs + r]));
                                     rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (4 * tangent_dot_product_derivative * tangent_dot_product_variation[r] * inverse_one_plus_tangent_dot_cubed - 2 * tangent_dot_product_derivative_variation[r] * inverse_one_plus_tangent_dot_squared) * (tangent_cross_product_derivative[t] * reference_cross_current[u] + reference_cross_current[t] * tangent_cross_product_derivative[u]);
                                     rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += -2 * tangent_dot_product_derivative * inverse_one_plus_tangent_dot_squared * (tangent_cross_product_derivative_variation[t * NumberOfDofs + r] * reference_cross_current[u] + tangent_cross_product_derivative[t] * reference_cross_current_variation[u * NumberOfDofs + r] + reference_cross_current_variation[t * NumberOfDofs + r] * tangent_cross_product_derivative[u] + reference_cross_current[t] * tangent_cross_product_derivative_variation[u * NumberOfDofs + r]);
                                     rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += -tangent_dot_product_variation(r) * inverse_one_plus_tangent_dot_squared * (tangent_cross_product_second_derivative[t] * reference_cross_current[u] + 2 * tangent_cross_product_derivative[t] * tangent_cross_product_derivative[u] + reference_cross_current[t] * tangent_cross_product_second_derivative[u]);
@@ -2962,14 +2962,14 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += 0;
                             else
                             {
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * (tangent_dot_product_variation(r) * (tangent_dot_product_derivative_variation(s) + reference_derivative_dot_current_variation(s)) + tangent_dot_product_derivative * tangent_dot_product_second_variation(r, s)) / pow(1.0 + tangent_dot_product, 3) - 6 * tangent_dot_product_derivative * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 4) - (tangent_dot_product_derivative_second_variation(r, s) + reference_derivative_dot_current_second_variation(r, s)) / pow(1.0 + tangent_dot_product, 2) + 2 * (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 3)) * reference_cross_current[t] * reference_cross_current[u];
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * tangent_dot_product_variation(r) * tangent_dot_product_derivative / pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) / pow(1.0 + tangent_dot_product, 2)) * (reference_cross_current_variation[t * NumberOfDofs + s] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + s])
-                                    + (2 * tangent_dot_product_variation(s) * tangent_dot_product_derivative / pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(s) + reference_derivative_dot_current_variation(s)) / pow(1.0 + tangent_dot_product, 2)) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -tangent_dot_product_derivative / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_second_variation(t * NumberOfDofs + r, s) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * reference_cross_current_variation(u * NumberOfDofs + s) +
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * (tangent_dot_product_variation(r) * (tangent_dot_product_derivative_variation(s) + reference_derivative_dot_current_variation(s)) + tangent_dot_product_derivative * tangent_dot_product_second_variation(r, s)) / std::pow(1.0 + tangent_dot_product, 3) - 6 * tangent_dot_product_derivative * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / std::pow(1.0 + tangent_dot_product, 4) - (tangent_dot_product_derivative_second_variation(r, s) + reference_derivative_dot_current_second_variation(r, s)) / std::pow(1.0 + tangent_dot_product, 2) + 2 * (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) * tangent_dot_product_variation(s) / std::pow(1.0 + tangent_dot_product, 3)) * reference_cross_current[t] * reference_cross_current[u];
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * tangent_dot_product_variation(r) * tangent_dot_product_derivative / std::pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) / std::pow(1.0 + tangent_dot_product, 2)) * (reference_cross_current_variation[t * NumberOfDofs + s] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + s])
+                                    + (2 * tangent_dot_product_variation(s) * tangent_dot_product_derivative / std::pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(s) + reference_derivative_dot_current_variation(s)) / std::pow(1.0 + tangent_dot_product, 2)) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -tangent_dot_product_derivative / std::pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_second_variation(t * NumberOfDofs + r, s) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * reference_cross_current_variation(u * NumberOfDofs + s) +
                                     reference_cross_current_variation(t * NumberOfDofs + s) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * reference_cross_current_second_variation(u * NumberOfDofs + r, s));
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_second_variation(r, s) / pow(1.0 + tangent_dot_product, 2) + 2 * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 3)) * ((reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]));
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_variation(r) / pow(1.0 + tangent_dot_product, 2)) * ((reference_cross_current_derivative_variation(t * NumberOfDofs + s) + reference_derivative_cross_current_variation(t * NumberOfDofs + s)) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + s) * (reference_cross_current_derivative(u) + reference_derivative_cross_current(u)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_variation(u * NumberOfDofs + s) + reference_cross_current[t] * (reference_cross_current_derivative_variation(u * NumberOfDofs + s) + reference_derivative_cross_current_variation(u * NumberOfDofs + s)));
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 2)) * ((reference_cross_current_derivative_variation(t * NumberOfDofs + r) + reference_derivative_cross_current_variation(t * NumberOfDofs + r)) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * (reference_cross_current_derivative(u) + reference_derivative_cross_current(u)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * (reference_cross_current_derivative_variation(u * NumberOfDofs + r) + reference_derivative_cross_current_variation(u * NumberOfDofs + r)));
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_second_variation(r, s) / std::pow(1.0 + tangent_dot_product, 2) + 2 * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / std::pow(1.0 + tangent_dot_product, 3)) * ((reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]));
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_variation(r) / std::pow(1.0 + tangent_dot_product, 2)) * ((reference_cross_current_derivative_variation(t * NumberOfDofs + s) + reference_derivative_cross_current_variation(t * NumberOfDofs + s)) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + s) * (reference_cross_current_derivative(u) + reference_derivative_cross_current(u)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_variation(u * NumberOfDofs + s) + reference_cross_current[t] * (reference_cross_current_derivative_variation(u * NumberOfDofs + s) + reference_derivative_cross_current_variation(u * NumberOfDofs + s)));
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_variation(s) / std::pow(1.0 + tangent_dot_product, 2)) * ((reference_cross_current_derivative_variation(t * NumberOfDofs + r) + reference_derivative_cross_current_variation(t * NumberOfDofs + r)) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * (reference_cross_current_derivative(u) + reference_derivative_cross_current(u)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * (reference_cross_current_derivative_variation(u * NumberOfDofs + r) + reference_derivative_cross_current_variation(u * NumberOfDofs + r)));
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += 1.0 / (1.0 + tangent_dot_product) * ((reference_cross_current_derivative_second_variation(t * NumberOfDofs + r, s) + reference_derivative_cross_current_second_variation(t * NumberOfDofs + r, s)) * reference_cross_current[u] + reference_cross_current_second_variation(t * NumberOfDofs + r, s) * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]) + (reference_cross_current_derivative_variation(t * NumberOfDofs + s) + reference_derivative_cross_current_variation(t * NumberOfDofs + s)) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current_variation(t * NumberOfDofs + s) * (reference_cross_current_derivative_variation(u * NumberOfDofs + r) + reference_derivative_cross_current_variation(u * NumberOfDofs + r)) + (reference_cross_current_derivative_variation(t * NumberOfDofs + r) + reference_derivative_cross_current_variation(t * NumberOfDofs + r)) * reference_cross_current_variation(u * NumberOfDofs + s) + reference_cross_current_variation(t * NumberOfDofs + r) * (reference_cross_current_derivative_variation(u * NumberOfDofs + s) + reference_derivative_cross_current_variation(u * NumberOfDofs + s)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_second_variation(u * NumberOfDofs + r, s) + reference_cross_current[t] * (reference_cross_current_derivative_second_variation(u * NumberOfDofs + r, s) + reference_derivative_cross_current_second_variation(u * NumberOfDofs + r, s)));
                             }
                         }
@@ -3208,12 +3208,12 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
                                 }
                             }
 
-                            rLambdaMatrixVariation(t * NumberOfDofs + r, u) += -tangent_dot_product_variation[r] / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current[t] * reference_cross_current[u]);
+                            rLambdaMatrixVariation(t * NumberOfDofs + r, u) += -tangent_dot_product_variation[r] / std::pow(1.0 + tangent_dot_product, 2) * (reference_cross_current[t] * reference_cross_current[u]);
                             rLambdaMatrixVariation(t * NumberOfDofs + r, u) += +1.0 / (1.0 + tangent_dot_product) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
 
-                            rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += (2 * (tangent_dot_product_variation(r)) * (reference_dot_current_derivative + reference_derivative_dot_current) / pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) / pow(1.0 + tangent_dot_product, 2)) * reference_cross_current[t] * reference_cross_current[u];
-                            rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += -(reference_dot_current_derivative + reference_derivative_dot_current) / pow(1.0 + tangent_dot_product, 2) * ((reference_cross_current_variation[t * NumberOfDofs + r]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_variation[u * NumberOfDofs + r]));
-                            rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += -(tangent_dot_product_variation(r)) / pow(1.0 + tangent_dot_product, 2) * ((reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]));
+                            rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += (2 * (tangent_dot_product_variation(r)) * (reference_dot_current_derivative + reference_derivative_dot_current) / std::pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) / std::pow(1.0 + tangent_dot_product, 2)) * reference_cross_current[t] * reference_cross_current[u];
+                            rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += -(reference_dot_current_derivative + reference_derivative_dot_current) / std::pow(1.0 + tangent_dot_product, 2) * ((reference_cross_current_variation[t * NumberOfDofs + r]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_variation[u * NumberOfDofs + r]));
+                            rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += -(tangent_dot_product_variation(r)) / std::pow(1.0 + tangent_dot_product, 2) * ((reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]));
                             rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += 1.0 / (1.0 + tangent_dot_product) * ((reference_cross_current_derivative_variation[t * NumberOfDofs + r] + reference_derivative_cross_current_variation[t * NumberOfDofs + r]) * reference_cross_current[u] + (reference_cross_current_variation[t * NumberOfDofs + r]) * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * (reference_cross_current_variation[u * NumberOfDofs + r]) + reference_cross_current[t] * (reference_cross_current_derivative_variation[u * NumberOfDofs + r] + reference_derivative_cross_current_variation[u * NumberOfDofs + r]));
                         }
                     }
@@ -3251,20 +3251,20 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
                                     }
                                 }
 
-                                rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 3) - tangent_dot_product_second_variation(r, s) / pow(1.0 + tangent_dot_product, 2)) * reference_cross_current[t] * reference_cross_current[u];
-                                rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -tangent_dot_product_variation(r) / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_variation[t * NumberOfDofs + s] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + s])
-                                    - tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
+                                rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / std::pow(1.0 + tangent_dot_product, 3) - tangent_dot_product_second_variation(r, s) / std::pow(1.0 + tangent_dot_product, 2)) * reference_cross_current[t] * reference_cross_current[u];
+                                rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -tangent_dot_product_variation(r) / std::pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_variation[t * NumberOfDofs + s] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + s])
+                                    - tangent_dot_product_variation(s) / std::pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
                                 rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += 1.0 / (1.0 + tangent_dot_product) * (reference_cross_current_second_variation(t * NumberOfDofs + r, s) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * reference_cross_current_variation(u * NumberOfDofs + s) +
                                     reference_cross_current_variation(t * NumberOfDofs + s) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * reference_cross_current_second_variation(u * NumberOfDofs + s, r));
 
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * (tangent_dot_product_variation(r) * (tangent_dot_product_derivative_variation(s) + reference_derivative_dot_current_variation(s)) + tangent_dot_product_derivative * tangent_dot_product_second_variation(r, s)) / pow(1.0 + tangent_dot_product, 3) - 6 * tangent_dot_product_derivative * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 4) - (tangent_dot_product_derivative_second_variation(r, s) + reference_derivative_dot_current_second_variation(r, s)) / pow(1.0 + tangent_dot_product, 2) + 2 * (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 3)) * reference_cross_current[t] * reference_cross_current[u];
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * tangent_dot_product_variation(r) * tangent_dot_product_derivative / pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) / pow(1.0 + tangent_dot_product, 2)) * (reference_cross_current_variation[t * NumberOfDofs + s] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + s])
-                                    + (2 * tangent_dot_product_variation(s) * tangent_dot_product_derivative / pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(s) + reference_derivative_dot_current_variation(s)) / pow(1.0 + tangent_dot_product, 2)) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -tangent_dot_product_derivative / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_second_variation(t * NumberOfDofs + r, s) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * reference_cross_current_variation(u * NumberOfDofs + s) +
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * (tangent_dot_product_variation(r) * (tangent_dot_product_derivative_variation(s) + reference_derivative_dot_current_variation(s)) + tangent_dot_product_derivative * tangent_dot_product_second_variation(r, s)) / std::pow(1.0 + tangent_dot_product, 3) - 6 * tangent_dot_product_derivative * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / std::pow(1.0 + tangent_dot_product, 4) - (tangent_dot_product_derivative_second_variation(r, s) + reference_derivative_dot_current_second_variation(r, s)) / std::pow(1.0 + tangent_dot_product, 2) + 2 * (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) * tangent_dot_product_variation(s) / std::pow(1.0 + tangent_dot_product, 3)) * reference_cross_current[t] * reference_cross_current[u];
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * tangent_dot_product_variation(r) * tangent_dot_product_derivative / std::pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) / std::pow(1.0 + tangent_dot_product, 2)) * (reference_cross_current_variation[t * NumberOfDofs + s] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + s])
+                                    + (2 * tangent_dot_product_variation(s) * tangent_dot_product_derivative / std::pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(s) + reference_derivative_dot_current_variation(s)) / std::pow(1.0 + tangent_dot_product, 2)) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -tangent_dot_product_derivative / std::pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_second_variation(t * NumberOfDofs + r, s) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * reference_cross_current_variation(u * NumberOfDofs + s) +
                                     reference_cross_current_variation(t * NumberOfDofs + s) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * reference_cross_current_second_variation(u * NumberOfDofs + r, s));
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_second_variation(r, s) / pow(1.0 + tangent_dot_product, 2) + 2 * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 3)) * ((reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]));
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_variation(r) / pow(1.0 + tangent_dot_product, 2)) * ((reference_cross_current_derivative_variation(t * NumberOfDofs + s) + reference_derivative_cross_current_variation(t * NumberOfDofs + s)) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + s) * (reference_cross_current_derivative(u) + reference_derivative_cross_current(u)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_variation(u * NumberOfDofs + s) + reference_cross_current[t] * (reference_cross_current_derivative_variation(u * NumberOfDofs + s) + reference_derivative_cross_current_variation(u * NumberOfDofs + s)));
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 2)) * ((reference_cross_current_derivative_variation(t * NumberOfDofs + r) + reference_derivative_cross_current_variation(t * NumberOfDofs + r)) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * (reference_cross_current_derivative(u) + reference_derivative_cross_current(u)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * (reference_cross_current_derivative_variation(u * NumberOfDofs + r) + reference_derivative_cross_current_variation(u * NumberOfDofs + r)));
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_second_variation(r, s) / std::pow(1.0 + tangent_dot_product, 2) + 2 * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / std::pow(1.0 + tangent_dot_product, 3)) * ((reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]));
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_variation(r) / std::pow(1.0 + tangent_dot_product, 2)) * ((reference_cross_current_derivative_variation(t * NumberOfDofs + s) + reference_derivative_cross_current_variation(t * NumberOfDofs + s)) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + s) * (reference_cross_current_derivative(u) + reference_derivative_cross_current(u)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_variation(u * NumberOfDofs + s) + reference_cross_current[t] * (reference_cross_current_derivative_variation(u * NumberOfDofs + s) + reference_derivative_cross_current_variation(u * NumberOfDofs + s)));
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_variation(s) / std::pow(1.0 + tangent_dot_product, 2)) * ((reference_cross_current_derivative_variation(t * NumberOfDofs + r) + reference_derivative_cross_current_variation(t * NumberOfDofs + r)) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * (reference_cross_current_derivative(u) + reference_derivative_cross_current(u)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * (reference_cross_current_derivative_variation(u * NumberOfDofs + r) + reference_derivative_cross_current_variation(u * NumberOfDofs + r)));
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += 1.0 / (1.0 + tangent_dot_product) * ((reference_cross_current_derivative_second_variation(t * NumberOfDofs + r, s) + reference_derivative_cross_current_second_variation(t * NumberOfDofs + r, s)) * reference_cross_current[u] + reference_cross_current_second_variation(t * NumberOfDofs + r, s) * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]) + (reference_cross_current_derivative_variation(t * NumberOfDofs + s) + reference_derivative_cross_current_variation(t * NumberOfDofs + s)) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current_variation(t * NumberOfDofs + s) * (reference_cross_current_derivative_variation(u * NumberOfDofs + r) + reference_derivative_cross_current_variation(u * NumberOfDofs + r)) + (reference_cross_current_derivative_variation(t * NumberOfDofs + r) + reference_derivative_cross_current_variation(t * NumberOfDofs + r)) * reference_cross_current_variation(u * NumberOfDofs + s) + reference_cross_current_variation(t * NumberOfDofs + r) * (reference_cross_current_derivative_variation(u * NumberOfDofs + s) + reference_derivative_cross_current_variation(u * NumberOfDofs + s)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_second_variation(u * NumberOfDofs + r, s) + reference_cross_current[t] * (reference_cross_current_derivative_second_variation(u * NumberOfDofs + r, s) + reference_derivative_cross_current_second_variation(u * NumberOfDofs + r, s)));
 
                             }

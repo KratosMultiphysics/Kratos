@@ -30,34 +30,6 @@ namespace Kratos
 
         mDofsPerNode = 4;
         mNumberOfDofs  = this->GetGeometry().size() * mDofsPerNode;
-        mSMatrixRodriguesVariation.resize(mNumberOfDofs * 3, 3);
-        mSMatrixLambdaVariation.resize(mNumberOfDofs * 3, 3);
-        mSMatrixLambdaVariationRodriguesLambda.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesLambdaVariationRodriguesLambda.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesVariationLambdaRodriguesLambda.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesLambdaRodriguesLambdaVariation.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesDerivativeVariation.resize(mNumberOfDofs * 3, 3);
-        mSMatrixLambdaDerivativeVariation.resize(mNumberOfDofs * 3, 3);
-        mSMatrixLambdaDerivativeVariationRodriguesLambda.resize(mNumberOfDofs * 3, 3);
-        mSMatrixLambdaVariationRodriguesDerivativeLambda.resize(mNumberOfDofs * 3, 3);
-        mSMatrixLambdaVariationRodriguesLambdaDerivative.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation.resize(mNumberOfDofs * 3, 3);
-        mSMatrixRodriguesSecondVariation.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);
-        mSMatrixLambdaSecondVariation.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);
-        mSMatrixLambdaSecondVariationRodriguesLambda.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);
-        mSMatrixRodriguesDerivativeSecondVariation.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);
-        mSMatrixLambdaDerivativeSecondVariation.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);
-        mSMatrixLambdaDerivativeSecondVariationRodriguesLambda.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);
-        mSMatrixLambdaSecondVariationRodriguesDerivativeLambda.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);
-        mSMatrixLambdaSecondVariationRodriguesLambdaDerivative.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);
         KRATOS_CATCH("")
 
     }
@@ -150,20 +122,20 @@ namespace Kratos
                 rKinematicVariables.r1,
                 rKinematicVariables.r2);
 
-        rKinematicVariables.B = sqrt(
+        rKinematicVariables.B = std::sqrt(
             inner_prod(
                 rKinematicVariables.R2,
                 rKinematicVariables.R2)
-            - pow(
+            - std::pow(
                 reference_base_vector_product /
                     rKinematicVariables.A,
                 2));
 
-        rKinematicVariables.b = sqrt(
+        rKinematicVariables.b = std::sqrt(
             inner_prod(
                 rKinematicVariables.r2,
                 rKinematicVariables.r2)
-            - pow(
+            - std::pow(
                 current_base_vector_product /
                     rKinematicVariables.a,
                 2));
@@ -201,11 +173,9 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
     const bool calculate_geometric_stiffness =
         build_level != 1;
 
-    Vector stress_axial = ZeroVector(5);
-    Vector stress_bending_1 = ZeroVector(5);
-    Vector stress_bending_2 = ZeroVector(5);
-    Vector stress_torsion_1 = ZeroVector(5);
-    Vector stress_torsion_2 = ZeroVector(5);
+    // Body forces (e.g. self weight) are applied if the nodes provide a VOLUME_ACCELERATION
+    const bool has_body_forces =
+        r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION);
 
     for (
         IndexType point_number = 0;
@@ -362,57 +332,39 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         }
 
         if (CalculateResidualVectorFlag == true) {
-            // Map stress components to different behaviors
-            stress_axial[0] =
-                constitutive_variables.StressVector[0];
+            // Internal forces. Each B matrix has a single non-zero row, the one of its generalized strain.
+            const Vector& r_stress_vector = constitutive_variables.StressVector;
 
-            stress_bending_1[1] =
-                constitutive_variables.StressVector[1];
+            noalias(rRightHandSideVector) -=
+                inverse_a4 * integration_weight * r_stress_vector[0] * row(b_axial, 0);
+            noalias(rRightHandSideVector) -=
+                inverse_a4 * integration_weight * r_stress_vector[1] * row(b_bending_1, 1);
+            noalias(rRightHandSideVector) -=
+                inverse_a4 * integration_weight * r_stress_vector[2] * row(b_bending_2, 2);
+            noalias(rRightHandSideVector) -=
+                inverse_a2 * integration_weight * r_stress_vector[3] * row(b_torsion_1, 3);
+            noalias(rRightHandSideVector) -=
+                inverse_a2 * integration_weight * r_stress_vector[4] * row(b_torsion_2, 4);
 
-            stress_bending_2[2] =
-                constitutive_variables.StressVector[2];
+            // External body forces (dead load): f_i = int N_i * rho * A * b dL, Bauer et al. (2016) Eq. (3)
+            if (has_body_forces) {
+                const Matrix& r_shape_functions = r_geometry.ShapeFunctionsValues();
+                const double mass_per_length =
+                    GetProperties()[DENSITY] * GetProperties()[CROSS_AREA];
 
-            stress_torsion_1[3] =
-                constitutive_variables.StressVector[3];
+                array_1d<double, 3> body_force = ZeroVector(3);
+                for (IndexType i = 0; i < r_geometry.size(); ++i) {
+                    body_force += r_shape_functions(point_number, i)
+                        * r_geometry[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+                }
 
-            stress_torsion_2[4] =
-                constitutive_variables.StressVector[4];
-
-            // Assemble internal forces
-            rRightHandSideVector -=
-                inverse_a4 *
-                integration_weight *
-                prod(
-                    trans(b_axial),
-                    stress_axial);
-
-            rRightHandSideVector -=
-                inverse_a4 *
-                integration_weight *
-                prod(
-                    trans(b_bending_1),
-                    stress_bending_1);
-
-            rRightHandSideVector -=
-                inverse_a4 *
-                integration_weight *
-                prod(
-                    trans(b_bending_2),
-                    stress_bending_2);
-
-            rRightHandSideVector -=
-                inverse_a2 *
-                integration_weight *
-                prod(
-                    trans(b_torsion_1),
-                    stress_torsion_1);
-
-            rRightHandSideVector -=
-                inverse_a2 *
-                integration_weight *
-                prod(
-                    trans(b_torsion_2),
-                    stress_torsion_2);
+                for (IndexType i = 0; i < r_geometry.size(); ++i) {
+                    for (IndexType j = 0; j < 3; ++j) {
+                        rRightHandSideVector[i * mDofsPerNode + j] +=
+                            r_shape_functions(point_number, i) * mass_per_length * body_force[j] * integration_weight;
+                    }
+                }
+            }
         }
     }
 
@@ -438,16 +390,16 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             << Id() << std::endl;
 
         KRATOS_ERROR_IF(
-            !GetProperties().Has(I_N) ||
-            GetProperties()[I_N] <= numerical_limit)
-            << "Please provide a reasonable value for \"I_N\" "
+            !GetProperties().Has(I22) ||
+            GetProperties()[I22] <= numerical_limit)
+            << "Please provide a reasonable value for \"I22\" "
             << "(bending moment of inertia about N axis) for element #"
             << Id() << std::endl;
 
         KRATOS_ERROR_IF(
-            !GetProperties().Has(I_V) ||
-            GetProperties()[I_V] <= numerical_limit)
-            << "Please provide a reasonable value for \"I_V\" "
+            !GetProperties().Has(I33) ||
+            GetProperties()[I33] <= numerical_limit)
+            << "Please provide a reasonable value for \"I33\" "
             << "(bending moment of inertia about V axis) for element #"
             << Id() << std::endl;
 
@@ -707,7 +659,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         const Vector3d reference_tangent_derivative =
             reference_second_base_vector / reference_first_base_vector_norm
             - inner_prod(reference_first_base_vector, reference_second_base_vector)
-                / pow(reference_first_base_vector_norm, 3)
+                / std::pow(reference_first_base_vector_norm, 3)
                 * reference_first_base_vector;
 
         Vector3d initial_reference_tangent_derivative;
@@ -841,7 +793,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         const Vector3d current_tangent_derivative =
             current_second_base_vector / current_first_base_vector_norm
             - inner_prod(current_first_base_vector, current_second_base_vector)
-                / pow(current_first_base_vector_norm, 3)
+                / std::pow(current_first_base_vector_norm, 3)
                 * current_first_base_vector;
 
         const Vector3d reference_tangent =
@@ -850,7 +802,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         const Vector3d reference_tangent_derivative =
             reference_second_base_vector / reference_first_base_vector_norm
             - inner_prod(reference_first_base_vector, reference_second_base_vector)
-                / pow(reference_first_base_vector_norm, 3)
+                / std::pow(reference_first_base_vector_norm, 3)
                 * reference_first_base_vector;
 
         Vector3d initial_reference_tangent_derivative;
@@ -1053,6 +1005,29 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Matrix& rBTorsion2)
     {
         KRATOS_TRY
+
+        // Scratch matrices, laid out as (3 * number of dofs) x 3 or (3 * number of dofs) x (3 * number of dofs)
+        Matrix lambda_derivative_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix lambda_derivative_variation_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix lambda_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix lambda_variation_rodrigues_derivative_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix lambda_variation_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix lambda_variation_rodrigues_lambda_derivative_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_derivative_lambda_variation_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_derivative_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_derivative_variation_lambda_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_lambda_derivative_variation_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_lambda_rodrigues_lambda_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_lambda_variation_rodrigues_derivative_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_lambda_variation_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_lambda_variation_rodrigues_lambda_derivative_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_variation_lambda_derivative_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_variation_lambda_rodrigues_derivative_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_variation_lambda_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_variation_lambda_rodrigues_lambda_derivative_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+
         const auto& r_geometry = GetGeometry();
 
         // Get shape functions and derivatives at integration point
@@ -1118,23 +1093,23 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Matrix3d reference_rodrigues_matrix_derivative;
 
         current_tangent = current_first_base_vector / norm_2(current_first_base_vector);
-        current_tangent_derivative = current_second_base_vector / norm_2(current_first_base_vector) - inner_prod(current_first_base_vector, current_second_base_vector) / pow(norm_2(current_first_base_vector), 3) * current_first_base_vector;
+        current_tangent_derivative = current_second_base_vector / norm_2(current_first_base_vector) - inner_prod(current_first_base_vector, current_second_base_vector) / std::pow(norm_2(current_first_base_vector), 3) * current_first_base_vector;
         reference_tangent = reference_first_base_vector / norm_2(reference_first_base_vector);
-        reference_tangent_derivative = reference_second_base_vector / norm_2(reference_first_base_vector) - inner_prod(reference_first_base_vector, reference_second_base_vector) / pow(norm_2(reference_first_base_vector), 3) * reference_first_base_vector;
+        reference_tangent_derivative = reference_second_base_vector / norm_2(reference_first_base_vector) - inner_prod(reference_first_base_vector, reference_second_base_vector) / std::pow(norm_2(reference_first_base_vector), 3) * reference_first_base_vector;
         ComputeTangentVariation(shape_function_derivatives, current_first_base_vector, current_tangent_variation);
         ComputeTangentDerivativeVariation(shape_function_derivatives, shape_function_second_derivatives, current_first_base_vector, current_second_base_vector, current_tangent_derivative_variation);
 
         ComputeLambdaMatrix(reference_tangent, current_tangent, current_lambda_matrix);
         ComputeLambdaMatrixDerivative(reference_tangent, current_tangent, reference_tangent_derivative, current_tangent_derivative, current_lambda_matrix_derivative);
-        ComputeLambdaMatrixVariation(reference_tangent, current_tangent, current_tangent_variation, mNumberOfDofs, mDofsPerNode, mSMatrixLambdaVariation);
-        ComputeLambdaMatrixDerivativeVariation(reference_tangent, current_tangent, reference_tangent_derivative, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, mNumberOfDofs, mDofsPerNode, mSMatrixLambdaDerivativeVariation);
+        ComputeLambdaMatrixVariation(reference_tangent, current_tangent, current_tangent_variation, mNumberOfDofs, mDofsPerNode, lambda_variation_matrix);
+        ComputeLambdaMatrixDerivativeVariation(reference_tangent, current_tangent, reference_tangent_derivative, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, mNumberOfDofs, mDofsPerNode, lambda_derivative_variation_matrix);
         ComputeLambdaMatrix(initial_reference_tangent, reference_tangent, reference_lambda_matrix);
         ComputeLambdaMatrixDerivative(initial_reference_tangent, reference_tangent, initial_reference_tangent_derivative, reference_tangent_derivative, reference_lambda_matrix_derivative);
 
         ComputeRodriguesMatrix(current_tangent, current_twist_angle, current_rodrigues_matrix);
         ComputeRodriguesMatrixDerivative(current_tangent, current_tangent_derivative, current_twist_angle, current_twist_angle_derivative, current_rodrigues_matrix_derivative);
-        ComputeRodriguesMatrixVariation(current_tangent, current_tangent_variation, shape_functions, current_twist_angle, mNumberOfDofs, mDofsPerNode, mSMatrixRodriguesVariation);
-        ComputeRodriguesMatrixDerivativeVariation(current_tangent, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, shape_functions, shape_function_derivatives, current_twist_angle, current_twist_angle_derivative, mNumberOfDofs, mDofsPerNode, mSMatrixRodriguesDerivativeVariation);
+        ComputeRodriguesMatrixVariation(current_tangent, current_tangent_variation, shape_functions, current_twist_angle, mNumberOfDofs, mDofsPerNode, rodrigues_variation_matrix);
+        ComputeRodriguesMatrixDerivativeVariation(current_tangent, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, shape_functions, shape_function_derivatives, current_twist_angle, current_twist_angle_derivative, mNumberOfDofs, mDofsPerNode, rodrigues_derivative_variation_matrix);
         ComputeRodriguesMatrix(reference_tangent, reference_twist_angle, reference_rodrigues_matrix);
         ComputeRodriguesMatrixDerivative(reference_tangent, reference_tangent_derivative, reference_twist_angle, reference_twist_angle_derivative, reference_rodrigues_matrix_derivative);
 
@@ -1218,10 +1193,10 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         cross_section_transformation_derivative.clear();
         cross_section_transformation_derivative = current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term + current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term + current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term + current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term;
 
-        mSMatrixLambdaVariationRodriguesLambdaDerivative.clear();
-        mSMatrixLambdaVariationRodriguesDerivativeLambda.clear();
-        mSMatrixLambdaVariationRodriguesLambda.clear();
-        mSMatrixLambdaDerivativeVariationRodriguesLambda.clear();
+        lambda_variation_rodrigues_lambda_derivative_matrix.clear();
+        lambda_variation_rodrigues_derivative_lambda_matrix.clear();
+        lambda_variation_rodrigues_lambda_matrix.clear();
+        lambda_derivative_variation_rodrigues_lambda_matrix.clear();
 
         for (size_t row_component = 0; row_component < 3; row_component++)
         {
@@ -1231,10 +1206,10 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
                 {
                     for (size_t dof_index = 0; dof_index < mNumberOfDofs; dof_index++)
                     {
-                        mSMatrixLambdaVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                        mSMatrixLambdaVariationRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                        mSMatrixLambdaVariationRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                        mSMatrixLambdaDerivativeVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
+                        lambda_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
+                        lambda_variation_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);
+                        lambda_variation_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);
+                        lambda_derivative_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
                     }
                 }
             }
@@ -1244,18 +1219,18 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         current_lambda_reference_rodrigues_lambda_product_derivative_variation.resize(3 * mNumberOfDofs, 3);
         current_lambda_reference_rodrigues_lambda_product_derivative_variation.clear();
 
-        current_lambda_reference_rodrigues_lambda_product_derivative_variation = mSMatrixLambdaVariationRodriguesLambdaDerivative + mSMatrixLambdaVariationRodriguesDerivativeLambda + mSMatrixLambdaDerivativeVariationRodriguesLambda;
+        current_lambda_reference_rodrigues_lambda_product_derivative_variation = lambda_variation_rodrigues_lambda_derivative_matrix + lambda_variation_rodrigues_derivative_lambda_matrix + lambda_derivative_variation_rodrigues_lambda_matrix;
 
-        mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative.clear();
-        mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda.clear();
-        mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda.clear();
-        mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda.clear();
-        mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda.clear();
-        mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda.clear();
-        mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda.clear();
-        mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative.clear();
-        mSMatrixRodriguesLambdaVariationRodriguesLambda.clear();
-        mSMatrixRodriguesVariationLambdaRodriguesLambda.clear();
+        rodrigues_variation_lambda_rodrigues_lambda_derivative_matrix.clear();
+        rodrigues_variation_lambda_rodrigues_derivative_lambda_matrix.clear();
+        rodrigues_variation_lambda_derivative_rodrigues_lambda_matrix.clear();
+        rodrigues_derivative_variation_lambda_rodrigues_lambda_matrix.clear();
+        rodrigues_derivative_lambda_variation_rodrigues_lambda_matrix.clear();
+        rodrigues_lambda_derivative_variation_rodrigues_lambda_matrix.clear();
+        rodrigues_lambda_variation_rodrigues_derivative_lambda_matrix.clear();
+        rodrigues_lambda_variation_rodrigues_lambda_derivative_matrix.clear();
+        rodrigues_lambda_variation_rodrigues_lambda_matrix.clear();
+        rodrigues_variation_lambda_rodrigues_lambda_matrix.clear();
 
         for (size_t row_component = 0; row_component < 3; row_component++)
         {
@@ -1265,27 +1240,27 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
                 {
                     for (size_t dof_index = 0; dof_index < mNumberOfDofs; dof_index++)
                     {
-                        mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                        mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                        mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);
-                        mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
-                        mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaVariationRodriguesLambdaDerivative(product_index * mNumberOfDofs + dof_index, column_component);
-                        mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaVariationRodriguesDerivativeLambda(product_index * mNumberOfDofs + dof_index, column_component);
-                        mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaDerivativeVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component);
-                        mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix_derivative(row_component, product_index) * mSMatrixLambdaVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component);
-                        mSMatrixRodriguesLambdaVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component);
-                        mSMatrixRodriguesVariationLambdaRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
+                        rodrigues_variation_lambda_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);
+                        rodrigues_variation_lambda_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);
+                        rodrigues_variation_lambda_derivative_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);
+                        rodrigues_derivative_variation_lambda_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
+                        rodrigues_lambda_variation_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_variation_rodrigues_lambda_derivative_matrix(product_index * mNumberOfDofs + dof_index, column_component);
+                        rodrigues_lambda_variation_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_variation_rodrigues_derivative_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
+                        rodrigues_lambda_derivative_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_derivative_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
+                        rodrigues_derivative_lambda_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix_derivative(row_component, product_index) * lambda_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
+                        rodrigues_lambda_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
+                        rodrigues_variation_lambda_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
                     }
                 }
             }
         }
 
-        mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation.clear();
-        mSMatrixRodriguesLambdaRodriguesLambdaVariation.clear();
+        rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix.clear();
+        rodrigues_lambda_rodrigues_lambda_variation_matrix.clear();
 
-        mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation = mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative + mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda + mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda + mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda
-            + mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative + mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda + mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda + mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda;
-        mSMatrixRodriguesLambdaRodriguesLambdaVariation = mSMatrixRodriguesVariationLambdaRodriguesLambda + mSMatrixRodriguesLambdaVariationRodriguesLambda;
+        rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix = rodrigues_variation_lambda_rodrigues_lambda_derivative_matrix + rodrigues_variation_lambda_rodrigues_derivative_lambda_matrix + rodrigues_variation_lambda_derivative_rodrigues_lambda_matrix + rodrigues_derivative_variation_lambda_rodrigues_lambda_matrix
+            + rodrigues_lambda_variation_rodrigues_lambda_derivative_matrix + rodrigues_lambda_variation_rodrigues_derivative_lambda_matrix + rodrigues_lambda_derivative_variation_rodrigues_lambda_matrix + rodrigues_derivative_lambda_variation_rodrigues_lambda_matrix;
+        rodrigues_lambda_rodrigues_lambda_variation_matrix = rodrigues_variation_lambda_rodrigues_lambda_matrix + rodrigues_lambda_variation_rodrigues_lambda_matrix;
 
         Vector3d normal_vector;
         normal_vector.clear();
@@ -1314,8 +1289,8 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             {
                 for (int product_index = 0; product_index < 3; product_index++)
                 {
-                    normal_vector_variation(row_component * mNumberOfDofs + dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index);
-                    binormal_vector_variation(row_component * mNumberOfDofs + dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index);
+                    normal_vector_variation(row_component * mNumberOfDofs + dof_index) += rodrigues_lambda_rodrigues_lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index);
+                    binormal_vector_variation(row_component * mNumberOfDofs + dof_index) += rodrigues_lambda_rodrigues_lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index);
                 }
             }
         }
@@ -1340,10 +1315,10 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             {
                 for (size_t dof_index = 0; dof_index < mNumberOfDofs; dof_index++)
                 {
-                    normal_curvature_variation(dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index) * current_first_base_vector[row_component] + cross_section_transformation_derivative(row_component, product_index) * reference_normal(product_index) * current_first_base_vector_variation[row_component * mNumberOfDofs + dof_index];
-                    binormal_curvature_variation(dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index) * current_first_base_vector[row_component] + cross_section_transformation_derivative(row_component, product_index) * reference_binormal(product_index) * current_first_base_vector_variation[row_component * mNumberOfDofs + dof_index];
-                    normal_torsion_variation(dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index) * normal_vector(row_component) + cross_section_transformation_derivative(row_component, product_index) * reference_binormal(product_index) * normal_vector_variation(row_component * mNumberOfDofs + dof_index);
-                    binormal_torsion_variation(dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index) * binormal_vector(row_component) + cross_section_transformation_derivative(row_component, product_index) * reference_normal(product_index) * binormal_vector_variation(row_component * mNumberOfDofs + dof_index);
+                    normal_curvature_variation(dof_index) += rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index) * current_first_base_vector[row_component] + cross_section_transformation_derivative(row_component, product_index) * reference_normal(product_index) * current_first_base_vector_variation[row_component * mNumberOfDofs + dof_index];
+                    binormal_curvature_variation(dof_index) += rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index) * current_first_base_vector[row_component] + cross_section_transformation_derivative(row_component, product_index) * reference_binormal(product_index) * current_first_base_vector_variation[row_component * mNumberOfDofs + dof_index];
+                    normal_torsion_variation(dof_index) += rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index) * normal_vector(row_component) + cross_section_transformation_derivative(row_component, product_index) * reference_binormal(product_index) * normal_vector_variation(row_component * mNumberOfDofs + dof_index);
+                    binormal_torsion_variation(dof_index) += rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index) * binormal_vector(row_component) + cross_section_transformation_derivative(row_component, product_index) * reference_normal(product_index) * binormal_vector_variation(row_component * mNumberOfDofs + dof_index);
                 }
             }
         }
@@ -1371,6 +1346,19 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
     }
 
 
+    /**
+     * Second variations of the generalized strains with respect to the dofs (Bauer et al. 2016, Eq. 70 and Appendix A).
+     *
+     * The current cross-section axes are a_alpha = T * A0_alpha with the frame transformation
+     * T = R_t(psi) * Lambda(T, t) * P, where P = R_T(Psi) * Lambda(T0, T) only depends on the reference
+     * configuration. Their derivative along the curve is a_alpha,1 = T,1 * A0_alpha. The second variations of
+     * T and T,1 follow from the product rule and are assembled term by term below.
+     *
+     * Layout of the variation containers (n = number of element dofs):
+     *  - 3x3 matrix M, first variation:  (3 n) x 3     with M,r(i, j)  stored at (i * n + r, j)
+     *  - 3x3 matrix M, second variation: (3 n) x (3 n) with M,rs(i, j) stored at (i * n + r, j * n + s)
+     *  - 3-vector v, first variation:    3 n            with v,r(i)     stored at (i * n + r)
+     */
     void NonLinearBernoulliBeamElement3D::ComputeGMatrices(
         const IndexType IntegrationPointIndex,
         const KinematicVariables& rKinematicVariables,
@@ -1381,6 +1369,37 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Matrix& rGTorsion2)
     {
         KRATOS_TRY
+
+        // Scratch matrices, laid out as (3 * number of dofs) x 3 or (3 * number of dofs) x (3 * number of dofs)
+        Matrix lambda_derivative_second_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3 * mNumberOfDofs);
+        Matrix lambda_derivative_second_variation_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3 * mNumberOfDofs);
+        Matrix lambda_derivative_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix lambda_derivative_variation_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix lambda_second_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3 * mNumberOfDofs);
+        Matrix lambda_second_variation_rodrigues_derivative_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3 * mNumberOfDofs);
+        Matrix lambda_second_variation_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3 * mNumberOfDofs);
+        Matrix lambda_second_variation_rodrigues_lambda_derivative_matrix = ZeroMatrix(3 * mNumberOfDofs, 3 * mNumberOfDofs);
+        Matrix lambda_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix lambda_variation_rodrigues_derivative_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix lambda_variation_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix lambda_variation_rodrigues_lambda_derivative_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_derivative_lambda_variation_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_derivative_second_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3 * mNumberOfDofs);
+        Matrix rodrigues_derivative_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_derivative_variation_lambda_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_lambda_derivative_variation_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_lambda_rodrigues_lambda_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_lambda_variation_rodrigues_derivative_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_lambda_variation_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_lambda_variation_rodrigues_lambda_derivative_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_second_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3 * mNumberOfDofs);
+        Matrix rodrigues_variation_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_variation_lambda_derivative_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_variation_lambda_rodrigues_derivative_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_variation_lambda_rodrigues_lambda_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+        Matrix rodrigues_variation_lambda_rodrigues_lambda_derivative_matrix = ZeroMatrix(3 * mNumberOfDofs, 3);
+
 
         const auto& r_geometry = GetGeometry();
 
@@ -1464,30 +1483,35 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Matrix3d reference_rodrigues_matrix_derivative;
 
         current_tangent = current_first_base_vector / norm_2(current_first_base_vector);
-        current_tangent_derivative = current_second_base_vector / norm_2(current_first_base_vector) - inner_prod(current_first_base_vector, current_second_base_vector) / pow(norm_2(current_first_base_vector), 3) * current_first_base_vector;
+        current_tangent_derivative = current_second_base_vector / norm_2(current_first_base_vector) - inner_prod(current_first_base_vector, current_second_base_vector) / std::pow(norm_2(current_first_base_vector), 3) * current_first_base_vector;
         reference_tangent = reference_first_base_vector / norm_2(reference_first_base_vector);
-        reference_tangent_derivative = reference_second_base_vector / norm_2(reference_first_base_vector) - inner_prod(reference_first_base_vector, reference_second_base_vector) / pow(norm_2(reference_first_base_vector), 3) * reference_first_base_vector;
+        reference_tangent_derivative = reference_second_base_vector / norm_2(reference_first_base_vector) - inner_prod(reference_first_base_vector, reference_second_base_vector) / std::pow(norm_2(reference_first_base_vector), 3) * reference_first_base_vector;
+        // 1. Current tangent t = a1 / |a1|, its derivative t,1 and their first and second variations
         ComputeTangentVariation(shape_function_derivatives, current_first_base_vector, current_tangent_variation);
         ComputeTangentDerivativeVariation(shape_function_derivatives, shape_function_second_derivatives, current_first_base_vector, current_second_base_vector, current_tangent_derivative_variation);
         ComputeTangentSecondVariation(shape_function_derivatives, current_first_base_vector, current_tangent_second_variation);
         ComputeTangentDerivativeSecondVariation(shape_function_derivatives, shape_function_second_derivatives, current_first_base_vector, current_second_base_vector, current_tangent_derivative_second_variation);
 
+        // 2. Mapping matrices (Eq. 23): Lambda(T, t) depends on the dofs (Eq. A.13-A.19), Lambda(T0, T) does not
         ComputeLambdaMatrix(reference_tangent, current_tangent, current_lambda_matrix);
         ComputeLambdaMatrixDerivative(reference_tangent, current_tangent, reference_tangent_derivative, current_tangent_derivative, current_lambda_matrix_derivative);
 
         ComputeLambdaMatrix(initial_reference_tangent, reference_tangent, reference_lambda_matrix);
         ComputeLambdaMatrixDerivative(initial_reference_tangent, reference_tangent, initial_reference_tangent_derivative, reference_tangent_derivative, reference_lambda_matrix_derivative);
-        ComputeLambdaMatrixVariations(reference_tangent, current_tangent, reference_tangent_derivative, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, current_tangent_second_variation, current_tangent_derivative_second_variation, mNumberOfDofs, mDofsPerNode, mSMatrixLambdaVariation, mSMatrixLambdaDerivativeVariation, mSMatrixLambdaSecondVariation, mSMatrixLambdaDerivativeSecondVariation);
+        ComputeLambdaMatrixVariations(reference_tangent, current_tangent, reference_tangent_derivative, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, current_tangent_second_variation, current_tangent_derivative_second_variation, mNumberOfDofs, mDofsPerNode, lambda_variation_matrix, lambda_derivative_variation_matrix, lambda_second_variation_matrix, lambda_derivative_second_variation_matrix);
 
+        // 3. Rotation matrices (Eq. 26): R_t(psi) depends on the dofs (Eq. A.5-A.11), R_T(Psi) does not
         ComputeRodriguesMatrix(current_tangent, current_twist_angle, current_rodrigues_matrix);
         ComputeRodriguesMatrixDerivative(current_tangent, current_tangent_derivative, current_twist_angle, current_twist_angle_derivative, current_rodrigues_matrix_derivative);
-        ComputeRodriguesMatrixVariation(current_tangent, current_tangent_variation, shape_functions, current_twist_angle, mNumberOfDofs, mDofsPerNode, mSMatrixRodriguesVariation);
-        ComputeRodriguesMatrixDerivativeVariation(current_tangent, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, shape_functions, shape_function_derivatives, current_twist_angle, current_twist_angle_derivative, mNumberOfDofs, mDofsPerNode, mSMatrixRodriguesDerivativeVariation);
-        ComputeRodriguesMatrixSecondVariation(current_tangent, current_tangent_variation, current_tangent_second_variation, shape_functions, current_twist_angle, mNumberOfDofs, mDofsPerNode, mSMatrixRodriguesSecondVariation);
-        ComputeRodriguesMatrixDerivativeSecondVariation(current_tangent, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, current_tangent_second_variation, current_tangent_derivative_second_variation, shape_functions, shape_function_derivatives, current_twist_angle, current_twist_angle_derivative, mNumberOfDofs, mDofsPerNode, mSMatrixRodriguesDerivativeSecondVariation);
+        ComputeRodriguesMatrixVariation(current_tangent, current_tangent_variation, shape_functions, current_twist_angle, mNumberOfDofs, mDofsPerNode, rodrigues_variation_matrix);
+        ComputeRodriguesMatrixDerivativeVariation(current_tangent, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, shape_functions, shape_function_derivatives, current_twist_angle, current_twist_angle_derivative, mNumberOfDofs, mDofsPerNode, rodrigues_derivative_variation_matrix);
+        ComputeRodriguesMatrixSecondVariation(current_tangent, current_tangent_variation, current_tangent_second_variation, shape_functions, current_twist_angle, mNumberOfDofs, mDofsPerNode, rodrigues_second_variation_matrix);
+        ComputeRodriguesMatrixDerivativeSecondVariation(current_tangent, current_tangent_variation, current_tangent_derivative, current_tangent_derivative_variation, current_tangent_second_variation, current_tangent_derivative_second_variation, shape_functions, shape_function_derivatives, current_twist_angle, current_twist_angle_derivative, mNumberOfDofs, mDofsPerNode, rodrigues_derivative_second_variation_matrix);
 
         ComputeRodriguesMatrix(reference_tangent, reference_twist_angle, reference_rodrigues_matrix);
         ComputeRodriguesMatrixDerivative(reference_tangent, reference_tangent_derivative, reference_twist_angle, reference_twist_angle_derivative, reference_rodrigues_matrix_derivative);
+
+        // 4. Products of R_t, Lambda(T, t) and P and of their derivatives and variations
 
         Matrix3d reference_rodrigues_lambda_derivative_product;
         reference_rodrigues_lambda_derivative_product.clear();
@@ -1570,10 +1594,10 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         cross_section_transformation_derivative = current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term + current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term + current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term + current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term;
 
 
-        mSMatrixLambdaVariationRodriguesLambdaDerivative.clear();
-        mSMatrixLambdaVariationRodriguesDerivativeLambda.clear();
-        mSMatrixLambdaVariationRodriguesLambda.clear();
-        mSMatrixLambdaDerivativeVariationRodriguesLambda.clear();
+        lambda_variation_rodrigues_lambda_derivative_matrix.clear();
+        lambda_variation_rodrigues_derivative_lambda_matrix.clear();
+        lambda_variation_rodrigues_lambda_matrix.clear();
+        lambda_derivative_variation_rodrigues_lambda_matrix.clear();
 
         for (size_t  row_component   = 0;row_component < 3;row_component++)
         {
@@ -1583,10 +1607,10 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
                 {
                     for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)
                     {
-                        mSMatrixLambdaVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                        mSMatrixLambdaVariationRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                        mSMatrixLambdaVariationRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                        mSMatrixLambdaDerivativeVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
+                        lambda_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
+                        lambda_variation_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);
+                        lambda_variation_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);
+                        lambda_derivative_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
                     }
                 }
             }
@@ -1596,18 +1620,18 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         current_lambda_reference_rodrigues_lambda_product_derivative_variation.resize(3 * mNumberOfDofs, 3);
         current_lambda_reference_rodrigues_lambda_product_derivative_variation.clear();
 
-        current_lambda_reference_rodrigues_lambda_product_derivative_variation = mSMatrixLambdaVariationRodriguesLambdaDerivative + mSMatrixLambdaVariationRodriguesDerivativeLambda + mSMatrixLambdaDerivativeVariationRodriguesLambda;
+        current_lambda_reference_rodrigues_lambda_product_derivative_variation = lambda_variation_rodrigues_lambda_derivative_matrix + lambda_variation_rodrigues_derivative_lambda_matrix + lambda_derivative_variation_rodrigues_lambda_matrix;
 
-        mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative.clear();
-        mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda.clear();
-        mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda.clear();
-        mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda.clear();
-        mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda.clear();
-        mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda.clear();
-        mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda.clear();
-        mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative.clear();
-        mSMatrixRodriguesLambdaVariationRodriguesLambda.clear();
-        mSMatrixRodriguesVariationLambdaRodriguesLambda.clear();
+        rodrigues_variation_lambda_rodrigues_lambda_derivative_matrix.clear();
+        rodrigues_variation_lambda_rodrigues_derivative_lambda_matrix.clear();
+        rodrigues_variation_lambda_derivative_rodrigues_lambda_matrix.clear();
+        rodrigues_derivative_variation_lambda_rodrigues_lambda_matrix.clear();
+        rodrigues_derivative_lambda_variation_rodrigues_lambda_matrix.clear();
+        rodrigues_lambda_derivative_variation_rodrigues_lambda_matrix.clear();
+        rodrigues_lambda_variation_rodrigues_derivative_lambda_matrix.clear();
+        rodrigues_lambda_variation_rodrigues_lambda_derivative_matrix.clear();
+        rodrigues_lambda_variation_rodrigues_lambda_matrix.clear();
+        rodrigues_variation_lambda_rodrigues_lambda_matrix.clear();
 
         for (size_t  row_component   = 0;row_component < 3;row_component++)
         {
@@ -1617,16 +1641,16 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
                 {
                     for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)
                     {
-                        mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                        mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                        mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);
-                        mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
-                        mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaVariationRodriguesLambdaDerivative(product_index * mNumberOfDofs + dof_index, column_component);
-                        mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaVariationRodriguesDerivativeLambda(product_index * mNumberOfDofs + dof_index, column_component);
-                        mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaDerivativeVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component);
-                        mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix_derivative(row_component, product_index) * mSMatrixLambdaVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component);
-                        mSMatrixRodriguesLambdaVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component);
-                        mSMatrixRodriguesVariationLambdaRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
+                        rodrigues_variation_lambda_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);
+                        rodrigues_variation_lambda_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);
+                        rodrigues_variation_lambda_derivative_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);
+                        rodrigues_derivative_variation_lambda_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
+                        rodrigues_lambda_variation_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_variation_rodrigues_lambda_derivative_matrix(product_index * mNumberOfDofs + dof_index, column_component);
+                        rodrigues_lambda_variation_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_variation_rodrigues_derivative_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
+                        rodrigues_lambda_derivative_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_derivative_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
+                        rodrigues_derivative_lambda_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix_derivative(row_component, product_index) * lambda_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
+                        rodrigues_lambda_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
+                        rodrigues_variation_lambda_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
                     }
                 }
             }
@@ -1634,16 +1658,16 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
 
 
 
-        mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation.clear();
-        mSMatrixRodriguesLambdaRodriguesLambdaVariation.clear();
-        mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation = mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative + mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda + mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda + mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda
-            + mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative + mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda + mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda + mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda;
-        mSMatrixRodriguesLambdaRodriguesLambdaVariation = mSMatrixRodriguesVariationLambdaRodriguesLambda + mSMatrixRodriguesLambdaVariationRodriguesLambda;
+        rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix.clear();
+        rodrigues_lambda_rodrigues_lambda_variation_matrix.clear();
+        rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix = rodrigues_variation_lambda_rodrigues_lambda_derivative_matrix + rodrigues_variation_lambda_rodrigues_derivative_lambda_matrix + rodrigues_variation_lambda_derivative_rodrigues_lambda_matrix + rodrigues_derivative_variation_lambda_rodrigues_lambda_matrix
+            + rodrigues_lambda_variation_rodrigues_lambda_derivative_matrix + rodrigues_lambda_variation_rodrigues_derivative_lambda_matrix + rodrigues_lambda_derivative_variation_rodrigues_lambda_matrix + rodrigues_derivative_lambda_variation_rodrigues_lambda_matrix;
+        rodrigues_lambda_rodrigues_lambda_variation_matrix = rodrigues_variation_lambda_rodrigues_lambda_matrix + rodrigues_lambda_variation_rodrigues_lambda_matrix;
 
-        mSMatrixLambdaSecondVariationRodriguesLambda.clear();
-        mSMatrixLambdaDerivativeSecondVariationRodriguesLambda.clear();
-        mSMatrixLambdaSecondVariationRodriguesDerivativeLambda.clear();
-        mSMatrixLambdaSecondVariationRodriguesLambdaDerivative.clear();
+        lambda_second_variation_rodrigues_lambda_matrix.clear();
+        lambda_derivative_second_variation_rodrigues_lambda_matrix.clear();
+        lambda_second_variation_rodrigues_derivative_lambda_matrix.clear();
+        lambda_second_variation_rodrigues_lambda_derivative_matrix.clear();
 
         for (size_t  row_component   = 0;row_component < 3;row_component++)
         {
@@ -1655,16 +1679,18 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
                     {
                         for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)
                         {
-                            mSMatrixLambdaSecondVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixLambdaSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                            mSMatrixLambdaDerivativeSecondVariationRodriguesLambda(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixLambdaDerivativeSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                            mSMatrixLambdaSecondVariationRodriguesDerivativeLambda(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixLambdaSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                            mSMatrixLambdaSecondVariationRodriguesLambdaDerivative(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixLambdaSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);
+                            lambda_second_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += lambda_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_lambda_product(product_index, column_component);
+                            lambda_derivative_second_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += lambda_derivative_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_lambda_product(product_index, column_component);
+                            lambda_second_variation_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += lambda_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);
+                            lambda_second_variation_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += lambda_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);
                         }
                     }
                 }
             }
         }
 
+        // 5. Second variation of T,1 = (R_t Lambda P),1: all product-rule terms of R_t, Lambda and P with two
+        //    variations distributed over R_t and Lambda (P is independent of the dofs), Eq. (A.2) and (A.4)
         Matrix current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term;
         current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
         current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term.clear();
@@ -1723,21 +1749,21 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
                     {
                         for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)
                         {
-                            current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix_derivative(row_component, product_index) * mSMatrixLambdaSecondVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
-                            current_rodrigues_lambda_derivative_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaDerivativeSecondVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
-                            current_rodrigues_lambda_second_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaSecondVariationRodriguesDerivativeLambda(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
-                            current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaSecondVariationRodriguesLambdaDerivative(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
-                            current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * mSMatrixLambdaVariationRodriguesLambda(product_index * mNumberOfDofs + second_dof_index, column_component);
-                            current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * mSMatrixLambdaDerivativeVariationRodriguesLambda(product_index * mNumberOfDofs + second_dof_index, column_component);
-                            current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * mSMatrixLambdaVariationRodriguesDerivativeLambda(product_index * mNumberOfDofs + second_dof_index, column_component);
-                            current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * mSMatrixLambdaVariationRodriguesLambdaDerivative(product_index * mNumberOfDofs + second_dof_index, column_component);
-                            current_rodrigues_derivative_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesDerivativeSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
-                            current_rodrigues_second_variation_lambda_derivative_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);
-                            current_rodrigues_second_variation_lambda_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                            current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                            current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * mSMatrixLambdaSecondVariationRodriguesLambda(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
-                            current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesVariation(row_component * mNumberOfDofs + dof_index, product_index) * mSMatrixLambdaVariationRodriguesLambda(product_index * mNumberOfDofs + second_dof_index, column_component);
-                            current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += mSMatrixRodriguesSecondVariation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
+                            current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix_derivative(row_component, product_index) * lambda_second_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
+                            current_rodrigues_lambda_derivative_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * lambda_derivative_second_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
+                            current_rodrigues_lambda_second_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * lambda_second_variation_rodrigues_derivative_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
+                            current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * lambda_second_variation_rodrigues_lambda_derivative_matrix(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
+                            current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * lambda_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + second_dof_index, column_component);
+                            current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * lambda_derivative_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + second_dof_index, column_component);
+                            current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * lambda_variation_rodrigues_derivative_lambda_matrix(product_index * mNumberOfDofs + second_dof_index, column_component);
+                            current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * lambda_variation_rodrigues_lambda_derivative_matrix(product_index * mNumberOfDofs + second_dof_index, column_component);
+                            current_rodrigues_derivative_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_derivative_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
+                            current_rodrigues_second_variation_lambda_derivative_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);
+                            current_rodrigues_second_variation_lambda_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);
+                            current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);
+                            current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * lambda_second_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
+                            current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * lambda_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + second_dof_index, column_component);
+                            current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
                         }
                     }
                 }
@@ -1775,12 +1801,13 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             {
                 for (int product_index = 0;product_index < 3;product_index++)
                 {
-                    normal_vector_variation(row_component * mNumberOfDofs + dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index);
-                    binormal_vector_variation(row_component * mNumberOfDofs + dof_index) += mSMatrixRodriguesLambdaRodriguesLambdaVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index);
+                    normal_vector_variation(row_component * mNumberOfDofs + dof_index) += rodrigues_lambda_rodrigues_lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index);
+                    binormal_vector_variation(row_component * mNumberOfDofs + dof_index) += rodrigues_lambda_rodrigues_lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index);
                 }
             }
         }
 
+        // 6. Second variation of T = R_t Lambda P, needed for the second variation of the axes a_alpha
         Matrix cross_section_transformation_second_variation;
         cross_section_transformation_second_variation.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
         cross_section_transformation_second_variation.clear();
@@ -1793,11 +1820,28 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
                 {
                     for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)
                     {
-                        cross_section_transformation_second_variation(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index) + current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
-                        cross_section_transformation_derivative_second_variation(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_lambda_derivative_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_lambda_second_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
-                            + current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
-                            + current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index) + current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index) + current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index) + current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index)
-                            + current_rodrigues_derivative_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_second_variation_lambda_derivative_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_second_variation_lambda_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) + current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
+                        cross_section_transformation_second_variation(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) +=
+                            current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
+                            + current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
+                            + current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index)
+                            + current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
+                        cross_section_transformation_derivative_second_variation(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) +=
+                            current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
+                            + current_rodrigues_lambda_derivative_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
+                            + current_rodrigues_lambda_second_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
+                            + current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
+                            + current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
+                            + current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
+                            + current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
+                            + current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
+                            + current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index)
+                            + current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index)
+                            + current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index)
+                            + current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + second_dof_index, column_component * mNumberOfDofs + dof_index)
+                            + current_rodrigues_derivative_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
+                            + current_rodrigues_second_variation_lambda_derivative_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
+                            + current_rodrigues_second_variation_lambda_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index)
+                            + current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
                     }
                 }
             }
@@ -1825,6 +1869,8 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             }
         }
 
+        // 7. Second variations of the generalized strains, Eq. (70):
+        //    bending b_alpha = a_alpha,1 . a1 and torsion t_alpha = a_beta,1 . a_alpha
         for (size_t  row_component   = 0;row_component < 3;row_component++)
         {
             for (size_t  product_index = 0;product_index < 3;product_index++)
@@ -1844,21 +1890,21 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
                                 : 0.0;
 
                         normal_curvature_second_variation(dof_index, second_dof_index) += cross_section_transformation_derivative_second_variation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_normal(product_index) * current_first_base_vector(row_component)
-                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index) * first_base_vector_variation_second_dof
-                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + second_dof_index, product_index) * reference_normal(product_index) * first_base_vector_variation_dof;
+                            + rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index) * first_base_vector_variation_second_dof
+                            + rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix(row_component * mNumberOfDofs + second_dof_index, product_index) * reference_normal(product_index) * first_base_vector_variation_dof;
 
                         binormal_curvature_second_variation(dof_index, second_dof_index) += cross_section_transformation_derivative_second_variation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_binormal(product_index) * current_first_base_vector(row_component)
-                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index) * first_base_vector_variation_second_dof
-                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + second_dof_index, product_index) * reference_binormal(product_index) * first_base_vector_variation_dof;
+                            + rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index) * first_base_vector_variation_second_dof
+                            + rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix(row_component * mNumberOfDofs + second_dof_index, product_index) * reference_binormal(product_index) * first_base_vector_variation_dof;
 
                         normal_torsion_second_variation(dof_index, second_dof_index) += cross_section_transformation_derivative_second_variation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_binormal(product_index) * normal_vector(row_component)
-                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index) * normal_vector_variation(row_component * mNumberOfDofs + second_dof_index)
-                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + second_dof_index, product_index) * reference_binormal(product_index) * normal_vector_variation(row_component * mNumberOfDofs + dof_index)
+                            + rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index) * normal_vector_variation(row_component * mNumberOfDofs + second_dof_index)
+                            + rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix(row_component * mNumberOfDofs + second_dof_index, product_index) * reference_binormal(product_index) * normal_vector_variation(row_component * mNumberOfDofs + dof_index)
                             + cross_section_transformation_derivative(row_component, product_index) * reference_binormal(product_index) * normal_vector_second_variation(row_component * mNumberOfDofs + dof_index, second_dof_index);
 
                         binormal_torsion_second_variation(dof_index, second_dof_index) += cross_section_transformation_derivative_second_variation(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_normal(product_index) * binormal_vector(row_component)
-                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index) * binormal_vector_variation(row_component * mNumberOfDofs + second_dof_index)
-                            + mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation(row_component * mNumberOfDofs + second_dof_index, product_index) * reference_normal(product_index) * binormal_vector_variation(row_component * mNumberOfDofs + dof_index)
+                            + rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index) * binormal_vector_variation(row_component * mNumberOfDofs + second_dof_index)
+                            + rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix(row_component * mNumberOfDofs + second_dof_index, product_index) * reference_normal(product_index) * binormal_vector_variation(row_component * mNumberOfDofs + dof_index)
                             + cross_section_transformation_derivative(row_component, product_index) * reference_normal(product_index) * binormal_vector_second_variation(row_component * mNumberOfDofs + dof_index, second_dof_index);
                     }
                 }

@@ -7,8 +7,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import python_linear_solver_factory
 
 # Straight cantilever along the local tangent t, with the cross section dimension WIDTH along the
-# normal n and HEIGHT along v = t x n. I_V is the moment of inertia for deflections along n and
-# I_N the one for deflections along v. Torsion constant as in Bauer et al. (2016), Table 1.
+# normal n and HEIGHT along v = t x n. I33 is the moment of inertia about v (deflections along n) and
+# I22 the one about n (deflections along v). Torsion constant as in Bauer et al. (2016), Table 1.
 E_MOD = 70000.0
 NU = 0.0
 G_MOD = E_MOD / (2.0 * (1.0 + NU))
@@ -16,27 +16,29 @@ WIDTH = 2.5
 HEIGHT = 5.0
 LENGTH = 4.0
 AREA = WIDTH * HEIGHT
-I_V_ = HEIGHT * WIDTH ** 3 / 12.0
-I_N_ = WIDTH * HEIGHT ** 3 / 12.0
+I33_ = HEIGHT * WIDTH ** 3 / 12.0
+I22_ = WIDTH * HEIGHT ** 3 / 12.0
 I_T_ = HEIGHT * WIDTH ** 3 / 3.0
 
 DOFS = (KM.DISPLACEMENT_X, KM.DISPLACEMENT_Y, KM.DISPLACEMENT_Z, KM.ROTATION_X)
 REACTIONS = (KM.REACTION_X, KM.REACTION_Y, KM.REACTION_Z, KM.REACTION_MOMENT_X)
 
 
-def create_model_part(model):
+def create_model_part(model, body_forces=False):
     model_part = model.CreateModelPart("IgaModelPart")
     for variable in (KM.DISPLACEMENT, KM.ROTATION, KM.REACTION, KM.REACTION_MOMENT, SMA.POINT_LOAD):
         model_part.AddNodalSolutionStepVariable(variable)
+    if body_forces:
+        model_part.AddNodalSolutionStepVariable(KM.VOLUME_ACCELERATION)
     return model_part
 
 
 def create_properties(model_part, properties_id, normal, young_modulus=E_MOD, poisson_ratio=NU,
-                      area=AREA, i_n=I_N_, i_v=I_V_, i_t=I_T_):
+                      area=AREA, i22=I22_, i33=I33_, i_t=I_T_):
     properties = model_part.GetProperties()[properties_id]
     properties.SetValue(IGA.CROSS_AREA, area)
-    properties.SetValue(IGA.I_N, i_n)
-    properties.SetValue(IGA.I_V, i_v)
+    properties.SetValue(IGA.I22, i22)
+    properties.SetValue(IGA.I33, i33)
     properties.SetValue(IGA.I_T, i_t)
     properties.SetValue(KM.YOUNG_MODULUS, young_modulus)
     properties.SetValue(KM.POISSON_RATIO, poisson_ratio)
@@ -136,10 +138,10 @@ class TestBeam4pElement(BeamTestCase):
     """Linear response of the NonLinearBernoulliBeamElement3D compared to beam theory."""
 
     @staticmethod
-    def solve_cantilever(force, moment=(0.0, 0.0, 0.0), normal=(0.0, 0.0, 1.0)):
+    def solve_cantilever(force, moment=(0.0, 0.0, 0.0), normal=(0.0, 0.0, 1.0), volume_acceleration=None):
         """Cantilever along +X, clamped at x = 0 and loaded at the tip. Returns the tip node."""
         model = KM.Model()
-        model_part = create_model_part(model)
+        model_part = create_model_part(model, body_forces=volume_acceleration is not None)
         properties = create_properties(model_part, 1, normal)
 
         curve = create_straight_curve(model_part, (0.0, 0.0, 0.0), (1.0, 0.0, 0.0))
@@ -149,6 +151,9 @@ class TestBeam4pElement(BeamTestCase):
 
         nodes = [model_part.GetNode(i) for i in range(1, 6)]
         clamp(nodes, 0)
+        if volume_acceleration is not None:
+            for node in nodes:
+                node.SetSolutionStepValue(KM.VOLUME_ACCELERATION, KM.Array3([float(a) for a in volume_acceleration]))
         add_point_load(model_part, 1, nodes[-1], force)
         if any(moment):
             # PointMomentCondition3D1N assembles all three moment components, but the beam only has the
@@ -189,7 +194,7 @@ class TestBeam4pElement(BeamTestCase):
         constitutive_law = properties[KM.CONSTITUTIVE_LAW].Clone()
         constitutive_law.CalculateMaterialResponsePK2(parameters)
 
-        stiffnesses = [E_MOD * AREA, E_MOD * I_V_, E_MOD * I_N_, 0.5 * G_MOD * I_T_, 0.5 * G_MOD * I_T_]
+        stiffnesses = [E_MOD * AREA, E_MOD * I33_, E_MOD * I22_, 0.5 * G_MOD * I_T_, 0.5 * G_MOD * I_T_]
         expected_stress = np.array(constitutive_matrix) @ np.array(strain)
         for i, stiffness in enumerate(stiffnesses):
             self.assertRelativelyEqual(constitutive_matrix[i, i], stiffness, 1e-12)
@@ -207,7 +212,7 @@ class TestBeam4pElement(BeamTestCase):
     def test_bending_along_binormal(self):
         tip = self.solve_cantilever((0.0, -1.0, 0.0))
         displacement = tip.GetSolutionStepValue(KM.DISPLACEMENT)
-        reference = cantilever_tip_deflection(-1.0, I_N_)
+        reference = cantilever_tip_deflection(-1.0, I22_)
 
         self.assertRelativelyEqual(displacement[1], reference, 1e-8)
         self.assertLess(abs(displacement[0]), 1e-8 * abs(reference))
@@ -216,7 +221,7 @@ class TestBeam4pElement(BeamTestCase):
     def test_bending_along_normal(self):
         tip = self.solve_cantilever((0.0, 0.0, -1.0))
         displacement = tip.GetSolutionStepValue(KM.DISPLACEMENT)
-        reference = cantilever_tip_deflection(-1.0, I_V_)
+        reference = cantilever_tip_deflection(-1.0, I33_)
 
         self.assertRelativelyEqual(displacement[2], reference, 1e-8)
         self.assertLess(abs(displacement[0]), 1e-8 * abs(reference))
@@ -230,14 +235,24 @@ class TestBeam4pElement(BeamTestCase):
         self.assertLess(abs(tip.GetSolutionStepValue(KM.DISPLACEMENT_Y)), 1e-8 * reference)
         self.assertLess(abs(tip.GetSolutionStepValue(KM.DISPLACEMENT_Z)), 1e-8 * reference)
 
+    def test_self_weight(self):
+        # Uniform line load q = rho * A * g from the body forces: tip deflection q L^4 / (8 E I)
+        gravity = 9.81
+        tip = self.solve_cantilever((0.0, 0.0, 0.0), volume_acceleration=(0.0, -gravity, 0.0))
+        line_load = -1.0 * AREA * gravity  # DENSITY = 1
+        reference = line_load * LENGTH ** 4 / (8.0 * E_MOD * I22_)
+
+        self.assertRelativelyEqual(tip.GetSolutionStepValue(KM.DISPLACEMENT_Y), reference, 1e-8)
+        self.assertLess(abs(tip.GetSolutionStepValue(KM.DISPLACEMENT_Z)), 1e-8 * abs(reference))
+
     def test_rotated_cross_section(self):
         # Rotating the cross section by 90 degrees about the beam axis (normal along +Y instead of +Z)
         # swaps the bending stiffness of the two transverse directions.
         tip = self.solve_cantilever((0.0, -1.0, 0.0), normal=(0.0, 1.0, 0.0))
-        self.assertRelativelyEqual(tip.GetSolutionStepValue(KM.DISPLACEMENT_Y), cantilever_tip_deflection(-1.0, I_V_), 1e-8)
+        self.assertRelativelyEqual(tip.GetSolutionStepValue(KM.DISPLACEMENT_Y), cantilever_tip_deflection(-1.0, I33_), 1e-8)
 
         tip = self.solve_cantilever((0.0, 0.0, -1.0), normal=(0.0, 1.0, 0.0))
-        self.assertRelativelyEqual(tip.GetSolutionStepValue(KM.DISPLACEMENT_Z), cantilever_tip_deflection(-1.0, I_N_), 1e-8)
+        self.assertRelativelyEqual(tip.GetSolutionStepValue(KM.DISPLACEMENT_Z), cantilever_tip_deflection(-1.0, I22_), 1e-8)
 
     def test_several_beams_in_one_model_part(self):
         # Three cantilevers with different directions and cross-section orientations share one model part.
@@ -247,9 +262,9 @@ class TestBeam4pElement(BeamTestCase):
 
         beams = [
             # start, direction, normal, axial component, tip force, expected tip deflection
-            ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, 1.0), 0, (0.0, -1.0, 0.0), cantilever_tip_deflection(-1.0, I_N_)),
-            ((0.0, 10.0, 0.0), (-1.0, 0.0, 0.0), (0.0, 0.0, 1.0), 0, (0.0, 0.0, 1.0), cantilever_tip_deflection(1.0, I_V_)),
-            ((10.0, 0.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0), 2, (1.0, 0.0, 0.0), cantilever_tip_deflection(1.0, I_V_)),
+            ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, 1.0), 0, (0.0, -1.0, 0.0), cantilever_tip_deflection(-1.0, I22_)),
+            ((0.0, 10.0, 0.0), (-1.0, 0.0, 0.0), (0.0, 0.0, 1.0), 0, (0.0, 0.0, 1.0), cantilever_tip_deflection(1.0, I33_)),
+            ((10.0, 0.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0), 2, (1.0, 0.0, 0.0), cantilever_tip_deflection(1.0, I33_)),
         ]
 
         tips = []
@@ -290,7 +305,7 @@ class TestBeam4pElement(BeamTestCase):
         properties = create_properties(
             model_part, 1, (0.0, 0.0, 1.0),
             young_modulus=young_modulus, poisson_ratio=poisson_ratio, area=height * width,
-            i_n=height * width ** 3 / 12.0, i_v=i_out_of_plane, i_t=i_torsion)
+            i22=height * width ** 3 / 12.0, i33=i_out_of_plane, i_t=i_torsion)
 
         # Exact quarter circle of degree 2 from (R, 0, 0) to (0, R, 0), refined to degree 4 with 16 knot spans
         nodes = KM.NodesVector()
@@ -451,7 +466,7 @@ class TestBeam4pElementNonlinear(BeamTestCase):
     def test_quadratic_newton_convergence(self):
         _, model_part, nodes = self.build_cantilever()
         f_ext = np.zeros(4 * len(nodes))
-        f_ext[4 * (len(nodes) - 1) + 1] = -0.5 * E_MOD * I_N_ / LENGTH ** 2
+        f_ext[4 * (len(nodes) - 1) + 1] = -0.5 * E_MOD * I22_ / LENGTH ** 2
 
         _, norms = self.newton(model_part, nodes, f_ext, n_steps=4)
         relative_norms = np.array(norms) / norms[0]
@@ -466,7 +481,7 @@ class TestBeam4pElementNonlinear(BeamTestCase):
         # Reference: inextensible elastica (shooting method). The linear solution would be uy = -0.6667, ux = 0.
         # The cantilever is stocky, so the axial stiffness is increased to match the inextensibility of the reference.
         ux_exact, uy_exact = -0.0636758499, -0.6485743026
-        load = 0.5 * E_MOD * I_N_ / LENGTH ** 2
+        load = 0.5 * E_MOD * I22_ / LENGTH ** 2
 
         _, model_part, nodes = self.build_cantilever()
         model_part.GetProperties()[1].SetValue(IGA.CROSS_AREA, 1e4 * AREA)
@@ -480,27 +495,27 @@ class TestBeam4pElementNonlinear(BeamTestCase):
     def test_euler_buckling_weak_axis(self):
         _, model_part, nodes = self.build_cantilever()
         loads = self.buckling_loads(model_part, nodes, (-1000.0, 0.0, 0.0), 1000.0)
-        euler = np.pi ** 2 * E_MOD * I_V_ / (4.0 * LENGTH ** 2)
+        euler = np.pi ** 2 * E_MOD * I33_ / (4.0 * LENGTH ** 2)
         self.assertRelativelyEqual(loads[0], euler, 5e-3)
 
     def test_euler_buckling_strong_axis(self):
         # The second mode is the first strong-axis mode, since the second weak-axis mode is at 9 times the first one.
         _, model_part, nodes = self.build_cantilever()
         loads = self.buckling_loads(model_part, nodes, (-1000.0, 0.0, 0.0), 1000.0)
-        euler = np.pi ** 2 * E_MOD * I_N_ / (4.0 * LENGTH ** 2)
+        euler = np.pi ** 2 * E_MOD * I22_ / (4.0 * LENGTH ** 2)
         self.assertRelativelyEqual(loads[1], euler, 5e-3)
 
     def test_lateral_torsional_buckling(self):
         # Cantilever with a tip load at the centroid, Timoshenko & Gere: P_cr = 4.013 sqrt(E I_weak G I_T) / L^2
         _, model_part, nodes = self.build_cantilever()
         loads = self.buckling_loads(model_part, nodes, (0.0, -1000.0, 0.0), 1000.0)
-        timoshenko = 4.013 * np.sqrt(E_MOD * I_V_ * G_MOD * I_T_) / LENGTH ** 2
+        timoshenko = 4.013 * np.sqrt(E_MOD * I33_ * G_MOD * I_T_) / LENGTH ** 2
         self.assertRelativelyEqual(loads[0], timoshenko, 5e-2)
 
     def test_linear_bending_is_mesh_independent(self):
         # The exact cubic deflection is in the spline space of every mesh, since the curve is linearly parametrized.
-        load = 1e-4 * E_MOD * I_N_ / LENGTH ** 2
-        reference = cantilever_tip_deflection(-load, I_N_)
+        load = 1e-4 * E_MOD * I22_ / LENGTH ** 2
+        reference = cantilever_tip_deflection(-load, I22_)
         for n_cp in (5, 7, 9, 13):
             _, model_part, nodes = self.build_cantilever(n_cp)
             f_ext = np.zeros(4 * len(nodes))

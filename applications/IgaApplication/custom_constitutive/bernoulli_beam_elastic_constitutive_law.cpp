@@ -1,10 +1,13 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
 //  License:         BSD License
-//                   license: IgaApplication/license.txt
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Max Friedrichs Dachale, Juan Ignacio Camarotti, Ricky Aristio
 //
 
 // System includes
@@ -58,14 +61,14 @@ int BernoulliBeamElasticConstitutiveLaw::Check(
 
     // Check for IGA beam cross-section properties
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CROSS_AREA)) << "CROSS_AREA is not defined in the properties" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I_V)) << "I_V is not defined in the properties" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I_N)) << "I_N is not defined in the properties" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I33)) << "I33 is not defined in the properties" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I22)) << "I22 is not defined in the properties" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I_T)) << "I_T is not defined in the properties" << std::endl;
 
     // Validate property values
     KRATOS_ERROR_IF_NOT(rMaterialProperties[CROSS_AREA] > 0.0) << "CROSS_AREA must be positive" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[I_V] > 0.0) << "I_V must be positive" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[I_N] > 0.0) << "I_N must be positive" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[I33] > 0.0) << "I33 must be positive" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[I22] > 0.0) << "I22 must be positive" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[I_T] > 0.0) << "I_T must be positive" << std::endl;
 
     return 0;
@@ -101,8 +104,9 @@ void BernoulliBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Consti
 
     // Retrieve beam cross-section properties
     const double A = r_material_properties[CROSS_AREA];
-    const double I_v = r_material_properties[I_V];
-    const double I_n = r_material_properties[I_N];
+    // Moments of inertia about the local cross-section axes 2 (normal n) and 3 (v = t x n)
+    const double I_22 = r_material_properties[I22];
+    const double I_33 = r_material_properties[I33];
     const double I_t = r_material_properties[I_T];
 
     if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
@@ -112,8 +116,8 @@ void BernoulliBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Consti
 
         // Compute stresses according to 5x5 diagonal constitutive matrix with beam properties
         r_stress_vector[0] = E * A * r_strain_vector[0];    // N = E*A*ε (normal force)
-        r_stress_vector[1] = E * I_v * r_strain_vector[1];  // M_y = E*I_y*κ_y (bending about y-axis)
-        r_stress_vector[2] = E * I_n * r_strain_vector[2];  // M_z = E*I_z*κ_z (bending about z-axis)
+        r_stress_vector[1] = E * I_33 * r_strain_vector[1];  // M_3 = E*I_33*κ_21 (curvature along n, bending about v)
+        r_stress_vector[2] = E * I_22 * r_strain_vector[2];  // M_2 = E*I_22*κ_31 (curvature along v, bending about n)
         // The torsional energy is split between the two shear components κ32 and κ23 (equal in magnitude),
         // so each one carries half of the torsional stiffness, consistent with the constitutive matrix below.
         r_stress_vector[3] = 0.5 * G * I_t * r_strain_vector[3];  // T = G*I_t*γ_t1 (torsion)
@@ -130,8 +134,8 @@ void BernoulliBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Consti
 
         // 5x5 diagonal constitutive matrix with beam cross-section properties
         r_constitutive_matrix(0,0) = E * A;   // Normal stiffness
-        r_constitutive_matrix(1,1) = E * I_v; // Bending stiffness about y-axis
-        r_constitutive_matrix(2,2) = E * I_n; // Bending stiffness about z-axis
+        r_constitutive_matrix(1,1) = E * I_33; // Bending stiffness about v
+        r_constitutive_matrix(2,2) = E * I_22; // Bending stiffness about n
         r_constitutive_matrix(3,3) = 0.5 * G * I_t; // Torsional stiffness
         r_constitutive_matrix(4,4) = 0.5 * G * I_t; // Torsional stiffness
     }

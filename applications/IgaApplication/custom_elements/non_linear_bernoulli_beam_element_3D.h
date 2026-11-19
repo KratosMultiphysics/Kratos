@@ -34,7 +34,23 @@ namespace Kratos
 
 /**
  * @class NonLinearBernoulliBeamElement3D
- * @brief Three-dimensional Bernoulli beam element.
+ * @brief Geometrically nonlinear isogeometric spatial Bernoulli beam with torsion.
+ * @details Total Lagrangian formulation derived from the 3D continuum with Green-Lagrange strains and
+ * second Piola-Kirchhoff stresses. The cross section remains orthogonal to the center line (Bernoulli)
+ * and warping is neglected. Each control point has four dofs: DISPLACEMENT_X/Y/Z and the rotation
+ * about the center line (ROTATION_X).
+ *
+ * The cross-section frame is A_alpha = R_T(Psi) Lambda(T0, T) A0_alpha in the reference configuration and
+ * a_alpha = R_t(psi) Lambda(T, t) A_alpha in the current one, where Lambda maps one tangent onto the other
+ * and R rotates about the tangent. The generalized strains are the axial strain, the two bending curvatures
+ * and the two torsional curvatures.
+ *
+ * Reference:
+ * A.M. Bauer, M. Breitenberger, B. Philipp, R. Wuechner, K.-U. Bletzinger,
+ * "Nonlinear isogeometric spatial Bernoulli beam",
+ * Computer Methods in Applied Mechanics and Engineering 303 (2016) 101-127.
+ * https://doi.org/10.1016/j.cma.2015.12.027
+ * Equation numbers in the comments of this element refer to this paper.
  */
 class KRATOS_API(IGA_APPLICATION) NonLinearBernoulliBeamElement3D
     : public BeamBaseElement3D
@@ -43,38 +59,6 @@ protected:
 
     using Vector3d = array_1d<double, 3>;
     using Matrix3d = BoundedMatrix<double, 3, 3>;
-    Matrix mSMatrixRodriguesVariation;
-    Matrix mSMatrixLambdaVariation;
-    Matrix mSMatrixLambdaVariationRodriguesLambda;
-    Matrix mSMatrixRodriguesLambdaVariationRodriguesLambda;
-    Matrix mSMatrixRodriguesVariationLambdaRodriguesLambda;
-    Matrix mSMatrixRodriguesLambdaRodriguesLambdaVariation;
-
-    Matrix mSMatrixRodriguesDerivativeVariation;
-    Matrix mSMatrixLambdaDerivativeVariation;
-    Matrix mSMatrixLambdaDerivativeVariationRodriguesLambda;
-    Matrix mSMatrixLambdaVariationRodriguesDerivativeLambda;
-    Matrix mSMatrixLambdaVariationRodriguesLambdaDerivative;
-
-    Matrix mSMatrixRodriguesDerivativeLambdaVariationRodriguesLambda;
-    Matrix mSMatrixRodriguesLambdaDerivativeVariationRodriguesLambda;
-    Matrix mSMatrixRodriguesLambdaVariationRodriguesDerivativeLambda;
-    Matrix mSMatrixRodriguesLambdaVariationRodriguesLambdaDerivative;
-
-    Matrix mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda;
-    Matrix mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda;
-    Matrix mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda;
-    Matrix mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative;
-    Matrix mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation;
-
-    Matrix mSMatrixRodriguesSecondVariation;
-    Matrix mSMatrixLambdaSecondVariation;
-    Matrix mSMatrixLambdaSecondVariationRodriguesLambda;
-    Matrix mSMatrixRodriguesDerivativeSecondVariation;
-    Matrix mSMatrixLambdaDerivativeSecondVariation;
-    Matrix mSMatrixLambdaDerivativeSecondVariationRodriguesLambda;
-    Matrix mSMatrixLambdaSecondVariationRodriguesDerivativeLambda;
-    Matrix mSMatrixLambdaSecondVariationRodriguesLambdaDerivative;
 
     struct KinematicVariables
     {

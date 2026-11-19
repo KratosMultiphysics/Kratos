@@ -1,10 +1,13 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
 //  License:         BSD License
-//                   license: IgaApplication/license.txt
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Max Friedrichs Dachale, Juan Ignacio Camarotti, Ricky Aristio
 //
 
 // System includes
