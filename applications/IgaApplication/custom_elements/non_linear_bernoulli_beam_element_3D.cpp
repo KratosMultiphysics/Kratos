@@ -207,13 +207,6 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
     Vector stress_torsion_1 = ZeroVector(5);
     Vector stress_torsion_2 = ZeroVector(5);
 
-    // Temporary diagnostics for geometric stiffness entry (0, 5)
-    double debug_geo_axial = 0.0;
-    double debug_geo_bending_1 = 0.0;
-    double debug_geo_bending_2 = 0.0;
-    double debug_geo_torsion_1 = 0.0;
-    double debug_geo_torsion_2 = 0.0;
-
     for (
         IndexType point_number = 0;
         point_number < r_integration_points.size();
@@ -335,37 +328,6 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             }
 
             if (calculate_geometric_stiffness) {
-                // Temporary diagnostic contributions for K_geo(0, 5)
-                debug_geo_axial +=
-                    inverse_a4 *
-                    integration_weight *
-                    g_axial(0, 5) *
-                    constitutive_variables.StressVector[0];
-
-                debug_geo_bending_1 +=
-                    inverse_a4 *
-                    integration_weight *
-                    g_bending_1(0, 5) *
-                    constitutive_variables.StressVector[1];
-
-                debug_geo_bending_2 +=
-                    inverse_a4 *
-                    integration_weight *
-                    g_bending_2(0, 5) *
-                    constitutive_variables.StressVector[2];
-
-                debug_geo_torsion_1 +=
-                    inverse_a2 *
-                    integration_weight *
-                    g_torsion_1(0, 5) *
-                    constitutive_variables.StressVector[3];
-
-                debug_geo_torsion_2 +=
-                    inverse_a2 *
-                    integration_weight *
-                    g_torsion_2(0, 5) *
-                    constitutive_variables.StressVector[4];
-
                 // Geometrical stiffness
                 rLeftHandSideMatrix +=
                     inverse_a4 *
@@ -454,50 +416,6 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         }
     }
 
-    if (
-        CalculateStiffnessMatrixFlag &&
-        calculate_geometric_stiffness &&
-        build_level == 2)
-    {
-        std::cout
-            << "\n--- Geometric contribution (0,5) ---"
-            << std::endl;
-
-        std::cout
-            << "axial      = "
-            << debug_geo_axial
-            << std::endl;
-
-        std::cout
-            << "bending 1  = "
-            << debug_geo_bending_1
-            << std::endl;
-
-        std::cout
-            << "bending 2  = "
-            << debug_geo_bending_2
-            << std::endl;
-
-        std::cout
-            << "torsion 1  = "
-            << debug_geo_torsion_1
-            << std::endl;
-
-        std::cout
-            << "torsion 2  = "
-            << debug_geo_torsion_2
-            << std::endl;
-
-        std::cout
-            << "sum        = "
-            << debug_geo_axial +
-               debug_geo_bending_1 +
-               debug_geo_bending_2 +
-               debug_geo_torsion_1 +
-               debug_geo_torsion_2
-            << std::endl;
-    }
-
     KRATOS_CATCH("")
 }
 
@@ -538,27 +456,27 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             << "\"LOCAL_AXIS_ORIENTATION\" not provided for element #"
             << Id() << std::endl;
 
-        if (GetProperties().Has(T_0)) {
-            const Vector3d& r_reference_tangent =
-                GetProperties()[T_0];
+        KRATOS_ERROR_IF(!Has(T_0) && !GetProperties().Has(T_0))
+            << "\"T_0\" not provided for element #" << Id()
+            << ". Run the ComputeBeamVectorsProcess first." << std::endl;
 
-            KRATOS_ERROR_IF(
-                norm_2(r_reference_tangent) <= numerical_limit)
-                << "\"T_0\" reference director vector must have "
-                << "non-zero magnitude for element #"
-                << Id() << std::endl;
-        }
+        KRATOS_ERROR_IF(!Has(N_0) && !GetProperties().Has(N_0))
+            << "\"N_0\" not provided for element #" << Id()
+            << ". Run the ComputeBeamVectorsProcess first." << std::endl;
 
-        if (GetProperties().Has(N_0)) {
-            const Vector3d& r_reference_normal =
-                GetProperties()[N_0];
+        const Vector3d initial_tangent = Has(T_0)
+            ? GetValue(T_0)
+            : GetProperties()[T_0];
 
-            KRATOS_ERROR_IF(
-                norm_2(r_reference_normal) <= numerical_limit)
-                << "\"N_0\" reference director vector must have "
-                << "non-zero magnitude for element #"
-                << Id() << std::endl;
-        }
+        KRATOS_ERROR_IF(norm_2(initial_tangent) <= numerical_limit)
+            << "\"T_0\" reference director vector must have "
+            << "non-zero magnitude for element #"
+            << Id() << std::endl;
+
+        KRATOS_ERROR_IF(norm_2(GetInitialNormal()) <= numerical_limit)
+            << "\"N_0\" reference director vector must have "
+            << "non-zero magnitude for element #"
+            << Id() << std::endl;
 
         return 0;
 
@@ -617,12 +535,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             ->CalculateMaterialResponse(
                 rConstitutiveLawParameters,
                 StressMeasure);
-
-        noalias(rConstitutiveVariables.StressVector) =
-            prod(
-                trans(rConstitutiveVariables.ConstitutiveMatrix),
-                rConstitutiveVariables.StrainVector);
-    } 
+    }
 
 
     void NonLinearBernoulliBeamElement3D::ComputeReferenceTwistAngleAndDerivative(
@@ -705,70 +618,73 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         const KinematicVariables& rKinematicVariables,
         const Vector3d& rNormal)
     {
-        const Vector3d initial_tangent = GetProperties()[T_0];
-        const Vector3d reference_base_vector = rKinematicVariables.R1;
+        const Vector3d reference_tangent =
+            rKinematicVariables.R1 / norm_2(rKinematicVariables.R1);
 
-        const Vector3d current_reference_tangent =
-            reference_base_vector / norm_2(reference_base_vector);
+        // Project the requested normal onto the plane normal to the reference tangent.
+        Vector3d requested_axis =
+            rNormal - inner_prod(reference_tangent, rNormal) * reference_tangent;
+        requested_axis /= norm_2(requested_axis);
 
-        const Vector3d normalized_initial_tangent =
-            initial_tangent / norm_2(initial_tangent);
-
-        Vector3d normal = rNormal;
-
-        const double tangent_normal_projection =
-            inner_prod(current_reference_tangent, normal);
-
-        // Project the normal onto the plane normal to the reference tangent.
-        normal -= tangent_normal_projection * current_reference_tangent;
-        normal /= norm_2(normal);
-
-        const Vector3d reference_principal_axis = normal;
-
+        // Untwisted cross-section axis Lambda(T0, T) * N0, i.e. Eq. (15) with Psi = 0.
         Matrix3d lambda_matrix;
         ComputeLambdaMatrix(
-            normalized_initial_tangent,
-            current_reference_tangent,
+            GetInitialTangent(),
+            reference_tangent,
             lambda_matrix);
 
-        const Vector3d rotated_reference_axis =
-            prod(lambda_matrix, reference_principal_axis);
+        const Vector3d untwisted_axis =
+            prod(lambda_matrix, rKinematicVariables.N0);
 
-        const Vector3d orientation_reference =
-            MathUtils<double>::CrossProduct(reference_base_vector, rotated_reference_axis);
+        // Signed angle about the reference tangent which rotates the untwisted axis onto the requested one.
+        const double cos_phi = inner_prod(untwisted_axis, requested_axis);
+        const double sin_phi = inner_prod(
+            MathUtils<double>::CrossProduct(untwisted_axis, requested_axis),
+            reference_tangent);
 
-        const double axis_dot_product =
-            inner_prod(rotated_reference_axis, normal);
+        double phi = std::atan2(sin_phi, cos_phi);
 
-        const double orientation_dot_product =
-            inner_prod(normal, orientation_reference);
-
-        double cos_theta =
-            axis_dot_product /
-            (norm_2(rotated_reference_axis) * norm_2(normal));
-
-        if (std::abs(1.0 - std::abs(cos_theta)) < 1e-9) {
-            cos_theta = MathUtils<double>::Sign(cos_theta);
-        }
-
-        double phi = std::acos(cos_theta);
-
-        const double pi = 4.0 * std::atan(1.0);
-
-        if (orientation_dot_product < -1e-12) {
-            phi = 2.0 * pi - phi;
+        if (phi < 0.0) {
+            phi += 2.0 * Globals::Pi;
         }
 
         return phi;
     }
-            
+
+    NonLinearBernoulliBeamElement3D::Vector3d NonLinearBernoulliBeamElement3D::GetInitialTangent() const
+    {
+        const Vector3d initial_tangent = Has(T_0)
+            ? GetValue(T_0)
+            : GetProperties()[T_0];
+
+        return initial_tangent / norm_2(initial_tangent);
+    }
+
+    NonLinearBernoulliBeamElement3D::Vector3d NonLinearBernoulliBeamElement3D::GetInitialNormal() const
+    {
+        const Vector3d initial_normal = Has(N_0)
+            ? GetValue(N_0)
+            : GetProperties()[N_0];
+
+        return initial_normal;
+    }
 
     void NonLinearBernoulliBeamElement3D::ComputeReferenceCrossSectionGeometry(
         KinematicVariables& rKinematicVariables)
     {
         const Vector3d reference_first_base_vector = rKinematicVariables.R1;
         const Vector3d reference_second_base_vector = rKinematicVariables.R2;
-        const Vector3d initial_reference_tangent = GetProperties()[T_0];
+        const Vector3d initial_reference_tangent = GetInitialTangent();
+
+        // Initial cross-section axes N0 and V0, orthonormal to T0. Needed by the twist angle computation below.
+        rKinematicVariables.N0 = GetInitialNormal();
+        rKinematicVariables.N0 -=
+            inner_prod(initial_reference_tangent, rKinematicVariables.N0)
+            * initial_reference_tangent;
+        rKinematicVariables.N0 /= norm_2(rKinematicVariables.N0);
+        rKinematicVariables.V0 = MathUtils<double>::CrossProduct(
+            initial_reference_tangent,
+            rKinematicVariables.N0);
 
         ComputeReferenceTwistAngleAndDerivative(
             rKinematicVariables,
@@ -822,30 +738,6 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             reference_rodrigues_matrix_derivative);
 
         rKinematicVariables.n.clear();
-        rKinematicVariables.N0 = GetProperties()[N_0];
-
-        const double initial_reference_tangent_norm =
-            norm_2(initial_reference_tangent);
-
-        const Vector3d normalized_initial_reference_tangent =
-            initial_reference_tangent / initial_reference_tangent_norm;
-
-        rKinematicVariables.N0 -=
-            inner_prod(
-                normalized_initial_reference_tangent,
-                rKinematicVariables.N0)
-            * normalized_initial_reference_tangent;
-
-        rKinematicVariables.V0 =
-            MathUtils<double>::CrossProduct(
-                normalized_initial_reference_tangent,
-                rKinematicVariables.N0);
-
-        rKinematicVariables.N0 /=
-            norm_2(rKinematicVariables.N0);
-
-        rKinematicVariables.V0 /=
-            norm_2(rKinematicVariables.V0);
 
         Vector3d transformed_reference_normal;
         transformed_reference_normal.clear();
@@ -923,7 +815,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         const Vector3d current_second_base_vector = rKinematicVariables.r2;
         const Vector3d reference_first_base_vector = rKinematicVariables.R1;
         const Vector3d reference_second_base_vector = rKinematicVariables.R2;
-        const Vector3d initial_reference_tangent = GetProperties()[T_0];
+        const Vector3d initial_reference_tangent = GetInitialTangent();
 
         rKinematicVariables.n.clear();
         rKinematicVariables.v.clear();
@@ -1179,7 +1071,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         double current_twist_angle_derivative = rKinematicVariables.phi_der;
         double reference_twist_angle = rKinematicVariables.Phi;
         double reference_twist_angle_derivative = rKinematicVariables.Phi_der;
-        Vector3d initial_reference_tangent = GetProperties()[T_0];
+        Vector3d initial_reference_tangent = GetInitialTangent();
 
         // Compute curvature and torsion variations
         Vector axial_variation(mNumberOfDofs);
@@ -1508,7 +1400,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         double current_twist_angle_derivative = rKinematicVariables.phi_der;
         double reference_twist_angle = rKinematicVariables.Phi;
         double reference_twist_angle_derivative = rKinematicVariables.Phi_der;
-        Vector3d initial_reference_tangent = GetProperties()[T_0];
+        Vector3d initial_reference_tangent = GetInitialTangent();
 
         // Compute curvature and torsion variations
         Matrix axial_second_variation(mNumberOfDofs, mNumberOfDofs);

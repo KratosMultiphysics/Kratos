@@ -439,6 +439,12 @@ private:
         const KinematicVariables& rKinematicVariables,
         const Vector3d& rNormal);
 
+    /// Normalized initial tangent T_0, taken from the element data if set, otherwise from the properties.
+    Vector3d GetInitialTangent() const;
+
+    /// Initial normal N_0, taken from the element data if set, otherwise from the properties.
+    Vector3d GetInitialNormal() const;
+
     void ComputeReferenceCrossSectionGeometry(
         KinematicVariables& rKinematicVariables);
 
