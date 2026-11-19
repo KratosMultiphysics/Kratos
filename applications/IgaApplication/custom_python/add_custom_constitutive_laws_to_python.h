@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Max Friedrichs Dachale, Juan Ignacio Camarotti, Ricky Aristio
+//  Main authors:    Max Friedrichs Dachale, Juan Ignacio Camarotti,
+//                   Ricky Aristio, Alicia Knauer
 //
 
 #if !defined(KRATOS_ADD_CUSTOM_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED )

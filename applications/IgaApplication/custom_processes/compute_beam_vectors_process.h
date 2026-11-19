@@ -7,6 +7,9 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Max Friedrichs Dachale, Juan Ignacio Camarotti,
+//                   Ricky Aristio, Alicia Knauer
+//
 
 #if !defined(KRATOS_COMPUTE_BEAM_VECTORS_PROCESS_H_INCLUDED )
 #define  KRATOS_COMPUTE_BEAM_VECTORS_PROCESS_H_INCLUDED
