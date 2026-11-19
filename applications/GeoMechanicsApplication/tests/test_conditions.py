@@ -71,11 +71,11 @@ class KratosGeoMechanicsConditionTests(KratosUnittest.TestCase):
         self.check_displacement('test_LineLoadDiffOrderCondition2D3N', self.etalon_value2)
 
     def test_LineLoadDiffOrderCondition2D4N(self):
-        self.skipTest("Diff order higher than quadratic do not work correctly yet.")
+        self.skipTest("U-Pw diff order surface elements with an order greater than 2 don't have support for proper pressure geometry yet.")
         self.check_displacement('test_LineLoadDiffOrderCondition2D4N', self.etalon_value2)
 
     def test_LineLoadDiffOrderCondition2D5N(self):
-        self.skipTest("Diff order higher than quadratic do not work correctly yet.")
+        self.skipTest("U-Pw diff order surface elements with an order greater than 2 don't have support for proper pressure geometry yet.")
         self.check_displacement('test_LineLoadDiffOrderCondition2D5N', self.etalon_value2)
 
     def test_UPwNormalFaceLoadCondition2D2N(self):
@@ -106,11 +106,11 @@ class KratosGeoMechanicsConditionTests(KratosUnittest.TestCase):
         self.check_displacement('test_LineNormalLoadDiffOrderCondition2D3N', self.etalon_value2)
 
     def test_LineNormalLoadDiffOrderCondition2D4N(self):
-        self.skipTest("Diff order higher than quadratic do not work correctly yet.")
+        self.skipTest("U-Pw diff order surface elements with an order greater than 2 don't have support for proper pressure geometry yet.")
         self.check_displacement('test_LineNormalLoadDiffOrderCondition2D4N', self.etalon_value2)
 
     def test_LineNormalLoadDiffOrderCondition2D5N(self):
-        self.skipTest("Diff order higher than quadratic do not work correctly yet.")
+        self.skipTest("U-Pw diff order surface elements with an order greater than 2 don't have support for proper pressure geometry yet.")
         self.check_displacement('test_LineNormalLoadDiffOrderCondition2D5N', self.etalon_value2)
 
     def test_AxisymmetricUPwNormalFaceLoadCondition2D2N(self):

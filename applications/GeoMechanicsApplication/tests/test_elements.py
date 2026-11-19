@@ -77,7 +77,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         self.assert_linear_elastic_block(simulation, output_data, top_node_nbrs, n_dim)
 
     def test_triangle_10n(self):
-        self.skipTest("Diff order higher than quadratic do not work correctly yet.")
+        self.skipTest("U-Pw diff order surface elements with an order greater than 2 don't have support for proper pressure geometry yet.")
         test_name = 'test_triangle_10n'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
@@ -88,7 +88,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         self.assert_linear_elastic_block(simulation, output_data, top_node_nbrs, n_dim)
 
     def test_triangle_15n(self):
-        self.skipTest("Diff order higher than quadratic do not work correctly yet.")
+        self.skipTest("U-Pw diff order surface elements with an order greater than 2 don't have support for proper pressure geometry yet.")
         test_name = 'test_triangle_15n'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)

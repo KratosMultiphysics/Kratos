@@ -1431,6 +1431,9 @@ void SmallStrainUPwDiffOrderElement::SetUpPressureGeometryPointer()
                                                                   r_geometry(2), r_geometry(3));
         // For 10-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
         // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
+        KRATOS_ERROR_IF_NOT(dimension == 3)
+            << "U-Pw diff order surface elements with an order greater than 2 don't have "
+               "support for proper pressure geometry yet.";
         break;
 
     // For 15-noded triangles, the lower order pressure geometry is found to be constructed
