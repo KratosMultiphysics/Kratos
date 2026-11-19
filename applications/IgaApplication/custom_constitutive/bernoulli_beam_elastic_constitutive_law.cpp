@@ -114,25 +114,26 @@ void BernoulliBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Consti
         r_stress_vector[0] = E * A * r_strain_vector[0];    // N = E*A*ε (normal force)
         r_stress_vector[1] = E * I_v * r_strain_vector[1];  // M_y = E*I_y*κ_y (bending about y-axis)
         r_stress_vector[2] = E * I_n * r_strain_vector[2];  // M_z = E*I_z*κ_z (bending about z-axis)
-        r_stress_vector[3] = G * I_t * r_strain_vector[3];  // T = G*I_t*γ_t1 (torsion)
-        r_stress_vector[4] = G * I_t * r_strain_vector[4];  // T = G*I_t*γ_t2 (torsion)
+        // The torsional energy is split between the two shear components κ32 and κ23 (equal in magnitude),
+        // so each one carries half of the torsional stiffness, consistent with the constitutive matrix below.
+        r_stress_vector[3] = 0.5 * G * I_t * r_strain_vector[3];  // T = G*I_t*γ_t1 (torsion)
+        r_stress_vector[4] = 0.5 * G * I_t * r_strain_vector[4];  // T = G*I_t*γ_t2 (torsion)
 
         AddInitialStressVectorContribution(r_stress_vector);
+    }
 
+    if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        auto &r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        if (r_constitutive_matrix.size1() != strain_size || r_constitutive_matrix.size2() != strain_size)
+            r_constitutive_matrix.resize(strain_size, strain_size, false);
+        r_constitutive_matrix.clear();
 
-        if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            auto &r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-            if (r_constitutive_matrix.size1() != strain_size || r_constitutive_matrix.size2() != strain_size)
-                r_constitutive_matrix.resize(strain_size, strain_size, false);
-            r_constitutive_matrix.clear();
-
-            // 5x5 diagonal constitutive matrix with beam cross-section properties
-            r_constitutive_matrix(0,0) = E * A;   // Normal stiffness
-            r_constitutive_matrix(1,1) = E * I_v; // Bending stiffness about y-axis
-            r_constitutive_matrix(2,2) = E * I_n; // Bending stiffness about z-axis
-            r_constitutive_matrix(3,3) = 0.5 * G * I_t; // Torsional stiffness
-            r_constitutive_matrix(4,4) = 0.5 * G * I_t; // Torsional stiffness
-        }
+        // 5x5 diagonal constitutive matrix with beam cross-section properties
+        r_constitutive_matrix(0,0) = E * A;   // Normal stiffness
+        r_constitutive_matrix(1,1) = E * I_v; // Bending stiffness about y-axis
+        r_constitutive_matrix(2,2) = E * I_n; // Bending stiffness about z-axis
+        r_constitutive_matrix(3,3) = 0.5 * G * I_t; // Torsional stiffness
+        r_constitutive_matrix(4,4) = 0.5 * G * I_t; // Torsional stiffness
     }
 }
 
