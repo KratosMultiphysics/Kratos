@@ -244,6 +244,7 @@ class ApplyMassFlowProcess(KratosMultiphysics.Process):
     def __CalculateInwardsNormal(boundary_model_part):
         # Compute the average normal of the boundary from the geometries of its conditions
         # Note that the nodal NORMAL is not modified, as it might be used by other boundaries sharing nodes with this one (e.g. a slip wall)
+        #TODO: Implement this in a c++ utility or with vectorized tensor adaptors.
         local_area = 0.0
         local_area_normal = numpy.zeros(3)
         for condition in boundary_model_part.GetCommunicator().LocalMesh().Conditions:
