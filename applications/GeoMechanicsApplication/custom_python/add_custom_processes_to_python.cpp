@@ -37,6 +37,7 @@
 #include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "custom_processes/apply_hydrostatic_pressure_table_process.h"
 #include "custom_processes/apply_initial_uniform_stress_field.h"
+#include "custom_processes/apply_incremental_c_phi_reduction_process.h"
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_phreatic_line_pressure_table_process.h"
@@ -177,6 +178,22 @@ void AddCustomProcessesToPython(const pybind11::module& m)
     py::class_<ApplyCPhiReductionProcess, ApplyCPhiReductionProcess::Pointer, Process>(
         m, "ApplyCPhiReductionProcess")
         .def(py::init<Model&, const Parameters&>());
+
+    py::class_<ApplyIncrementalCPhiReductionProcess, ApplyIncrementalCPhiReductionProcess::Pointer, Process>(
+        m, "ApplyIncrementalCPhiReductionProcess")
+        .def(py::init<Model&, const Parameters&>())
+        .def("GetTrialFactor", &ApplyIncrementalCPhiReductionProcess::GetTrialFactor)
+        .def("HasLastConvergedFactor", &ApplyIncrementalCPhiReductionProcess::HasLastConvergedFactor)
+        .def("GetLastConvergedFactor", &ApplyIncrementalCPhiReductionProcess::GetLastConvergedFactor)
+        .def("GetFactorIncrement", &ApplyIncrementalCPhiReductionProcess::GetFactorIncrement)
+        .def("GetTotalNumberOfCuts", &ApplyIncrementalCPhiReductionProcess::GetTotalNumberOfCuts)
+        .def("GetStopReason", &ApplyIncrementalCPhiReductionProcess::GetStopReason)
+        .def("GetStiffnessRatio", &ApplyIncrementalCPhiReductionProcess::GetStiffnessRatio)
+        .def("GetFactorOfSafety", &ApplyIncrementalCPhiReductionProcess::GetFactorOfSafety)
+        .def("CutIncrementAfterNonConvergence",
+             &ApplyIncrementalCPhiReductionProcess::CutIncrementAfterNonConvergence)
+        .def("GetTrialNumber", &ApplyIncrementalCPhiReductionProcess::GetTrialNumber)
+        .def("IsFinished", &ApplyIncrementalCPhiReductionProcess::IsFinished);
 
     py::class_<CalculateIncrementalMotionProcess, CalculateIncrementalMotionProcess::Pointer, Process>(
         m, "CalculateIncrementalMotionProcess")

@@ -47,6 +47,9 @@ private:
     bool   mEquilibrateInitialState     = false;
     bool   mInitialEquilibriumCompleted = false;
     bool   mIsInitialEquilibriumStep    = false;
+    // Optional initial prediction (e.g. Bishop): the first trial uses reduction factor 1 / initial_safety_factor.
+    bool   mIsInitialPredictionStep     = false;
+    double mIncrementAfterPrediction    = 0.1;
 
     [[nodiscard]] static double GetAndCheckPhi(const Properties& rModelPartProperties, IndexType ElementPropertyId);
 

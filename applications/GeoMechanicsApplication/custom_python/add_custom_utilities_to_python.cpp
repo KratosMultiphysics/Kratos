@@ -18,6 +18,7 @@
 
 #include "custom_utilities/node_utilities.h"
 #include "custom_utilities/process_utilities.h"
+#include "custom_utilities/strength_reduction_indicators_utility.h"
 #include "custom_workflows/custom_workflow_factory.h"
 #include "custom_workflows/dgeoflow.h"
 #include "custom_workflows/dgeosettlement.hpp"
@@ -49,6 +50,24 @@ void AddCustomUtilitiesToPython(const pybind11::module& rModule)
         .def_static("AddProcessesSubModelPartListToSolverSettings",
                     &ProcessUtilities::AddProcessesSubModelPartListToSolverSettings,
                     pybind11::arg("project_parameters"), pybind11::arg("solver_settings"));
+
+    pybind11::class_<StrengthReductionIndicatorsUtility, StrengthReductionIndicatorsUtility::Pointer>(
+        rModule, "StrengthReductionIndicatorsUtility")
+        .def(pybind11::init<ModelPart&, Parameters>())
+        .def("CalculateMaxDisplacement", &StrengthReductionIndicatorsUtility::CalculateMaxDisplacement)
+        .def("CalculateSumOfDisplacementNorms", &StrengthReductionIndicatorsUtility::CalculateSumOfDisplacementNorms)
+        .def("CalculateAreaWeightedMeanDisplacement",
+             &StrengthReductionIndicatorsUtility::CalculateAreaWeightedMeanDisplacement)
+        .def("CalculateMaxIncrementalDisplacement",
+             &StrengthReductionIndicatorsUtility::CalculateMaxIncrementalDisplacement)
+        .def("CalculateSumOfIncrementalDisplacementNorms",
+             &StrengthReductionIndicatorsUtility::CalculateSumOfIncrementalDisplacementNorms)
+        .def("CalculateAreaWeightedMeanIncrementalDisplacement",
+             &StrengthReductionIndicatorsUtility::CalculateAreaWeightedMeanIncrementalDisplacement)
+        .def("CalculateTotalElasticEnergy", &StrengthReductionIndicatorsUtility::CalculateTotalElasticEnergy)
+        .def("RecordIncrement", &StrengthReductionIndicatorsUtility::RecordIncrement,
+             pybind11::arg("step"), pybind11::arg("strength_reduction_factor"), pybind11::arg("is_converged"))
+        .def("GetOutputFileName", &StrengthReductionIndicatorsUtility::GetOutputFileName);
 }
 
 } // Namespace Kratos::Python.

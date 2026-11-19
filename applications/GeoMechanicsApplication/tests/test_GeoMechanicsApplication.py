@@ -76,6 +76,7 @@ from test_CROW_case import KratosGeoMechanicsCrowValidation
 from test_piecewise_linear_moment_capacity import KratosGeoMechanicsPiecewiseLinearMomentCapacityTests
 from test_udsm_serialization import KratosGeoMechanicsUDSMSerializationTest
 from test_Muskat import KratosGeoMechanicsMuskatTests
+from test_bishop_slope_stability import KratosGeoMechanicsBishopSlopeStabilityTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -128,6 +129,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsDirichletReleaseTests,
                         KratosGeoMechanicsDeactivationWithStructuralTest,
                         KratosGeoMechanicsHydraulicHeads,
+                        KratosGeoMechanicsBishopSlopeStabilityTests,
                         KratosGeoMechanicsSetMovingLoadProcessTests,
                         KratosGeoMechanicsSurfaceInterfaceElementTests,
                         KratosGeoMechanicsAvoidSmallEndStepPythonRoute,

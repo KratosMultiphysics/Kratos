@@ -60,6 +60,22 @@ ApplyCPhiReductionProcess::ApplyCPhiReductionProcess(Model& rModel, const Parame
     if (rProcessSettings.Has("equilibrate_initial_state")) {
         mEquilibrateInitialState = rProcessSettings["equilibrate_initial_state"].GetBool();
     }
+    if (rProcessSettings.Has("reduction_increment")) {
+        mReductionIncrement = rProcessSettings["reduction_increment"].GetDouble();
+        KRATOS_ERROR_IF(mReductionIncrement <= 0.001 || mReductionIncrement >= 1.0)
+            << "reduction_increment must be in (0.001, 1)." << std::endl;
+        mIncrementAfterPrediction = mReductionIncrement;
+    }
+    if (rProcessSettings.Has("initial_safety_factor")) {
+        // First trial directly at the predicted safety factor (e.g. Bishop): reduction factor 1 / F0, i.e. an
+        // increment of 1 - 1 / F0 from 1. If it does not converge, the usual halving tries the midpoint between
+        // 1 and 1 / F0; if it converges, the search continues from 1 / F0 with the regular reduction increment.
+        const auto initial_safety_factor = rProcessSettings["initial_safety_factor"].GetDouble();
+        KRATOS_ERROR_IF(initial_safety_factor <= 1.0)
+            << "initial_safety_factor must be larger than 1, got " << initial_safety_factor << std::endl;
+        mReductionIncrement      = 1.0 - 1.0 / initial_safety_factor;
+        mIsInitialPredictionStep = true;
+    }
 }
 
 void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
@@ -75,7 +91,10 @@ void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
     }
 
     mIsInitialEquilibriumStep = false;
-    if (IsStepRestarted()) mReductionIncrement *= 0.5;
+    if (IsStepRestarted()) {
+        mReductionIncrement *= 0.5;
+        mIsInitialPredictionStep = false; // the predicted factor failed: bisect between 1 and the prediction
+    }
     mReductionFactor = mPreviousReductionFactor - mReductionIncrement;
     KRATOS_ERROR_IF(mReductionFactor <= 0.01)
         << "Reduction factor should not drop below 0.01, calculation stopped." << std::endl;
@@ -126,6 +145,11 @@ void ApplyCPhiReductionProcess::ExecuteFinalizeSolutionStep()
     }
 
     mPreviousReductionFactor = mReductionFactor;
+    if (mIsInitialPredictionStep) {
+        // the predicted factor converged: continue upwards with the regular increment
+        mIsInitialPredictionStep = false;
+        mReductionIncrement      = std::min(mIncrementAfterPrediction, 0.5 * mReductionFactor);
+    }
     KRATOS_INFO("ApplyCPhiReductionProcess::ExecuteFinalizeSolutionStep")
         << "Reached safety factor so far = " << 1.0 / mReductionFactor << std::endl;
 }

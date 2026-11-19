@@ -10,6 +10,7 @@ KratosGeoMechanicsApplication = KratosGeo.KratosGeoMechanicsApplication
 ProcessUtilities = KratosGeo.ProcessUtilities
 CustomWorkflowFactory = KratosGeo.CustomWorkflowFactory
 NodeUtilities = KratosGeo.NodeUtilities
+StrengthReductionIndicatorsUtility = KratosGeo.StrengthReductionIndicatorsUtility
 DeactivateConditionsOnInactiveElements = (
     KratosGeo.DeactivateConditionsOnInactiveElements
 )
@@ -41,6 +42,7 @@ GeoMechanicsQuasiNewtonStrategy = KratosGeo.GeoMechanicsQuasiNewtonStrategy
 
 # Processes
 ApplyCPhiReductionProcess = KratosGeo.ApplyCPhiReductionProcess
+ApplyIncrementalCPhiReductionProcess = KratosGeo.ApplyIncrementalCPhiReductionProcess
 ApplyExcavationProcess = KratosGeo.ApplyExcavationProcess
 ApplyFinalStressesOfPreviousStageToInitialState = (
     KratosGeo.ApplyFinalStressesOfPreviousStageToInitialState

@@ -161,10 +161,11 @@ StressStateType CoulombImpl::DoReturnMapping(const StressStateType& rTrialStress
     auto kappa_start = mCoulombYieldSurface.GetKappa();
     for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
         if (mTensionCutOff) {
-            if (IsStressAtTensionApexReturnZone(trial_traction)) {
-                mPlasticityStatus = PlasticityStatus::TENSION_APEX;
-                return ReturnStressAtTensionApexReturnZone(rTrialStressState);
-            }
+            // Retorno al ápice de tensión desactivado para igualar example64 (UDSM), que no lo implementa
+            // if (IsStressAtTensionApexReturnZone(trial_traction)) {
+            //     mPlasticityStatus = PlasticityStatus::TENSION_APEX;
+            //     return ReturnStressAtTensionApexReturnZone(rTrialStressState);
+            // }
 
             if (IsStressAtTensionCutoffReturnZone(trial_traction)) {
                 mPlasticityStatus = PlasticityStatus::TENSION_CUT_OFF;

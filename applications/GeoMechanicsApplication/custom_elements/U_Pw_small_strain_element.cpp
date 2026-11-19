@@ -752,8 +752,11 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 
     ConstitutiveLaw::Parameters ConstitutiveParameters(r_geometry, r_properties, rCurrentProcessInfo);
 
-    // Stiffness matrix is needed to calculate Biot coefficient
-    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    // The constitutive tensor is needed for the stiffness matrix, and for the Biot coefficient when it is
+    // not given as a property. Skipping it for residual-only evaluations (e.g. line search) avoids
+    // expensive (numerical) tangent computations.
+    if (CalculateStiffnessMatrixFlag || !r_properties.Has(BIOT_COEFFICIENT))
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 

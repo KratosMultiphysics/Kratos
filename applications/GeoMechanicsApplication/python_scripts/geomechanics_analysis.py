@@ -1,3 +1,4 @@
+import json
 import time as timer
 import os
 import sys
@@ -11,6 +12,7 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrapper
+from KratosMultiphysics.GeoMechanicsApplication import incremental_c_phi_reduction_diagnostics
 from KratosMultiphysics.GeoMechanicsApplication import validation_helpers
 
 def copy_nodal_solution_step_values(model_part, variable, source_index, destination_index):
@@ -56,8 +58,64 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self.reset_totals        = solver_settings["reset_totals"].GetBool()
         self.rebuild_level       = solver_settings["rebuild_level"].GetInt()
 
+        self._incremental_c_phi_process = None
+        self._incremental_c_phi_diagnostics = None
+        self._srf_indicators_utility = None
+        self.incremental_c_phi_trial_results = []
+        self.incremental_c_phi_points = []
+
+    def _GetIncrementalCPhiMonitoredNodeIds(self):
+        if not self.project_parameters.Has("processes"):
+            return []
+        processes = self.project_parameters["processes"]
+        for list_name in processes.keys():
+            for process_settings in processes[list_name].values():
+                if (process_settings.Has("process_name") and
+                        process_settings["process_name"].GetString() == "ApplyIncrementalCPhiReductionProcess" and
+                        process_settings["Parameters"].Has("monitored_node_ids")):
+                    node_ids = process_settings["Parameters"]["monitored_node_ids"]
+                    return [node_ids[i].GetInt() for i in range(node_ids.size())]
+        return []
+
+    def _GetIncrementalCPhiSrfIndicatorsSettings(self):
+        if not self.project_parameters.Has("processes"):
+            return None
+        processes = self.project_parameters["processes"]
+        for list_name in processes.keys():
+            for process_settings in processes[list_name].values():
+                if (process_settings.Has("process_name") and
+                        process_settings["process_name"].GetString() == "ApplyIncrementalCPhiReductionProcess" and
+                        process_settings["Parameters"].Has("srf_indicators")):
+                    srf_indicators_settings = process_settings["Parameters"]["srf_indicators"]
+                    if (srf_indicators_settings.Has("enabled") and
+                            srf_indicators_settings["enabled"].GetBool()):
+                        utility_settings = Kratos.Parameters("{}")
+                        if srf_indicators_settings.Has("output_file_name"):
+                            utility_settings.AddValue("output_file_name",
+                                                      srf_indicators_settings["output_file_name"])
+                        return utility_settings
+        return None
+
     def Initialize(self):
         super().Initialize()
+
+        incremental_process_type = getattr(KratosGeo, "ApplyIncrementalCPhiReductionProcess", None)
+        if incremental_process_type is not None:
+            self._incremental_c_phi_process = next(
+                (process for process in self._GetListOfProcesses()
+                 if isinstance(process, incremental_process_type)),
+                None)
+        if self._incremental_c_phi_process is not None:
+            self._incremental_c_phi_diagnostics = (
+                incremental_c_phi_reduction_diagnostics.IncrementalCPhiReductionDiagnostics(
+                    monitored_node_ids=self._GetIncrementalCPhiMonitoredNodeIds()))
+            self.incremental_c_phi_trial_results = self._incremental_c_phi_diagnostics.trial_results
+            self.incremental_c_phi_points = self._incremental_c_phi_diagnostics.factor_displacement_points
+
+            srf_indicators_settings = self._GetIncrementalCPhiSrfIndicatorsSettings()
+            if srf_indicators_settings is not None:
+                self._srf_indicators_utility = KratosGeo.StrengthReductionIndicatorsUtility(
+                    self._GetSolver().GetComputingModelPart(), srf_indicators_settings)
 
         # Displacement and rotation variables are defined as stage displacement and rotation,
         # so they need to be reset at the start of a stage
@@ -72,6 +130,18 @@ class GeoMechanicsAnalysis(AnalysisStage):
 
     def Finalize(self):
         super().Finalize()
+
+        if (self._incremental_c_phi_process is not None and
+                self._incremental_c_phi_process.HasLastConvergedFactor()):
+            process = self._incremental_c_phi_process
+            summary = {"factor_of_safety": process.GetFactorOfSafety(),
+                       "last_converged_factor": process.GetLastConvergedFactor(),
+                       "stop_reason": process.GetStopReason(),
+                       "stiffness_ratio": process.GetStiffnessRatio(),
+                       "converged_steps": process.GetTrialNumber(),
+                       "cuts": process.GetTotalNumberOfCuts()}
+            with open("c_phi_factor_of_safety.json", "w") as summary_file:
+                json.dump(summary, summary_file, indent=2)
 
         # Finalizing strategy
         if self.parallel_type == "OpenMP":
@@ -137,6 +207,9 @@ class GeoMechanicsAnalysis(AnalysisStage):
 
             converged = False
             number_cycle = 0
+            trial_start_time = timer.perf_counter()
+            trial_factor = (self._incremental_c_phi_process.GetTrialFactor()
+                            if self._incremental_c_phi_process is not None else None)
             while not converged and number_cycle < self.number_cycles:
 
                 number_cycle += 1
@@ -169,16 +242,24 @@ class GeoMechanicsAnalysis(AnalysisStage):
                             self.delta_time *= self.reduction_factor
                             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Down-scaling with factor: ", self.reduction_factor)
                 else:
+                    if self._incremental_c_phi_process is not None:
+                        # Record the failed trial and retry from the last converged state with a smaller increment
+                        if not self._incremental_c_phi_process.CutIncrementAfterNonConvergence():
+                            break
+                        self._RecordIncrementalCPhiTrial(trial_factor, converged, timer.perf_counter() - trial_start_time)
+                        self._RevertStateToStartOfStep()
+                        number_cycle -= 1
+                        trial_start_time = timer.perf_counter()
+                        trial_factor = self._incremental_c_phi_process.GetTrialFactor()
+                        continue
+
                     # scale down step and restart
                     KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Down-scaling with factor: ", self.reduction_factor)
                     self.delta_time *= self.reduction_factor
                     self._CheckDeltaTimeSize()
                     self._RevertStateToStartOfStep()
 
-            if not converged:
-                raise RuntimeError('The maximum number of cycles is reached without convergence!')
-
-            if self._GetSolver().settings["solver_type"].GetString() == "U_Pw":
+            if converged and self._GetSolver().settings["solver_type"].GetString() == "U_Pw":
                 KratosGeo.CalculateIncrementalMotionProcess(
                     self._GetSolver().GetComputingModelPart(),
                     Kratos.Parameters("""{"variable_name": "DISPLACEMENT"}""")).Execute()
@@ -196,11 +277,35 @@ class GeoMechanicsAnalysis(AnalysisStage):
                         self._GetSolver().GetComputingModelPart(),
                         Kratos.Parameters("""{"variable_name": "ROTATION"}""")).Execute()
 
+            if self._incremental_c_phi_process is not None:
+                self._RecordIncrementalCPhiTrial(trial_factor, converged, timer.perf_counter() - trial_start_time)
+
+            if not converged:
+                if self._incremental_c_phi_process is not None and self._incremental_c_phi_process.IsFinished():
+                    # The factor of safety is the last converged factor; keep its state
+                    self._RevertStateToStartOfStep()
+                    continue
+                if self._incremental_c_phi_process is not None:
+                    raise RuntimeError("The incremental c-phi trial did not converge!")
+                raise RuntimeError('The maximum number of cycles is reached without convergence!')
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
+    def _RecordIncrementalCPhiTrial(self, trial_factor, converged, elapsed_time):
+        if self._srf_indicators_utility is not None:
+            self._srf_indicators_utility.RecordIncrement(
+                self._incremental_c_phi_process.GetTrialNumber() + 1, trial_factor, converged)
+
+        has_invalid_values = self._incremental_c_phi_diagnostics.RecordTrial(
+            self._GetSolver().GetComputingModelPart(), trial_factor, converged, elapsed_time)
+        if has_invalid_values and converged:
+            raise RuntimeError("The incremental c-phi trial contains NaN or Inf values!")
+
     def KeepAdvancingSolutionLoop(self):
+        if (self._incremental_c_phi_process is not None and
+                self._incremental_c_phi_process.IsFinished()):
+            return False
         return self._GetSolver().KeepAdvancingSolutionLoop(self.end_time)
 
     def ResetIfHasNodalSolutionStepVariable(self, variable):

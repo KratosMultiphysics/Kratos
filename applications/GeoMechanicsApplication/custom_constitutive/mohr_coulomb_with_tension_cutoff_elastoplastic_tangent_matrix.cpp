@@ -23,7 +23,10 @@
 #include "geo_mechanics_application_variables.h"
 #include "custom_utilities/constitutive_tangent_operator_calculator.h"
 
+#include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstdlib>
 
 namespace
 {
@@ -72,6 +75,31 @@ Geo::PrincipalStresses::AveragingType FindAveragingType(const Geo::PrincipalStre
         return HIGHEST_PRINCIPAL_STRESSES;
     }
     return NO_AVERAGING;
+}
+
+// EXPERIMENTO (C-phi): añade factor * D_elástica a la tangente en los puntos plásticos en esquina de
+// Mohr-Coulomb. Solo actúa si existe la variable de entorno GEO_CORNER_REGULARIZATION.
+void ApplyExperimentalCornerRegularization(Matrix&       rTangent,
+                                           const Matrix& rElasticTensor,
+                                           const Vector& rStressVector)
+{
+    const auto* p_setting = std::getenv("GEO_CORNER_REGULARIZATION");
+    if (p_setting == nullptr) return;
+    const auto factor = std::atof(p_setting);
+    if (factor <= 0.0) return;
+
+    if (norm_frobenius(rTangent - rElasticTensor) <= 1.0e-6 * norm_frobenius(rElasticTensor)) return;
+
+    const auto principal = StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(rStressVector).first;
+    const auto& values   = principal.Values();
+    auto sorted = std::array<double, 3>{values[0], values[1], values[2]};
+    std::sort(sorted.begin(), sorted.end());
+    const auto gap = std::min(sorted[2] - sorted[1], sorted[1] - sorted[0]);
+    constexpr auto tension_limit = -100.0; // Pa
+    constexpr auto corner_tolerance = 1.0e-3;
+    if (sorted[2] > tension_limit || gap >= corner_tolerance * std::max(sorted[2] - sorted[0], 1.0)) return;
+
+    rTangent += factor * rElasticTensor;
 }
 
 } // namespace
@@ -240,6 +268,9 @@ void MohrCoulombWithTensionCutOffElastoPlasticTangentMatrix::CalculateMaterialRe
                     regularization_factor *
                     mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties);
             }
+            ApplyExperimentalCornerRegularization(
+                rParameters.GetConstitutiveMatrix(),
+                mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties), rParameters.GetStressVector());
             rParameters.GetStressVector() = unperturbed_stress;
         }
         return;
@@ -286,6 +317,9 @@ void MohrCoulombWithTensionCutOffElastoPlasticTangentMatrix::CalculateMaterialRe
                 regularization_factor *
                 mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties);
         }
+        ApplyExperimentalCornerRegularization(
+            rParameters.GetConstitutiveMatrix(),
+            mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties), mStressVector);
     }
 }
 
