@@ -29,7 +29,7 @@ ComputeBeamVectorsProcess::ComputeBeamVectorsProcess(
     ModelPart& rModelPart)
     : Process()
     , mrThisModelPart(rModelPart)
-    , mpParentCurve(&(rModelPart.ElementsBegin()->GetGeometry().GetGeometryParent(0)))
+    , mpParentCurve(nullptr)
 {
 }
 
@@ -61,10 +61,11 @@ void ComputeBeamVectorsProcess::ComputeT0AndN0(
     array_1d<double, 3> V = ZeroVector(3);
     array_1d<double, 3> up = ZeroVector(3);
     
-    // Evaluate at the start of the beam (parameter = 0)
+    // Evaluate at the start of the beam
     array_1d<double, 3> local_coordinates = ZeroVector(3);
+    local_coordinates[0] = rCurve.DomainInterval().GetT0();
     std::vector<array_1d<double, 3>> global_space_derivatives;
-    
+
     rCurve.GlobalSpaceDerivatives(global_space_derivatives, local_coordinates, 1);
 
 
@@ -92,8 +93,9 @@ void ComputeBeamVectorsProcess::ComputeT0AndN0(
     array_1d<double, 3> V = ZeroVector(3);
     array_1d<double, 3> up = ZeroVector(3);
     
-    // Evaluate at the start of the beam (parameter = 0)
+    // Evaluate at the start of the beam
     array_1d<double, 3> local_coordinates = ZeroVector(3);
+    local_coordinates[0] = rCurve.DomainInterval().GetT0();
     std::vector<array_1d<double, 3>> global_space_derivatives;
     rCurve.GlobalSpaceDerivatives(global_space_derivatives, local_coordinates, 1);
 
@@ -118,31 +120,51 @@ void ComputeBeamVectorsProcess::ComputeT0AndN0(
 }
 
 
-void ComputeBeamVectorsProcess::ExecuteInitialize()
+void ComputeBeamVectorsProcess::ComputeT0AndN0(
+    const Geometry<Node>& rParentCurve,
+    array_1d<double, 3>& rT0,
+    array_1d<double, 3>& rN0)
 {
-    const auto* curve_on_surface = dynamic_cast<const NurbsCurveOnSurfaceGeometry<3, PointerVector<Node>, PointerVector<Node>>*>(mpParentCurve);
-    auto* nurbs_curve = dynamic_cast<const NurbsCurveGeometry<3, PointerVector<Node>>*>(mpParentCurve);
-    const auto* brep_curve = dynamic_cast<const BrepCurve<PointerVector<Node>, PointerVector<Point>>*>(mpParentCurve);
+    const auto* curve_on_surface = dynamic_cast<const NurbsCurveOnSurfaceGeometry<3, PointerVector<Node>, PointerVector<Node>>*>(&rParentCurve);
+    auto* nurbs_curve = dynamic_cast<const NurbsCurveGeometry<3, PointerVector<Node>>*>(&rParentCurve);
+    const auto* brep_curve = dynamic_cast<const BrepCurve<PointerVector<Node>, PointerVector<Point>>*>(&rParentCurve);
 
     if (brep_curve != nullptr) {
         nurbs_curve = dynamic_cast<const NurbsCurveGeometry<3, PointerVector<Node>>*>(
             &brep_curve->GetGeometryPart(Geometry<Node>::BACKGROUND_GEOMETRY_INDEX));
     }
 
-    array_1d<double, 3> T;
-    array_1d<double, 3> N;
-
     if (curve_on_surface != nullptr) {
-        ComputeT0AndN0(*curve_on_surface, T, N);
+        ComputeT0AndN0(*curve_on_surface, rT0, rN0);
     } else if (nurbs_curve != nullptr) {
-        ComputeT0AndN0(*nurbs_curve, T, N);
+        ComputeT0AndN0(*nurbs_curve, rT0, rN0);
     } else {
         KRATOS_ERROR << "Unknown geometry type in ComputeBeamVectorsProcess";
     }
+}
+
+void ComputeBeamVectorsProcess::ExecuteInitialize()
+{
+    // Each beam element gets the initial frame of its own parent curve, so that several beams can share a model part.
+    std::unordered_map<const Geometry<Node>*, std::pair<array_1d<double, 3>, array_1d<double, 3>>> frames;
 
     for (auto& r_element : mrThisModelPart.Elements()) {
-        r_element.GetProperties().SetValue(T_0, T);
-        r_element.GetProperties().SetValue(N_0, N);
+        const Geometry<Node>* p_parent_curve = &r_element.GetGeometry().GetGeometryParent(0);
+
+        if (mpParentCurve != nullptr && p_parent_curve != mpParentCurve) {
+            continue;
+        }
+
+        auto it_frame = frames.find(p_parent_curve);
+        if (it_frame == frames.end()) {
+            array_1d<double, 3> T;
+            array_1d<double, 3> N;
+            ComputeT0AndN0(*p_parent_curve, T, N);
+            it_frame = frames.emplace(p_parent_curve, std::make_pair(T, N)).first;
+        }
+
+        r_element.SetValue(T_0, Vector(it_frame->second.first));
+        r_element.SetValue(N_0, Vector(it_frame->second.second));
     }
 }
 

@@ -27,6 +27,7 @@
 #include "iga_application_variables.h"
 #include "utilities/math_utils.h"
 #include <string>
+#include <unordered_map>
 
 
 namespace Kratos
@@ -107,9 +108,15 @@ public:
     }
 
 private:
+    /// Computes T0 and N0 for a NurbsCurve, NurbsCurveOnSurface or BrepCurve parent geometry.
+    void ComputeT0AndN0(
+        const Geometry<Node>& rParentCurve,
+        array_1d<double, 3>& rT0,
+        array_1d<double, 3>& rN0);
+
     ///@name Member Variables
     ///@{
-    ModelPart& mrThisModelPart; 
+    ModelPart& mrThisModelPart;
     const Geometry<Node>* mpParentCurve; 
     ///@}
 }; // Class ComputeBeamVectorsProcess
