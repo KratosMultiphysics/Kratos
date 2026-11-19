@@ -19,12 +19,12 @@
 #include "includes/define.h"
 #include "iga_application_variables.h"
 #include "custom_elements/non_linear_bernoulli_beam_element_3D.h"
-#include "custom_elements/beam_base_element_3D.h" 
+#include "custom_elements/beam_base_element_3D.h"
 
 namespace Kratos
 {
 
-//for normal beam    
+//for normal beam
 ComputeBeamVectorsProcess::ComputeBeamVectorsProcess(
     ModelPart& rModelPart)
     : Process()
@@ -33,7 +33,7 @@ ComputeBeamVectorsProcess::ComputeBeamVectorsProcess(
 {
 }
 
-//for normal beam    
+//for normal beam
 ComputeBeamVectorsProcess::ComputeBeamVectorsProcess(
     ModelPart& rModelPart,
     const NurbsCurveGeometry<3, PointerVector<Node>>& rParentCurve)
@@ -43,7 +43,7 @@ ComputeBeamVectorsProcess::ComputeBeamVectorsProcess(
 {
 }
 
-//for embedded beam    
+//for embedded beam
 ComputeBeamVectorsProcess::ComputeBeamVectorsProcess(
     ModelPart& rModelPart,
     const NurbsCurveOnSurfaceGeometry<3, PointerVector<Node>, PointerVector<Node>>& rParentCurve)
@@ -60,7 +60,7 @@ void ComputeBeamVectorsProcess::ComputeT0AndN0(
 {
     array_1d<double, 3> V = ZeroVector(3);
     array_1d<double, 3> up = ZeroVector(3);
-    
+
     // Evaluate at the start of the beam
     array_1d<double, 3> local_coordinates = ZeroVector(3);
     local_coordinates[0] = rCurve.DomainInterval().GetT0();
@@ -82,7 +82,7 @@ void ComputeBeamVectorsProcess::ComputeT0AndN0(
     MathUtils<double>::CrossProduct(V, rT0, up);
     V /= norm_2(V);
     MathUtils<double>::CrossProduct(rN0, V, rT0);
-    rN0 /= norm_2(rN0); 
+    rN0 /= norm_2(rN0);
 }
 
 void ComputeBeamVectorsProcess::ComputeT0AndN0(
@@ -92,7 +92,7 @@ void ComputeBeamVectorsProcess::ComputeT0AndN0(
 {
     array_1d<double, 3> V = ZeroVector(3);
     array_1d<double, 3> up = ZeroVector(3);
-    
+
     // Evaluate at the start of the beam
     array_1d<double, 3> local_coordinates = ZeroVector(3);
     local_coordinates[0] = rCurve.DomainInterval().GetT0();
@@ -114,9 +114,9 @@ void ComputeBeamVectorsProcess::ComputeT0AndN0(
     array_1d<double, 3> G2 = global_space_derivatives[2];
     MathUtils<double>::CrossProduct(rN0, G1, G2); //surface normal = G1 × G2
     rN0 /= norm_2(rN0);
-    
+
     MathUtils<double>::CrossProduct(V, rT0, rN0);
-    V /= norm_2(V); 
+    V /= norm_2(V);
 }
 
 

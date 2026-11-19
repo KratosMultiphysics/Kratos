@@ -956,7 +956,7 @@ namespace Kratos
             }
         }
 
-    
+
     void BeamBaseElement3D::ComputeTangentSecondDerivativeVariation(
             const Vector& rShapeFunctionDerivatives,
             const Vector& rShapeFunctionSecondDerivatives,
@@ -1241,9 +1241,9 @@ namespace Kratos
             }
 
         }
-      
 
-    void BeamBaseElement3D::ComputeRodriguesMatrix(const array_1d<double, 3>& rAxis, 
+
+    void BeamBaseElement3D::ComputeRodriguesMatrix(const array_1d<double, 3>& rAxis,
             const double Phi, Matrix3d& rRodriguesMatrix)
         {
             rRodriguesMatrix.clear();
@@ -1656,22 +1656,22 @@ namespace Kratos
                 double sin_phi;
                 sin_phi = sin(Phi);
 
-                for (size_t t = 0;t < 3;t++) 
+                for (size_t t = 0;t < 3;t++)
                 {
                     for (size_t u = 0;u < 3;u++)
                     {
                         for (size_t  r  = 0;r < NumberOfDofs;r++)
                         {
-                            
+
                             for (size_t  s  = 0;s < NumberOfDofs;s++)
                             {
-                                
-                                
+
+
                                 if (t == u)
                                 {
                                     rRodriguesMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -phi_derivative_variation(r) * phi_variation(s) * cos_phi - phi_derivative_variation(s) * phi_variation(r) * cos_phi + sin_phi * PhiDerivative * phi_variation[r] * phi_variation[s];
                                 }
-                                
+
                                 {
                                     for (int k = 0; k < 3; k++)
                                     {
@@ -1688,8 +1688,8 @@ namespace Kratos
                                                             + phi_variation[s] * cos_phi * levi_civita[t][k][u] * rAxisDerivativeVariation[k * NumberOfDofs + r]
                                                         ;
 
-                                                        
-                                                        rRodriguesMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += sin_phi * levi_civita[t][k][u] * rAxisDerivativeSecondVariation(k * NumberOfDofs + r, s); 
+
+                                                        rRodriguesMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += sin_phi * levi_civita[t][k][u] * rAxisDerivativeSecondVariation(k * NumberOfDofs + r, s);
 
                                     }
                                 }
@@ -1716,7 +1716,7 @@ namespace Kratos
             const SizeType DofsPerNode,
             Matrix& rRodriguesMatrixSecondDerivativeVariation)
         {
-                
+
                 rRodriguesMatrixSecondDerivativeVariation.resize(3 * NumberOfDofs, 3);
                 rRodriguesMatrixSecondDerivativeVariation.clear();
 
@@ -1740,14 +1740,14 @@ namespace Kratos
                 levi_civita[1][0][2] = -1;
                 levi_civita[2][1][0] = -1;
 
-                for (size_t t = 0; t < 3; t++) 
+                for (size_t t = 0; t < 3; t++)
                 {
                     for (size_t u = 0; u < 3; u++)
                     {
                         for (size_t  r  = 0; r < NumberOfDofs; r++)
                         {
-                            size_t xyz = r % DofsPerNode; 
-                            size_t i= r / DofsPerNode;     
+                            size_t xyz = r % DofsPerNode;
+                            size_t i= r / DofsPerNode;
                             if (t == u)
                             {
                                 if (xyz > 2)
@@ -1762,7 +1762,7 @@ namespace Kratos
                                     if (xyz > 2)
                                         rRodriguesMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (rShapeFunctionSecondDerivatives[i] * cos(Phi) - PhiSecondDerivative * rShapeFunctions[i] * sin(Phi) - 2 * rShapeFunctionDerivatives[i] * PhiDerivative * sin(Phi) - pow(PhiDerivative, 2) * rShapeFunctions[i] * cos(Phi)) * levi_civita[t][k][u] * rAxis[k] + 2 * (cos(Phi) * rShapeFunctionDerivatives[i] - sin(Phi) * rShapeFunctions[i] * PhiDerivative) * levi_civita[t][k][u] * rAxisDerivative[k] + cos(Phi) * rShapeFunctions[i] * levi_civita[t][k][u] * rAxisSecondDerivative[k];
                                     else
-                                        rRodriguesMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (cos(Phi) * PhiSecondDerivative - pow(PhiDerivative, 2) * sin(Phi)) * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r] + 2 * PhiDerivative * cos(Phi) * levi_civita[t][k][u] * rAxisDerivativeVariation[k * NumberOfDofs + r] + sin(Phi) * levi_civita[t][k][u] * rAxisSecondDerivativeVariation[k * NumberOfDofs + r]; 
+                                        rRodriguesMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (cos(Phi) * PhiSecondDerivative - pow(PhiDerivative, 2) * sin(Phi)) * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r] + 2 * PhiDerivative * cos(Phi) * levi_civita[t][k][u] * rAxisDerivativeVariation[k * NumberOfDofs + r] + sin(Phi) * levi_civita[t][k][u] * rAxisSecondDerivativeVariation[k * NumberOfDofs + r];
                                 }
                             }
                         }
@@ -1789,13 +1789,13 @@ namespace Kratos
         Matrix& rRodriguesMatrixSecondVariation,
         Matrix& rRodriguesMatrixDerivativeSecondVariation)
     {
-    
+
             rRodriguesMatrixVariation.clear();
-            
+
             rRodriguesMatrixDerivativeVariation.clear();
-            
+
             rRodriguesMatrixSecondVariation.clear();
-            
+
             rRodriguesMatrixDerivativeSecondVariation.clear();
 
             int levi_civita[3][3][3];
@@ -1836,14 +1836,14 @@ namespace Kratos
             double sin_phi;
             sin_phi = sin(Phi);
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
                 for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t  r  = 0;r < NumberOfDofs;r++)
                     {
-                        size_t xyz_r = r % DofsPerNode; 
-                        size_t i= r / DofsPerNode;     
+                        size_t xyz_r = r % DofsPerNode;
+                        size_t i= r / DofsPerNode;
                         if (t == u)
                         {
                             if (xyz_r > 2)
@@ -1862,26 +1862,26 @@ namespace Kratos
                             else
                             {
                                 rRodriguesMatrixVariation(t * NumberOfDofs + r, u) += sin(Phi) * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r];
-                                rRodriguesMatrixDerivativeVariation(t * NumberOfDofs + r, u) += cos(Phi) * PhiDerivative * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r] + sin(Phi) * levi_civita[t][k][u] * rAxisDerivativeVariation[k * NumberOfDofs + r]; 
+                                rRodriguesMatrixDerivativeVariation(t * NumberOfDofs + r, u) += cos(Phi) * PhiDerivative * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r] + sin(Phi) * levi_civita[t][k][u] * rAxisDerivativeVariation[k * NumberOfDofs + r];
                             }
                         }
                         for (size_t  s  = 0;s < NumberOfDofs;s++)
                         {
-                            size_t xyz_s = s % DofsPerNode; 
-                            
+                            size_t xyz_s = s % DofsPerNode;
+
                             if (t == u)
                             {
                                 rRodriguesMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -cos(Phi) * phi_variation[r] * phi_variation[s];
                                 rRodriguesMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -phi_derivative_variation(r) * phi_variation(s) * cos_phi - phi_derivative_variation(s) * phi_variation(r) * cos_phi + sin_phi * PhiDerivative * phi_variation[r] * phi_variation[s];
                             }
-                            
+
                             {
                                 for (int k = 0; k < 3; k++)
                                 {
                                     if (xyz_r > 2 || xyz_s > 2)
                                         rRodriguesMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -sin(Phi) * phi_variation[r] * phi_variation[s] * levi_civita[t][k][u] * rAxis[k] + phi_variation[r] * cos(Phi) * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + s] + phi_variation[s] * cos(Phi) * levi_civita[t][k][u] * rAxisVariation[k * NumberOfDofs + r];
                                     else
-                                        rRodriguesMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += sin(Phi) * levi_civita[t][k][u] * rAxisSecondVariation(k * NumberOfDofs + r, s); 
+                                        rRodriguesMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += sin(Phi) * levi_civita[t][k][u] * rAxisSecondVariation(k * NumberOfDofs + r, s);
 
                                     rRodriguesMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -phi_derivative_variation(r) * phi_variation(s) * sin_phi * levi_civita[t][k][u] * rAxis[k]
                                         - phi_derivative_variation(s) * phi_variation(r) * sin_phi * levi_civita[t][k][u] * rAxis[k]
@@ -1896,8 +1896,8 @@ namespace Kratos
                                                         + phi_variation[s] * cos_phi * levi_civita[t][k][u] * rAxisDerivativeVariation[k * NumberOfDofs + r]
                                                     ;
 
-                                                    
-                                                    rRodriguesMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += sin_phi * levi_civita[t][k][u] * rAxisDerivativeSecondVariation(k * NumberOfDofs + r, s); 
+
+                                                    rRodriguesMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += sin_phi * levi_civita[t][k][u] * rAxisDerivativeSecondVariation(k * NumberOfDofs + r, s);
                                 }
                             }
                         }
@@ -1920,7 +1920,7 @@ namespace Kratos
             rRodriguesMatrixSecondDerivative.clear();
 
             Matrix3d identity_matrix;
-            identity_matrix.clear();  
+            identity_matrix.clear();
             for (int i = 0; i < 3; i++) { identity_matrix(i, i) = 1; }
 
             for (int i = 0; i < 3; i++) { rRodriguesMatrixSecondDerivative(i, i) = -PhiSecondDerivative * sin(Phi) - pow(PhiDerivative, 2) * cos(Phi); }
@@ -1931,14 +1931,14 @@ namespace Kratos
 
     void BeamBaseElement3D::ComputeLambdaMatrix(const array_1d<double, 3>& rReferenceTangent, const array_1d<double, 3>& rCurrentTangent, Matrix3d& rLambdaMatrix)
         {
-            rLambdaMatrix.clear();  
+            rLambdaMatrix.clear();
             Matrix3d lambda_matrix_auxiliary;
-            lambda_matrix_auxiliary.clear();  
+            lambda_matrix_auxiliary.clear();
             double scaling_factor;
 
             Matrix3d identity_matrix;
             identity_matrix.resize(3, 3, false);
-            identity_matrix.clear();  
+            identity_matrix.clear();
             for (int i = 0; i < 3; i++) { identity_matrix(i, i) = 1.; }
             array_1d<double, 3> reference_cross_current;
             CrossProduct(reference_cross_current, rReferenceTangent, rCurrentTangent);
@@ -1979,12 +1979,12 @@ namespace Kratos
             const array_1d<double, 3>& rCurrentTangentDerivative,
             Matrix3d& rLambdaMatrixDerivative)
         {
-            rLambdaMatrixDerivative.clear();  
+            rLambdaMatrixDerivative.clear();
 
             double scaling_factor;
 
             Matrix3d identity_matrix;
-            identity_matrix.clear();  
+            identity_matrix.clear();
             for (int i = 0; i < 3; i++) { identity_matrix(i, i) = 1.; }
 
             double tangent_dot_product = inner_prod(rReferenceTangent, rCurrentTangent);
@@ -2015,12 +2015,12 @@ namespace Kratos
             const array_1d<double, 3>& rCurrentTangentSecondDerivative,
             Matrix3d& rLambdaMatrixSecondDerivative)
         {
-            rLambdaMatrixSecondDerivative.clear();  
+            rLambdaMatrixSecondDerivative.clear();
 
             double scaling_factor;
 
             Matrix3d identity_matrix;
-            identity_matrix.clear();  
+            identity_matrix.clear();
             for (int i = 0; i < 3; i++) { identity_matrix(i, i) = 1.; }
 
             double tangent_dot_product = inner_prod(rReferenceTangent, rCurrentTangent);
@@ -2064,14 +2064,14 @@ namespace Kratos
         const SizeType DofsPerNode,
         Matrix& rLambdaMatrixVariation)
         {
-            
+
 
             double tangent_dot_product = inner_prod(rReferenceTangent, rCurrentTangent);
-            
+
             rLambdaMatrixVariation.clear();
 
             Matrix3d identity_matrix;
-            identity_matrix.clear();  
+            identity_matrix.clear();
             for (int i = 0; i < 3; i++) { identity_matrix(i, i) = 1.; }
 
             int levi_civita[3][3][3];
@@ -2105,11 +2105,11 @@ namespace Kratos
 
             reference_cross_current = MathUtils<double>::CrossProduct(rReferenceTangent, rCurrentTangent);
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
                 for (size_t  r  = 0;r < NumberOfDofs;r++)
                 {
-                    size_t xyz = r % DofsPerNode; 
+                    size_t xyz = r % DofsPerNode;
                     for (size_t u = 0;u < 3;u++)
                     {
                         for (size_t k = 0;k < 3;k++)
@@ -2129,10 +2129,10 @@ namespace Kratos
 
             for (size_t t = 0;t < 3;t++)
             {
-                for (size_t  r  = 0;r < NumberOfDofs;r++) 
+                for (size_t  r  = 0;r < NumberOfDofs;r++)
                 {
-                    size_t xyz = r % DofsPerNode; 
-                    
+                    size_t xyz = r % DofsPerNode;
+
 
                     if (xyz > 2)
                         tangent_dot_product_variation(r) = 0;
@@ -2141,14 +2141,14 @@ namespace Kratos
                 }
             }
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
                 for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t  r  = 0;r < NumberOfDofs;r++)
                     {
-                        size_t xyz = r % DofsPerNode; 
-                        
+                        size_t xyz = r % DofsPerNode;
+
                         if (t == u)
                         {
                             if (xyz > 2)
@@ -2158,7 +2158,7 @@ namespace Kratos
                         }
                         for (int k = 0; k < 3; k++)
                         {
-                            rLambdaMatrixVariation(t * NumberOfDofs + r, u) += levi_civita[t][k][u] * reference_cross_current_variation[r + k * NumberOfDofs]; 
+                            rLambdaMatrixVariation(t * NumberOfDofs + r, u) += levi_civita[t][k][u] * reference_cross_current_variation[r + k * NumberOfDofs];
                         }
                         rLambdaMatrixVariation(t * NumberOfDofs + r, u) += -tangent_dot_product_variation[r] / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current[t] * reference_cross_current[u]);
                         rLambdaMatrixVariation(t * NumberOfDofs + r, u) += +1.0 / (1.0 + tangent_dot_product) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
@@ -2175,10 +2175,10 @@ namespace Kratos
             const SizeType NumberOfDofs,
             const SizeType DofsPerNode,
             Matrix& rLambdaMatrixSecondVariation)
-        {   
-            
-            
-            rLambdaMatrixSecondVariation.clear();  
+        {
+
+
+            rLambdaMatrixSecondVariation.clear();
 
             double tangent_dot_product = inner_prod(rReferenceTangent, rCurrentTangent);
 
@@ -2222,9 +2222,9 @@ namespace Kratos
 
             for (size_t t = 0;t < 3;t++)
             {
-                for (size_t  r  = 0;r < NumberOfDofs;r++) 
+                for (size_t  r  = 0;r < NumberOfDofs;r++)
                 {
-                    size_t xyz = r % DofsPerNode; 
+                    size_t xyz = r % DofsPerNode;
 
                     if (xyz > 2)
                         tangent_dot_product_variation(r) = 0;
@@ -2239,12 +2239,12 @@ namespace Kratos
 
             for (size_t t = 0;t < 3;t++)
             {
-                for (size_t  r  = 0;r < NumberOfDofs;r++) 
+                for (size_t  r  = 0;r < NumberOfDofs;r++)
                 {
-                    for (size_t  s  = 0;s < NumberOfDofs;s++) 
+                    for (size_t  s  = 0;s < NumberOfDofs;s++)
                     {
-                        size_t xyzr = r % DofsPerNode; 
-                        size_t xyzs = s % DofsPerNode; 
+                        size_t xyzr = r % DofsPerNode;
+                        size_t xyzs = s % DofsPerNode;
 
                         if (xyzr > 2 || xyzs > 2)
                             tangent_dot_product_second_variation(r, s) += 0;
@@ -2256,11 +2256,11 @@ namespace Kratos
 
 
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
                 for (size_t  r  = 0;r < NumberOfDofs;r++)
                 {
-                    size_t xyz_r = r % DofsPerNode; 
+                    size_t xyz_r = r % DofsPerNode;
                     for (size_t u = 0;u < 3;u++)
                     {
                         for (size_t k = 0;k < 3;k++)
@@ -2274,16 +2274,16 @@ namespace Kratos
                 }
             }
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
-                for (size_t u = 0;u < 3;u++) 
+                for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t  r  = 0;r < NumberOfDofs;r++)
                     {
-                        size_t xyz_r = r % DofsPerNode; 
+                        size_t xyz_r = r % DofsPerNode;
                         for (size_t  s  = 0;s < NumberOfDofs;s++)
                         {
-                            size_t xyz_s = s % DofsPerNode; 
+                            size_t xyz_s = s % DofsPerNode;
                             for (size_t k = 0;k < 3;k++)
                             {
                                 if (xyz_r > 2 || xyz_s > 2)
@@ -2296,16 +2296,16 @@ namespace Kratos
                 }
             }
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
                 for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t  r  = 0;r < NumberOfDofs;r++)
                     {
-                        size_t xyzr = r % DofsPerNode; 
+                        size_t xyzr = r % DofsPerNode;
                         for (size_t  s  = 0;s < NumberOfDofs;s++)
                         {
-                            size_t xyzs = s % DofsPerNode; 
+                            size_t xyzs = s % DofsPerNode;
                             if (xyzr > 2 || xyzs > 2) rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) = 0;
                             else
                             {
@@ -2314,7 +2314,7 @@ namespace Kratos
                                 else
                                 {
                                     for (int k = 0; k < 3; k++)
-                                        rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += levi_civita[t][k][u] * reference_cross_current_second_variation(k * NumberOfDofs + r, s); 
+                                        rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += levi_civita[t][k][u] * reference_cross_current_second_variation(k * NumberOfDofs + r, s);
                                 }
                                 rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 3) - tangent_dot_product_second_variation(r, s) / pow(1.0 + tangent_dot_product, 2)) * reference_cross_current[t] * reference_cross_current[u];
                                 rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -tangent_dot_product_variation(r) / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_variation[t * NumberOfDofs + s] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + s])
@@ -2339,8 +2339,8 @@ namespace Kratos
             const SizeType DofsPerNode,
             Matrix& rLambdaMatrixDerivativeVariation)
         {
-            
-            rLambdaMatrixDerivativeVariation.clear();  
+
+            rLambdaMatrixDerivativeVariation.clear();
 
 
             double tangent_dot_product = inner_prod(rReferenceTangent, rCurrentTangent);
@@ -2392,7 +2392,7 @@ namespace Kratos
             tangent_cross_product_derivative = MathUtils<double>::CrossProduct(rReferenceTangent, rCurrentTangentDerivative);
             reference_derivative_cross_current = MathUtils<double>::CrossProduct(rReferenceTangentDerivative, rCurrentTangent);
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
                 for (size_t  r  = 0;r < NumberOfDofs;r++)
                 {
@@ -2430,9 +2430,9 @@ namespace Kratos
 
             for (size_t t = 0;t < 3;t++)
             {
-                for (size_t  r  = 0;r < NumberOfDofs;r++) 
+                for (size_t  r  = 0;r < NumberOfDofs;r++)
                 {
-                    size_t xyz = r % DofsPerNode; 
+                    size_t xyz = r % DofsPerNode;
 
                     if (xyz > 2)
                     {
@@ -2442,7 +2442,7 @@ namespace Kratos
                     }
                     else
                     {
-                        
+
                         tangent_dot_product_variation(r) += rCurrentTangentVariation[t * NumberOfDofs + r] * rReferenceTangent[t];
                         tangent_dot_product_derivative_variation(r) += rCurrentTangentDerivativeVariation[t * NumberOfDofs + r] * rReferenceTangent[t];
                         reference_derivative_dot_current_variation(r) += rCurrentTangentVariation[t * NumberOfDofs + r] * rReferenceTangentDerivative[t];
@@ -2451,13 +2451,13 @@ namespace Kratos
             }
 
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
                 for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t  r  = 0;r < NumberOfDofs;r++)
                     {
-                        size_t xyz = r % DofsPerNode; 
+                        size_t xyz = r % DofsPerNode;
 
                         if (xyz > 2)
                                 rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += 0;
@@ -2470,7 +2470,7 @@ namespace Kratos
                             {
                                 {
                                     for (int k = 0; k < 3; k++)
-                                        rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += levi_civita[t][k][u] * reference_cross_current_derivative_variation[r + k * NumberOfDofs] + levi_civita[t][k][u] * reference_derivative_cross_current_variation[r + k * NumberOfDofs]; 
+                                        rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += levi_civita[t][k][u] * reference_cross_current_derivative_variation[r + k * NumberOfDofs] + levi_civita[t][k][u] * reference_derivative_cross_current_variation[r + k * NumberOfDofs];
                                 }
 
                             }
@@ -2501,10 +2501,10 @@ namespace Kratos
             const SizeType DofsPerNode,
             Matrix& rLambdaMatrixSecondDerivativeVariation)
         {
-                    
+
                     rLambdaMatrixSecondDerivativeVariation.resize(3 * NumberOfDofs, 3);
-                    rLambdaMatrixSecondDerivativeVariation.clear();  
-    
+                    rLambdaMatrixSecondDerivativeVariation.clear();
+
                     double tangent_dot_product = inner_prod(rReferenceTangent, rCurrentTangent);
                     double reference_dot_current_derivative = inner_prod(rReferenceTangent, rCurrentTangentDerivative);
                     double reference_derivative_dot_current = inner_prod(rReferenceTangentDerivative, rCurrentTangent);
@@ -2513,7 +2513,7 @@ namespace Kratos
                     double reference_dot_current_second_derivative = inner_prod(rReferenceTangent, rCurrentTangentSecondDerivative);
                     double tangent_dot_product_derivative = reference_derivative_dot_current + reference_dot_current_derivative;
                     double tangent_dot_product_second_derivative = reference_second_derivative_dot_current + 2 * tangent_derivative_dot_product + reference_dot_current_second_derivative;
-    
+
                     int levi_civita[3][3][3];
                     for (int i = 0; i < 3; i++)
                     {
@@ -2525,32 +2525,32 @@ namespace Kratos
                             }
                         }
                     }
-    
+
                     levi_civita[0][1][2] = 1;
                     levi_civita[2][0][1] = 1;
                     levi_civita[1][2][0] = 1;
-    
+
                     levi_civita[0][2][1] = -1;
                     levi_civita[1][0][2] = -1;
                     levi_civita[2][1][0] = -1;
-    
-                    Vector reference_cross_current_variation;           
-                    Vector reference_cross_current_derivative_variation;        
-                    Vector reference_derivative_cross_current_variation;        
-                    Vector reference_second_derivative_cross_current_variation;     
-                    Vector reference_derivative_cross_current_derivative_variation;     
-                    Vector reference_cross_current_second_derivative_variation;     
-                    Vector reference_cross_current;              
-                    Vector reference_cross_current_derivative;           
-                    Vector reference_derivative_cross_current;           
-                    Vector reference_cross_current_second_derivative;        
-                    Vector reference_second_derivative_cross_current;        
-                    Vector reference_derivative_cross_current_derivative;        
-                    Vector tangent_cross_product_derivative;          
-                    Vector tangent_cross_product_second_derivative;       
-                    Vector tangent_cross_product_derivative_variation;       
-                    Vector tangent_cross_product_second_derivative_variation;    
-    
+
+                    Vector reference_cross_current_variation;
+                    Vector reference_cross_current_derivative_variation;
+                    Vector reference_derivative_cross_current_variation;
+                    Vector reference_second_derivative_cross_current_variation;
+                    Vector reference_derivative_cross_current_derivative_variation;
+                    Vector reference_cross_current_second_derivative_variation;
+                    Vector reference_cross_current;
+                    Vector reference_cross_current_derivative;
+                    Vector reference_derivative_cross_current;
+                    Vector reference_cross_current_second_derivative;
+                    Vector reference_second_derivative_cross_current;
+                    Vector reference_derivative_cross_current_derivative;
+                    Vector tangent_cross_product_derivative;
+                    Vector tangent_cross_product_second_derivative;
+                    Vector tangent_cross_product_derivative_variation;
+                    Vector tangent_cross_product_second_derivative_variation;
+
                     reference_cross_current_variation.resize(NumberOfDofs * 3);
                     reference_cross_current_derivative_variation.resize(NumberOfDofs * 3);
                     reference_derivative_cross_current_variation.resize(NumberOfDofs * 3);
@@ -2567,7 +2567,7 @@ namespace Kratos
                     reference_cross_current_second_derivative.resize(3);
                     tangent_cross_product_derivative.resize(3);
                     tangent_cross_product_second_derivative.resize(3);
-    
+
                     reference_cross_current_variation.clear();
                     reference_cross_current_derivative_variation.clear();
                     reference_derivative_cross_current_variation.clear();
@@ -2584,7 +2584,7 @@ namespace Kratos
                     tangent_cross_product_second_derivative.clear();
                     tangent_cross_product_derivative_variation.clear();
                     tangent_cross_product_second_derivative_variation.clear();
-    
+
                     reference_cross_current = MathUtils<double>::CrossProduct(rReferenceTangent, rCurrentTangent);
                     reference_cross_current_derivative = MathUtils<double>::CrossProduct(rReferenceTangent, rCurrentTangentDerivative);
                     reference_derivative_cross_current = MathUtils<double>::CrossProduct(rReferenceTangentDerivative, rCurrentTangent);
@@ -2593,8 +2593,8 @@ namespace Kratos
                     reference_cross_current_second_derivative = MathUtils<double>::CrossProduct(rReferenceTangent, rCurrentTangentSecondDerivative);
                     tangent_cross_product_derivative = reference_cross_current_derivative + reference_derivative_cross_current;
                     tangent_cross_product_second_derivative = 2 * reference_derivative_cross_current_derivative + reference_second_derivative_cross_current + reference_cross_current_second_derivative;
-    
-                    for (size_t t = 0; t < 3; t++) 
+
+                    for (size_t t = 0; t < 3; t++)
                     {
                         for (size_t  r  = 0; r < NumberOfDofs; r++)
                         {
@@ -2627,7 +2627,7 @@ namespace Kratos
                     }
                     tangent_cross_product_derivative_variation = reference_cross_current_derivative_variation + reference_derivative_cross_current_variation;
                     tangent_cross_product_second_derivative_variation = 2 * reference_derivative_cross_current_derivative_variation + reference_second_derivative_cross_current_variation + reference_cross_current_second_derivative_variation;
-    
+
                     Vector tangent_dot_product_variation;
                     tangent_dot_product_variation.resize(NumberOfDofs);
                     tangent_dot_product_variation.clear();
@@ -2646,13 +2646,13 @@ namespace Kratos
                     Vector reference_dot_current_second_derivative_variation;
                     reference_dot_current_second_derivative_variation.resize(NumberOfDofs);
                     reference_dot_current_second_derivative_variation.clear();
-    
+
                     for (size_t t = 0; t < 3; t++)
                     {
-                        for (size_t  r  = 0; r < NumberOfDofs; r++) 
+                        for (size_t  r  = 0; r < NumberOfDofs; r++)
                         {
-                            size_t xyz = r % DofsPerNode; 
-    
+                            size_t xyz = r % DofsPerNode;
+
                             if (xyz > 2)
                             {
                                 tangent_dot_product_variation(r) += 0;
@@ -2664,7 +2664,7 @@ namespace Kratos
                             }
                             else
                             {
-                                
+
                                 tangent_dot_product_variation(r) += rCurrentTangentVariation[t * NumberOfDofs + r] * rReferenceTangent[t];
                                 reference_dot_current_derivative_variation(r) += rCurrentTangentDerivativeVariation[t * NumberOfDofs + r] * rReferenceTangent[t];
                                 reference_derivative_dot_current_variation(r) += rCurrentTangentVariation[t * NumberOfDofs + r] * rReferenceTangentDerivative[t];
@@ -2680,36 +2680,36 @@ namespace Kratos
                     Vector tangent_dot_product_second_derivative_variation;
                     tangent_dot_product_second_derivative_variation.resize(NumberOfDofs);
                     tangent_dot_product_second_derivative_variation.clear();
-    
+
                     tangent_dot_product_derivative_variation = reference_derivative_dot_current_variation + reference_dot_current_derivative_variation;
                     tangent_dot_product_second_derivative_variation = reference_second_derivative_dot_current_variation + 2 * tangent_derivative_dot_product_variation + reference_dot_current_second_derivative_variation;
-    
+
                     double inverse_one_plus_tangent_dot_squared = 1.0 / pow(1.0 + tangent_dot_product, 2);
                     double inverse_one_plus_tangent_dot_cubed = 1.0 / pow(1.0 + tangent_dot_product, 3);
                     double inverse_one_plus_tangent_dot_fourth = 1.0 / pow(1.0 + tangent_dot_product, 4);
-    
-                    for (size_t t = 0; t < 3; t++) 
+
+                    for (size_t t = 0; t < 3; t++)
                     {
                         for (size_t u = 0; u < 3; u++)
                         {
                             for (size_t  r  = 0; r < NumberOfDofs; r++)
                             {
-                                size_t xyz = r % DofsPerNode; 
-    
+                                size_t xyz = r % DofsPerNode;
+
                                 if (xyz > 2)
                                     rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += 0;
                                 else
                                 {
                                     if (t == u)
                                         rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += tangent_dot_product_second_derivative_variation(r);
-    
+
                                     else
                                     {
                                         {
                                             for (int k = 0; k < 3; k++)
-                                                rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += levi_civita[t][k][u] * tangent_cross_product_second_derivative_variation[r + k * NumberOfDofs]; 
+                                                rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += levi_civita[t][k][u] * tangent_cross_product_second_derivative_variation[r + k * NumberOfDofs];
                                         }
-    
+
                                     }
                                     rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (-tangent_dot_product_second_derivative_variation(r) * inverse_one_plus_tangent_dot_squared + 2 * (tangent_dot_product_variation(r) * tangent_dot_product_second_derivative + 2 * tangent_dot_product_derivative_variation[r] * tangent_dot_product_derivative) * inverse_one_plus_tangent_dot_cubed - 6 * (pow(tangent_dot_product_derivative, 2) * tangent_dot_product_variation[r]) * inverse_one_plus_tangent_dot_fourth) * reference_cross_current[t] * reference_cross_current[u];
                                     rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += (-tangent_dot_product_second_derivative * inverse_one_plus_tangent_dot_squared + 2 * pow(tangent_dot_product_derivative, 2) * inverse_one_plus_tangent_dot_cubed) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_variation[u * NumberOfDofs + r]));
@@ -2718,11 +2718,11 @@ namespace Kratos
                                     rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += -tangent_dot_product_variation(r) * inverse_one_plus_tangent_dot_squared * (tangent_cross_product_second_derivative[t] * reference_cross_current[u] + 2 * tangent_cross_product_derivative[t] * tangent_cross_product_derivative[u] + reference_cross_current[t] * tangent_cross_product_second_derivative[u]);
                                     rLambdaMatrixSecondDerivativeVariation(t * NumberOfDofs + r, u) += 1.0 / (1.0 + tangent_dot_product) * (tangent_cross_product_second_derivative_variation[t * NumberOfDofs + r] * reference_cross_current[u] + tangent_cross_product_second_derivative[t] * reference_cross_current_variation[u * NumberOfDofs + r] + 2 * tangent_cross_product_derivative_variation[t * NumberOfDofs + r] * tangent_cross_product_derivative[u] + 2 * tangent_cross_product_derivative[t] * tangent_cross_product_derivative_variation[u * NumberOfDofs + r] + reference_cross_current_variation[t * NumberOfDofs + r] * tangent_cross_product_second_derivative[u] + reference_cross_current[t] * tangent_cross_product_second_derivative_variation[u * NumberOfDofs + r]);
                                 }
-    
+
                             }
                         }
                     }
-    
+
                 }
 
 void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
@@ -2738,8 +2738,8 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
         const SizeType DofsPerNode,
         Matrix& rLambdaMatrixDerivativeSecondVariation)
         {
-            
-            rLambdaMatrixDerivativeSecondVariation.clear();  
+
+            rLambdaMatrixDerivativeSecondVariation.clear();
 
             double tangent_dot_product = inner_prod(rReferenceTangent, rCurrentTangent);
             double reference_dot_current_derivative = inner_prod(rReferenceTangent, rCurrentTangentDerivative);
@@ -2803,9 +2803,9 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
 
             for (size_t t = 0;t < 3;t++)
             {
-                for (size_t  r  = 0;r < NumberOfDofs;r++) 
+                for (size_t  r  = 0;r < NumberOfDofs;r++)
                 {
-                    size_t xyz = r % DofsPerNode; 
+                    size_t xyz = r % DofsPerNode;
 
                     if (xyz > 2)
                     {
@@ -2834,14 +2834,14 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
 
             for (size_t t = 0;t < 3;t++)
             {
-                for (size_t  r  = 0;r < NumberOfDofs;r++) 
+                for (size_t  r  = 0;r < NumberOfDofs;r++)
                 {
-                    size_t xyzr = r % DofsPerNode; 
-                    
-                    for (size_t  s  = 0;s < NumberOfDofs;s++) 
+                    size_t xyzr = r % DofsPerNode;
+
+                    for (size_t  s  = 0;s < NumberOfDofs;s++)
                     {
-                        size_t xyzs = s % DofsPerNode; 
-                        
+                        size_t xyzs = s % DofsPerNode;
+
 
                         if (xyzr > 2 || xyzs > 2)
                         {
@@ -2857,11 +2857,11 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
                 }
             }
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
                 for (size_t  r  = 0;r < NumberOfDofs;r++)
                 {
-                    size_t xyz_r = r % DofsPerNode; 
+                    size_t xyz_r = r % DofsPerNode;
                     for (size_t u = 0;u < 3;u++)
                     {
                         if (xyz_r > 2)
@@ -2891,16 +2891,16 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
             reference_derivative_cross_current_second_variation.resize(3 * NumberOfDofs, NumberOfDofs);
             reference_derivative_cross_current_second_variation.clear();
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
-                for (size_t u = 0;u < 3;u++) 
+                for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t  r  = 0;r < NumberOfDofs;r++)
                     {
-                        size_t xyz_r = r % DofsPerNode; 
+                        size_t xyz_r = r % DofsPerNode;
                         for (size_t  s  = 0;s < NumberOfDofs;s++)
                         {
-                            size_t xyz_s = s % DofsPerNode; 
+                            size_t xyz_s = s % DofsPerNode;
                             if (xyz_r < 3 || xyz_s < 3)
                             {
                                 for (size_t k = 0;k < 3;k++)
@@ -2915,17 +2915,17 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
                 }
             }
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
-                for (size_t u = 0;u < 3;u++) 
+                for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t  s  = 0;s < NumberOfDofs;s++)
                     {
-                        size_t xyz_s = s % DofsPerNode; 
+                        size_t xyz_s = s % DofsPerNode;
 
                         for (size_t  r  = 0;r < NumberOfDofs;r++)
                         {
-                            size_t xyz_r = r % DofsPerNode; 
+                            size_t xyz_r = r % DofsPerNode;
                             if (t == u)
                             {
                                 if (xyz_r > 2 || xyz_s > 2)
@@ -2941,23 +2941,23 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
                                 else
                                 {
                                     for (int k = 0; k < 3; k++)
-                                        rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += levi_civita[t][k][u] * reference_cross_current_derivative_second_variation(k * NumberOfDofs + r, s) + levi_civita[t][k][u] * reference_derivative_cross_current_second_variation(k * NumberOfDofs + r, s); 
+                                        rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += levi_civita[t][k][u] * reference_cross_current_derivative_second_variation(k * NumberOfDofs + r, s) + levi_civita[t][k][u] * reference_derivative_cross_current_second_variation(k * NumberOfDofs + r, s);
                                 }
                             }
                         }
                     }
                 }
             }
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
                 for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t  r  = 0;r < NumberOfDofs;r++)
                     {
-                        size_t xyzr = r % DofsPerNode; 
+                        size_t xyzr = r % DofsPerNode;
                         for (size_t  s  = 0;s < NumberOfDofs;s++)
                         {
-                            size_t xyzs = s % DofsPerNode; 
+                            size_t xyzs = s % DofsPerNode;
                             if (xyzr > 2 || xyzs > 2)
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += 0;
                             else
@@ -2966,11 +2966,11 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * tangent_dot_product_variation(r) * tangent_dot_product_derivative / pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) / pow(1.0 + tangent_dot_product, 2)) * (reference_cross_current_variation[t * NumberOfDofs + s] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + s])
                                     + (2 * tangent_dot_product_variation(s) * tangent_dot_product_derivative / pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(s) + reference_derivative_dot_current_variation(s)) / pow(1.0 + tangent_dot_product, 2)) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -tangent_dot_product_derivative / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_second_variation(t * NumberOfDofs + r, s) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * reference_cross_current_variation(u * NumberOfDofs + s) +
-                                    reference_cross_current_variation(t * NumberOfDofs + s) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * reference_cross_current_second_variation(u * NumberOfDofs + r, s));   
+                                    reference_cross_current_variation(t * NumberOfDofs + s) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * reference_cross_current_second_variation(u * NumberOfDofs + r, s));
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_second_variation(r, s) / pow(1.0 + tangent_dot_product, 2) + 2 * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 3)) * ((reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]));
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_variation(r) / pow(1.0 + tangent_dot_product, 2)) * ((reference_cross_current_derivative_variation(t * NumberOfDofs + s) + reference_derivative_cross_current_variation(t * NumberOfDofs + s)) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + s) * (reference_cross_current_derivative(u) + reference_derivative_cross_current(u)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_variation(u * NumberOfDofs + s) + reference_cross_current[t] * (reference_cross_current_derivative_variation(u * NumberOfDofs + s) + reference_derivative_cross_current_variation(u * NumberOfDofs + s)));
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 2)) * ((reference_cross_current_derivative_variation(t * NumberOfDofs + r) + reference_derivative_cross_current_variation(t * NumberOfDofs + r)) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * (reference_cross_current_derivative(u) + reference_derivative_cross_current(u)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * (reference_cross_current_derivative_variation(u * NumberOfDofs + r) + reference_derivative_cross_current_variation(u * NumberOfDofs + r)));
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += 1.0 / (1.0 + tangent_dot_product) * ((reference_cross_current_derivative_second_variation(t * NumberOfDofs + r, s) + reference_derivative_cross_current_second_variation(t * NumberOfDofs + r, s)) * reference_cross_current[u] + reference_cross_current_second_variation(t * NumberOfDofs + r, s) * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]) + (reference_cross_current_derivative_variation(t * NumberOfDofs + s) + reference_derivative_cross_current_variation(t * NumberOfDofs + s)) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current_variation(t * NumberOfDofs + s) * (reference_cross_current_derivative_variation(u * NumberOfDofs + r) + reference_derivative_cross_current_variation(u * NumberOfDofs + r)) + (reference_cross_current_derivative_variation(t * NumberOfDofs + r) + reference_derivative_cross_current_variation(t * NumberOfDofs + r)) * reference_cross_current_variation(u * NumberOfDofs + s) + reference_cross_current_variation(t * NumberOfDofs + r) * (reference_cross_current_derivative_variation(u * NumberOfDofs + s) + reference_derivative_cross_current_variation(u * NumberOfDofs + s)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_second_variation(u * NumberOfDofs + r, s) + reference_cross_current[t] * (reference_cross_current_derivative_second_variation(u * NumberOfDofs + r, s) + reference_derivative_cross_current_second_variation(u * NumberOfDofs + r, s)));  
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += 1.0 / (1.0 + tangent_dot_product) * ((reference_cross_current_derivative_second_variation(t * NumberOfDofs + r, s) + reference_derivative_cross_current_second_variation(t * NumberOfDofs + r, s)) * reference_cross_current[u] + reference_cross_current_second_variation(t * NumberOfDofs + r, s) * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]) + (reference_cross_current_derivative_variation(t * NumberOfDofs + s) + reference_derivative_cross_current_variation(t * NumberOfDofs + s)) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current_variation(t * NumberOfDofs + s) * (reference_cross_current_derivative_variation(u * NumberOfDofs + r) + reference_derivative_cross_current_variation(u * NumberOfDofs + r)) + (reference_cross_current_derivative_variation(t * NumberOfDofs + r) + reference_derivative_cross_current_variation(t * NumberOfDofs + r)) * reference_cross_current_variation(u * NumberOfDofs + s) + reference_cross_current_variation(t * NumberOfDofs + r) * (reference_cross_current_derivative_variation(u * NumberOfDofs + s) + reference_derivative_cross_current_variation(u * NumberOfDofs + s)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_second_variation(u * NumberOfDofs + r, s) + reference_cross_current[t] * (reference_cross_current_derivative_second_variation(u * NumberOfDofs + r, s) + reference_derivative_cross_current_second_variation(u * NumberOfDofs + r, s)));
                             }
                         }
                     }
@@ -2994,16 +2994,16 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
             Matrix& rLambdaMatrixSecondVariation,
             Matrix& rLambdaMatrixDerivativeSecondVariation)
         {
-            
 
-            
-            rLambdaMatrixVariation.clear();  
-            
-            rLambdaMatrixDerivativeVariation.clear();  
-            
-            rLambdaMatrixSecondVariation.clear();  
-            
-            rLambdaMatrixDerivativeSecondVariation.clear();  
+
+
+            rLambdaMatrixVariation.clear();
+
+            rLambdaMatrixDerivativeVariation.clear();
+
+            rLambdaMatrixSecondVariation.clear();
+
+            rLambdaMatrixDerivativeSecondVariation.clear();
 
             double tangent_dot_product = inner_prod(rReferenceTangent, rCurrentTangent);
             double reference_dot_current_derivative = inner_prod(rReferenceTangent, rCurrentTangentDerivative);
@@ -3067,9 +3067,9 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
 
             for (size_t t = 0;t < 3;t++)
             {
-                for (size_t  r  = 0;r < NumberOfDofs;r++) 
+                for (size_t  r  = 0;r < NumberOfDofs;r++)
                 {
-                    size_t xyz = r % DofsPerNode; 
+                    size_t xyz = r % DofsPerNode;
 
                     if (xyz > 2)
                     {
@@ -3098,14 +3098,14 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
 
             for (size_t t = 0;t < 3;t++)
             {
-                for (size_t  r  = 0;r < NumberOfDofs;r++) 
+                for (size_t  r  = 0;r < NumberOfDofs;r++)
                 {
-                    size_t xyzr = r % DofsPerNode; 
-                    
-                    for (size_t  s  = 0;s < NumberOfDofs;s++) 
+                    size_t xyzr = r % DofsPerNode;
+
+                    for (size_t  s  = 0;s < NumberOfDofs;s++)
                     {
-                        size_t xyzs = s % DofsPerNode; 
-                        
+                        size_t xyzs = s % DofsPerNode;
+
 
                         if (xyzr > 2 || xyzs > 2)
                         {
@@ -3121,11 +3121,11 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
                 }
             }
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
                 for (size_t  r  = 0;r < NumberOfDofs;r++)
                 {
-                    size_t xyz_r = r % DofsPerNode; 
+                    size_t xyz_r = r % DofsPerNode;
                     for (size_t u = 0;u < 3;u++)
                     {
                         if (xyz_r > 2)
@@ -3155,16 +3155,16 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
             reference_derivative_cross_current_second_variation.resize(3 * NumberOfDofs, NumberOfDofs);
             reference_derivative_cross_current_second_variation.clear();
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
-                for (size_t u = 0;u < 3;u++) 
+                for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t  r  = 0;r < NumberOfDofs;r++)
                     {
-                        size_t xyz_r = r % DofsPerNode; 
+                        size_t xyz_r = r % DofsPerNode;
                         for (size_t  s  = 0;s < NumberOfDofs;s++)
                         {
-                            size_t xyz_s = s % DofsPerNode; 
+                            size_t xyz_s = s % DofsPerNode;
                             if (xyz_r < 3 || xyz_s < 3)
                             {
                                 for (size_t k = 0;k < 3;k++)
@@ -3179,18 +3179,18 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
                 }
             }
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
                 for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t  r  = 0;r < NumberOfDofs;r++)
                     {
-                        size_t xyz = r % DofsPerNode; 
+                        size_t xyz = r % DofsPerNode;
 
                         if (xyz > 2)
                         {
-                            
-                                        
+
+
                         }
                         else
                         {
@@ -3204,13 +3204,13 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
                                 for (int k = 0; k < 3; k++)
                                 {
                                     rLambdaMatrixVariation(t * NumberOfDofs + r, u) += levi_civita[t][k][u] * reference_cross_current_variation[r + k * NumberOfDofs];
-                                    rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += levi_civita[t][k][u] * reference_cross_current_derivative_variation[r + k * NumberOfDofs] + levi_civita[t][k][u] * reference_derivative_cross_current_variation[r + k * NumberOfDofs]; 
+                                    rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += levi_civita[t][k][u] * reference_cross_current_derivative_variation[r + k * NumberOfDofs] + levi_civita[t][k][u] * reference_derivative_cross_current_variation[r + k * NumberOfDofs];
                                 }
                             }
-                            
+
                             rLambdaMatrixVariation(t * NumberOfDofs + r, u) += -tangent_dot_product_variation[r] / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current[t] * reference_cross_current[u]);
                             rLambdaMatrixVariation(t * NumberOfDofs + r, u) += +1.0 / (1.0 + tangent_dot_product) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
-                            
+
                             rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += (2 * (tangent_dot_product_variation(r)) * (reference_dot_current_derivative + reference_derivative_dot_current) / pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) / pow(1.0 + tangent_dot_product, 2)) * reference_cross_current[t] * reference_cross_current[u];
                             rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += -(reference_dot_current_derivative + reference_derivative_dot_current) / pow(1.0 + tangent_dot_product, 2) * ((reference_cross_current_variation[t * NumberOfDofs + r]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_variation[u * NumberOfDofs + r]));
                             rLambdaMatrixDerivativeVariation(t * NumberOfDofs + r, u) += -(tangent_dot_product_variation(r)) / pow(1.0 + tangent_dot_product, 2) * ((reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]));
@@ -3220,20 +3220,20 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
                 }
             }
 
-            for (size_t t = 0;t < 3;t++) 
+            for (size_t t = 0;t < 3;t++)
             {
                 for (size_t u = 0;u < 3;u++)
                 {
                     for (size_t  r  = 0;r < NumberOfDofs;r++)
                     {
-                        size_t xyzr = r % DofsPerNode; 
+                        size_t xyzr = r % DofsPerNode;
                         for (size_t  s  = 0;s < NumberOfDofs;s++)
                         {
-                            size_t xyzs = s % DofsPerNode; 
+                            size_t xyzs = s % DofsPerNode;
                             if (xyzr > 2 || xyzs > 2)
                             {
-                                
-                                
+
+
                             }
                             else
                             {
@@ -3246,26 +3246,26 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
                                 {
                                     for (int k = 0; k < 3; k++)
                                     {
-                                        rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += levi_civita[t][k][u] * reference_cross_current_second_variation(k * NumberOfDofs + r, s); 
-                                        rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += levi_civita[t][k][u] * reference_cross_current_derivative_second_variation(k * NumberOfDofs + r, s) + levi_civita[t][k][u] * reference_derivative_cross_current_second_variation(k * NumberOfDofs + r, s); 
+                                        rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += levi_civita[t][k][u] * reference_cross_current_second_variation(k * NumberOfDofs + r, s);
+                                        rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += levi_civita[t][k][u] * reference_cross_current_derivative_second_variation(k * NumberOfDofs + r, s) + levi_civita[t][k][u] * reference_derivative_cross_current_second_variation(k * NumberOfDofs + r, s);
                                     }
                                 }
-                                
+
                                 rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 3) - tangent_dot_product_second_variation(r, s) / pow(1.0 + tangent_dot_product, 2)) * reference_cross_current[t] * reference_cross_current[u];
                                 rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -tangent_dot_product_variation(r) / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_variation[t * NumberOfDofs + s] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + s])
                                     - tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
                                 rLambdaMatrixSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += 1.0 / (1.0 + tangent_dot_product) * (reference_cross_current_second_variation(t * NumberOfDofs + r, s) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * reference_cross_current_variation(u * NumberOfDofs + s) +
                                     reference_cross_current_variation(t * NumberOfDofs + s) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * reference_cross_current_second_variation(u * NumberOfDofs + s, r));
-                                
+
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * (tangent_dot_product_variation(r) * (tangent_dot_product_derivative_variation(s) + reference_derivative_dot_current_variation(s)) + tangent_dot_product_derivative * tangent_dot_product_second_variation(r, s)) / pow(1.0 + tangent_dot_product, 3) - 6 * tangent_dot_product_derivative * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 4) - (tangent_dot_product_derivative_second_variation(r, s) + reference_derivative_dot_current_second_variation(r, s)) / pow(1.0 + tangent_dot_product, 2) + 2 * (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 3)) * reference_cross_current[t] * reference_cross_current[u];
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (2 * tangent_dot_product_variation(r) * tangent_dot_product_derivative / pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(r) + reference_derivative_dot_current_variation(r)) / pow(1.0 + tangent_dot_product, 2)) * (reference_cross_current_variation[t * NumberOfDofs + s] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + s])
                                     + (2 * tangent_dot_product_variation(s) * tangent_dot_product_derivative / pow(1.0 + tangent_dot_product, 3) - (tangent_dot_product_derivative_variation(s) + reference_derivative_dot_current_variation(s)) / pow(1.0 + tangent_dot_product, 2)) * (reference_cross_current_variation[t * NumberOfDofs + r] * reference_cross_current[u] + reference_cross_current[t] * reference_cross_current_variation[u * NumberOfDofs + r]);
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += -tangent_dot_product_derivative / pow(1.0 + tangent_dot_product, 2) * (reference_cross_current_second_variation(t * NumberOfDofs + r, s) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * reference_cross_current_variation(u * NumberOfDofs + s) +
-                                    reference_cross_current_variation(t * NumberOfDofs + s) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * reference_cross_current_second_variation(u * NumberOfDofs + r, s));   
+                                    reference_cross_current_variation(t * NumberOfDofs + s) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * reference_cross_current_second_variation(u * NumberOfDofs + r, s));
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_second_variation(r, s) / pow(1.0 + tangent_dot_product, 2) + 2 * tangent_dot_product_variation(r) * tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 3)) * ((reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current[u] + reference_cross_current[t] * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]));
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_variation(r) / pow(1.0 + tangent_dot_product, 2)) * ((reference_cross_current_derivative_variation(t * NumberOfDofs + s) + reference_derivative_cross_current_variation(t * NumberOfDofs + s)) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + s) * (reference_cross_current_derivative(u) + reference_derivative_cross_current(u)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_variation(u * NumberOfDofs + s) + reference_cross_current[t] * (reference_cross_current_derivative_variation(u * NumberOfDofs + s) + reference_derivative_cross_current_variation(u * NumberOfDofs + s)));
                                 rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += (-tangent_dot_product_variation(s) / pow(1.0 + tangent_dot_product, 2)) * ((reference_cross_current_derivative_variation(t * NumberOfDofs + r) + reference_derivative_cross_current_variation(t * NumberOfDofs + r)) * reference_cross_current[u] + reference_cross_current_variation(t * NumberOfDofs + r) * (reference_cross_current_derivative(u) + reference_derivative_cross_current(u)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current[t] * (reference_cross_current_derivative_variation(u * NumberOfDofs + r) + reference_derivative_cross_current_variation(u * NumberOfDofs + r)));
-                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += 1.0 / (1.0 + tangent_dot_product) * ((reference_cross_current_derivative_second_variation(t * NumberOfDofs + r, s) + reference_derivative_cross_current_second_variation(t * NumberOfDofs + r, s)) * reference_cross_current[u] + reference_cross_current_second_variation(t * NumberOfDofs + r, s) * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]) + (reference_cross_current_derivative_variation(t * NumberOfDofs + s) + reference_derivative_cross_current_variation(t * NumberOfDofs + s)) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current_variation(t * NumberOfDofs + s) * (reference_cross_current_derivative_variation(u * NumberOfDofs + r) + reference_derivative_cross_current_variation(u * NumberOfDofs + r)) + (reference_cross_current_derivative_variation(t * NumberOfDofs + r) + reference_derivative_cross_current_variation(t * NumberOfDofs + r)) * reference_cross_current_variation(u * NumberOfDofs + s) + reference_cross_current_variation(t * NumberOfDofs + r) * (reference_cross_current_derivative_variation(u * NumberOfDofs + s) + reference_derivative_cross_current_variation(u * NumberOfDofs + s)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_second_variation(u * NumberOfDofs + r, s) + reference_cross_current[t] * (reference_cross_current_derivative_second_variation(u * NumberOfDofs + r, s) + reference_derivative_cross_current_second_variation(u * NumberOfDofs + r, s)));  
+                                rLambdaMatrixDerivativeSecondVariation(t * NumberOfDofs + r, u * NumberOfDofs + s) += 1.0 / (1.0 + tangent_dot_product) * ((reference_cross_current_derivative_second_variation(t * NumberOfDofs + r, s) + reference_derivative_cross_current_second_variation(t * NumberOfDofs + r, s)) * reference_cross_current[u] + reference_cross_current_second_variation(t * NumberOfDofs + r, s) * (reference_cross_current_derivative[u] + reference_derivative_cross_current[u]) + (reference_cross_current_derivative_variation(t * NumberOfDofs + s) + reference_derivative_cross_current_variation(t * NumberOfDofs + s)) * reference_cross_current_variation(u * NumberOfDofs + r) + reference_cross_current_variation(t * NumberOfDofs + s) * (reference_cross_current_derivative_variation(u * NumberOfDofs + r) + reference_derivative_cross_current_variation(u * NumberOfDofs + r)) + (reference_cross_current_derivative_variation(t * NumberOfDofs + r) + reference_derivative_cross_current_variation(t * NumberOfDofs + r)) * reference_cross_current_variation(u * NumberOfDofs + s) + reference_cross_current_variation(t * NumberOfDofs + r) * (reference_cross_current_derivative_variation(u * NumberOfDofs + s) + reference_derivative_cross_current_variation(u * NumberOfDofs + s)) + (reference_cross_current_derivative[t] + reference_derivative_cross_current[t]) * reference_cross_current_second_variation(u * NumberOfDofs + r, s) + reference_cross_current[t] * (reference_cross_current_derivative_second_variation(u * NumberOfDofs + r, s) + reference_derivative_cross_current_second_variation(u * NumberOfDofs + r, s)));
 
                             }
                         }

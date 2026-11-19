@@ -59,7 +59,7 @@ namespace Kratos
         mSMatrixLambdaSecondVariationRodriguesDerivativeLambda.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);
         mSMatrixLambdaSecondVariationRodriguesLambdaDerivative.resize(mNumberOfDofs * 3, mNumberOfDofs * 3);
         KRATOS_CATCH("")
-        
+
     }
 
 
@@ -176,7 +176,7 @@ namespace Kratos
         ComputeCurrentCrossSectionGeometry(
             rKinematicVariables);
     }
-        
+
 
 void NonLinearBernoulliBeamElement3D::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
@@ -419,7 +419,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
     KRATOS_CATCH("")
 }
 
-        
+
     int NonLinearBernoulliBeamElement3D::Check(
         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -559,18 +559,18 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
 
             lower_parameter_coordinate = local_axis_orientation(0, 0);
             upper_parameter_coordinate = local_axis_orientation(number_of_orientation_points - 1, 0);
-            
+
             // Extract normal vector components for start and end
             Vector3d lower_normal;
             lower_normal[0] = local_axis_orientation(0, 1);
             lower_normal[1] = local_axis_orientation(0, 2);
             lower_normal[2] = local_axis_orientation(0, 3);
-            
+
             Vector3d upper_normal;
             upper_normal[0] = local_axis_orientation(number_of_orientation_points - 1, 1);
             upper_normal[1] = local_axis_orientation(number_of_orientation_points - 1, 2);
             upper_normal[2] = local_axis_orientation(number_of_orientation_points - 1, 3);
-            
+
             // Convert normal vectors to rotation angles (phi) for backward compatibility
             lower_twist_angle = CalculateDeltaPhi(rKinematicVariables, lower_normal);
             upper_twist_angle = CalculateDeltaPhi(rKinematicVariables, upper_normal);
@@ -1059,7 +1059,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Vector shape_functions = row(r_geometry.ShapeFunctionsValues(GetIntegrationMethod()), IntegrationPointIndex);
         Vector shape_function_derivatives = column(r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex, GetIntegrationMethod()), 0);
         Vector shape_function_second_derivatives = column(r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, GetIntegrationMethod()), 0);
-        
+
         // Extract kinematic variables
         Vector3d current_first_base_vector = rKinematicVariables.r1;
         Vector3d current_second_base_vector = rKinematicVariables.r2;
@@ -1088,8 +1088,8 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         //compute axial_variation
         for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)
         {
-            size_t dof_component = dof_index % mDofsPerNode; 
-            size_t control_point_index = dof_index / mDofsPerNode;     
+            size_t dof_component = dof_index % mDofsPerNode;
+            size_t control_point_index = dof_index / mDofsPerNode;
             if (dof_component > 2)
                 axial_variation[dof_index] = 0;
             else
@@ -1323,9 +1323,9 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Vector current_first_base_vector_variation;
         current_first_base_vector_variation.resize(3 * mNumberOfDofs);
         current_first_base_vector_variation.clear();
-        for (size_t row_component = 0; row_component < 3; row_component++) 
+        for (size_t row_component = 0; row_component < 3; row_component++)
         {
-            for (size_t dof_index = 0; dof_index < mNumberOfDofs; dof_index++) 
+            for (size_t dof_index = 0; dof_index < mNumberOfDofs; dof_index++)
             {
                 size_t dof_component = dof_index % mDofsPerNode;
                 size_t control_point_index = dof_index / mDofsPerNode;
@@ -1348,7 +1348,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             }
         }
 
-    
+
         // Initialize B matrices
         rBAxial.resize(5, mNumberOfDofs);
         rBBending1.resize(5, mNumberOfDofs);
@@ -1366,7 +1366,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         noalias(row(rBBending2, 2)) = binormal_curvature_variation;  // Bending about v-axis
         noalias(row(rBTorsion1, 3)) = normal_torsion_variation;   // Torsion n in row 1 (shear stress)
         noalias(row(rBTorsion2, 4)) = binormal_torsion_variation;   // Torsion v in row 2 (shear stress)
-        
+
         KRATOS_CATCH("")
     }
 
@@ -1388,7 +1388,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Vector shape_functions = row(r_geometry.ShapeFunctionsValues(GetIntegrationMethod()), IntegrationPointIndex);
         Vector shape_function_derivatives = column(r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex, GetIntegrationMethod()), 0);
         Vector shape_function_second_derivatives = column(r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, GetIntegrationMethod()), 0);
-        
+
         // Extract kinematic variables
         Vector3d current_first_base_vector = rKinematicVariables.r1;
         Vector3d current_second_base_vector = rKinematicVariables.r2;
@@ -1415,10 +1415,10 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         binormal_torsion_second_variation.clear();
 
         //compute axial_variation
-        for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++) 
+        for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)
         {
-            size_t dof_component = dof_index % mDofsPerNode; 
-            size_t control_point_index = dof_index / mDofsPerNode;     
+            size_t dof_component = dof_index % mDofsPerNode;
+            size_t control_point_index = dof_index / mDofsPerNode;
             if (dof_component > 2)
                 for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)
                     axial_second_variation(dof_index, second_dof_index) = 0.0;
@@ -1426,8 +1426,8 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             {
                 for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)
                 {
-                    size_t second_dof_component = second_dof_index % mDofsPerNode; 
-                    int second_control_point_index = second_dof_index / mDofsPerNode;     
+                    size_t second_dof_component = second_dof_index % mDofsPerNode;
+                    int second_control_point_index = second_dof_index / mDofsPerNode;
                     if (second_dof_component > 2)
                         axial_second_variation(dof_index, second_dof_index) = 0;
                     else
@@ -1438,7 +1438,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
                 }
             }
         }
-        
+
         //compute normal_curvature_second_variation, binormal_curvature_second_variation, normal_torsion_second_variation, binormal_torsion_second_variation
         Vector3d current_tangent;
         current_tangent.clear();
@@ -1569,7 +1569,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         cross_section_transformation_derivative.clear();
         cross_section_transformation_derivative = current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term + current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term + current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term + current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term;
 
-        
+
         mSMatrixLambdaVariationRodriguesLambdaDerivative.clear();
         mSMatrixLambdaVariationRodriguesDerivativeLambda.clear();
         mSMatrixLambdaVariationRodriguesLambda.clear();
@@ -1632,8 +1632,8 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             }
         }
 
-        
-        
+
+
         mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation.clear();
         mSMatrixRodriguesLambdaRodriguesLambdaVariation.clear();
         mSMatrixRodriguesLambdaRodriguesLambdaDerivativeVariation = mSMatrixRodriguesVariationLambdaRodriguesLambdaDerivative + mSMatrixRodriguesVariationLambdaRodriguesDerivativeLambda + mSMatrixRodriguesVariationLambdaDerivativeRodriguesLambda + mSMatrixRodriguesDerivativeVariationLambdaRodriguesLambda
@@ -1879,11 +1879,11 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
 
         noalias(rGAxial) = axial_second_variation;
         noalias(rGBending1) = normal_curvature_second_variation;
-        noalias(rGBending2) = binormal_curvature_second_variation;  
-        noalias(rGTorsion1) = normal_torsion_second_variation;   
-        noalias(rGTorsion2) = binormal_torsion_second_variation;   
-            
+        noalias(rGBending2) = binormal_curvature_second_variation;
+        noalias(rGTorsion1) = normal_torsion_second_variation;
+        noalias(rGTorsion2) = binormal_torsion_second_variation;
+
         KRATOS_CATCH("")
-        
+
     }
 }

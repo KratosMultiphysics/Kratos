@@ -40,8 +40,8 @@ BernoulliBeamElasticConstitutiveLaw::~BernoulliBeamElasticConstitutiveLaw()
 
 void BernoulliBeamElasticConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 {
-    rFeatures.mStrainSize = 5;         
-    rFeatures.mSpaceDimension = 3;     
+    rFeatures.mStrainSize = 5;
+    rFeatures.mSpaceDimension = 3;
 }
 
 int BernoulliBeamElasticConstitutiveLaw::Check(
@@ -55,19 +55,19 @@ int BernoulliBeamElasticConstitutiveLaw::Check(
     KRATOS_ERROR_IF_NOT(rMaterialProperties[YOUNG_MODULUS] > 0.0) << "The YOUNG_MODULUS value is lower than 0.0" << std::endl;
     KRATOS_ERROR_IF    (rMaterialProperties[POISSON_RATIO] < 0.0) << "The POISSON_RATIO value is lower than 0.0" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[POISSON_RATIO] < 0.5) << "The POISSON_RATIO cannot be greater than or equal 0.5." << std::endl;
-    
+
     // Check for IGA beam cross-section properties
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CROSS_AREA)) << "CROSS_AREA is not defined in the properties" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I_V)) << "I_V is not defined in the properties" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I_N)) << "I_N is not defined in the properties" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I_T)) << "I_T is not defined in the properties" << std::endl;
-    
+
     // Validate property values
     KRATOS_ERROR_IF_NOT(rMaterialProperties[CROSS_AREA] > 0.0) << "CROSS_AREA must be positive" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[I_V] > 0.0) << "I_V must be positive" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[I_N] > 0.0) << "I_N must be positive" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[I_T] > 0.0) << "I_T must be positive" << std::endl;
-    
+
     return 0;
 }
 
@@ -98,7 +98,7 @@ void BernoulliBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Consti
     const double E = r_material_properties[YOUNG_MODULUS];
     const double nu = r_material_properties[POISSON_RATIO];
     const double G = E / (2.0 * (1.0 + nu));
-    
+
     // Retrieve beam cross-section properties
     const double A = r_material_properties[CROSS_AREA];
     const double I_v = r_material_properties[I_V];

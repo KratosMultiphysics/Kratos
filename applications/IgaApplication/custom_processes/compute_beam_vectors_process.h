@@ -58,10 +58,10 @@ public:
 
     ComputeBeamVectorsProcess(ModelPart& rModelPart);
 
-    ComputeBeamVectorsProcess(ModelPart& rModelPart, 
+    ComputeBeamVectorsProcess(ModelPart& rModelPart,
                               const NurbsCurveGeometry<3, PointerVector<Node>>& rParentCurve);
 
-    ComputeBeamVectorsProcess(ModelPart& rModelPart, 
+    ComputeBeamVectorsProcess(ModelPart& rModelPart,
                               const NurbsCurveOnSurfaceGeometry<3, PointerVector<Node>, PointerVector<Node>>& rParentCurve);
 
     ~ComputeBeamVectorsProcess() = default;
@@ -117,7 +117,7 @@ private:
     ///@name Member Variables
     ///@{
     ModelPart& mrThisModelPart;
-    const Geometry<Node>* mpParentCurve; 
+    const Geometry<Node>* mpParentCurve;
     ///@}
 }; // Class ComputeBeamVectorsProcess
 }  // namespace Kratos.

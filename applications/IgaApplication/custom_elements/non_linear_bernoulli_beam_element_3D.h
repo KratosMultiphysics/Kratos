@@ -252,7 +252,7 @@ public:
         ConstitutiveVariables& rConstitutiveVariables,
         ConstitutiveLaw::Parameters& rConstitutiveLawParameters,
         const ConstitutiveLaw::StressMeasure StressMeasure);
-    
+
     void ComputeBMatrices(
         const IndexType IntegrationPointIndex,
         const KinematicVariables& rKinematicVariables,
@@ -270,7 +270,7 @@ public:
         Matrix& rGBending2,
         Matrix& rGTorsion1,
         Matrix& rGTorsion2);
-    
+
         void ComputeGAxial(
         const IndexType IntegrationPointIndex,
         Matrix& rGAxial,

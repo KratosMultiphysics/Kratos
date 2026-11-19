@@ -92,7 +92,7 @@ void AddCustomUtilitiesToPython(
                 shape_function_values);
         });
 
-    
+
     m.def(
         "GetNurbsCurveKnots",
         [](Geometry<Node>& rGeometry) {

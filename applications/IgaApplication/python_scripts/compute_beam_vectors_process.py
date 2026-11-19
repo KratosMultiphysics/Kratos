@@ -29,4 +29,4 @@ class ComputeBeamVectorsProcess(KratosMultiphysics.Process):
         self.process = IGA.ComputeBeamVectorsProcess(self.model_part_beam)
 
     def ExecuteInitialize(self):
-        self.process.ExecuteInitialize()     
+        self.process.ExecuteInitialize()
