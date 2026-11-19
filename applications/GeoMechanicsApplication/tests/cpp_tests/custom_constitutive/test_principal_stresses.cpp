@@ -73,7 +73,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstruc
                               (std::vector{30.0, 25.5, 25.5}), Defaults::absolute_tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstructedFromFromThreeValues)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstructedFromThreeValues)
 {
     KRATOS_EXPECT_VECTOR_NEAR((Geo::PrincipalStresses{3.0, 2.0, 1.0}.Values()),
                               (std::vector{3.0, 2.0, 1.0}), Defaults::absolute_tolerance);

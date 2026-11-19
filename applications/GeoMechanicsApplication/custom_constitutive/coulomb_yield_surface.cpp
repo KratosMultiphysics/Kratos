@@ -13,6 +13,7 @@
 //
 
 #include "custom_constitutive/coulomb_yield_surface.h"
+#include "custom_constitutive/p_q_theta.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"

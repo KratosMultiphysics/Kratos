@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Anne van de Graaf
+//                   Wijtze Pieter Kikstra
 //
 
 #include "custom_constitutive/p_q_theta.hpp"

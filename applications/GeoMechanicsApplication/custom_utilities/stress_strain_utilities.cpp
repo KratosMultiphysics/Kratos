@@ -236,7 +236,7 @@ Geo::PrincipalStresses StressStrainUtilities::TransformSigmaTauToPrincipalStress
                                   rSigmaTau.Sigma() - rSigmaTau.Tau()};
 }
 
-Geo::PQTheta StressStrainUtilities::TransformPrincipalStressesToPQandTheta(const Geo::PrincipalStresses& rPrincipalStresses)
+Geo::PQTheta StressStrainUtilities::TransformPrincipalStressesToPQTheta(const Geo::PrincipalStresses& rPrincipalStresses)
 {
     auto stress_vector = Vector(6, 0.0);
     std::ranges::copy(rPrincipalStresses.Values(), stress_vector.begin());

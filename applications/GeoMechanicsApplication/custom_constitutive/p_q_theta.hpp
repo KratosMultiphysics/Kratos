@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Anne van de Graaf
+//                   Wijtze Pieter Kikstra
 //
 
 #pragma once
@@ -17,6 +18,7 @@
 #include "includes/kratos_export_api.h"
 
 #include <algorithm>
+#include <iterator>
 
 namespace Kratos::Geo
 {
@@ -28,7 +30,7 @@ public:
     using InternalVectorType                  = BoundedVector<double, msVectorSize>;
 
     PQTheta() = default;
-    PQTheta(double P, double Q, double Theta);
+    PQTheta(double P, double Q, double Theta); // Pressure, deviatoric stress, Lode angle in radians
 
     template <typename VectorType>
     explicit PQTheta(const VectorType& rValues)

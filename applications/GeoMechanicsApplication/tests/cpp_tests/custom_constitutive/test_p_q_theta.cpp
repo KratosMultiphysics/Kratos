@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Anne van de Graaf
+//                   Wijtze Pieter Kikstra
 //
 
 #include "custom_constitutive/p_q_theta.hpp"
@@ -30,14 +31,14 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQTheta_HasZeroesAsValuesWhenDe
 }
 
 template <typename T>
-class TestPQFixture : public ::testing::Test
+class TestPQThetaFixture : public ::testing::Test
 {
 };
 
-using VectorTypesForTypedPQTest = ::testing::Types<Vector, BoundedVector<double, 3>, std::vector<double>>;
-TYPED_TEST_SUITE(TestPQFixture, VectorTypesForTypedPQTest);
+using VectorTypesForTypedPQThetaTest = ::testing::Types<Vector, BoundedVector<double, 3>, std::vector<double>>;
+TYPED_TEST_SUITE(TestPQThetaFixture, VectorTypesForTypedPQThetaTest);
 
-TYPED_TEST(TestPQFixture, PQTheta_CanBeConstructedFromAnyVectorWithSizeOf3)
+TYPED_TEST(TestPQThetaFixture, PQTheta_CanBeConstructedFromAnyVectorWithSizeOf3)
 {
     // Arrange
     auto initialization_vector = TypeParam(3);
@@ -86,7 +87,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQTheta_CanBeConstructedFromAVe
                               (std::vector{12.0, 27.0, 6.0}), Defaults::absolute_tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQTheta_CanBeConstructedFromFromThreeValues)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQTheta_CanBeConstructedFromThreeValues)
 {
     EXPECT_NEAR((Geo::PQTheta{1.0, 2.0, 3.0}.P()), 1.0, Defaults::absolute_tolerance);
     EXPECT_NEAR((Geo::PQTheta{1.0, 2.0, 3.0}.Q()), 2.0, Defaults::absolute_tolerance);
@@ -117,7 +118,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQTheta_ComponentsCanBeModified
     KRATOS_EXPECT_VECTOR_NEAR(stress_state.Values(), (std::vector{3.0, 4.0, 5.0}), Defaults::absolute_tolerance);
 }
 
-TYPED_TEST(TestPQFixture, PQTheta_CanBeCopiedToAnyVectorTypeWithSizeOf3)
+TYPED_TEST(TestPQThetaFixture, PQTheta_CanBeCopiedToAnyVectorTypeWithSizeOf3)
 {
     // Arrange
     const auto stress_state = Geo::PQTheta{1.0, 2.0, 3.0};
