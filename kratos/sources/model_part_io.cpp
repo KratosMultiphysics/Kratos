@@ -194,8 +194,11 @@ void ModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties
             std::string::size_type it_constitutive_law_begin = aux_string.find("CONSTITUTIVE_LAW");
 
             if (it_constitutive_law_begin != std::string::npos) {
-            std::string::size_type it_constitutive_law_end = aux_string.find('\n', it_constitutive_law_begin);
-                aux_string.erase(it_constitutive_law_begin, it_constitutive_law_end);
+                std::string::size_type it_constitutive_law_end = aux_string.find('\n', it_constitutive_law_begin);
+                if (it_constitutive_law_end != std::string::npos)
+                    aux_string.erase(it_constitutive_law_begin, it_constitutive_law_end - it_constitutive_law_begin + 1); // Remove the whole line (including the '\n')
+                else
+                    aux_string.erase(it_constitutive_law_begin); // The line ends the string
             }
 
             // Now we look for the constitutive law name, we do something similar to elements and conditions. We iterate over the database of the Kratos Components until the type is the same. The IsSameType should be implemented properly in the CL class
@@ -1357,6 +1360,7 @@ void ModelPartIO::FillNodalConnectivitiesFromConstraintBlockInList(
     std::string current_line;
     std::getline(*mpStream, current_line);
     const auto words = StringUtilities::SplitStringIntoAVector(current_line);
+    KRATOS_ERROR_IF(words.empty()) << "Empty constraint declaration line for " << constraint_name << ": the slave variable must be present (master variables are optional). [Line " << mNumberOfLines << " ]" << std::endl;
 
     // The first word is the slave variable, the second and following ones are the master variables
     SizeType number_of_master_dofs = words.size() - 1;
@@ -1818,7 +1822,7 @@ void ModelPartIO::WriteTableBlock(TablesContainerType& rTables)
 
         (*mpStream) << "Begin Table" << i << "\t" << variable1 << "\t" << variable2 << " // NOTE: The variables does not correspond with the real ones. Right now the KRATOS Table's does not store the variables"<< std::endl;
 
-        for(std::size_t j = 1 ; j < size ; j++)
+        for(std::size_t j = 0 ; j < size ; j++)
         {
             const auto X = Data[j].first;
             const auto Y = (Data[j].second)[0];
@@ -1849,7 +1853,7 @@ void ModelPartIO::WriteTableBlock(ModelPart::TablesContainerType& rTables)
 
         (*mpStream) << "Begin Table" << i << "\t" << variable1 << "\t" << variable2 << " // NOTE: The variables does not correspond with the real ones. Right now the KRATOS Table's does not store the variables"<< std::endl;
 
-        for(std::size_t j = 1 ; j < size ; j++)
+        for(std::size_t j = 0 ; j < size ; j++)
         {
             const auto X = Data[j].first;
             const auto Y = (Data[j].second)[0];
@@ -2453,6 +2457,7 @@ void ModelPartIO::ReadConstraintsBlock(
     std::string current_line;
     std::getline(*mpStream, current_line);
     const auto words = StringUtilities::SplitStringIntoAVector(current_line);
+    KRATOS_ERROR_IF(words.empty()) << "Empty constraint declaration line for " << constraint_name << ": the slave variable must be present (master variables are optional). [Line " << mNumberOfLines << " ]" << std::endl;
 
     // Read the slave variable
     const Variable<double>& r_slave_variable = KratosComponents<Variable<double>>::Get(words[0]);
@@ -3556,6 +3561,7 @@ ModelPartIO::SizeType ModelPartIO::ReadConstraintsConnectivitiesBlock(Connectivi
     std::string current_line;
     std::getline(*mpStream, current_line);
     const auto words = StringUtilities::SplitStringIntoAVector(current_line);
+    KRATOS_ERROR_IF(words.empty()) << "Empty constraint declaration line for " << constraint_name << ": the slave variable must be present (master variables are optional). [Line " << mNumberOfLines << " ]" << std::endl;
 
     // The first word is the slave variable, the second and following ones are the master variables
     SizeType number_of_master_dofs = words.size() - 1;
@@ -3860,6 +3866,7 @@ void ModelPartIO::FillNodalConnectivitiesFromConstraintBlock(ConnectivitiesConta
     std::string current_line;
     std::getline(*mpStream, current_line);
     const auto words = StringUtilities::SplitStringIntoAVector(current_line);
+    KRATOS_ERROR_IF(words.empty()) << "Empty constraint declaration line for " << constraint_name << ": the slave variable must be present (master variables are optional). [Line " << mNumberOfLines << " ]" << std::endl;
 
     // The first word is the slave variable, the second and following ones are the master variables
     SizeType number_of_master_dofs = words.size() - 1;
@@ -5071,6 +5078,7 @@ void ModelPartIO::DivideConstraintsBlock(
     std::string current_line;
     std::getline(*mpStream, current_line);
     const auto words = StringUtilities::SplitStringIntoAVector(current_line);
+    KRATOS_ERROR_IF(words.empty()) << "Empty constraint declaration line for " << constraint_name << ": the slave variable must be present (master variables are optional). [Line " << mNumberOfLines << " ]" << std::endl;
 
     std::string header = "Begin Constraints\t" +  constraint_name;
     for (const auto& var : words) {
@@ -6282,10 +6290,14 @@ void ModelPartIO::WriteCommunicatorData(
             SizeType i_node_partition = node_all_partitions[j];
             if(node_partition != i_node_partition)
             {
-                SizeType local_interface_index = interface_indices(node_partition, i_node_partition);
-                SizeType ghost_interface_index = interface_indices(i_node_partition, node_partition);
-                local_nodes_indices[node_partition][local_interface_index].push_back(node_id);
-                ghost_nodes_indices[i_node_partition][ghost_interface_index].push_back(node_id);
+                // interface_indices is initialized to -1: entries are only valid if the partition
+                // graph assigned an interface between the two partitions sharing this node
+                const int local_interface_index = interface_indices(node_partition, i_node_partition);
+                const int ghost_interface_index = interface_indices(i_node_partition, node_partition);
+                KRATOS_ERROR_IF(local_interface_index < 0) << "Partition #" << node_partition << " is not connected to partition #" << i_node_partition << " in the partition graph: no local interface index was assigned." << std::endl;
+                KRATOS_ERROR_IF(ghost_interface_index < 0) << "Partition #" << i_node_partition << " is not connected to partition #" << node_partition << " in the partition graph: no ghost interface index was assigned." << std::endl;
+                local_nodes_indices[node_partition][static_cast<SizeType>(local_interface_index)].push_back(node_id);
+                ghost_nodes_indices[i_node_partition][static_cast<SizeType>(ghost_interface_index)].push_back(node_id);
             }
         }
 
@@ -6413,6 +6425,14 @@ TValueType& ModelPartIO::ExtractValue(std::string rWord, TValueType & rValue)
     std::stringstream value(rWord);
 
     value >> rValue;
+
+    if(value.fail())
+    {
+        std::stringstream buffer;
+        buffer << "Error reading \"" << rWord << "\". The value is not a valid value.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+    }
 
     return rValue;
 }
