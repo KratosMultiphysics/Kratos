@@ -11,27 +11,24 @@
 //
 //
 
-// System includes
-#include <iostream>
+#pragma once
+
+// System includes¡
 #include <complex>
-#include <vector>
 #include <algorithm>
+#include <memory>
 
 // External includes
-#include <memory>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
 #include <amgcl/value_type/complex.hpp>
 #include <amgcl/solver/skyline_lu.hpp>
 
 // Project includes
-#include "includes/define.h"
+#include "linear_solvers/amgcl_zero_copy_adapter.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/direct_solver.h"
-
-#if !defined(KRATOS_SKYLINE_LU_CUSTOM_SCALAR_SOLVER_H_INCLUDED)
-#define  KRATOS_SKYLINE_LU_CUSTOM_SCALAR_SOLVER_H_INCLUDED
 
 namespace Kratos {
 
@@ -76,7 +73,7 @@ public:
     {
         Clear();
 
-        pBuiltinMatrix = amgcl::adapter::zero_copy(
+        pBuiltinMatrix = MakeAmgclZeroCopyAdapter(
                 rA.size1(),
                 rA.index1_data().begin(),
                 rA.index2_data().begin(),
@@ -156,5 +153,3 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 ///@}
 
 }// namespace Kratos.
-
-#endif // KRATOS_SKYLINE_LU_CUSTOM_SCALAR_SOLVER_H_INCLUDED  defined

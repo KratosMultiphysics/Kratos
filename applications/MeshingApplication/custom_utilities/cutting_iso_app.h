@@ -25,6 +25,9 @@
 #include <cmath>
 #include <algorithm>
 
+/* External includes */
+#include <boost/numeric/ublas/vector.hpp>
+
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"

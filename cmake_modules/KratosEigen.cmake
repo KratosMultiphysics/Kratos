@@ -64,19 +64,32 @@ else()
 
   set(EIGEN3_DOWNLOAD_DIR "${CMAKE_CURRENT_BINARY_DIR}/external_libraries/eigen3")
   set(EIGEN3_ARCHIVE "${EIGEN3_DOWNLOAD_DIR}/eigen-${KRATOS_EIGEN_VERSION}.tar.gz")
-  set(EIGEN3_URL "https://gitlab.com/libeigen/eigen/-/archive/${KRATOS_EIGEN_VERSION}/eigen-${KRATOS_EIGEN_VERSION}.tar.gz")
+  # GitLab archive downloads are frequently rejected from CI runners, so the
+  # GitHub mirror is tried first and GitLab is kept as a fallback.
+  set(EIGEN3_URLS
+    "https://github.com/eigen-mirror/eigen/archive/refs/tags/${KRATOS_EIGEN_VERSION}.tar.gz"
+    "https://gitlab.com/libeigen/eigen/-/archive/${KRATOS_EIGEN_VERSION}/eigen-${KRATOS_EIGEN_VERSION}.tar.gz"
+  )
 
   file(MAKE_DIRECTORY "${EIGEN3_DOWNLOAD_DIR}")
 
   if(EXISTS "${EIGEN3_ARCHIVE}")
     message(STATUS "-- ${EIGEN3_ARCHIVE} found. unpacking...")
   else()
-    message(STATUS "-- ${EIGEN3_ARCHIVE} not found, trying to download it from ${EIGEN3_URL}")
-    file(DOWNLOAD "${EIGEN3_URL}" "${EIGEN3_ARCHIVE}" STATUS EIGEN3_DOWNLOAD_STATUS)
-    list(GET EIGEN3_DOWNLOAD_STATUS 0 EIGEN3_DOWNLOAD_RESULT)
-    if(NOT EIGEN3_DOWNLOAD_RESULT EQUAL 0)
+    set(EIGEN3_DOWNLOAD_RESULT 1)
+    foreach(EIGEN3_URL ${EIGEN3_URLS})
+      message(STATUS "-- ${EIGEN3_ARCHIVE} not found, trying to download it from ${EIGEN3_URL}")
+      file(DOWNLOAD "${EIGEN3_URL}" "${EIGEN3_ARCHIVE}" STATUS EIGEN3_DOWNLOAD_STATUS)
+      list(GET EIGEN3_DOWNLOAD_STATUS 0 EIGEN3_DOWNLOAD_RESULT)
+      if(EIGEN3_DOWNLOAD_RESULT EQUAL 0)
+        break()
+      endif()
       list(GET EIGEN3_DOWNLOAD_STATUS 1 EIGEN3_DOWNLOAD_ERROR)
-      message(FATAL_ERROR "Failed to download Eigen ${KRATOS_EIGEN_VERSION} from ${EIGEN3_URL}: ${EIGEN3_DOWNLOAD_ERROR}")
+      message(STATUS "-- Download from ${EIGEN3_URL} failed: ${EIGEN3_DOWNLOAD_ERROR}")
+      file(REMOVE "${EIGEN3_ARCHIVE}")
+    endforeach()
+    if(NOT EIGEN3_DOWNLOAD_RESULT EQUAL 0)
+      message(FATAL_ERROR "Failed to download Eigen ${KRATOS_EIGEN_VERSION} from any of: ${EIGEN3_URLS}")
     endif()
     message(STATUS "-- ${EIGEN3_ARCHIVE} downloaded. unpacking...")
   endif()
