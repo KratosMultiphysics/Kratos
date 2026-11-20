@@ -1271,7 +1271,8 @@ void LinearTimoshenkoBeamElement2D2N::CalculateMassMatrix(Matrix& rMassMatrix,
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearTimoshenkoBeamElement2D2N::CalculateDampingMatrix(Matrix& rDampingMatrix,
+void LinearTimoshenkoBeamElement2D2N::CalculateDampingMatrix(
+    Matrix& rDampingMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

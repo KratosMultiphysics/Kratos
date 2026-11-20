@@ -308,6 +308,15 @@ public:
     void CalculateMassMatrix(Matrix& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * this is called during the assembling process in order
+     * to calculate the elemental damping matrix
+     * @param rDampingMatrix the elemental damping matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateDampingMatrix(Matrix& CalculateDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    /**
      * @brief Calculates a double Variable on the Element (e.g., strain components)
      * @param rVariable The variable we want to get
      * @param rOutput The values obtained in the integration points

@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Alejandro Cornejo
+//  Main authors:    Alejandro Cornejo
 //
 
 #include "non_linear_timoshenko_beam_element_3D2N.h"
@@ -206,8 +206,8 @@ int NonLinearTimoshenkoBeamElement3D2N::Check(
 Vector NonLinearTimoshenkoBeamElement3D2N::CalculateStrainVector(        
     const double N1,
     const double N2,
-    const double dN1,
-    const double dN2
+    const double dN1, // cartesian derivative of shape function 1
+    const double dN2  // cartesian derivative of shape function 2
 )
 {
     const auto &r_geom = GetGeometry();
@@ -218,7 +218,7 @@ Vector NonLinearTimoshenkoBeamElement3D2N::CalculateStrainVector(
     dr /= CalculateReferenceLength();
 
     BoundedMatrix<double, 3, 3> current_rot, d_current_rot; // current rotation and its derivative w.r.t "s"
-    // We interpolate the rotation operators and its derivative
+    // We interpolate the rotation operators and its spatial derivative
     noalias(current_rot) = N1 * mRotationOperators[0] + N2 * mRotationOperators[1];
     noalias(d_current_rot) = dN1 * mRotationOperators[0] + dN2 * mRotationOperators[1];
 
@@ -311,7 +311,7 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
     const double N1, // 0.5 * (1.0 - xi)
     const double N2, // 0.5 * (1.0 + xi)
     const double dN1, // -1.0 / L0
-    const double dN2 // 1 / L0
+    const double dN2 // 1.0 / L0
 )
 {
     const auto &r_geom = GetGeometry();
@@ -330,6 +330,7 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
     const array3 d1 = N1 * column(mRotationOperators[0], 0) + N2 * column(mRotationOperators[1], 0);
     const array3 d2 = N1 * column(mRotationOperators[0], 1) + N2 * column(mRotationOperators[1], 1);
     const array3 d3 = N1 * column(mRotationOperators[0], 2) + N2 * column(mRotationOperators[1], 2);
+
     // We interpolate the derivative of the directors (d/ds)
     const array3 d1_s = dN1 * column(mRotationOperators[0], 0) + dN2 * column(mRotationOperators[1], 0);
     const array3 d2_s = dN1 * column(mRotationOperators[0], 1) + dN2 * column(mRotationOperators[1], 1);
@@ -351,6 +352,7 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
 
         B1(2, i)     = dN1 * d3[i];
         B1(2, i + 9) = N1 * dr[i];
+
         // node 2
         B2(0, i)     = dN2 * d1[i];
         B2(0, i + 3) = N2 * dr[i];
@@ -858,8 +860,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateMassMatrix(
         rho_A,
         rho * it,
         rho * iy,
-        rho * iz
-    };
+        rho * iz};
 
     for (SizeType i = 0; i < block_size; ++i) {
         const double value = length * diagonal[i] / 6.0;
@@ -887,6 +888,28 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateMassMatrix(
     noalias(rMassMatrix) = prod(aux_matrix, rotation_matrix);
 
     KRATOS_CATCH("CalculateMassMatrix")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::CalculateDampingMatrix(
+    Matrix& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto &r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        mat_size);
+
+    KRATOS_CATCH("CalculateDampingMatrix")
 }
 
 } // namespace Kratos
