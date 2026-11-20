@@ -12,6 +12,7 @@
 
 #include "dgeoflow.h"
 #include "custom_processes/apply_constant_hydrostatic_pressure_process.h"
+#include "custom_processes/apply_seepage_boundary_process.h"
 #include "custom_processes/geo_apply_constant_scalar_value_process.h"
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
 #include "custom_utilities/file_input_utility.h"
@@ -119,7 +120,7 @@ KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer Krat
     Parameters p_parameters(R"(
     {
         "min_iteration":    6,
-        "number_cycles":    100,
+        "number_cycles":    1,
         "increase_factor":  2.0,
         "reduction_factor": 0.5,
 		"max_piping_iterations": 500,
@@ -136,7 +137,7 @@ KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer Krat
     bool MoveMeshFlag           = false;
 
     auto pSolvingStrategy =
-        Kratos::make_unique<GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(
+        Kratos::make_unique<GeoMechanicsNewtonRaphsonErosionProcessStrategyType>(
             rModelPart, p_scheme, p_criteria, p_builder_and_solver, p_parameters, MaxIterations,
             CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag);
 
@@ -150,6 +151,13 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
 
     auto constraints_processes = projFile["processes"]["constraints_process_list"];
     for (Parameters process : constraints_processes) {
+        if (process.Has("process_name") &&
+            process["process_name"].GetString() == "ApplySeepageBoundaryProcess") {
+            mProcesses.push_back(make_shared<ApplySeepageBoundaryProcess>(
+                rModelPart.GetModel(), process["Parameters"]));
+            continue;
+        }
+
         // we only support fixed hydrostatic head
         auto name          = process["Parameters"]["model_part_name"].GetString();
         auto pressure_type = process["Parameters"]["fluid_pressure_type"].GetString();
@@ -178,11 +186,34 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
     }
 
     auto loads_processes = projFile["processes"]["loads_process_list"];
-    // Should only have one.
-    auto        name = loads_processes.GetArrayItem(0)["Parameters"]["model_part_name"].GetString();
-    std::size_t found   = name.find_last_of('.');
-    std::string subname = name.substr(found + 1);
-    ModelPart&  part    = rModelPart.GetSubModelPart(subname);
+    // Keep the previous fallback for projects without a VOLUME_ACCELERATION process.
+    auto gravity_model_part_name =
+        loads_processes.GetArrayItem(0)["Parameters"]["model_part_name"].GetString();
+
+    for (Parameters process : loads_processes) {
+        const auto& parameters      = process["Parameters"];
+        const auto  model_part_name = parameters["model_part_name"].GetString();
+
+        if (parameters.Has("variable_name") &&
+            parameters["variable_name"].GetString() == "VOLUME_ACCELERATION") {
+            gravity_model_part_name = model_part_name;
+        }
+
+        if (process["process_name"].GetString() == "ApplySeepageBoundaryProcess") {
+            mProcesses.push_back(make_shared<ApplySeepageBoundaryProcess>(rModelPart.GetModel(), parameters));
+        } else if (parameters.Has("variable_name") &&
+                   parameters["variable_name"].GetString() == "NORMAL_FLUID_FLUX") {
+            KRATOS_ERROR_IF(parameters.Has("table") && parameters["table"].GetInt() != 0)
+                << "DGeoFlow only supports constant NORMAL_FLUID_FLUX values." << std::endl;
+
+            auto& part = rModelPart.GetModel().GetModelPart(model_part_name);
+            mProcesses.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(part, parameters));
+        }
+    }
+
+    const auto found   = gravity_model_part_name.find_last_of('.');
+    const auto subname = gravity_model_part_name.substr(found + 1);
+    ModelPart& part    = rModelPart.GetSubModelPart(subname);
 
     mProcesses.push_back(make_shared<GeoApplyConstantScalarValueProcess>(part, Parameters{R"(
         {
@@ -431,6 +462,7 @@ void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     rModelPart.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
     rModelPart.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+    rModelPart.AddNodalSolutionStepVariable(NODAL_WATER_FLOW_RATE);
 }
 
 int KratosExecute::FindCriticalHead(ModelPart&                   rModelPart,

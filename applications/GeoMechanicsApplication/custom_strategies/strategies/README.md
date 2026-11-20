@@ -101,6 +101,16 @@ then PIPE_HEIGHT value is assigned to the PREV_PIPE_HEIGHT value.
 
 # Newton-Raphson with Seepage
 
+The generic C++ workflow supports this strategy through `solver_settings.strategy_type` set to
+`"newton_raphson_with_seepage"` in ProjectParameters. Set `solver_settings.number_cycles` to `1`;
+multiple cycles are rejected because water-pressure fixity cannot yet be restored on a retry.
+The usual Newton-Raphson settings (including `max_iterations`, `compute_reactions`,
+`reform_dofs_at_each_step`, `move_mesh_flag`, and `echo_level`) are passed to the strategy.
+
+DGeoFlow uses the seepage-aware Newton-Raphson strategy inside its erosion strategy as well,
+including the flow recalculations performed during pipe growth. Other erosion-strategy callers
+retain the ordinary Newton-Raphson base unless they explicitly select a different base strategy.
+
 This strategy is very similar to the Newton-Raphson strategy implemented in Kratos Core (i.e. class `ResidualBasedNewtonRaphsonStrategy`), except that it has been extended with support for seepage boundaries. The seepage boundary is defined as a mixed boundary condition which acts as a no-flow boundary or an atmospheric pressure boundary depending on its nodes and the surrounding elements. The strategy switches from a Dirichlet to a Neumann boundary condition based on the local pressure and flow values. In short, a zero-pressure is applied when outflow is present, while a zero-flux boundary is applied in case of suction ($`p > 0`$). Therefore, at the seepage boundary, the following two conditions hold (where condition 'a' is Neumann and condition 'b' is Dirichlet):
 
 ```math

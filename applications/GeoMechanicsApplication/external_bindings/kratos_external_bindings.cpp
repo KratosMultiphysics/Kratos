@@ -1,5 +1,6 @@
 #include "kratos_external_bindings.h"
 #include "custom_workflows/custom_workflow_factory.h"
+#include "custom_workflows/generic.h"
 #include "includes/define.h"
 
 #if defined(KRATOS_COMPILED_IN_WINDOWS)
@@ -11,6 +12,28 @@
 #endif
 
 extern "C" {
+
+EXPORT Kratos::KratosGeneric* KratosGeneric_CreateInstance()
+{
+    return Kratos::CustomWorkflowFactory::CreateKratosGeneric();
+}
+
+EXPORT void KratosGeneric_DestroyInstance(Kratos::KratosGeneric* instance)
+{
+    const std::unique_ptr<Kratos::KratosGeneric> owned_instance{instance};
+}
+
+EXPORT int CALL_CONV execute_generic_analysis(Kratos::KratosGeneric* instance,
+                                              const char* workingDirectory,
+                                              const char* projectFile,
+                                              void(CALL_CONV* logCallback)(const char*),
+                                              void(CALL_CONV* reportProgress)(double),
+                                              void(CALL_CONV* reportTextualProgress)(const char*),
+                                              bool(CALL_CONV* shouldCancel)())
+{
+    return instance->Run(workingDirectory, projectFile, logCallback, reportProgress,
+                         reportTextualProgress, shouldCancel ? shouldCancel : []() { return false; });
+}
 
 EXPORT Kratos::KratosExecute* KratosExecute_CreateInstance() { return new Kratos::KratosExecute(); }
 

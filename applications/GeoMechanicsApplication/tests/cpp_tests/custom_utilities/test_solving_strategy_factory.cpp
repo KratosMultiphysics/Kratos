@@ -113,6 +113,45 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRaphsonStrategy
     KRATOS_EXPECT_EQ(created_strategy->Check(), 0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRaphsonWithSeepageStrategy,
+                          KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& dummy_model_part = model.CreateModelPart("dummy", 2);
+    Parameters parameters{testParameters};
+    parameters["strategy_type"].SetString("newton_raphson_with_seepage");
+    parameters["number_cycles"].SetInt(1);
+    parameters["max_iterations"].SetInt(30);
+    parameters["echo_level"].SetInt(0);
+
+    const auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
+    using SeepageStrategyType =
+        GeoMechanicsNewtonRaphsonStrategyWithSeepage<SparseSpaceType, DenseSpaceType, LinearSolverType>;
+    auto* p_seepage_strategy = dynamic_cast<SeepageStrategyType*>(created_strategy.get());
+
+    KRATOS_EXPECT_NE(p_seepage_strategy, nullptr);
+    if (p_seepage_strategy) {
+        KRATOS_EXPECT_TRUE(p_seepage_strategy->GetMoveMeshFlag());
+        KRATOS_EXPECT_EQ(p_seepage_strategy->GetMaxIterationNumber(), 30);
+        KRATOS_EXPECT_EQ(p_seepage_strategy->GetEchoLevel(), 0);
+        KRATOS_EXPECT_EQ(p_seepage_strategy->Check(), 0);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Create_Throws_ForNewtonRaphsonWithSeepageStrategyWithMultipleCycles,
+                          KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& dummy_model_part = model.CreateModelPart("dummy", 2);
+    Parameters parameters{testParameters};
+    parameters["strategy_type"].SetString("newton_raphson_with_seepage");
+    parameters["number_cycles"].SetInt(2);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        SolvingStrategyFactoryType::Create(parameters, dummy_model_part),
+        "GeoMechanicsNewtonRaphsonStrategyWithSeepage does not support multiple cycles.");
+}
+
 KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForLineSearchStrategy, KratosGeoMechanicsFastSuite)
 {
     Model      model;

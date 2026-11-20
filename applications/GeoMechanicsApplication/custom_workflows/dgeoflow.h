@@ -32,6 +32,7 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
+#include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy_with_seepage.hpp"
 
 namespace Kratos
 {
@@ -56,7 +57,9 @@ public:
     using ConvergenceVariableListType = typename MixedGenericCriteriaType::ConvergenceVariableListType;
 
     using GeoMechanicsNewtonRaphsonErosionProcessStrategyType =
-        GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+        GeoMechanicsNewtonRaphsonErosionProcessStrategy<
+            SparseSpaceType, LocalSpaceType, LinearSolverType,
+            GeoMechanicsNewtonRaphsonStrategyWithSeepage<SparseSpaceType, LocalSpaceType, LinearSolverType>>;
 
     static ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
     static LinearSolverType::Pointer        setup_solver_dgeoflow();
