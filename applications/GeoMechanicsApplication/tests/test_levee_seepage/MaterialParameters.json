@@ -20,7 +20,7 @@
                     "RESIDUAL_SATURATION": 6.203e-02,
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.611e+03,
-                    "VAN_GENUCHTEN_GN": 1.3774,
+                    "VAN_GENUCHTEN_GN": 1.377,
                     "VAN_GENUCHTEN_GL": 1.25,
                     "BIOT_COEFFICIENT": 1.0
                 }
@@ -46,7 +46,7 @@
                     "RESIDUAL_SATURATION": 6.203e-02,
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.611e+03,
-                    "VAN_GENUCHTEN_GN": 1.3774,
+                    "VAN_GENUCHTEN_GN": 1.377,
                     "VAN_GENUCHTEN_GL": 1.25,
                     "BIOT_COEFFICIENT": 1.0
                 }
@@ -72,7 +72,7 @@
                     "RESIDUAL_SATURATION": 6.203e-02,
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.611e+03,
-                    "VAN_GENUCHTEN_GN": 1.3774,
+                    "VAN_GENUCHTEN_GN": 1.377,
                     "VAN_GENUCHTEN_GL": 1.25,
                     "BIOT_COEFFICIENT": 1.0
                 }
@@ -98,7 +98,7 @@
                     "RESIDUAL_SATURATION": 6.203e-02,
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.611e+03,
-                    "VAN_GENUCHTEN_GN": 1.3774,
+                    "VAN_GENUCHTEN_GN": 1.377,
                     "VAN_GENUCHTEN_GL": 1.25,
                     "BIOT_COEFFICIENT": 1.0
                 }
