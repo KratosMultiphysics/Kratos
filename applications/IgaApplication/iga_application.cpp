@@ -20,6 +20,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mTrussEmbeddedEdgeElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mNonLinearBernoulliBeamElement3D(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mBeamThinElement2D(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mBeamThickElement2D(0, Element::GeometryType::Pointer(
@@ -80,6 +82,7 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mBernoulliBeamElasticConstitutiveLaw()
 {
 }
 
@@ -96,6 +99,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // ELEMENTS
     KRATOS_REGISTER_ELEMENT("TrussElement", mTrussElement)
     KRATOS_REGISTER_ELEMENT("TrussEmbeddedEdgeElement", mTrussEmbeddedEdgeElement)
+    KRATOS_REGISTER_ELEMENT("NonLinearBernoulliBeamElement3D", mNonLinearBernoulliBeamElement3D)
     KRATOS_REGISTER_ELEMENT("BeamThinElement2D", mBeamThinElement2D)
     KRATOS_REGISTER_ELEMENT("BeamThickElement2D", mBeamThickElement2D)
     KRATOS_REGISTER_ELEMENT("IgaMembraneElement", mIgaMembraneElement)
@@ -140,9 +144,12 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_MODELER("NurbsGeometryModelerGapSbm", mNurbsGeometryModelerGapSbm);
     KRATOS_REGISTER_MODELER("ImportNurbsSbmModeler", mImportNurbsSbmModeler);
 
+    // CONSTITUTIVE LAWS
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BernoulliBeamElasticConstitutiveLaw", mBernoulliBeamElasticConstitutiveLaw);
+
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(CROSS_AREA)
-      
+
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_CAUCHY)
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_PK2)
     KRATOS_REGISTER_VARIABLE(TRUSS_STRESS_CAUCHY)
@@ -211,7 +218,17 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_NITSCHE_STABILIZATION_VECTOR)
     KRATOS_REGISTER_VARIABLE(BUILD_LEVEL)
 
-    // SBM Variables 
+    // Beam variables
+    KRATOS_REGISTER_VARIABLE(T_0)
+    KRATOS_REGISTER_VARIABLE(N_0)
+    KRATOS_REGISTER_VARIABLE(LOCAL_AXIS_ORIENTATION)
+    // I22 and I33 are core variables, but the core does not register them
+    KRATOS_REGISTER_VARIABLE(I22)
+    KRATOS_REGISTER_VARIABLE(I33)
+    KRATOS_REGISTER_VARIABLE(I_T)
+
+
+    // SBM Variables
     KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
     KRATOS_REGISTER_VARIABLE(BOUNDARY_CONDITION_TYPE)
