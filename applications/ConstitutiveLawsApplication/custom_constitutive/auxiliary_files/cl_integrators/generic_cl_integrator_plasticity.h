@@ -16,6 +16,8 @@
 #pragma once
 
 // System includes
+#include <cmath>
+#include <type_traits>
 
 // Project includes
 #include "includes/define.h"
@@ -24,6 +26,8 @@
 #include "utilities/math_utils.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "constitutive_laws_application_variables.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
 
 namespace Kratos
 {
@@ -55,6 +59,8 @@ namespace Kratos
  * linear/exponential softening or hardening + softening evolution laws
  * @details The definitions of these classes is completely static, the derivation is done in a static way
  * @tparam TYieldSurfaceType The yield surface considered
+ * @tparam THardeningLaw Optional accumulated-strain threshold/derivative policy
+ * for associative 3D J2. The default void policy retains dissipation-based curves.
  * The plasticity integrator requires the definition of the following properties:
  * - SOFTENING_TYPE: The softening behaviour considered (linear, exponential,etc...)
  * - HARDENING_CURVE: The type of considered hardening curve (linear, exponential, pure plastic, etc...)
@@ -65,7 +71,7 @@ namespace Kratos
  * - YIELD_STRESS: Yield stress is the amount of stress that an object needs to experience for it to be permanently deformed. Does not require to be defined simmetrically, one YIELD_STRESS_COMPRESSION and other YIELD_STRESS_TENSION can be defined for not symmetric cases
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template<class TYieldSurfaceType>
+template<class TYieldSurfaceType, class THardeningLaw = void>
 class GenericConstitutiveLawIntegratorPlasticity
 {
   public:
@@ -89,6 +95,145 @@ class GenericConstitutiveLawIntegratorPlasticity
 
     /// The type of plastic potential
     typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
+
+    /// A void policy preserves the existing dissipation-based integration path.
+    static constexpr bool UsesAccumulatedPlasticStrain = !std::is_void_v<THardeningLaw>;
+    static_assert(!UsesAccumulatedPlasticStrain ||
+        std::is_same_v<TYieldSurfaceType, VonMisesYieldSurface<VonMisesPlasticPotential<6>>>,
+        "Accumulated-strain hardening currently supports associative 3D von Mises plasticity only");
+
+    /** @brief Tensor path length of an engineering plastic strain increment.
+     * The tensor conversion halves engineering shear. This is evaluated on an
+     * increment, never on total plastic strain or a stress projection.
+     */
+    static double CalculateAccumulatedPlasticStrainIncrement(const Vector& rIncrement)
+    {
+        const Matrix increment_tensor = MathUtils<double>::StrainVectorToTensor(rIncrement);
+        double tensor_norm = 0.0;
+        for (SizeType i = 0; i < increment_tensor.size1(); ++i) {
+            for (SizeType j = 0; j < increment_tensor.size2(); ++j) {
+                tensor_norm = std::hypot(tensor_norm, increment_tensor(i, j));
+            }
+        }
+        return std::sqrt(2.0 / 3.0) * tensor_norm;
+    }
+
+    /// Threshold and d(threshold)/dp for a strain-history hardening policy.
+    static void CalculateEquivalentStressThreshold(
+        const Properties& rProperties, const double AccumulatedPlasticStrain,
+        double& rThreshold, double& rDerivative)
+    {
+        THardeningLaw::CalculateStressThreshold(rProperties, AccumulatedPlasticStrain, rThreshold, rDerivative);
+        KRATOS_ERROR_IF(!std::isfinite(rThreshold) || rThreshold <= 0.0 ||
+            !std::isfinite(rDerivative) || rDerivative < 0.0)
+            << "Accumulated-strain hardening requires a finite positive threshold and non-negative derivative";
+    }
+
+    /** @brief Implicit associated J2 integration for a monotone strain-hardening policy.
+     * @details VonMisesPlasticPotential returns g = (3/(2q))*[s_xx,s_yy,s_zz,2s_xy,2s_yz,2s_xz].
+     * Thus sqrt(2/3*g:g) = 1 in tensor notation and Delta p = Delta lambda.
+     * All iterates refer to the same committed state: Newton corrections are not
+     * physical plastic increments and must not be accumulated as path length.
+     * The policy supplies only sigma_y(p) and H(p), independent of the J2 solve.
+     */
+    static void IntegrateStressVector(
+        array_1d<double, VoigtSize>& rStress,
+        const Vector& rStrain,
+        Vector& rPlasticStrain,
+        double& rAccumulatedPlasticStrain,
+        double& rThreshold,
+        Matrix& rConstitutiveMatrix,
+        ConstitutiveLaw::Parameters& rValues)
+    {
+        KRATOS_TRY
+        const auto& r_properties = rValues.GetMaterialProperties();
+        const double shear = r_properties[YOUNG_MODULUS] / (2.0 * (1.0 + r_properties[POISSON_RATIO]));
+        const double bulk = r_properties[YOUNG_MODULUS] / (3.0 * (1.0 - 2.0 * r_properties[POISSON_RATIO]));
+        const double committed_p = rAccumulatedPlasticStrain;
+        double hardening = 0.0;
+        CalculateEquivalentStressThreshold(r_properties, committed_p, rThreshold, hardening);
+        double trial_q = 0.0;
+        YieldSurfaceType::CalculateEquivalentStress(rStress, rStrain, trial_q, rValues);
+        KRATOS_ERROR_IF_NOT(std::isfinite(trial_q)) << "J2: non-finite trial equivalent stress";
+        const double trial_residual = trial_q - rThreshold;
+        if (trial_residual <= 0.0) {
+            return;
+        }
+
+        const double mean = rStress[0] / 3.0 + rStress[1] / 3.0 + rStress[2] / 3.0;
+        array_1d<double, VoigtSize> deviator = rStress;
+        for (SizeType i = 0; i < 3; ++i) {
+            deviator[i] -= mean;
+        }
+        array_1d<double, VoigtSize> flow = ZeroVector(VoigtSize);
+        // The von Mises gradient is homogeneous of degree zero. Evaluate at
+        // q=1 to avoid squaring large stresses or the utility's absolute cutoff.
+        const array_1d<double, VoigtSize> scaled_deviator = deviator / trial_q;
+        CalculateGFluxVector(rStress, scaled_deviator, 1.0 / 3.0, flow, rValues);
+        const double dp_dlambda = CalculateAccumulatedPlasticStrainIncrement(flow);
+        const array_1d<double, VoigtSize> elastic_flow = prod(rConstitutiveMatrix, flow);
+        const double elastic_denominator = inner_prod(flow, elastic_flow); // 3G for associative J2
+        KRATOS_ERROR_IF(!std::isfinite(elastic_denominator) || elastic_denominator <= 0.0)
+            << "J2: invalid elastic consistency denominator";
+        double lower = 0.0;
+        double upper = trial_residual / elastic_denominator;
+        double delta_lambda = 0.0;
+        double residual = trial_residual;
+        double plastic_denominator = 0.0;
+        const double stress_tolerance = 1.0e-12 * trial_q;
+        const int max_iterations = r_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS)
+            ? r_properties[MAX_NUMBER_NL_CL_ITERATIONS] : 100;
+        KRATOS_ERROR_IF(max_iterations <= 0) << "MAX_NUMBER_NL_CL_ITERATIONS must be positive";
+        bool converged = false;
+        for (int iteration = 0; iteration < max_iterations; ++iteration) {
+            const double trial_p = committed_p + dp_dlambda * delta_lambda;
+            CalculateEquivalentStressThreshold(r_properties, trial_p, rThreshold, hardening);
+            // R = q_trial - 3G*lambda - sigma_y(p_n+lambda).
+            // -R' = f:C:g + H*dp/dlambda. Use the same denominator as the generic workflow.
+            double hardening_parameter = hardening * dp_dlambda;
+            CalculatePlasticDenominator(flow, flow, rConstitutiveMatrix, hardening_parameter, plastic_denominator);
+            residual = trial_q - elastic_denominator * delta_lambda - rThreshold;
+            if (std::abs(residual) <= stress_tolerance) {
+                converged = true;
+                break;
+            }
+            if (residual > 0.0) {
+                lower = delta_lambda;
+            } else {
+                upper = delta_lambda;
+            }
+            const double candidate = delta_lambda + residual * plastic_denominator;
+            delta_lambda = (candidate > lower && candidate < upper)
+                ? candidate : lower + 0.5 * (upper - lower);
+        }
+        KRATOS_ERROR_IF_NOT(converged) << "J2 accumulated-strain hardening failed after " << max_iterations
+            << " iterations: residual = " << residual << ", tolerance = " << stress_tolerance
+            << ", committed p = " << committed_p << ", trial equivalent stress = " << trial_q;
+
+        const Vector plastic_increment = delta_lambda * flow;
+        rPlasticStrain += plastic_increment;
+        rAccumulatedPlasticStrain = committed_p + CalculateAccumulatedPlasticStrainIncrement(plastic_increment);
+        noalias(rStress) -= delta_lambda * elastic_flow;
+
+        if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            // Exact derivative of the discrete radial return, not the continuum tangent:
+            // C_alg = K I(x)I + 2G(1-a) Pdev - 2G(3G/(3G+H)-a) N(x)N,
+            // a = 3G*lambda/q_trial, N = s_trial/||s_trial||.
+            // Pdev has engineering-Voigt shear diagonal 1/2; N uses stress Voigt
+            // components so N:d_eps is an ordinary dot product with engineering strain.
+            const double correction = elastic_denominator * delta_lambda / trial_q;
+            const double radial_coefficient = 2.0 * shear * (elastic_denominator * plastic_denominator - correction);
+            const array_1d<double, VoigtSize> normal = std::sqrt(1.5) / trial_q * deviator;
+            for (SizeType i = 0; i < VoigtSize; ++i) {
+                for (SizeType j = 0; j < VoigtSize; ++j) {
+                    const double volumetric = (i < 3 && j < 3) ? bulk : 0.0;
+                    rConstitutiveMatrix(i, j) = volumetric + (1.0 - correction) * (rConstitutiveMatrix(i, j) - volumetric)
+                        - radial_coefficient * normal[i] * normal[j];
+                }
+            }
+        }
+        KRATOS_CATCH("")
+    }
 
     /// Counted pointer of GenericConstitutiveLawIntegratorPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegratorPlasticity);
@@ -932,7 +1077,12 @@ class GenericConstitutiveLawIntegratorPlasticity
      */
     static void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double& rThreshold)
     {
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, rThreshold);
+        if constexpr (UsesAccumulatedPlasticStrain) {
+            double derivative = 0.0;
+            CalculateEquivalentStressThreshold(rValues.GetMaterialProperties(), 0.0, rThreshold, derivative);
+        } else {
+            TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, rThreshold);
+        }
     }
 
     /**
@@ -985,7 +1135,13 @@ class GenericConstitutiveLawIntegratorPlasticity
         }
         const double A2 = 0.0; // Only for isotropic hard
         const double A3 = rHardeningParameter;
-        if (std::abs(A1 + A2 + A3) > tolerance)
+        if constexpr (UsesAccumulatedPlasticStrain) {
+            const double denominator = A1 + A3;
+            KRATOS_ERROR_IF(!std::isfinite(denominator) || denominator <= 0.0)
+                << "Invalid accumulated-strain plastic consistency denominator";
+            rPlasticDenominator = 1.0 / denominator;
+            KRATOS_ERROR_IF_NOT(std::isfinite(rPlasticDenominator)) << "Plastic denominator overflow";
+        } else if (std::abs(A1 + A2 + A3) > tolerance)
             rPlasticDenominator = 1.0 / (A1 + A2 + A3);
         else {
             rPlasticDenominator = 1.0e-3 * std::numeric_limits<double>::max(); // TODO: Discuss this!!!
@@ -998,6 +1154,20 @@ class GenericConstitutiveLawIntegratorPlasticity
      */
     static int Check(const Properties& rMaterialProperties)
     {
+        if constexpr (UsesAccumulatedPlasticStrain) {
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "Missing YOUNG_MODULUS";
+            const double young = rMaterialProperties[YOUNG_MODULUS];
+            KRATOS_ERROR_IF(!std::isfinite(young) || young <= 0.0)
+                << "YOUNG_MODULUS must be finite and positive";
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO)) << "Missing POISSON_RATIO";
+            const double nu = rMaterialProperties[POISSON_RATIO];
+            KRATOS_ERROR_IF(!std::isfinite(nu) || nu <= -1.0 || nu >= 0.5)
+                << "POISSON_RATIO must satisfy -1 < nu < 0.5";
+            KRATOS_ERROR_IF(!std::isfinite(young / (1.0 + nu)) ||
+                !std::isfinite(young / (1.0 - 2.0 * nu)) ||
+                !std::isfinite(young / ((1.0 + nu) * (1.0 - 2.0 * nu)))) << "Elastic moduli overflow";
+            return THardeningLaw::Check(rMaterialProperties);
+        }
         // Checking is defined
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(HARDENING_CURVE)) << "HARDENING_CURVE is not a defined value" << std::endl;
