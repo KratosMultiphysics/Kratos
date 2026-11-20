@@ -794,7 +794,7 @@ template<class TDataType> TDataType MPIDataCommunicator::ScanDetail(
     const TDataType LocalValues, MPI_Op Operation) const
 {
     TDataType global_value;
-    ScanDetail(LocalValues, global_value, MPI_SUM);
+    ScanDetail(LocalValues, global_value, Operation);
     return global_value;
 }
 
@@ -809,7 +809,7 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScanDetail
     SynchronizeShape(temp);
 
     std::vector<TDataType> global_values(rLocalValues.size(), temp);
-    ScanDetail(rLocalValues, global_values, MPI_SUM);
+    ScanDetail(rLocalValues, global_values, Operation);
     return global_values;
 }
 
