@@ -99,6 +99,7 @@ from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnal
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisLinearTrussStructure as TTestAdjointSensitivityAnalysisLinearTrussStructure
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisNonLinearTrussStructure as TTestAdjointSensitivityAnalysisNonLinearTrussStructure
 from test_adjoint_loading_conditions import TestAdjointLoadingConditions as TTestAdjointLoadingConditions
+from test_adjoint_static_solver_restart import TestAdjointStaticSolverRestart as TTestAdjointStaticSolverRestart
 # Explicit dynamics reactions tests
 from test_explicit_central_differences_reactions import TestExplicitCentralDifferencesReactions as TTestExplicitCentralDifferencesReactions
 
@@ -355,6 +356,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSmallDisplacementAdjointElement3D10N]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSmallDisplacementAdjointElement3D10NTwoElements]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointLoadingConditions]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointStaticSolverRestart]))
     # RVE tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestRVESimplestTest]))
     # Element damping test

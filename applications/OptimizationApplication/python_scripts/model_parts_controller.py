@@ -11,6 +11,7 @@
 # importing the Kratos Library
 import KratosMultiphysics as KM
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.mdpa_model_part_controller import MdpaModelPartController
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
 # ==============================================================================
 def CreateController(model_parts_settings: KM.Parameters, model: KM.Model):
@@ -25,9 +26,11 @@ class ModelPartsController:
         self.model = model
 
         self.mdpa_model_part_controllers: 'list[MdpaModelPartController]' = []
-        for params in self.model_parts_settings:
+        # the legacy workflow has no restart, so the controllers get a never-restarted problem
+        optimization_problem = OptimizationProblem()
+        for params in self.model_parts_settings.values():
             params["settings"].AddString("model_part_name", params["name"].GetString())
-            self.mdpa_model_part_controllers.append(MdpaModelPartController(model, params["settings"]))
+            self.mdpa_model_part_controllers.append(MdpaModelPartController(model, params["settings"], optimization_problem))
 
     # --------------------------------------------------------------------------
     def Initialize(self) -> None:

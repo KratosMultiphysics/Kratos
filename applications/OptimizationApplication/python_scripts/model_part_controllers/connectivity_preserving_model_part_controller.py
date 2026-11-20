@@ -1,14 +1,15 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
-def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ModelPartController:
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ModelPartController:
     if not parameters.Has("settings"):
         raise RuntimeError(f"ConnectivityPreservingModelPartController instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return ConnectivityPreservingModelPartController(model, parameters["settings"])
+    return ConnectivityPreservingModelPartController(model, parameters["settings"], optimization_problem)
 
 class ConnectivityPreservingModelPartController(ModelPartController):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_settings = Kratos.Parameters("""{
             "transformation_settings": [
                 {
@@ -23,11 +24,17 @@ class ConnectivityPreservingModelPartController(ModelPartController):
         self.model = model
         self.parameters = parameters
         self.parameters.ValidateAndAssignDefaults(default_settings)
+        self.optimization_problem = optimization_problem
 
         for sub_model_part_settings in self.parameters["transformation_settings"].values():
             sub_model_part_settings.ValidateAndAssignDefaults(default_settings["transformation_settings"].values()[0])
 
     def ImportModelPart(self) -> None:
+        if self.optimization_problem.IsRestarted():
+            # the destination model parts come back populated from the whole-Model restore;
+            # re-running ConnectivityPreserveModeler on them would duplicate entities.
+            return
+
         connectivity_preserve_modeller = Kratos.ConnectivityPreserveModeler()
         for transformation_settings in self.parameters["transformation_settings"].values():
             # get source and destination model parts
@@ -42,8 +49,6 @@ class ConnectivityPreservingModelPartController(ModelPartController):
                 else:
                     # if it is existing, then check whether it has a subset of the variables list.
                     destination_root_model_part = self.model[destination_root_model_part_name]
-                    print(source_model_part)
-                    print(destination_root_model_part)
                     if not KratosOA.OptimizationUtils.IsSolutionStepVariablesListASubSet(source_model_part, destination_root_model_part):
                         msg = f"The destination root model part solution step variables at {destination_root_model_part.FullName()} is not a sub set of {source_model_part.FullName()}"
                         msg += f"\n\t{destination_root_model_part.FullName()} model part variables list:\n\t\t" + "\n\t\t".join(KratosOA.OptimizationUtils.GetSolutionStepVariableNamesList(destination_root_model_part))

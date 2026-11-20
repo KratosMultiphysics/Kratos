@@ -8,7 +8,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
-from KratosMultiphysics.OptimizationApplication.utilities.opt_projection import CreateProjection
+from KratosMultiphysics.OptimizationApplication.utilities.opt_projection import CreateProjection, StorePhiFields, RestorePhiFields
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
@@ -88,8 +88,11 @@ class SimpControl(Control):
 
         self.materials = Materials(parameters["list_of_materials"].values())
 
-        self.density_projection = CreateProjection(parameters["density_projection_settings"], self.optimization_problem)
-        self.young_modulus_projection = CreateProjection(parameters["young_modulus_projection_settings"], self.optimization_problem)
+        density_projection_restart_data = ComponentDataView(f"{self.GetName()}:density_projection", optimization_problem).GetUnBufferedData()
+        self.density_projection = CreateProjection(parameters["density_projection_settings"], self.optimization_problem, density_projection_restart_data)
+        young_modulus_projection_restart_data = ComponentDataView(f"{self.GetName()}:young_modulus_projection", optimization_problem).GetUnBufferedData()
+        self.young_modulus_projection = CreateProjection(parameters["young_modulus_projection_settings"], self.optimization_problem, young_modulus_projection_restart_data)
+        self.phi_restart_data = ComponentDataView(f"{self.GetName()}:phi", optimization_problem).GetUnBufferedData()
 
         controlled_model_names_parts = parameters["controlled_model_part_names"].GetStringArray()
         if len(controlled_model_names_parts) == 0:
@@ -141,6 +144,7 @@ class SimpControl(Control):
 
         # get the control field
         self.control_phi = self.filter.UnfilterField(self.simp_physical_phi)
+        RestorePhiFields(self.phi_restart_data, self.optimization_problem, self.simp_physical_phi, self.control_phi)
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
@@ -219,6 +223,8 @@ class SimpControl(Control):
 
         # now calculate the total sensitivities of young modulus w.r.t. simp_physical_phi
         self.d_young_modulus_d_phi = self.young_modulus_projection.ForwardProjectionGradient(self.simp_physical_phi)
+
+        StorePhiFields(self.phi_restart_data, self.simp_physical_phi, self.control_phi)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()

@@ -15,5 +15,3 @@ class ModelPartController(ABC):
     @abstractmethod
     def GetModelPart(self) -> Kratos.ModelPart:
         pass
-
-
