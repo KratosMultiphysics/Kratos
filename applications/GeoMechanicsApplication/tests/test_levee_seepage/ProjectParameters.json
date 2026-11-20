@@ -152,7 +152,7 @@
                             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                             "process_name": "ApplySeepageBoundaryProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.SeepageBoundary"
+                                "model_part_name": "PorousDomain.Seepage_face"
                             }
                         }
                     ],
