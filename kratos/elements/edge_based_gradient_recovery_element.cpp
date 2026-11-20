@@ -102,7 +102,7 @@ void EdgeBasedGradientRecoveryElement<TDim>::CalculateLeftHandSide(
     const auto& r_geom = this->GetGeometry();
     const double h_e = r_geom.Length();
     const double kappa = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT] * h_e;
-    const array_1d<double,3> l_e = (r_geom[0].Coordinates() - r_geom[1].Coordinates()) / h_e;
+    const array_1d<double,3> l_e = (r_geom[1].Coordinates() - r_geom[0].Coordinates()) / h_e;
 
     // Assemble the current edge LHS
     std::array<double, 2> aux_stab{{1.0, -1.0}};
@@ -134,7 +134,7 @@ void EdgeBasedGradientRecoveryElement<TDim>::CalculateRightHandSide(
     const double h_e = r_geom.Length();
     const double kappa = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT] * h_e;
     const double val_jump = r_geom[0].GetValue(NODAL_MAUX) - r_geom[1].GetValue(NODAL_MAUX);
-    const array_1d<double,3> l_e = (r_geom[0].Coordinates() - r_geom[1].Coordinates()) / h_e;
+    const array_1d<double,3> l_e = (r_geom[1].Coordinates() - r_geom[0].Coordinates()) / h_e;
 
     // Assemble the current edge RHS contribution
     const double aux = 2.0/h_e;
@@ -144,11 +144,11 @@ void EdgeBasedGradientRecoveryElement<TDim>::CalculateRightHandSide(
         const auto& r_grad_i = r_geom[i].FastGetSolutionStepValue(NODAL_VAUX);
         for (std::size_t d1 = 0; d1 < TDim; ++d1) {
             rRigthHandSideVector(i*BlockSize + d1) -= aux * l_e[d1] * val_jump;
-            for (std::size_t d2 = 0; d2 < TDim; ++d2) {
-                rRigthHandSideVector(i*BlockSize + d1) -= l_e[d1] * l_e[d2] * r_grad_i[d2];
-            }
             for (std::size_t j = 0; j < NumNodes; ++j) {
                 const auto& r_grad_j = r_geom[j].FastGetSolutionStepValue(NODAL_VAUX);
+                for (std::size_t d2 = 0; d2 < TDim; ++d2) {
+                    rRigthHandSideVector(i*BlockSize + d1) -= l_e[d1] * l_e[d2] * r_grad_j[d2];
+                }
                 rRigthHandSideVector(i*BlockSize + d1) -= kappa * (aux_stab[i] * r_grad_i[d1] - aux_stab[j] * r_grad_j[d1]);
             }
         }
