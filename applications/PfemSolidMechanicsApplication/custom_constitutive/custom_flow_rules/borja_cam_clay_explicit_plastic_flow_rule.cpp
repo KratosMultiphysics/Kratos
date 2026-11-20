@@ -39,7 +39,7 @@ namespace Kratos
 
    }
 
-   //********* ASSIGMENT OPERATOR
+   //********* ASSIGNMENT OPERATOR
    BorjaCamClayExplicitFlowRule& BorjaCamClayExplicitFlowRule::operator=(BorjaCamClayExplicitFlowRule const& rOther)
    {
       NonAssociativeExplicitPlasticFlowRule::operator=(rOther);
@@ -132,7 +132,7 @@ namespace Kratos
    }
 
 
-   // ************* EVALUTE ONLY THE VOLUMETRIC PART OF THE HYPERELASTIC MODEL ***
+   // ************ EVALUATE ONLY THE VOLUMETRIC PART OF THE HYPERELASTIC MODEL ***
    void BorjaCamClayExplicitFlowRule::EvaluateDeviatoricStress(const double& rVolumetricStrain, const Vector & rDeviatoricStrainVector, Vector& rDeviatoricStress)
    {
 
