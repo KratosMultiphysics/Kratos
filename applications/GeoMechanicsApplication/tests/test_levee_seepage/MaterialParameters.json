@@ -1,9 +1,12 @@
 {
     "properties": [
         {
-            "model_part_name": "PorousDomain.Sand_layer",
+            "model_part_name": "PorousDomain.Cover",
             "properties_id": 1,
             "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "DENSITY_WATER": 1.01937e+03,
@@ -14,18 +17,22 @@
                     "PERMEABILITY_XY": 0.0,
                     "RETENTION_LAW": "VanGenuchtenLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 6.203e-02,
+                    "RESIDUAL_SATURATION": 6.20347e-02,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.611e+03,
-                    "VAN_GENUCHTEN_GN": 1.377,
+                    "VAN_GENUCHTEN_GN": 1.3774,
                     "VAN_GENUCHTEN_GL": 1.25,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-05
+                    "BIOT_COEFFICIENT": 1.0
                 }
             }
         },
         {
-            "model_part_name": "PorousDomain.Clay_layer",
+            "model_part_name": "PorousDomain.Aquifer",
             "properties_id": 2,
             "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "DENSITY_WATER": 1.01937e+03,
@@ -36,18 +43,22 @@
                     "PERMEABILITY_XY": 0.0,
                     "RETENTION_LAW": "VanGenuchtenLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 6.203e-02,
+                    "RESIDUAL_SATURATION": 6.20347e-02,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.611e+03,
-                    "VAN_GENUCHTEN_GN": 1.377,
+                    "VAN_GENUCHTEN_GN": 1.3774,
                     "VAN_GENUCHTEN_GL": 1.25,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-05
+                    "BIOT_COEFFICIENT": 1.0
                 }
             }
         },
         {
-            "model_part_name": "PorousDomain.Core_levee",
+            "model_part_name": "PorousDomain.Levee_core",
             "properties_id": 3,
             "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "DENSITY_WATER": 1.01937e+03,
@@ -58,18 +69,22 @@
                     "PERMEABILITY_XY": 0.0,
                     "RETENTION_LAW": "VanGenuchtenLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 6.203e-02,
+                    "RESIDUAL_SATURATION": 6.20347e-02,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.611e+03,
-                    "VAN_GENUCHTEN_GN": 1.377,
+                    "VAN_GENUCHTEN_GN": 1.3774,
                     "VAN_GENUCHTEN_GL": 1.25,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-05
+                    "BIOT_COEFFICIENT": 1.0
                 }
             }
         },
         {
-            "model_part_name": "PorousDomain.Cap_levee",
+            "model_part_name": "PorousDomain.Levee_outer_layer",
             "properties_id": 4,
             "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "DENSITY_WATER": 1.01937e+03,
@@ -80,11 +95,12 @@
                     "PERMEABILITY_XY": 0.0,
                     "RETENTION_LAW": "VanGenuchtenLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 6.203e-02,
+                    "RESIDUAL_SATURATION": 6.20347e-02,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.611e+03,
-                    "VAN_GENUCHTEN_GN": 1.377,
+                    "VAN_GENUCHTEN_GN": 1.3774,
                     "VAN_GENUCHTEN_GL": 1.25,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-05
+                    "BIOT_COEFFICIENT": 1.0
                 }
             }
         }

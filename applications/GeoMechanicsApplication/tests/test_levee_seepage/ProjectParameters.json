@@ -68,16 +68,16 @@
                     "increase_factor": 1.0,
                     "rotation_dofs": false,
                     "problem_domain_sub_model_part_list": [
-                        "Sand_layer",
-                        "Clay_layer",
-                        "Core_levee",
-                        "Cap_levee"
+                        "Cover",
+                        "Aquifer",
+                        "Levee_core",
+                        "Levee_outer_layer"
                     ],
                     "body_domain_sub_model_part_list": [
-                        "Sand_layer",
-                        "Clay_layer",
-                        "Core_levee",
-                        "Cap_levee"
+                        "Cover",
+                        "Aquifer",
+                        "Levee_core",
+                        "Levee_outer_layer"
                     ]
                 },
                 "processes": {
@@ -163,10 +163,10 @@
                             "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
                             "Parameters": {
                                 "model_part_name_list": [
-                                    "PorousDomain.Sand_layer",
-                                    "PorousDomain.Clay_layer",
-                                    "PorousDomain.Core_levee",
-                                    "PorousDomain.Cap_levee"
+                                    "PorousDomain.Cover",
+                                    "PorousDomain.Aquifer",
+                                    "PorousDomain.Levee_core",
+                                    "PorousDomain.Levee_outer_layer"
                                 ],
                                 "list_of_variables": ["EFFECTIVE_SATURATION", "FLUID_FLUX_VECTOR"]
                             }

@@ -906,7 +906,7 @@ Begin Conditions GeoSeepageCondition2D2N
        21          0    11    92 
 End Conditions
 
-Begin SubModelPart Sand_layer
+Begin SubModelPart Aquifer
     Begin SubModelPartNodes
             1
             2
@@ -1410,7 +1410,7 @@ Begin SubModelPart Sand_layer
     End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart Clay_layer
+Begin SubModelPart Cover
     Begin SubModelPartNodes
             1
             2
@@ -1624,7 +1624,7 @@ Begin SubModelPart Clay_layer
     End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart Core_levee
+Begin SubModelPart Levee_core
     Begin SubModelPartNodes
             3
             4
@@ -1748,7 +1748,7 @@ Begin SubModelPart Core_levee
     End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart Cap_levee
+Begin SubModelPart Levee_outer_layer
     Begin SubModelPartNodes
             3
             6
