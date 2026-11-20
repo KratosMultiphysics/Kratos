@@ -22,10 +22,6 @@
 #include "includes/kratos_components.h"
 #include "includes/exception.h"
 
-#ifdef KRATOS_DEBUG
-#include "utilities/openmp_utils.h"
-#endif
-
 namespace Kratos
 {
 
@@ -89,6 +85,7 @@ public:
     /// Default constructor.
     DataValueContainer() noexcept = default;
 
+    /// Move constructor.
     DataValueContainer(DataValueContainer&&) noexcept = default;
 
     /// Copy constructor.
@@ -236,7 +233,11 @@ public:
         return mData.end();
     }
 
-    DataValueContainer& operator=(DataValueContainer&&) noexcept = default;
+    /**
+     * @brief Move assignment operator
+     * @param[in] rOther The temporary or explicitly moved DataValueContainer object to transfer resources from.
+     */
+    DataValueContainer& operator=(DataValueContainer&& rOther) noexcept = default;
 
     /**
      * @brief Assignment operator for copying data from another DataValueContainer.
@@ -261,13 +262,13 @@ public:
     {
         typename ContainerType::iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey()))) != mData.end()) {
             return *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex());
+        }
 
-#ifdef KRATOS_DEBUG
-        if(OpenMPUtils::IsInParallel() != 0)
-            KRATOS_ERROR << "attempting to do a GetValue for: " << rThisVariable << " unfortunately the variable is not in the database and the operations is not threadsafe (this function is being called from within a parallel region)" << std::endl;
-#endif
+    #ifdef KRATOS_SMP_OPENMP
+        KRATOS_DEBUG_ERROR_IF(static_cast<bool>(omp_in_parallel())) << "Attempting to do a GetValue for: " << rThisVariable << " unfortunately the variable is not in the database and the operations is not threadsafe (this function is being called from within a parallel region)" << std::endl;
+    #endif
 
         auto p_source_variable = &rThisVariable.GetSourceVariable();
         mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
@@ -346,8 +347,9 @@ public:
     {
         typename ContainerType::const_iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey()))) != mData.end()) {
             return *(static_cast<const TDataType*>(i->second) + rThisVariable.GetComponentIndex());
+        }
 
         return rThisVariable.Zero();
     }
