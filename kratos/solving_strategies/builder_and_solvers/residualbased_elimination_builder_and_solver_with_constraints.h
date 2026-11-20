@@ -389,6 +389,13 @@ protected:
     DofsArrayType mDoFSlaveSet;                            /// The set containing the slave DoF of the system
     SizeType mDoFToSolveSystemSize = 0;                    /// Number of degrees of freedom of the problem to actually be solved
     IndexMapType mReactionEquationIdMap;                   /// In order to know the corresponding EquaionId for each component of the reaction vector
+    IndexMapType mReactionCategoryByEquationId;            /// BUGFIX: maps equation_id -> {0: neither, 1: is_master_fixed, 2: is_slave} so
+                                                            /// AssembleRHSWithoutConstraints can classify a DOF by its equation_id directly,
+                                                            /// without the incorrect "BaseType::mDofSet.begin() + i_global" pointer arithmetic
+                                                            /// (mDofSet is ordered by DOF identity, NOT by equation_id, so that lookup fetched
+                                                            /// an arbitrary wrong DOF and corrupted the reactions-vector index, causing a
+                                                            /// heap-buffer-overflow whenever constraints + genuinely fixed DOFs + reactions
+                                                            /// were all in use simultaneously).
 
     bool mCheckConstraintRelation = false;                 /// If we do a constraint check relation
     bool mResetRelationMatrixEachIteration = false;        /// If we reset the relation matrix at each iteration
@@ -1434,6 +1441,7 @@ protected:
 
         // Clearing the relation map
         mReactionEquationIdMap.clear();
+        mReactionCategoryByEquationId.clear();
 
         // Clear constraint system
         if (mpTMatrix != nullptr)
@@ -1593,11 +1601,16 @@ private:
 
         // Finally we build the relation between the EquationID and the component of the reaction
         counter = 0;
+        mReactionCategoryByEquationId.clear();
         for (auto& r_dof : BaseType::mDofSet) {
             const bool is_master_fixed = mDoFMasterFixedSet.find(r_dof) == mDoFMasterFixedSet.end() ? false : true;
             const bool is_slave = mDoFSlaveSet.find(r_dof) == mDoFSlaveSet.end() ? false : true;
             if (is_master_fixed || is_slave) { // Fixed or MPC dof
                 mReactionEquationIdMap.insert({r_dof.EquationId(), counter});
+                // BUGFIX: record the classification keyed by equation_id (not container
+                // position), so AssembleRHSWithoutConstraints can look it up correctly
+                // instead of using the incorrect "mDofSet.begin() + i_global" arithmetic.
+                mReactionCategoryByEquationId.insert({r_dof.EquationId(), is_master_fixed ? 1 : 2});
                 ++counter;
             }
         }
@@ -1931,19 +1944,31 @@ private:
                 }
             }
         } else {
+            // BUGFIX: this branch used to look up the Dof via
+            // "BaseType::mDofSet.begin() + i_global", treating the equation_id as if it
+            // were a container position in mDofSet. mDofSet is sorted by DOF identity
+            // (see SetUpDofSetWithConstraints), while equation IDs are assigned via two
+            // independent counters (ascending for free DOFs, descending for master-fixed
+            // ones) in that same identity-sorted iteration order — so a DOF's equation_id
+            // has no fixed relationship to its position in mDofSet. The old code therefore
+            // fetched an arbitrary, usually wrong Dof, corrupting the is_master_fixed/
+            // is_slave classification and the mReactionEquationIdMap lookup, causing a
+            // heap-buffer-overflow (out-of-bounds read/write into the reactions vector)
+            // whenever MasterSlaveConstraints + genuinely fixed DOFs + reactions were all
+            // in use at once. Fixed by classifying purely via equation_id, using the
+            // mReactionCategoryByEquationId map built alongside mReactionEquationIdMap in
+            // SetUpSystemWithConstraints (which iterates real Dof objects correctly).
             TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
             for (IndexType i_local = 0; i_local < local_size; ++i_local) {
                 const IndexType i_global = rEquationId[i_local];
-                auto it_dof = BaseType::mDofSet.begin() + i_global;
 
-                const bool is_master_fixed = mDoFMasterFixedSet.find(*it_dof) == mDoFMasterFixedSet.end() ? false : true;
-                const bool is_slave = mDoFSlaveSet.find(*it_dof) == mDoFSlaveSet.end() ? false : true;
-                if (is_master_fixed || is_slave) { // Fixed or MPC dof
+                auto it_category = mReactionCategoryByEquationId.find(i_global);
+                if (it_category != mReactionCategoryByEquationId.end()) { // Fixed or MPC dof
                     double& r_b_value = r_reactions_vector[mReactionEquationIdMap[i_global]];
                     const double rhs_value = rRHSContribution[i_local];
 
                     AtomicAdd(r_b_value, rhs_value);
-                } else if (it_dof->IsFree()) {  // Free dof not in the MPC
+                } else if (i_global < BaseType::mEquationSystemSize) {  // Free dof not in the MPC
                     // ASSEMBLING THE SYSTEM VECTOR
                     double& r_b_value = rb[i_global];
                     const double& rhs_value = rRHSContribution[i_local];
