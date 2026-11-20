@@ -232,13 +232,13 @@ public:
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
+ /**
      * @brief Calculate values of type double on integration points (stub)
      */
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                       std::vector<Vector>& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+
 
     /**
      * @brief This method gets a value directly in the CL
