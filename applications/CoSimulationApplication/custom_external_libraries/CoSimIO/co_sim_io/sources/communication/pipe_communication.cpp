@@ -114,7 +114,10 @@ PipeCommunication::BidirectionalPipe::BidirectionalPipe(
     const fs::path& rBasePipeName,
     const bool IsPrimary,
     const int BufferSize,
-    const int EchoLevel) : mBufferSize(BufferSize)
+    const int EchoLevel) 
+    #ifndef CO_SIM_IO_COMPILED_IN_WINDOWS
+    : mBufferSize(BufferSize)
+    #endif
 {
     mPipeNameWrite = mPipeNameRead = rPipeDir / rBasePipeName;
 
