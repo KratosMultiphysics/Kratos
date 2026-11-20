@@ -22,7 +22,7 @@ End Nodes
 
 // Beam Elements
 
-Begin Elements CrBeamElement2D2N // GUI group identifier: Span
+Begin Elements LegacyCrBeamElement2D2N // GUI group identifier: Span
    1     0    1    2
    2     0    2    3
 End Elements

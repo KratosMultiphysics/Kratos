@@ -412,7 +412,7 @@ Begin Elements MembraneElement3D3N// GUI group identifier: membrane
       256          0    89   125   109
 End Elements
 
-Begin Elements TrussElement3D2N// GUI group identifier: edgeCabl
+Begin Elements LegacyTrussElement3D2N// GUI group identifier: edgeCabl
       257          0   145   143
       258          0   143   140
       259          0   140   135

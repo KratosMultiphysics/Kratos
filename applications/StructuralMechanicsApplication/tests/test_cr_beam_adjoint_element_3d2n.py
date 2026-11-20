@@ -68,7 +68,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         self.model_part.CreateNewElement("AdjointFiniteDifferenceCrBeamElementLinear3D2N", 1, [1, 2], prop)
         self.adjoint_beam_element = self.model_part.GetElement(1)
 
-        self.model_part.CreateNewElement("CrLinearBeamElement3D2N", 2, [1, 2], prop)
+        self.model_part.CreateNewElement("LegacyCrLinearBeamElement3D2N", 2, [1, 2], prop)
         self.beam_element = self.model_part.GetElement(2)
 
         self._assign_solution_step_data(0)
@@ -96,12 +96,12 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         apply_material_properties(self.model_part_1,dim)
         prop = self.model_part_1.GetProperties()[0]
 
-        self.model_part_1.CreateNewElement("CrLinearBeamElement3D2N", 1, [2, 5], prop)
-        self.model_part_1.CreateNewElement("CrLinearBeamElement3D2N", 2, [3, 5], prop)
-        self.model_part_1.CreateNewElement("CrLinearBeamElement3D2N", 3, [4, 5], prop)
-        self.model_part_1.CreateNewElement("CrLinearBeamElement3D2N", 4, [1, 6], prop)
-        self.model_part_1.CreateNewElement("CrLinearBeamElement3D2N", 5, [1, 7], prop)
-        self.model_part_1.CreateNewElement("CrLinearBeamElement3D2N", 6, [1, 8], prop)
+        self.model_part_1.CreateNewElement("LegacyCrLinearBeamElement3D2N", 1, [2, 5], prop)
+        self.model_part_1.CreateNewElement("LegacyCrLinearBeamElement3D2N", 2, [3, 5], prop)
+        self.model_part_1.CreateNewElement("LegacyCrLinearBeamElement3D2N", 3, [4, 5], prop)
+        self.model_part_1.CreateNewElement("LegacyCrLinearBeamElement3D2N", 4, [1, 6], prop)
+        self.model_part_1.CreateNewElement("LegacyCrLinearBeamElement3D2N", 5, [1, 7], prop)
+        self.model_part_1.CreateNewElement("LegacyCrLinearBeamElement3D2N", 6, [1, 8], prop)
 
     def _create_property_perturbed_elements(self,mp,delta):
         dim = 3
@@ -115,7 +115,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         self.model_part_2.GetProperties()[0].SetValue(StructuralMechanicsApplication.I22, I22_initial + delta)
         prop = self.model_part_2.GetProperties()[0]
 
-        self.model_part_2.CreateNewElement("CrLinearBeamElement3D2N", 1, [1, 2], prop)
+        self.model_part_2.CreateNewElement("LegacyCrLinearBeamElement3D2N", 1, [1, 2], prop)
         self.property_perturbed_beam_element = self.model_part_2.GetElement(1)
 
     def _assign_solution_step_data(self, step=0):

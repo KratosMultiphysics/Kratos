@@ -12,7 +12,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TrussElement3D2N// GUI group identifier: structure
+Begin Elements LegacyTrussElement3D2N// GUI group identifier: structure
          1          0         1 			2
 End Elements
 

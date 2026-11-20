@@ -19,7 +19,7 @@
                     {
                         "source_model_part_name": "AdjointStructure",
                         "destination_model_part_name": "Structure",
-                        "destination_element_name": "ShellThinElement3D3N",
+                        "destination_element_name": "LegacyShellThinElement3D3N",
                         "destination_condition_name": "LineLoadCondition3D2N"
                     }
                 ]

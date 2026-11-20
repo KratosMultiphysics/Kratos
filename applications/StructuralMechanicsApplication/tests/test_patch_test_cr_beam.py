@@ -272,7 +272,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
         bcs_neumann.AddConditions([1])
         #create Element
         for i in range(nr_elements):
-            mp.CreateNewElement("CrBeamElement3D2N", i+1, [i+1,i+2],
+            mp.CreateNewElement("LegacyCrBeamElement3D2N", i+1, [i+1,i+2],
              mp.GetProperties()[0])
 
         #apply constant boundary conditions
@@ -332,7 +332,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
         bcs_neumann.AddConditions([1])
         #create Element
         for i in range(nr_elements):
-            mp.CreateNewElement("CrBeamElement3D2N", i+1, [i+1,i+2],
+            mp.CreateNewElement("LegacyCrBeamElement3D2N", i+1, [i+1,i+2],
              mp.GetProperties()[0])
 
         #apply constant boundary conditions
@@ -393,7 +393,7 @@ class DynamicPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
             bcs_neumann.AddConditions([1])
             #create Element
             for i in range(nr_elements):
-                mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2],
+                mp.CreateNewElement("LegacyCrLinearBeamElement3D2N", i+1, [i+1,i+2],
                 mp.GetProperties()[0])
 
             #apply constant boundary conditions
@@ -451,7 +451,7 @@ class StaticPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
         bcs_neumann.AddConditions([1])
         #create Element
         for i in range(nr_elements):
-            mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2],
+            mp.CreateNewElement("LegacyCrLinearBeamElement3D2N", i+1, [i+1,i+2],
              mp.GetProperties()[0])
 
         #apply boundary conditions
@@ -494,7 +494,7 @@ class StaticPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
             bcs_neumann.AddConditions([1])
             #create Element
             for i in range(nr_elements):
-                mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2],
+                mp.CreateNewElement("LegacyCrLinearBeamElement3D2N", i+1, [i+1,i+2],
                 mp.GetProperties()[0])
 
             #apply local_axis_2 elemental data
@@ -535,7 +535,7 @@ class StaticPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
         bcs_rot.AddNodes([1])
         #create Element
         for i in range(nr_elements):
-            mp.CreateNewElement("CrBeamElement3D2N", i+1, [i+1,i+2],
+            mp.CreateNewElement("LegacyCrBeamElement3D2N", i+1, [i+1,i+2],
              mp.GetProperties()[0])
 
         #apply constant boundary conditions
@@ -589,7 +589,7 @@ class StaticPatchTestBeam3D2N(BasePatchTestCrBeam3D2N):
         bcs_neumann.AddConditions([1])
         #create Element
         for i in range(nr_elements):
-            mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2],
+            mp.CreateNewElement("LegacyCrLinearBeamElement3D2N", i+1, [i+1,i+2],
              mp.GetProperties()[0])
 
         #apply condensation elemental data
@@ -874,7 +874,7 @@ class DynamicPatchTestBeam2D2N(BasePatchTestCrBeam2D2N):
         bcs_neumann.AddConditions([1])
         #create Element
         for i in range(nr_elements):
-            mp.CreateNewElement("CrBeamElement2D2N", i+1, [i+1,i+2],
+            mp.CreateNewElement("LegacyCrBeamElement2D2N", i+1, [i+1,i+2],
              mp.GetProperties()[0])
 
         #apply constant boundary conditions
@@ -935,7 +935,7 @@ class DynamicPatchTestBeam2D2N(BasePatchTestCrBeam2D2N):
             bcs_neumann.AddConditions([1])
             #create Element
             for i in range(nr_elements):
-                mp.CreateNewElement("CrBeamElement2D2N", i+1, [i+1,i+2],
+                mp.CreateNewElement("LegacyCrBeamElement2D2N", i+1, [i+1,i+2],
                 mp.GetProperties()[0])
 
             #apply constant boundary conditions
@@ -994,7 +994,7 @@ class StaticPatchTestBeam2D2N(BasePatchTestCrBeam2D2N):
         bcs_neumann.AddConditions([1])
         #create Element
         for i in range(nr_elements):
-            mp.CreateNewElement("CrLinearBeamElement2D2N", i+1, [i+1,i+2],
+            mp.CreateNewElement("LegacyCrLinearBeamElement2D2N", i+1, [i+1,i+2],
              mp.GetProperties()[0])
 
         #apply boundary conditions
@@ -1033,7 +1033,7 @@ class StaticPatchTestBeam2D2N(BasePatchTestCrBeam2D2N):
         bcs_rot.AddNodes([1])
         #create Element
         for i in range(nr_elements):
-            mp.CreateNewElement("CrBeamElement2D2N", i+1, [i+1,i+2],
+            mp.CreateNewElement("LegacyCrBeamElement2D2N", i+1, [i+1,i+2],
              mp.GetProperties()[0])
 
         #apply constant boundary conditions
@@ -1087,7 +1087,7 @@ class StaticPatchTestBeam2D2N(BasePatchTestCrBeam2D2N):
         bcs_neumann.AddConditions([1])
         #create Element
         for i in range(nr_elements):
-            mp.CreateNewElement("CrLinearBeamElement2D2N", i+1, [i+1,i+2],
+            mp.CreateNewElement("LegacyCrLinearBeamElement2D2N", i+1, [i+1,i+2],
              mp.GetProperties()[0])
 
         #apply condensation elemental data

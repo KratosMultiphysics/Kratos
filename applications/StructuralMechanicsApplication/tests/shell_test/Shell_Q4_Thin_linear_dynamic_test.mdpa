@@ -73,7 +73,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements ShellThinElementCorotational3D4N// GUI group identifier: surface
+Begin Elements LegacyShellThinElementCorotational3D4N// GUI group identifier: surface
          1          0         35         37         47         44
          2          0         26         27         37         35
          3          0         16         18         27         26

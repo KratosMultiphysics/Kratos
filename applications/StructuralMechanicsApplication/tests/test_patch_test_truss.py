@@ -387,8 +387,8 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         bcs_neumann.AddConditions([1])
 
         #create Element
-        mp.CreateNewElement("TrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
-        mp.CreateNewElement("TrussLinearElement3D2N", 2, [2,3], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussLinearElement3D2N", 2, [2,3], mp.GetProperties()[0])
 
         #apply boundary conditions
         Force_Y = -1000000.00
@@ -428,7 +428,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         bcs_neumann.AddConditions([1])
 
         #create Element
-        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
         #apply constant boundary conditions
         self._apply_BCs(bcs_xyz,'xyz')
         self._apply_BCs(bcs_xz,'xz')
@@ -489,7 +489,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             bcs_neumann.AddConditions([1])
 
             #create Element
-            mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+            mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
             #apply constant boundary conditions
             self._apply_BCs(bcs_xyz,'xyz')
             self._apply_BCs(bcs_yz,'yz')
@@ -541,7 +541,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
 
         #create Element
-        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
 
         #apply constant boundary conditions
         self._apply_BCs(bcs_xyz,'xyz')
@@ -573,7 +573,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
 
         #create Element
-        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
 
         #apply constant boundary conditions
         self._apply_BCs(bcs_xyz,'xyz')
@@ -605,7 +605,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
 
         #create Element
-        mp.CreateNewElement("TrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
 
         #apply constant boundary conditions
         self._apply_BCs(bcs_xyz,'xyz')
@@ -637,7 +637,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
 
         #create Element
-        mp.CreateNewElement("TrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
 
         #apply constant boundary conditions
         self._apply_BCs(bcs_xyz,'xyz')
@@ -672,8 +672,8 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         bcs_neumann.AddNodes([3])
         bcs_neumann.AddConditions([1])
         #create Elements
-        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
-        mp.CreateNewElement("TrussElement3D2N", 2, [2,3], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 2, [2,3], mp.GetProperties()[0])
         #apply constant boundary conditions
         Force_X = 100000
         self._apply_BCs(bcs_xyz,'xyz')
@@ -730,8 +730,8 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         bcs_neumann.AddNodes([3])
         bcs_neumann.AddConditions([1])
         #create Elements
-        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
-        mp.CreateNewElement("TrussElement3D2N", 2, [2,3], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 2, [2,3], mp.GetProperties()[0])
         #apply constant boundary conditions
         Force_X = 100000
         self._apply_BCs(bcs_xyz,'xyz')
@@ -811,8 +811,8 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         bcs_neumann.AddNodes([3])
         bcs_neumann.AddConditions([1])
         #create Elements
-        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
-        mp.CreateNewElement("TrussElement3D2N", 2, [2,3], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 2, [2,3], mp.GetProperties()[0])
         #apply constant boundary conditions
         Force_X = 100000
         self._apply_BCs(bcs_xyz,'xyz')
@@ -903,7 +903,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         bcs_neumann.AddNodes([2])
         bcs_neumann.AddConditions([1])
         #create Elementsdb
-        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
         #apply constant boundary conditions
         Force_Y = -24000000
         self._apply_BCs(bcs_xyz,'xyz')
@@ -954,7 +954,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         bcs_neumann.AddNodes([2])
         bcs_neumann.AddConditions([1])
         #create Elementsdb
-        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
         #apply constant boundary conditions
         Force_Y = -24000000
         self._apply_BCs(bcs_xyz,'xyz')
@@ -1005,7 +1005,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         bcs_neumann.AddNodes([2])
         bcs_neumann.AddConditions([1])
         #create Elementsdb
-        mp.CreateNewElement("TrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
         #apply constant boundary conditions
         Force_Y = -24000000
         self._apply_BCs(bcs_xyz,'xyz')
@@ -1058,7 +1058,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         bcs_neumann.AddConditions([1])
 
         #create Element
-        mp.CreateNewElement("TrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
 
         #apply boundary conditions
         Force_Y = 211.00
@@ -1111,7 +1111,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         bcs_neumann.AddConditions([1])
 
         #create Element
-        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
 
         #apply boundary conditions
         Force_Y = 14.00
@@ -1166,8 +1166,8 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         bcs_neumann.AddConditions([1])
 
         #create Element
-        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
-        mp.CreateNewElement("TrussElement3D2N", 2, [2,3], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 2, [2,3], mp.GetProperties()[0])
 
         #apply boundary conditions
         Force_X = -1.0
@@ -1218,7 +1218,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         bcs_neumann.AddConditions([1])
 
         #create Element
-        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
         #apply constant boundary conditions
         self._apply_BCs(bcs_xyz,'xyz')
         self._apply_BCs(bcs_yz,'yz')

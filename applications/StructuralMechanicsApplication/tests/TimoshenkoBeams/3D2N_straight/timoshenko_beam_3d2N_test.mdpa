@@ -20,7 +20,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements LinearTimoshenkoBeamElement3D2N// GUI group identifier: beam CrLinearBeamElement3D2N LinearTimoshenkoBeamElement3D2N
+Begin Elements LinearTimoshenkoBeamElement3D2N// GUI group identifier: beam LegacyCrLinearBeamElement3D2N LinearTimoshenkoBeamElement3D2N
         1          0     5     6 
         2          0     6     7 
         3          0     7     4 

@@ -9,7 +9,7 @@ Begin Nodes
   4     0.0000000000 2000.0000000000 0.0000000000
 End Nodes
 
-Begin Elements ShellThinElementCorotational3D4N
+Begin Elements LegacyShellThinElementCorotational3D4N
   1  1   1  2  3  4
 End Elements
 

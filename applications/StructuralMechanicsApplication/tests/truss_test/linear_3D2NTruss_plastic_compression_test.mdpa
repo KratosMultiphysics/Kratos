@@ -11,7 +11,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TrussLinearElement3D2N// GUI group identifier: structure
+Begin Elements LegacyTrussLinearElement3D2N// GUI group identifier: structure
          1          0         2 			1
 End Elements
 

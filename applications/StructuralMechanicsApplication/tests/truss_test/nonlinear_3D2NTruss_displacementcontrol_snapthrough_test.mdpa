@@ -10,7 +10,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TrussElement3D2N// GUI group identifier: Truss
+Begin Elements LegacyTrussElement3D2N// GUI group identifier: Truss
         1          0          2          1
 End Elements
 

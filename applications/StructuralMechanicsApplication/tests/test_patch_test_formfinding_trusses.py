@@ -163,10 +163,10 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
         bcs_xyz.AddNodes([1,2,3,4])
 
         #create Element
-        mp.CreateNewElement("TrussElement3D2N", 1, [1,5], mp.GetProperties()[0])
-        mp.CreateNewElement("TrussElement3D2N", 2, [2,5], mp.GetProperties()[0])
-        mp.CreateNewElement("TrussElement3D2N", 3, [3,5], mp.GetProperties()[0])
-        mp.CreateNewElement("TrussElement3D2N", 4, [4,5], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1,5], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 2, [2,5], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 3, [3,5], mp.GetProperties()[0])
+        mp.CreateNewElement("LegacyTrussElement3D2N", 4, [4,5], mp.GetProperties()[0])
 
 
         self._apply_BCs(bcs_xyz,'xyz')

@@ -231,7 +231,7 @@ Begin Nodes
 	189	-0.5198650769	0.8295898120	-0.2037671358
 End Nodes
 
-Begin Elements ShellThinElement3D3N
+Begin Elements LegacyShellThinElement3D3N
 	1	0	2	3	37
 	2	0	3	4	44
 	3	0	5	6	45
@@ -574,7 +574,7 @@ Begin Elements ShellThinElement3D3N
 	340	0	181	171	189
 	341	0	178	165	189
 	342	0	178	180	186
-End Elements // ShellThinElement3D3N
+End Elements // LegacyShellThinElement3D3N
 
 Begin Conditions SmallDisplacementSurfaceLoadCondition3D3N
 	1	0	2	3	37

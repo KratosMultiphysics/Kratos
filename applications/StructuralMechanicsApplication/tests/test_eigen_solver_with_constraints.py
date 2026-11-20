@@ -174,7 +174,7 @@ def SetupSystem(model_part, use_constraints):
     props[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
 
     for i_elem, connectivity in enumerate(element_connectivities):
-        model_part.CreateNewElement("CrLinearBeamElement3D2N", i_elem+1, connectivity, props)
+        model_part.CreateNewElement("LegacyCrLinearBeamElement3D2N", i_elem+1, connectivity, props)
 
 
 if __name__ == '__main__':

@@ -374,7 +374,7 @@ Begin Nodes
 	369	60	30	0
 End Nodes
 
-Begin Elements	ShellThinElement3D3N
+Begin Elements	LegacyShellThinElement3D3N
 	1	1	356	344	357
 	2	1	356	357	358
 	3	1	355	368	369
