@@ -30,6 +30,7 @@
 #include "add_fsi_variables_to_python.h"
 #include "add_mat_variables_to_python.h"
 #include "add_containers_to_python.h"
+#include "add_data_container_to_python.h"
 #include "add_matrix_to_python.h"
 #include "add_quaternion_to_python.h"
 #include "add_points_to_python.h"
@@ -106,6 +107,7 @@ PYBIND11_MODULE(Kratos, m)
     AddPointsToPython(m);
     AddKernelToPython(m);
     AddContainersToPython(m);
+    AddDataContainerToPython(m);
     AddModelPartToPython(m);
     AddDofsToPython(m);
     AddNodeToPython(m);
