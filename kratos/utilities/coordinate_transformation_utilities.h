@@ -398,7 +398,7 @@ public:
         rOutput(0, 1) = unit_normal_derivative[1];
         rOutput(0, 2) = unit_normal_derivative[2];
 
-        array_1d<double, 3> rT1(3, 0.0);
+        array_1d<double, 3> rT1 = CreateFilled<array_1d<double, 3>>(0.0);
         rT1[0] = 1.0;
         double dot = unit_normal[0];
         double dot_derivative = unit_normal_derivative[0];
@@ -761,7 +761,7 @@ protected:
 		//unsigned int Index = 0;
 		int rotations_needed = 0;
 		const unsigned int NumBlocks = LocalSize / TBlockSize;
-		DenseVector<bool> NeedRotation( NumBlocks, false);
+		DenseVector<bool> NeedRotation = CreateFilled<DenseVector<bool>>(NumBlocks, false);
 
 		std::vector< BoundedMatrix<double,TBlockSize,TBlockSize> > rRot(NumBlocks);
 		BoundedMatrix<double,TBlockSize,TBlockSize> tmp;
@@ -860,7 +860,7 @@ protected:
 		//unsigned int Index = 0;
 		int rotations_needed = 0;
 		const unsigned int NumBlocks = LocalSize / mBlockSize;
-		DenseVector<bool> NeedRotation( NumBlocks, false);
+		DenseVector<bool> NeedRotation = CreateFilled<DenseVector<bool>>(NumBlocks, false);
 
 		std::vector< BoundedMatrix<double,TDim,TDim> > rRot(NumBlocks);
 		BoundedMatrix<double,TDim,TDim> tmp;

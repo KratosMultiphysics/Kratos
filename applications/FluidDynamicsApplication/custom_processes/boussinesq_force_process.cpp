@@ -7,7 +7,7 @@ namespace Kratos
         ModelPart& rModelPart,
         Parameters& rParameters):
     mrModelPart(rModelPart),
-    mrGravity(array_1d<double,3>(3,0.0))
+    mrGravity(CreateFilled<array_1d<double, 3>>(0.0))
     {
         // Read settings from parameters
         KRATOS_ERROR_IF_NOT( rParameters.Has("gravity") ) <<

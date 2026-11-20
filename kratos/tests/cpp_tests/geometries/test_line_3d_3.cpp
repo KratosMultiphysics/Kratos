@@ -349,7 +349,7 @@ KRATOS_TEST_CASE_IN_SUITE(Line3D3PointLocalCoordinates, KratosCoreGeometriesFast
     auto p2 = Kratos::make_shared<Point>(-0.2, 0.5, 0.7);
     auto geometry = Line3D3<Point>(p0, p1, p2);
 
-    array_1d<double, 3> result(3, 0.0);
+    array_1d<double, 3> result = CreateFilled<array_1d<double, 3>>(0.0);
     array_1d<double, 3> expected{0.7, 0.0, 0.0};
     Vector shapes;
     geometry.ShapeFunctionsValues(shapes, expected);

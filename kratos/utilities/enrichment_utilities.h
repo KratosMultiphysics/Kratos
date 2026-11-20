@@ -121,10 +121,10 @@ public:
         //int n_zero_distance_nodes = 0;
         int n_negative_distance_nodes = 0;
         int n_positive_distance_nodes = 0;
-        array_1d<int,4> signs(4,-2);//[] = {-2, -2, -2, -2};
+        array_1d<int,4> signs = CreateFilled<array_1d<int, 4>>(-2);//[] = {-2, -2, -2, -2};
         //int zero_distance_nodes[] = {-1, -1, -1, -1};
-        array_1d<int,4> negative_distance_nodes(4,-1);//[] = {-1, -1, -1, -1};
-        array_1d<int,4> positive_distance_nodes(4,-1);//[] = {-1, -1, -1, -1};
+        array_1d<int,4> negative_distance_nodes = CreateFilled<array_1d<int, 4>>(-1);//[] = {-1, -1, -1, -1};
+        array_1d<int,4> positive_distance_nodes = CreateFilled<array_1d<int, 4>>(-1);//[] = {-1, -1, -1, -1};
 
         for (int i = 0; i < 6; i++)
             for (int j = 0; j < n_nodes; j++)
@@ -563,10 +563,10 @@ public:
         //int n_zero_distance_nodes = 0;
         int n_negative_distance_nodes = 0;
         int n_positive_distance_nodes = 0;
-        array_1d<int,4> signs(4,-2);//[] = {-2, -2, -2, -2};
+        array_1d<int,4> signs = CreateFilled<array_1d<int, 4>>(-2);//[] = {-2, -2, -2, -2};
         //int zero_distance_nodes[] = {-1, -1, -1, -1};
-        array_1d<int,4> negative_distance_nodes(4,-1);//[] = {-1, -1, -1, -1};
-        array_1d<int,4> positive_distance_nodes(4,-1);//[] = {-1, -1, -1, -1};
+        array_1d<int,4> negative_distance_nodes = CreateFilled<array_1d<int, 4>>(-1);//[] = {-1, -1, -1, -1};
+        array_1d<int,4> positive_distance_nodes = CreateFilled<array_1d<int, 4>>(-1);//[] = {-1, -1, -1, -1};
 
         for (int i = 0; i < 6; i++)
             for (int j = 0; j < n_nodes; j++)

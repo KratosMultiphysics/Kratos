@@ -264,7 +264,7 @@ protected:
 				elem_i.CalculateRightHandSide(RHS, CurrentProcessInfo);
 				for (auto& node_i : elem_i.GetGeometry())
 				{
-					array_3d gradient_contribution(3, 0.0);
+					array_3d gradient_contribution = CreateFilled<array_3d>(0.0);
 					Vector derived_RHS = Vector(0);
 
 					// x-direction
@@ -306,7 +306,7 @@ protected:
 				cond_i.CalculateRightHandSide(RHS, CurrentProcessInfo);
 				for (auto& node_i : cond_i.GetGeometry())
 				{
-					array_3d gradient_contribution(3, 0.0);
+					array_3d gradient_contribution = CreateFilled<array_3d>(0.0);
 					Vector perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of x
@@ -369,7 +369,7 @@ protected:
 				cond_i.CalculateRightHandSide(RHS, CurrentProcessInfo);
 				for (auto& node_i : cond_i.GetGeometry())
 				{
-					array_3d gradient_contribution(3, 0.0);
+					array_3d gradient_contribution = CreateFilled<array_3d>(0.0);
 					Vector perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of x

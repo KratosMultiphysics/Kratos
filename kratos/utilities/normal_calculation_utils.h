@@ -258,13 +258,13 @@ public:
 
         // Reset normals
         //TODO: This can be parallel
-        const array_1d<double,3> ZeroNormal(3,0.0);
+        const array_1d<double,3> ZeroNormal = CreateFilled<array_1d<double, 3>>(0.0);
         for(ModelPart::NodesContainerType::iterator it = rModelPart.NodesBegin(); it !=rModelPart.NodesEnd(); it++) {
             noalias(it->FastGetSolutionStepValue(rNormalVariable)) = ZeroNormal;
         }
 
         // Calculate new condition normals, using only conditions with rVariable == rValue
-        array_1d<double,3> An(3,0.0);
+        array_1d<double,3> An = CreateFilled<array_1d<double, 3>>(0.0);
 
         if ( Dimension == 2 ) {
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
@@ -272,8 +272,8 @@ public:
                     CalculateNormal2D(*itCond,An,rNormalVariable);
             }
         } else if ( Dimension == 3 ) {
-            array_1d<double,3> v1(3,0.0);
-            array_1d<double,3> v2(3,0.0);
+            array_1d<double,3> v1 = CreateFilled<array_1d<double, 3>>(0.0);
+            array_1d<double,3> v2 = CreateFilled<array_1d<double, 3>>(0.0);
 
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
@@ -337,14 +337,14 @@ public:
 
         // Reset normals
         //TODO: This can be parallel
-        const array_1d<double,3> ZeroNormal(3,0.0);
+        const array_1d<double,3> ZeroNormal = CreateFilled<array_1d<double, 3>>(0.0);
         for(ModelPart::NodesContainerType::iterator it =  rModelPart.NodesBegin(); it !=rModelPart.NodesEnd(); it++) {
             noalias(it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
             it->FastGetSolutionStepValue(NODAL_PAUX) = 0.0;
         }
 
         // Calculate new condition normals, using only conditions with rVariable == rValue
-        array_1d<double,3> An(3,0.0);
+        array_1d<double,3> An = CreateFilled<array_1d<double, 3>>(0.0);
 
         if ( Dimension == 2 ) {
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
@@ -352,8 +352,8 @@ public:
                     CalculateNormal2D(*itCond,An,rNormalVariable);
             }
         } else if ( Dimension == 3 ) {
-            array_1d<double,3> v1(3,0.0);
-            array_1d<double,3> v2(3,0.0);
+            array_1d<double,3> v1 = CreateFilled<array_1d<double, 3>>(0.0);
+            array_1d<double,3> v2 = CreateFilled<array_1d<double, 3>>(0.0);
 
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
@@ -404,7 +404,7 @@ public:
             }
 
             // Compute NORMAL and mark
-            array_1d<double,3> sum_Normal(3,0.0);
+            array_1d<double,3> sum_Normal = CreateFilled<array_1d<double, 3>>(0.0);
 
             for(unsigned int ii=0; ii<N_Mat.size(); ++ii) {
                 sum_Normal += N_Mat[ii];
@@ -452,14 +452,14 @@ public:
 
         // Reset normals
         //TODO: This can be parallel
-        const array_1d<double,3> ZeroNormal(3,0.0);
+        const array_1d<double,3> ZeroNormal = CreateFilled<array_1d<double, 3>>(0.0);
         for(ModelPart::NodesContainerType::iterator it =  rModelPart.NodesBegin(); it !=rModelPart.NodesEnd(); it++) {
             noalias(it->GetValue(rNormalVariable)) = ZeroNormal;
             it->GetValue(NODAL_PAUX) = 0.0;
         }
 
         // Calculate new condition normals, using only conditions with rVariable == rValue
-        array_1d<double,3> An(3,0.0);
+        array_1d<double,3> An = CreateFilled<array_1d<double, 3>>(0.0);
 
         if ( Dimension == 2 ) {
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
@@ -467,8 +467,8 @@ public:
                     CalculateNormal2D(*itCond,An,rNormalVariable);
             }
         } else if ( Dimension == 3 ) {
-            array_1d<double,3> v1(3,0.0);
-            array_1d<double,3> v2(3,0.0);
+            array_1d<double,3> v1 = CreateFilled<array_1d<double, 3>>(0.0);
+            array_1d<double,3> v2 = CreateFilled<array_1d<double, 3>>(0.0);
 
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
@@ -518,7 +518,7 @@ public:
             }
 
             // Compute NORMAL and mark
-            array_1d<double,3> sum_Normal(3,0.0);
+            array_1d<double,3> sum_Normal = CreateFilled<array_1d<double, 3>>(0.0);
 
             for(unsigned int ii=0; ii<N_Mat.size(); ++ii){
                 sum_Normal += N_Mat[ii];

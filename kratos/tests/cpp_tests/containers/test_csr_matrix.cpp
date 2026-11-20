@@ -41,7 +41,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSRMatrixConstruction, KratosCoreFastSuite)
     A.BeginAssemble();
     for(const auto& c : connectivities)
     {
-        Matrix data(c.size(),c.size(),1.0);
+        Matrix data = CreateFilled<Matrix>(c.size(), c.size(), 1.0);
         A.Assemble(data,c);
     }
     A.FinalizeAssemble();
@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSRMatrixSpMV, KratosCoreFastSuite)
 
     A.BeginAssemble();
     for(const auto& c : connectivities){
-        Matrix data(c.size(),c.size(),1.0);
+        Matrix data = CreateFilled<Matrix>(c.size(), c.size(), 1.0);
         A.Assemble(data,c);
     }
     A.FinalizeAssemble();
@@ -103,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSRMatrixToAMGCLMatrix, KratosCoreFastSuite)
 
     A.BeginAssemble();
     for(const auto& c : connectivities){
-        Matrix data(c.size(),c.size(),1.0);
+        Matrix data = CreateFilled<Matrix>(c.size(), c.size(), 1.0);
         A.Assemble(data,c);
     }
     A.FinalizeAssemble();
@@ -223,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSRMatrixRectangularMatrix, KratosCoreFastSuite)
     for(const auto& c : all_connectivities){
         std::vector<SparseContainersTestUtilities::IndexType> row_ids = c;
         std::vector<SparseContainersTestUtilities::IndexType> col_ids{row_ids[0]/col_divider, row_ids[1]/col_divider};
-        Matrix data(row_ids.size(),col_ids.size(),1.0);
+        Matrix data = CreateFilled<Matrix>(row_ids.size(), col_ids.size(), 1.0);
         A.Assemble(data,row_ids, col_ids);
     }
     A.FinalizeAssemble();
@@ -283,7 +283,7 @@ KRATOS_TEST_CASE_IN_SUITE(CSRMatrixDiagonalValues, KratosCoreFastSuite)
 
     A.BeginAssemble();
     for(const auto& c : connectivities){
-        Matrix data(c.size(),c.size(),1.0);
+        Matrix data = CreateFilled<Matrix>(c.size(), c.size(), 1.0);
         A.Assemble(data,c);
     }
     A.FinalizeAssemble();

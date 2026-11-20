@@ -95,8 +95,8 @@ void FindContactsInSkinModelPart::FindConditionContact(
     double min_distance = std::numeric_limits<double>::max();
     auto condition_center = rCondition.GetGeometry().Center();
     auto condition_normal  = rCondition.GetGeometry().UnitNormal(condition_center);
-    array_1d<std::size_t, 3> min_position(3,0);
-    array_1d<std::size_t, 3> max_position(3,0);
+    array_1d<std::size_t, 3> min_position = CreateFilled<array_1d<std::size_t, 3>>(0);
+    array_1d<std::size_t, 3> max_position = CreateFilled<array_1d<std::size_t, 3>>(0);
     std::vector<int> face_neigh_colors;
     face_neigh_colors.reserve(6);
     std::vector<int>  all_neigh_colors;

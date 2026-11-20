@@ -156,7 +156,7 @@ void QSVMSDEMCoupled<TElementData>::CalculateOnIntegrationPoints(
 
     for (unsigned int g = 0; g < number_of_integration_points; g++ ) {
         data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),shape_derivatives[g]);
-        array_1d<double,3> value(3,0.0);
+        array_1d<double,3> value = CreateFilled<array_1d<double, 3>>(0.0);
         if (rVariable == VELOCITY) {
             const auto& r_velocity = data.Velocity;
             value = this->GetAtCoordinate(r_velocity,data.N);

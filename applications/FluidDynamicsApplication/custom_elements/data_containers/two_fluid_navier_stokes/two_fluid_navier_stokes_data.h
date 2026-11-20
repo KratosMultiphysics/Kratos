@@ -344,7 +344,7 @@ void CalculateEffectiveViscosityAtGaussPoint()
 
 void ComputeDarcyTerm()
 {
-    array_1d<double, 3> convective_velocity(3, 0.0);
+    array_1d<double, 3> convective_velocity = CreateFilled<array_1d<double, 3>>(0.0);
     for (size_t i = 0; i < TNumNodes; i++) {
         for (size_t j = 0; j < TDim; j++) {
             convective_velocity[j] += this->N[i] * (Velocity(i, j) - MeshVelocity(i, j));
