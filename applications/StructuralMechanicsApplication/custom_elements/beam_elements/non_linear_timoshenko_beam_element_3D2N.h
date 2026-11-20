@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Alejandro Cornejo
+//  Main authors:    Alejandro Cornejo
 //
 #pragma once
 
@@ -44,7 +44,7 @@ namespace Kratos
  * DOI: 10.1002/nme.486 
 * The description of the formulation can be found in: https://www.researchgate.net/publication/416879839_Large_displacement_2D_and_3D_Timoshenko_beams (DOI: 10.13140/RG.2.2.14877.47846)
  * 
- * Note: It has been identified that for obtaining non-dissipative results, the residual tolerance must be tightened lower than the default value of relative 1.0e-4. This ensures lower errors in the rotation field.
+ * Note: It has been identified that for obtaining non-dissipative results in dynamic analysis, the residual tolerance must be tightened lower than the default value of relative 1.0e-4. This ensures lower errors in the rotation field.
  * @author Alejandro Cornejo
  */
 class NonLinearTimoshenkoBeamElement3D2N : public Element
@@ -219,7 +219,7 @@ public:
 
     /**
      * @brief This method computes the B matrix that relates the variation of the DoFs and the variation of the
-     * strains, its size is a 6 by 12.
+     * generalized strains, its size is a 6 by 12.
      */
     BoundedMatrix<double, 6, 12> CalculateB(
         const double N1,
@@ -253,7 +253,7 @@ public:
         ConstitutiveLaw::Parameters rValues);
 
     /**
-     * @brief This method computes the contribution to the LHs of the geometrical part for 
+     * @brief This method computes the contribution to the LHS of the geometrical part for 
      * one integration point.
      */
     void CalculateAndAddKg(
@@ -292,12 +292,12 @@ public:
     /**
      * Getting method to obtain the time derivative of variable which defines the degrees of freedom
      */
-    void GetFirstDerivativesVector(Vector &values, int Step = 0) const override;
+    void GetFirstDerivativesVector(Vector &rValues, int Step = 0) const override;
 
     /**
      * Getting method to obtain the second time derivative of variable which defines the degrees of freedom
      */
-    void GetSecondDerivativesVector(Vector &values, int Step = 0) const override;
+    void GetSecondDerivativesVector(Vector &rValues, int Step = 0) const override;
 
     /**
      * this is called during the assembling process in order

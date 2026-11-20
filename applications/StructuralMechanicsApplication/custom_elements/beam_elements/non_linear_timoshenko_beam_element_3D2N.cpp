@@ -631,12 +631,12 @@ void NonLinearTimoshenkoBeamElement3D2N::GetValuesVector(
 /***********************************************************************************/
 
 void NonLinearTimoshenkoBeamElement3D2N::GetFirstDerivativesVector(
-    Vector &values,
+    Vector &rValues,
     int Step
 ) const
 {
-    if (values.size() != 12)
-        values.resize(12, false);
+    if (rValues.size() != 12)
+        rValues.resize(12, false);
     const auto& r_geom = GetGeometry();
 
     const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(VELOCITY, Step);
@@ -645,10 +645,10 @@ void NonLinearTimoshenkoBeamElement3D2N::GetFirstDerivativesVector(
     const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
 
     for (IndexType i = 0; i < 3; ++i) {
-        values[i]     = r_displ_0[i];
-        values[i + 3] = r_rotation_0[i];
-        values[i + 6] = r_displ_1[i];
-        values[i + 9] = r_rotation_1[i];
+        rValues[i]     = r_displ_0[i];
+        rValues[i + 3] = r_rotation_0[i];
+        rValues[i + 6] = r_displ_1[i];
+        rValues[i + 9] = r_rotation_1[i];
     }
 }
 
@@ -656,12 +656,12 @@ void NonLinearTimoshenkoBeamElement3D2N::GetFirstDerivativesVector(
 /***********************************************************************************/
 
 void NonLinearTimoshenkoBeamElement3D2N::GetSecondDerivativesVector(
-    Vector &values,
+    Vector &rValues,
     int Step
 ) const
 {
-    if (values.size() != 12)
-        values.resize(12, false);
+    if (rValues.size() != 12)
+        rValues.resize(12, false);
     const auto& r_geom = GetGeometry();
 
     const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(ACCELERATION, Step);
@@ -670,10 +670,10 @@ void NonLinearTimoshenkoBeamElement3D2N::GetSecondDerivativesVector(
     const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
 
     for (IndexType i = 0; i < 3; ++i) {
-        values[i]     = r_displ_0[i];
-        values[i + 3] = r_rotation_0[i];
-        values[i + 6] = r_displ_1[i];
-        values[i + 9] = r_rotation_1[i];
+        rValues[i]     = r_displ_0[i];
+        rValues[i + 3] = r_rotation_0[i];
+        rValues[i + 6] = r_displ_1[i];
+        rValues[i + 9] = r_rotation_1[i];
     }
 }
 
@@ -875,6 +875,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateMassMatrix(
     BoundedMatrix<double, 12, 12> rotation_matrix;
     rotation_matrix.clear();
 
+    // Element size rotation matrix is block diagonal with 3x3 blocks
     for (IndexType block = 0; block < 4; ++block) {
         const IndexType start = 3 * block;
         noalias(project(rotation_matrix, range(start, start + 3), range(start, start + 3))) = T;
