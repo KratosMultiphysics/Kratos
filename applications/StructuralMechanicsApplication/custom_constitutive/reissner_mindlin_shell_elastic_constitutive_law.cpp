@@ -211,4 +211,48 @@ double& ReissnerMindlinShellElasticConstitutiveLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
+Matrix& ReissnerMindlinShellElasticConstitutiveLaw::CalculateValue(
+    ConstitutiveLaw::Parameters& rValues,
+    const Variable<Matrix>& rThisVariable,
+    Matrix& rValue)
+{
+    rValue.resize(3, 3, false);
+    rValue.clear();
+
+    if (rThisVariable == SHELL_STRESS_TOP_SURFACE ||
+        rThisVariable == SHELL_STRESS_BOTTOM_SURFACE ||
+        rThisVariable == SHELL_STRESS_MIDDLE_SURFACE) {
+
+        const auto& r_props = rValues.GetMaterialProperties();
+        double z = 0.0;
+
+        if (rThisVariable == SHELL_STRESS_TOP_SURFACE) {
+            z = 0.5 * r_props[THICKNESS];
+        } else if (rThisVariable == SHELL_STRESS_BOTTOM_SURFACE) {
+            z = -0.5 * r_props[THICKNESS];
+        }
+
+        Vector strain_plane_stress(3), stress_plane_stress(3);
+        Matrix constitutive_matrix(3, 3);
+
+        Vector generalized_strain = rValues.GetStrainVector(); // Filled by the element
+
+        noalias(strain_plane_stress) = project(generalized_strain, range(0, 3)) +
+            z * project(generalized_strain, range(3, 6)); // gEm + z * gEb
+
+        ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStress(constitutive_matrix, r_props[YOUNG_MODULUS], r_props[POISSON_RATIO]);
+        noalias(stress_plane_stress) = prod(constitutive_matrix, strain_plane_stress);
+        rValue(0, 0) = stress_plane_stress[0];
+        rValue(1, 1) = stress_plane_stress[1];
+        rValue(0, 1) = stress_plane_stress[2];
+        rValue(1, 0) = stress_plane_stress[2];
+
+        return rValue;
+    }
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 } // Namespace Kratos

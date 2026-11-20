@@ -193,6 +193,18 @@ public:
         const Variable<double>& rThisVariable,
         double& rValue) override;
 
+    /**
+     * @brief Returns the value of a specified variable (double)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    Matrix& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue) override;
+
 protected:
 
     ///@name Protected static Member Variables
