@@ -286,7 +286,7 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateAll(
         mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
 
         const double N = stress_vector[0]; // Axial force
-        const double M = stress_vector[1]; // Bending moment
+        // const double M = stress_vector[1]; // Bending moment, unused
         const double V = stress_vector[2]; // Shear force
 
         // axial strain increment

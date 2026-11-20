@@ -63,7 +63,6 @@ void NonLinearTimoshenkoBeamElement3D2N::GetDofList(
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
     rElementalDofList.resize(dofs_per_node * number_of_nodes);
     SizeType index = 0;
 
@@ -766,9 +765,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
         rVariable == SHEAR_STRAIN_Y ||
         rVariable == SHEAR_STRAIN_Z)
     {
-        const auto& r_props = GetProperties();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-        const SizeType mat_size = GetDoFsPerNode() * GetGeometry().size();
 
         IndexType component = 0;
         if (rVariable == AXIAL_STRAIN) {
@@ -821,8 +818,6 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
     if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2 || rVariable == LOCAL_AXIS_3)
     {
         const double L0 = CalculateReferenceLength();
-        const double dN1 = -1.0 / L0;
-        const double dN2 = -dN1;
 
         array_1d<double, 3> local_axis_1, local_axis_2, local_axis_3;
 
