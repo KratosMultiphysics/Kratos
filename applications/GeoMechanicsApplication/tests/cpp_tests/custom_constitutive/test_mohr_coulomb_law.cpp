@@ -896,6 +896,42 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               Defaults::absolute_tolerance * 1.0e3);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CheckInputForLinearHardeningOfFrictionSurface,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(GEO_COULOMB_HARDENING_TYPE, "Linear");
+    properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0}));
+    properties.SetValue(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0}));
+    properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({1.0, 1.0}));
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties.SetValue(YOUNG_MODULUS, 1.0e6);
+    properties.SetValue(POISSON_RATIO, 0.0);
+    properties.SetValue(GEO_MAX_PLASTIC_ITERATIONS, 100);
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.SetMaterialProperties(properties);
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values),
+        "GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS must contain exactly 1 coefficient(s) "
+        "for Coulomb hardening type 'linear'. Actual size: 2")
+
+    // Arrange
+    properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({1.0}));
+    parameters.SetMaterialProperties(properties);
+    // Act and Assert
+    EXPECT_NO_THROW(law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values));
+}
+
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZoneWithLinearHardening,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -955,6 +991,79 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     expected_cauchy_stress_vector =
         UblasUtilities::CreateVector({1.16025403784, 0.0, -31.16025403784, 0.0}); // regression values
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector, tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZoneWithExponentialHardening,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
+    Properties properties;
+
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties.SetValue(YOUNG_MODULUS, 1.0e6);
+    properties.SetValue(POISSON_RATIO, 0.25);
+    properties.SetValue(GEO_MAX_PLASTIC_ITERATIONS, 100);
+    properties.SetValue(GEO_COULOMB_HARDENING_TYPE, "Exponential");
+    properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
+    properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
+    properties.SetValue(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
+
+    ConstitutiveLaw::Parameters parameters;
+    const auto                  dummy_element_geometry      = Geometry<Node>{};
+    const auto                  dummy_shape_function_values = Vector{};
+
+    // Arrange
+    constexpr auto c_res = 10.0;
+    constexpr auto a_c   = 0.0;
+    properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({c_res, a_c}));
+    parameters.SetMaterialProperties(properties);
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    // Act
+    auto cauchy_stress_vector = UblasUtilities::CreateVector({8.0, 0.0, -12.0, 0.0});
+    auto calculated_result    = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
+
+    // Assert
+    auto expected_result =
+        UblasUtilities::CreateVector({7.338673315592010089, 0.0, -11.338673315592010089, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(calculated_result, expected_result, Defaults::absolute_tolerance);
+
+    // Arrange
+    constexpr auto phi_res = 0.0;
+    constexpr auto a_phi   = 15.0;
+    properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS,
+                        UblasUtilities::CreateVector({phi_res, a_phi}));
+    properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
+    parameters.SetMaterialProperties(properties);
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    // Act
+    cauchy_stress_vector = UblasUtilities::CreateVector({8.0, 0.0, -12.0, 0.0});
+    calculated_result    = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
+
+    // Assert
+    expected_result = UblasUtilities::CreateVector({7.3387091532328732, 0.0, -11.338709153232873, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(calculated_result, expected_result, Defaults::absolute_tolerance);
+
+    // Arrange
+    constexpr auto psi_res = 0.0;
+    constexpr auto a_psi   = 10.0;
+    properties.SetValue(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS,
+                        UblasUtilities::CreateVector({psi_res, a_psi}));
+    parameters.SetMaterialProperties(properties);
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    // Act
+    cauchy_stress_vector = UblasUtilities::CreateVector({8.0, 0.0, -12.0, 0.0});
+    calculated_result    = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
+
+    // Assert ( the mapping is the same as its based on the same kappa value, so the result is the same as the previous test )
+    KRATOS_EXPECT_VECTOR_NEAR(calculated_result, expected_result, Defaults::absolute_tolerance);
 }
 
 Vector ComputeStressVectorUsingCPhiReductionTestData(double  Cohesion,
