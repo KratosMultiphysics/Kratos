@@ -324,6 +324,29 @@ class TestNormalUtils2DSymmetricalSquare(KratosUnittest.TestCase):
     def test_CalculateShapeDerivativesOnSimplexConditions2D(self):
         FiniteDifferenceNormalShapeSensitivityTest(self, self.model_part, [1, 2, 3, 4, 5, 10, 11, 12, 13, 19, 20], 1e-7, 8)
 
+class TestNormalUtilsEdgeCases(KratosUnittest.TestCase):
+    def setUp(self):
+        self.current_model = KratosMultiphysics.Model()
+
+    # Opposite lines between the same nodes cancel out to a zero area normal
+    @KratosUnittest.skipIf(KratosMultiphysics.IsDistributedRun(), "This test is designed for serial runs only.")
+    def test_UnitNormalWithZeroAreaNormal(self):
+        model_part = self.current_model.CreateModelPart("ZeroAreaNormal")
+        properties = model_part.GetProperties()[1]
+
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 2
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+
+        model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+
+        model_part.CreateNewCondition("LineCondition2D2N", 100, [1, 2], properties)
+        model_part.CreateNewCondition("LineCondition2D2N", 101, [2, 1], properties)
+
+        # An error need to br thrown if we try to calculate a Zero-normal even if it is not in the interface.
+        with self.assertRaisesRegex(RuntimeError, "Zero norm normal in NON-INTERFACE flagged node: "):
+            KratosMultiphysics.NormalCalculationUtils().CalculateUnitNormals(model_part)
+
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
