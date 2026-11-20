@@ -800,6 +800,9 @@ bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
         mpImpl->mpSolver
     );
 
+    KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1)
+        << "iteration count: " << iteration_count << ", residual norm: " << residual_norm << std::endl;
+
     if (mFallbackToGMRES && mTolerance < residual_norm) {
         const std::string iterative_solver_name = mAMGCLParameters.get<std::string>("solver.type");
         if (iterative_solver_name == "gmres") {

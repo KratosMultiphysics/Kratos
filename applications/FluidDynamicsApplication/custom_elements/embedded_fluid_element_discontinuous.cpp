@@ -981,6 +981,9 @@ double EmbeddedFluidElementDiscontinuous<TBaseElement>::ComputeNormalPenaltyCoef
     const double h = rData.ElementSize;
     const double eff_mu = rData.EffectiveViscosity;
     const double penalty = 1.0 / rData.PenaltyCoefficient;
+    //TODO divide by 6 and 12 for stabilization term from Schott et al. (doi: 10.1002/fld.4218)
+    // // Compute the velocity stabilization constant of Schott et al. (doi: 10.1002/fld.4218)
+    // const double stab_constant_u = eff_mu + gauss_pt_rho*gauss_pt_v_norm*h / 6.0 + gauss_pt_rho*h*h/rWallLawData.DeltaTime / 12.0;
     const double cons_coef = (eff_mu + eff_mu + gauss_pt_rho*gauss_pt_v_norm*h + gauss_pt_rho*h*h/rData.DeltaTime)/(h*penalty);
 
     return cons_coef;
@@ -1176,7 +1179,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForceCenter(
                 row(rData.PositiveInterfaceN, g),
                 rData.PositiveInterfaceDNDX[g]);
 
-            // Get the interface Gauss pt. unit noromal
+            // Get the interface Gauss pt. unit normal
             const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
 
             // Compute Gauss pt. pressure
