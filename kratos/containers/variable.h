@@ -90,6 +90,21 @@ public:
     {}
 
     /**
+     * @brief Constructor with specific name, time derivative and adjoint variables
+     * @param NewName The name to be assigned to the new variable
+     * @param pTimeDerivativeVariable Pointer to the time derivative variable (can be nullptr)
+     * @param pAdjointVariable Pointer to the adjoint variable (can be nullptr)
+     */
+    constexpr explicit Variable(
+        const std::string_view& NewName,
+        const VariableType* pTimeDerivativeVariable,
+        const VariableType* pAdjointVariable)
+        : VariableData(NewName, sizeof(TDataType)),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable),
+          mpAdjointVariable(pAdjointVariable)
+    {}
+
+    /**
      * @brief Constructor for creating a component of other variable
      * @param rNewName The name to be assigned to the compoenent
      */
@@ -118,6 +133,24 @@ public:
     {}
 
     /**
+     * @brief Constructor for creating a component of other variable with time derivative and adjoint
+     * @param NewName The name to be assigned to the component
+     * @param pTimeDerivativeVariable Pointer to the time derivative variable (can be nullptr)
+     * @param pAdjointVariable Pointer to the adjoint variable (can be nullptr)
+     */
+    template <typename TSourceVariableType>
+    constexpr explicit Variable(
+        const std::string_view& NewName,
+        TSourceVariableType* pSourceVariable,
+        char ComponentIndex,
+        const VariableType* pTimeDerivativeVariable,
+        const VariableType* pAdjointVariable)
+        : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable),
+          mpAdjointVariable(pAdjointVariable)
+    {}
+
+    /**
      * Copy constructor.
      * @brief Copy constructor.
      * @param rOtherVariable The old variable to be copied
@@ -125,7 +158,8 @@ public:
     constexpr explicit Variable(
         const VariableType& rOtherVariable)
         : VariableData(rOtherVariable),
-          mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
+          mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable),
+          mpAdjointVariable(rOtherVariable.mpAdjointVariable)
     {
         // Here we don't register as we asume that the origin is already registered
     }
@@ -307,13 +341,42 @@ public:
     ///@{
 
     /**
+     * @brief This method checks if a time derivative variable was assigned
+     * @return True if the variable has a time derivative variable
+     */
+    constexpr bool HasTimeDerivative() const noexcept
+    {
+        return mpTimeDerivativeVariable != nullptr;
+    }
+
+    /**
      * @brief This method returns the time derivative variable
      * @return The reference of the time derivative variable (if any)
      */
-    const VariableType& GetTimeDerivative() const
+    constexpr const VariableType& GetTimeDerivative() const
     {
         KRATOS_DEBUG_ERROR_IF(mpTimeDerivativeVariable == nullptr) << "Time derivative for Variable \"" << Name() << "\" was not assigned" << std::endl;
         return *mpTimeDerivativeVariable;
+    }
+
+    /**
+     * @brief This method checks if an adjoint variable was assigned
+     * @return True if the variable has an adjoint variable
+     */
+    constexpr bool HasAdjointVariable() const noexcept
+    {
+        return mpAdjointVariable != nullptr;
+    }
+
+    /**
+     * @brief This method returns the adjoint variable
+     * @details Raises an error if no adjoint variable was assigned
+     * @return The reference of the adjoint variable
+     */
+    constexpr const VariableType& GetAdjointVariable() const
+    {
+        KRATOS_ERROR_IF(mpAdjointVariable == nullptr) << "Adjoint variable for Variable \"" << Name() << "\" was not assigned" << std::endl;
+        return *mpAdjointVariable;
     }
 
     /**
@@ -421,6 +484,8 @@ private:
     ///@{
 
     const VariableType* mpTimeDerivativeVariable = nullptr; /// Definition of the pointer to the variable for the time derivative
+
+    const VariableType* mpAdjointVariable = nullptr; /// Definition of the pointer to the adjoint variable (primal to adjoint link only)
 
     ///@}
     ///@name Private Operators
