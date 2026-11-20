@@ -98,6 +98,52 @@ void ReissnerMindlinShellElasticConstitutiveLaw::CalculateMaterialResponsePK1(Co
     CalculateMaterialResponseCauchy(rValues);
 }
 
+void ReissnerMindlinShellElasticConstitutiveLaw::CalculateGeneralizedConstitutiveMatrix(
+        Matrix& rMatrix,
+        const Properties& rProperties,
+        const GeometryType& rGeometry) const
+{
+    const double E  = rProperties[YOUNG_MODULUS];
+    const double nu = rProperties[POISSON_RATIO];
+    const double t  = rProperties[THICKNESS];
+
+    const double one_minus_nu2 = 1.0 - nu * nu;
+    const double half_one_minus_nu = 0.5 * (1.0 - nu);
+    const double t_square = t * t;
+
+    const double Dm_factor = E * t / one_minus_nu2;
+    const double Db_factor = E * t * t_square / (12.0 * one_minus_nu2);
+
+    const double k_shear = 5.0 / 6.0; // Shear correction factor
+    const double h_max = GetMaxReferenceEdgeLength(rGeometry);
+    const double alpha = 0.1; // This could be an input property
+    const double stenberg_stabilization = t_square / (t_square + alpha * h_max * h_max);
+    const double G = ConstitutiveLawUtilities<3>::CalculateShearModulus(rProperties);
+    const double Ds_factor = G * k_shear * t * stenberg_stabilization;
+
+    if (rMatrix.size1() != 8 || rMatrix.size2() != 8)
+        rMatrix.resize(8, 8, false);
+    rMatrix.clear();
+
+    // Membrane constitutive matrix
+    rMatrix(0, 0) = Dm_factor;
+    rMatrix(0, 1) = Dm_factor * nu;
+    rMatrix(1, 0) = rMatrix(0, 1);
+    rMatrix(1, 1) = Dm_factor;
+    rMatrix(2, 2) = Dm_factor * half_one_minus_nu;
+
+    // Bending constitutive matrix
+    rMatrix(3, 3) = Db_factor;
+    rMatrix(3, 4) = Db_factor * nu;
+    rMatrix(4, 3) = rMatrix(3, 4);
+    rMatrix(4, 4) = Db_factor;
+    rMatrix(5, 5) = Db_factor * half_one_minus_nu;
+
+    // Shear constitutive matrix
+    rMatrix(6, 6) = Ds_factor;
+    rMatrix(7, 7) = Ds_factor;
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -109,51 +155,18 @@ void ReissnerMindlinShellElasticConstitutiveLaw::CalculateMaterialResponseCauchy
     AddInitialStrainVectorContribution(r_generalized_strain_vector);
     const auto strain_size = GetStrainSize();
 
-    const double E  = r_material_properties[YOUNG_MODULUS];
-    const double nu = r_material_properties[POISSON_RATIO];
-    const double t  = r_material_properties[THICKNESS];
-
     if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS) || r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         auto &r_generalized_stress_vector = rValues.GetStressVector();
         if (r_generalized_stress_vector.size() != strain_size)
             r_generalized_stress_vector.resize(strain_size, false);
 
-        const double one_minus_nu2 = 1.0 - nu * nu;
-        const double half_one_minus_nu = 0.5 * (1.0 - nu);
-        const double t_square = t * t;
-
-        const double Dm_factor = E * t / one_minus_nu2;
-        const double Db_factor = E * t * t_square / (12.0 * one_minus_nu2);
-
-        const double k_shear = 5.0 / 6.0; // Shear correction factor
-        const double h_max = GetMaxReferenceEdgeLength(rValues.GetElementGeometry());
-        const double alpha = 0.1; // This could be an input property
-        const double stenberg_stabilization = t_square / (t_square + alpha * h_max * h_max);
-        const double G = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_material_properties);
-        const double Ds_factor = G * k_shear * t * stenberg_stabilization;
 
         auto &r_gen_const_matrix = rValues.GetConstitutiveMatrix();
         if (r_gen_const_matrix.size1() != strain_size || r_gen_const_matrix.size2() != strain_size)
             r_gen_const_matrix.resize(strain_size, strain_size, false);
         r_gen_const_matrix.clear();
 
-        // Membrane constitutive matrix
-        r_gen_const_matrix(0, 0) = Dm_factor;
-        r_gen_const_matrix(0, 1) = Dm_factor * nu;
-        r_gen_const_matrix(1, 0) = r_gen_const_matrix(0, 1);
-        r_gen_const_matrix(1, 1) = Dm_factor;
-        r_gen_const_matrix(2, 2) = Dm_factor * half_one_minus_nu;
-
-        // Bending constitutive matrix
-        r_gen_const_matrix(3, 3) = Db_factor;
-        r_gen_const_matrix(3, 4) = Db_factor * nu;
-        r_gen_const_matrix(4, 3) = r_gen_const_matrix(3, 4);
-        r_gen_const_matrix(4, 4) = Db_factor;
-        r_gen_const_matrix(5, 5) = Db_factor * half_one_minus_nu;
-
-        // Shear constitutive matrix
-        r_gen_const_matrix(6, 6) = Ds_factor;
-        r_gen_const_matrix(7, 7) = Ds_factor;
+        CalculateGeneralizedConstitutiveMatrix(r_gen_const_matrix, r_material_properties, rValues.GetElementGeometry());
 
         if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
             noalias(r_generalized_stress_vector) = prod(r_gen_const_matrix, r_generalized_strain_vector);
@@ -248,6 +261,43 @@ Matrix& ReissnerMindlinShellElasticConstitutiveLaw::CalculateValue(
         rValue(1, 0) = stress_plane_stress[2];
 
         return rValue;
+
+    } else if (rThisVariable == SHELL_FORCE ||
+               rThisVariable == SHELL_MOMENT ||
+               rThisVariable == SHELL_SHEAR) {
+
+        const auto& r_cl_law_options = rValues.GetOptions();
+        auto &r_material_properties = rValues.GetMaterialProperties();
+        auto &r_generalized_strain_vector = rValues.GetStrainVector();
+        AddInitialStrainVectorContribution(r_generalized_strain_vector);
+        const auto strain_size = GetStrainSize();
+
+        auto &r_generalized_stress_vector = rValues.GetStressVector();
+        if (r_generalized_stress_vector.size() != strain_size)
+            r_generalized_stress_vector.resize(strain_size, false);
+
+        auto &r_gen_const_matrix = rValues.GetConstitutiveMatrix();
+        CalculateGeneralizedConstitutiveMatrix(r_gen_const_matrix, r_material_properties, rValues.GetElementGeometry());
+
+        noalias(r_generalized_stress_vector) = prod(r_gen_const_matrix, r_generalized_strain_vector);
+        AddInitialStressVectorContribution(r_generalized_stress_vector);
+
+        if (rThisVariable == SHELL_FORCE) {
+            rValue(0, 0) = r_generalized_stress_vector[0];
+            rValue(1, 1) = r_generalized_stress_vector[1];
+            rValue(0, 1) = r_generalized_stress_vector[2];
+            rValue(1, 0) = r_generalized_stress_vector[2];
+        } else if (rThisVariable == SHELL_MOMENT) {
+            rValue(0, 0) = r_generalized_stress_vector[3];
+            rValue(1, 1) = r_generalized_stress_vector[4];
+            rValue(0, 1) = r_generalized_stress_vector[5];
+            rValue(1, 0) = r_generalized_stress_vector[5];
+        } else if (rThisVariable == SHELL_SHEAR) {
+            rValue(0, 0) = r_generalized_stress_vector[6];
+            rValue(1, 1) = r_generalized_stress_vector[7];
+        }
+        return rValue;
+
     }
     return rValue;
 }

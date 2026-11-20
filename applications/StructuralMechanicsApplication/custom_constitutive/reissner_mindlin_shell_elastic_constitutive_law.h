@@ -205,6 +205,12 @@ public:
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue) override;
 
+    
+    void CalculateGeneralizedConstitutiveMatrix(
+        Matrix& rMatrix,
+        const Properties& rProperties,
+        const GeometryType& rGeometry) const;
+
 protected:
 
     ///@name Protected static Member Variables
