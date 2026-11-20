@@ -764,7 +764,7 @@ public:
 
 
                     Element::Pointer p_element;
-                    p_element = it->Create(current_id, geom, it->pGetProperties());
+                    p_element = it->Create(current_id, geom.Points(), it->pGetProperties());
                     p_element->SetFlags(*it);
                     p_element->Initialize(rCurrentProcessInfo);
                     p_element->InitializeSolutionStep(rCurrentProcessInfo);
@@ -1131,7 +1131,7 @@ protected:
                         );
 
                         //generate new element by cloning the base one
-                        Element::Pointer p_element = it->Create(current_id, geom, it->pGetProperties());
+                        Element::Pointer p_element = it->Create(current_id, geom.Points(), it->pGetProperties());
                         p_element->Initialize(rCurrentProcessInfo);
                         p_element->InitializeSolutionStep(rCurrentProcessInfo);
                         p_element->FinalizeSolutionStep(rCurrentProcessInfo);
@@ -1367,7 +1367,7 @@ protected:
                         //KRATOS_WATCH("ln1304");
 
                         Condition::Pointer p_Condition;
-                        p_Condition = it->Create(current_id, geom, it->pGetProperties());
+                        p_Condition = it->Create(current_id, geom.Points(), it->pGetProperties());
                         p_Condition->SetFlags(*it);
                         p_Condition->Initialize(rCurrentProcessInfo);
                         p_Condition->InitializeSolutionStep(rCurrentProcessInfo);

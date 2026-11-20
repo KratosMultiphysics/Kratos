@@ -294,7 +294,7 @@ public:
 					new_model_part.Nodes()(triangle_nodes[1]),
 					new_model_part.Nodes()(triangle_nodes[2])
 				);
-				Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1, geometry, properties); //está bien? acá la verdad ni idea. sobre todo number_of_triangles (la posición). o debe ser un puntero de elemento en vez de un entero?
+				Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1, geometry.Points(), properties); //está bien? acá la verdad ni idea. sobre todo number_of_triangles (la posición). o debe ser un puntero de elemento en vez de un entero?
 				new_model_part.Conditions().push_back(p_condition);
 				++number_of_triangles;
 			}
@@ -767,7 +767,7 @@ public:
                     new_model_part.Nodes()(TriangleNodesArray[2])
                 );
 
-                Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1+first_element, geom, properties); //creating the element using the reference element. notice we are using the first element to avoid overriting nodes created by other cutting planes
+                Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1+first_element, geom.Points(), properties); //creating the element using the reference element. notice we are using the first element to avoid overriting nodes created by other cutting planes
                 new_model_part.Conditions().push_back(p_condition);
                 ++number_of_triangles;
 
@@ -905,7 +905,7 @@ public:
                         new_model_part.Nodes()(nodes_for_2triang[index*3+2])
                     );
 
-                    Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1+first_element, geom, properties);
+                    Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1+first_element, geom.Points(), properties);
 
                     new_model_part.Conditions().push_back(p_condition);
                     ++number_of_triangles;
