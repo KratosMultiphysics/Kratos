@@ -49,7 +49,7 @@ jobs:
       OMPI_MCA_btl_vader_single_copy_mechanism: none  # Suppressing some annoying OpenMPI messages
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:stable
       options: --user 1001
 
     steps:
@@ -68,13 +68,13 @@ jobs:
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
-          export CC=/usr/bin/gcc-12
-          export CXX=/usr/bin/g++-12
+          export CC=/usr/bin/gcc-14
+          export CXX=/usr/bin/g++-14
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF"
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
-          export CC=/usr/bin/clang-14
-          export CXX=/usr/bin/clang++-14
+          export CC=/usr/bin/clang-18
+          export CXX=/usr/bin/clang++-18
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF"
         else
@@ -91,13 +91,13 @@ jobs:
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
-          export CC=/usr/bin/gcc-12
-          export CXX=/usr/bin/g++-12
+          export CC=/usr/bin/gcc-14
+          export CXX=/usr/bin/g++-14
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
-          export CC=/usr/bin/clang-14
-          export CXX=/usr/bin/clang++-14
+          export CC=/usr/bin/clang-18
+          export CXX=/usr/bin/clang++-18
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/"
         else
@@ -113,13 +113,13 @@ jobs:
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
-          export CC=/usr/bin/gcc-12
-          export CXX=/usr/bin/g++-12
+          export CC=/usr/bin/gcc-14
+          export CXX=/usr/bin/g++-14
           export KRATOS_CMAKE_OPTIONS_FLAGS=""
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
-          export CC=/usr/bin/clang-14
-          export CXX=/usr/bin/clang++-14
+          export CC=/usr/bin/clang-18
+          export CXX=/usr/bin/clang++-18
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
           export KRATOS_CMAKE_OPTIONS_FLAGS=""
         else
@@ -135,13 +135,13 @@ jobs:
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
-          export CC=/usr/bin/gcc-12
-          export CXX=/usr/bin/g++-12
+          export CC=/usr/bin/gcc-14
+          export CXX=/usr/bin/g++-14
           export KRATOS_CMAKE_OPTIONS_FLAGS=""
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations -Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
-          export CC=/usr/bin/clang-14
-          export CXX=/usr/bin/clang++-14
+          export CC=/usr/bin/clang-18
+          export CXX=/usr/bin/clang++-18
           export KRATOS_CMAKE_CXX_FLAGS="-Werror -Wno-deprecated-declarations"
           export KRATOS_CMAKE_OPTIONS_FLAGS=""
         else
@@ -311,7 +311,7 @@ jobs:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-rocky8:latest
+      image: kratosmultiphysics/kratos-image-ci-rocky-8:stable
       options: --user 1001
 
     steps:
@@ -356,7 +356,7 @@ jobs:
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:stable
       options: --user 1001
 
     steps:
@@ -369,8 +369,8 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        export CC=/usr/bin/clang-14
-        export CXX=/usr/bin/clang++-14
+        export CC=/usr/bin/clang-18
+        export CXX=/usr/bin/clang++-18
 
         export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
         export KRATOS_BUILD="${KRATOS_SOURCE}/build"
@@ -558,7 +558,7 @@ jobs:
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:stable
       options: --user 1001
 
     steps:
