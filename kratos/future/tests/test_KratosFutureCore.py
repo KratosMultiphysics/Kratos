@@ -5,6 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suites
+import test_entity_data_container
 import test_linear_system
 import test_sparse_matrix_linear_operator
 
@@ -25,6 +26,7 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_entity_data_container.TestEntityDataContainer]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_system.TestLinearSystem]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_linear_operator.TestSparseMatrixLinearOperator]))
 
