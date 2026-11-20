@@ -26,6 +26,9 @@ class CoSimulationPredictor:
     def Finalize(self):
         pass
 
+    def BeforeSolutionLoop(self):
+        pass
+
     def InitializeSolutionStep(self):
         pass
 
