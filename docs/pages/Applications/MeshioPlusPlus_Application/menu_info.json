@@ -1,0 +1,14 @@
+{
+    "side_bar_name": "meshioplusplus_application",
+    "landing_page": "General/Overview.md",
+    "additional_menu_options": {
+        "product": "Meshio++ Application",
+        "title": "sidebar"
+    },
+    "custom_entries": [
+        "General",
+        "Output_Process",
+        "Modelers",
+        "Utilities"
+    ]
+}
