@@ -59,8 +59,8 @@
                     },
                     "strategy_type": "newton_raphson_with_seepage",
                     "convergence_criterion": "residual_criterion",
-                    "residual_relative_tolerance": 1.0e-03,
-                    "residual_absolute_tolerance": 1.0e-15,
+                    "residual_relative_tolerance": 1.0e-04,
+                    "residual_absolute_tolerance": 1.0e-09,
                     "min_iterations": 6,
                     "max_iterations": 300,
                     "number_cycles": 1,
@@ -68,16 +68,16 @@
                     "increase_factor": 1.0,
                     "rotation_dofs": false,
                     "problem_domain_sub_model_part_list": [
-                        "Sand_layer",
-                        "Clay_layer",
-                        "Core_levee",
-                        "Cap_levee"
+                        "Cover",
+                        "Aquifer",
+                        "Levee_core",
+                        "Levee_outer_layer"
                     ],
                     "body_domain_sub_model_part_list": [
-                        "Sand_layer",
-                        "Clay_layer",
-                        "Core_levee",
-                        "Cap_levee"
+                        "Cover",
+                        "Aquifer",
+                        "Levee_core",
+                        "Levee_outer_layer"
                     ]
                 },
                 "processes": {
@@ -152,7 +152,7 @@
                             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                             "process_name": "ApplySeepageBoundaryProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.SeepageBoundary"
+                                "model_part_name": "PorousDomain.Seepage_face"
                             }
                         }
                     ],
@@ -163,10 +163,10 @@
                             "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
                             "Parameters": {
                                 "model_part_name_list": [
-                                    "PorousDomain.Sand_layer",
-                                    "PorousDomain.Clay_layer",
-                                    "PorousDomain.Core_levee",
-                                    "PorousDomain.Cap_levee"
+                                    "PorousDomain.Cover",
+                                    "PorousDomain.Aquifer",
+                                    "PorousDomain.Levee_core",
+                                    "PorousDomain.Levee_outer_layer"
                                 ],
                                 "list_of_variables": ["EFFECTIVE_SATURATION", "FLUID_FLUX_VECTOR"]
                             }
