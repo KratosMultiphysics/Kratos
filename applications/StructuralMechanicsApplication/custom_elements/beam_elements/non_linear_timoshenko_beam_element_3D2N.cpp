@@ -28,7 +28,6 @@ void NonLinearTimoshenkoBeamElement3D2N::EquationIdVector(
     const auto& r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
-    const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
     IndexType local_index = 0;
 
@@ -817,8 +816,6 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
 
     if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2 || rVariable == LOCAL_AXIS_3)
     {
-        const double L0 = CalculateReferenceLength();
-
         array_1d<double, 3> local_axis_1, local_axis_2, local_axis_3;
 
         double N1, N2;
