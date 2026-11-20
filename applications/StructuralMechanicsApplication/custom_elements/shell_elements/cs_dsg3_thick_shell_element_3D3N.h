@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Alejandro Cornejo
+//  Main authors:    Alejandro Cornejo
 //
 //
 
