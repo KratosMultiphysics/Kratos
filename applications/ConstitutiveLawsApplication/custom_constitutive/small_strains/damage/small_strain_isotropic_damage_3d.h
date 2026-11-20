@@ -253,7 +253,7 @@ protected:
 
     ///@name Protected member Variables
     ///@{
-    double mStrainVariable;
+    double mStrainVariable = 0.0;
     ///@}
 
     ///@name Protected Operators

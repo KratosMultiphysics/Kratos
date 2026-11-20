@@ -145,7 +145,8 @@ public:
           mThresholdPlasticity(rOther.mThresholdPlasticity),
           mPlasticStrain(rOther.mPlasticStrain),
 		  mThresholdDamage(rOther.mThresholdDamage),
-          mDamage(rOther.mDamage)
+          mDamage(rOther.mDamage),
+          mDamageDissipation(rOther.mDamageDissipation)
     {
     }
 

@@ -39,7 +39,9 @@ SmallStrainJ2Plasticity3D::SmallStrainJ2Plasticity3D()
 //************************************************************************************
 
 SmallStrainJ2Plasticity3D::SmallStrainJ2Plasticity3D(const SmallStrainJ2Plasticity3D &rOther)
-    : ConstitutiveLaw(rOther)
+    : ConstitutiveLaw(rOther),
+      mPlasticStrain(rOther.mPlasticStrain),
+      mAccumulatedPlasticStrain(rOther.mAccumulatedPlasticStrain)
 {
 }
 
@@ -48,7 +50,7 @@ SmallStrainJ2Plasticity3D::SmallStrainJ2Plasticity3D(const SmallStrainJ2Plastici
 
 ConstitutiveLaw::Pointer SmallStrainJ2Plasticity3D::Clone() const
 {
-    return Kratos::make_shared<SmallStrainJ2Plasticity3D>(SmallStrainJ2Plasticity3D(*this));
+    return Kratos::make_shared<SmallStrainJ2Plasticity3D>(*this);
 }
 
 //********************************DESTRUCTOR******************************************
