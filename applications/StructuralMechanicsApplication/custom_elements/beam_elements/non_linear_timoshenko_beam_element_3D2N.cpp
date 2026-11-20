@@ -912,4 +912,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateDampingMatrix(
     KRATOS_CATCH("CalculateDampingMatrix")
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 } // namespace Kratos

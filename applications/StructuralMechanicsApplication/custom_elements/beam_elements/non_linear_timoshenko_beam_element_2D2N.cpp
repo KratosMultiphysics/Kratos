@@ -479,4 +479,7 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateMassMatrix(Matrix& rMassMatrix
     KRATOS_CATCH("CalculateMassMatrix")
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 } // namespace Kratos

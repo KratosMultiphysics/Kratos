@@ -502,7 +502,7 @@ public:
      * @param rDampingMatrix the elemental damping matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateDampingMatrix(Matrix& CalculateDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateDampingMatrix(Matrix& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
