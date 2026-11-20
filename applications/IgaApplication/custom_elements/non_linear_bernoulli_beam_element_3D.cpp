@@ -35,6 +35,127 @@ namespace Kratos
 
     }
 
+    void NonLinearBernoulliBeamElement3D::GetFirstDerivativesVector(
+        Vector& rValues,
+        const int Step) const
+    {
+        const auto& r_geometry = GetGeometry();
+        const IndexType number_of_nodes = r_geometry.size();
+
+        if (rValues.size() != number_of_nodes * 4) {
+            rValues.resize(number_of_nodes * 4, false);
+        }
+
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            const IndexType index = i * 4;
+
+            const auto& r_velocity =
+                r_geometry[i].FastGetSolutionStepValue(
+                    VELOCITY,
+                    Step);
+
+            rValues[index] = r_velocity[0];
+            rValues[index + 1] = r_velocity[1];
+            rValues[index + 2] = r_velocity[2];
+            rValues[index + 3] =
+                r_geometry[i].FastGetSolutionStepValue(
+                    ANGULAR_VELOCITY_X,
+                    Step);
+        }
+    }
+
+    void NonLinearBernoulliBeamElement3D::GetSecondDerivativesVector(
+        Vector& rValues,
+        const int Step) const
+    {
+        const auto& r_geometry = GetGeometry();
+        const IndexType number_of_nodes = r_geometry.size();
+
+        if (rValues.size() != number_of_nodes * 4) {
+            rValues.resize(number_of_nodes * 4, false);
+        }
+
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            const IndexType index = i * 4;
+
+            const auto& r_acceleration =
+                r_geometry[i].FastGetSolutionStepValue(
+                    ACCELERATION,
+                    Step);
+
+            rValues[index] = r_acceleration[0];
+            rValues[index + 1] = r_acceleration[1];
+            rValues[index + 2] = r_acceleration[2];
+            rValues[index + 3] =
+                r_geometry[i].FastGetSolutionStepValue(
+                    ANGULAR_ACCELERATION_X,
+                    Step);
+        }
+    }
+
+    void NonLinearBernoulliBeamElement3D::CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        const auto& r_geometry = GetGeometry();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType number_of_dofs = number_of_nodes * 4;
+
+        if (rMassMatrix.size1() != number_of_dofs || rMassMatrix.size2() != number_of_dofs) {
+            rMassMatrix.resize(number_of_dofs, number_of_dofs, false);
+        }
+        noalias(rMassMatrix) = ZeroMatrix(number_of_dofs, number_of_dofs);
+
+        const auto& r_properties = GetProperties();
+        const double density = r_properties[DENSITY];
+        const double mass_per_length = density * r_properties[CROSS_AREA];
+
+        // Polar mass moment of inertia per unit length, for the rotation about the center line
+        const double rotational_inertia_per_length =
+            density * (r_properties[I22] + r_properties[I33]);
+
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+        const Matrix& r_shape_functions = r_geometry.ShapeFunctionsValues();
+
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            const Matrix& r_shape_function_derivatives =
+                r_geometry.ShapeFunctionDerivatives(1, point_number);
+
+            // Reference base vector A1, so that dL = |A1| dxi
+            array_1d<double, 3> reference_base_vector = ZeroVector(3);
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
+                reference_base_vector +=
+                    r_shape_function_derivatives(i, 0) *
+                    r_geometry[i].GetInitialPosition().Coordinates();
+            }
+
+            const double integration_weight =
+                r_integration_points[point_number].Weight() *
+                norm_2(reference_base_vector);
+
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
+                for (IndexType j = 0; j < number_of_nodes; ++j) {
+                    const double shape_function_product =
+                        r_shape_functions(point_number, i) *
+                        r_shape_functions(point_number, j) *
+                        integration_weight;
+
+                    for (IndexType k = 0; k < 3; ++k) {
+                        rMassMatrix(i * 4 + k, j * 4 + k) +=
+                            shape_function_product * mass_per_length;
+                    }
+
+                    rMassMatrix(i * 4 + 3, j * 4 + 3) +=
+                        shape_function_product * rotational_inertia_per_length;
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
 
 
     void NonLinearBernoulliBeamElement3D::CalculateKinematics(
@@ -221,21 +342,6 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             b_torsion_1,
             b_torsion_2);
 
-        Matrix g_axial;
-        Matrix g_bending_1;
-        Matrix g_bending_2;
-        Matrix g_torsion_1;
-        Matrix g_torsion_2;
-
-        ComputeGMatrices(
-            point_number,
-            kinematic_variables,
-            g_axial,
-            g_bending_1,
-            g_bending_2,
-            g_torsion_1,
-            g_torsion_2);
-
         // Assemble stiffness with cross-sectional scaling
         const double integration_weight =
             r_integration_points[point_number].Weight() *
@@ -299,6 +405,22 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             }
 
             if (calculate_geometric_stiffness) {
+                // The second variations are only needed for the geometric stiffness
+                Matrix g_axial;
+                Matrix g_bending_1;
+                Matrix g_bending_2;
+                Matrix g_torsion_1;
+                Matrix g_torsion_2;
+
+                ComputeGMatrices(
+                    point_number,
+                    kinematic_variables,
+                    g_axial,
+                    g_bending_1,
+                    g_bending_2,
+                    g_torsion_1,
+                    g_torsion_2);
+
                 // Geometrical stiffness
                 rLeftHandSideMatrix +=
                     inverse_a4 *
@@ -408,6 +530,35 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             !GetProperties().Has(LOCAL_AXIS_ORIENTATION))
             << "\"LOCAL_AXIS_ORIENTATION\" not provided for element #"
             << Id() << std::endl;
+
+        // Each row is [parameter, nx, ny, nz]: the cross-section normal at that curve parameter.
+        // The twist is interpolated between consecutive rows, so at least two rows with
+        // strictly increasing parameters and non-zero normals are required.
+        const Matrix& r_local_axis_orientation = GetProperties()[LOCAL_AXIS_ORIENTATION];
+
+        KRATOS_ERROR_IF(r_local_axis_orientation.size2() != 4)
+            << "\"LOCAL_AXIS_ORIENTATION\" must have 4 columns [parameter, nx, ny, nz], but has "
+            << r_local_axis_orientation.size2() << " for element #" << Id() << std::endl;
+
+        KRATOS_ERROR_IF(r_local_axis_orientation.size1() < 2)
+            << "\"LOCAL_AXIS_ORIENTATION\" must have at least 2 rows, but has "
+            << r_local_axis_orientation.size1() << " for element #" << Id() << std::endl;
+
+        for (IndexType i = 0; i < r_local_axis_orientation.size1(); ++i) {
+            KRATOS_ERROR_IF(i > 0 && r_local_axis_orientation(i, 0) <= r_local_axis_orientation(i - 1, 0))
+                << "\"LOCAL_AXIS_ORIENTATION\" parameters must be strictly increasing, but row " << i
+                << " has parameter " << r_local_axis_orientation(i, 0) << " after "
+                << r_local_axis_orientation(i - 1, 0) << " for element #" << Id() << std::endl;
+
+            const double normal_norm = std::sqrt(
+                r_local_axis_orientation(i, 1) * r_local_axis_orientation(i, 1) +
+                r_local_axis_orientation(i, 2) * r_local_axis_orientation(i, 2) +
+                r_local_axis_orientation(i, 3) * r_local_axis_orientation(i, 3));
+
+            KRATOS_ERROR_IF(normal_norm <= numerical_limit)
+                << "\"LOCAL_AXIS_ORIENTATION\" row " << i
+                << " has a zero normal vector for element #" << Id() << std::endl;
+        }
 
         KRATOS_ERROR_IF(!Has(T_0) && !GetProperties().Has(T_0))
             << "\"T_0\" not provided for element #" << Id()

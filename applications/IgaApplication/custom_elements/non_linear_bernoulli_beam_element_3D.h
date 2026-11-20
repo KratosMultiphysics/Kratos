@@ -226,6 +226,26 @@ public:
     void Initialize(
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /// Velocities [VELOCITY_X, VELOCITY_Y, VELOCITY_Z, ANGULAR_VELOCITY_X] per control point.
+    void GetFirstDerivativesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
+    /// Accelerations [ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z, ANGULAR_ACCELERATION_X] per control point.
+    void GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
+    /**
+     * @brief Consistent mass matrix in the reference configuration.
+     * @details M_ij = int N_i N_j rho A dL for the displacements and int N_i N_j rho (I22 + I33) dL
+     * for the rotation about the center line (polar mass moment of inertia per unit length).
+     */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+
     void CalculateKinematics(
         const IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables);
@@ -254,40 +274,6 @@ public:
         Matrix& rGBending2,
         Matrix& rGTorsion1,
         Matrix& rGTorsion2);
-
-        void ComputeGAxial(
-        const IndexType IntegrationPointIndex,
-        Matrix& rGAxial,
-        KinematicVariables& rKinematicVariables) const;
-
-    void ComputeGBending(
-        const IndexType IntegrationPointIndex,
-        Matrix& rGBending1,
-        Matrix& rGBending2,
-        KinematicVariables& rKinematicVariables) const;
-
-    void ComputeGTorsion(
-        const IndexType IntegrationPointIndex,
-        Matrix& rGTorsion1,
-        Matrix& rGTorsion2,
-        KinematicVariables& rKinematicVariables) const;
-
-    void ComputeBAxial(
-        const IndexType IntegrationPointIndex,
-        Matrix& rBAxial,
-        KinematicVariables& rKinematicVariables) const;
-
-    void ComputeBBending(
-        const IndexType IntegrationPointIndex,
-        Matrix& rBBending1,
-        Matrix& rBBending2,
-        KinematicVariables& rKinematicVariables) const;
-
-    void ComputeBTorsion(
-        const IndexType IntegrationPointIndex,
-        Matrix& rBTorsion1,
-        Matrix& rBTorsion2,
-        KinematicVariables& rKinematicVariables) const;
 
     ///@}
     ///@name Input and Output

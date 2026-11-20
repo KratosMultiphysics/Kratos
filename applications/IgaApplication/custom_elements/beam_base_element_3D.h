@@ -112,6 +112,16 @@ public:
         int Step = 0) const override;
 
     ///@}
+    ///@name Dynamics
+    ///@{
+
+    /// Rayleigh damping C = alpha * M + beta * K, with RAYLEIGH_ALPHA/RAYLEIGH_BETA from the properties or the process info.
+    /// Uses the mass and stiffness matrices of the derived element.
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
     ///@name Material
     ///@{
 

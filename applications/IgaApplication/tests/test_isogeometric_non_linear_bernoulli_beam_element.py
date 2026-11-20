@@ -24,12 +24,15 @@ DOFS = (KM.DISPLACEMENT_X, KM.DISPLACEMENT_Y, KM.DISPLACEMENT_Z, KM.ROTATION_X)
 REACTIONS = (KM.REACTION_X, KM.REACTION_Y, KM.REACTION_Z, KM.REACTION_MOMENT_X)
 
 
-def create_model_part(model, body_forces=False):
+def create_model_part(model, body_forces=False, dynamic=False):
     model_part = model.CreateModelPart("IgaModelPart")
     for variable in (KM.DISPLACEMENT, KM.ROTATION, KM.REACTION, KM.REACTION_MOMENT, SMA.POINT_LOAD):
         model_part.AddNodalSolutionStepVariable(variable)
     if body_forces:
         model_part.AddNodalSolutionStepVariable(KM.VOLUME_ACCELERATION)
+    if dynamic:
+        for variable in (KM.VELOCITY, KM.ACCELERATION, KM.ANGULAR_VELOCITY, KM.ANGULAR_ACCELERATION):
+            model_part.AddNodalSolutionStepVariable(variable)
     return model_part
 
 
@@ -200,6 +203,35 @@ class TestBeam4pElement(BeamTestCase):
             self.assertRelativelyEqual(constitutive_matrix[i, i], stiffness, 1e-12)
             self.assertRelativelyEqual(stress[i], expected_stress[i], 1e-12)
 
+    def test_local_axis_orientation_checks(self):
+        model = KM.Model()
+        model_part = create_model_part(model)
+        properties = create_properties(model_part, 1, (0.0, 0.0, 1.0))
+        curve = create_straight_curve(model_part, (0.0, 0.0, 0.0), (1.0, 0.0, 0.0))
+        create_elements(model_part, curve, properties)
+        IGA.ComputeBeamVectorsProcess(model_part, curve).ExecuteInitialize()
+        add_dofs(model_part)
+        clamp([model_part.GetNode(i) for i in range(1, 6)], 0)
+
+        # Element::Check is not exposed to Python, so it is called through the strategy
+        strategy = KM.ResidualBasedNewtonRaphsonStrategy(
+            model_part,
+            KM.ResidualBasedIncrementalUpdateStaticScheme(),
+            python_linear_solver_factory.ConstructSolver(KM.Parameters(r'{"solver_type": "skyline_lu_factorization"}')),
+            KM.ResidualCriteria(1e-10, 1e-12), 1, False, False, False)
+        strategy.Check()
+
+        invalid_orientations = {
+            "must have 4 columns": [[0.0, 0.0, 1.0], [1.0, 0.0, 1.0]],
+            "must have at least 2 rows": [[0.0, 0.0, 0.0, 1.0]],
+            "strictly increasing": [[0.0, 0.0, 0.0, 1.0], [0.5, 0.0, 0.0, 1.0], [0.5, 0.0, 0.0, 1.0]],
+            "zero normal vector": [[0.0, 0.0, 0.0, 1.0], [1.0, 0.0, 0.0, 0.0]],
+        }
+        for message, orientation in invalid_orientations.items():
+            properties.SetValue(IGA.LOCAL_AXIS_ORIENTATION, np.array(orientation, dtype=float))
+            with self.assertRaisesRegex(RuntimeError, message):
+                strategy.Check()
+
     def test_axial_force(self):
         tip = self.solve_cantilever((1.0, 0.0, 0.0))
         displacement = tip.GetSolutionStepValue(KM.DISPLACEMENT)
@@ -341,10 +373,10 @@ class TestBeam4pElementNonlinear(BeamTestCase):
     """Geometrically nonlinear response of the NonLinearBernoulliBeamElement3D."""
 
     @staticmethod
-    def build_cantilever(n_cp=5, degree=4):
+    def build_cantilever(n_cp=5, degree=4, dynamic=False):
         """Cantilever along +X, refined with curve_h_refinements.iga.json. Returns (model, model_part, nodes)."""
         model = KM.Model()
-        model_part = create_model_part(model)
+        model_part = create_model_part(model, dynamic=dynamic)
         properties = create_properties(model_part, 1, (0.0, 0.0, 1.0))
 
         curve = create_straight_curve(model_part, (0.0, 0.0, 0.0), (1.0, 0.0, 0.0), n_cp, degree)
@@ -398,6 +430,27 @@ class TestBeam4pElementNonlinear(BeamTestCase):
             K[np.ix_(indices, indices)] += np.array(lhs)
             R[indices] += np.array(rhs)
         return K, R
+
+    @classmethod
+    def assemble_mass(cls, model_part, nodes):
+        n_dofs = 4 * len(nodes)
+        M = np.zeros((n_dofs, n_dofs))
+        for element in model_part.Elements:
+            mass_matrix = KM.Matrix()
+            element.CalculateMassMatrix(mass_matrix, model_part.ProcessInfo)
+            indices = cls.element_dof_indices(element)
+            M[np.ix_(indices, indices)] += np.array(mass_matrix)
+        return M
+
+    @classmethod
+    def eigen_modes(cls, model_part, nodes):
+        """Natural circular frequencies and mode shapes (on the free dofs) of the undeformed cantilever."""
+        free = cls.free_dofs(nodes)
+        K, _ = cls.assemble(model_part, nodes, np.zeros(4 * len(nodes)))
+        M = cls.assemble_mass(model_part, nodes)
+        eigenvalues, eigenvectors = np.linalg.eig(np.linalg.solve(M[np.ix_(free, free)], K[np.ix_(free, free)]))
+        order = np.argsort(eigenvalues.real)
+        return np.sqrt(eigenvalues.real[order]), eigenvectors.real[:, order], free
 
     @classmethod
     def newton(cls, model_part, nodes, f_ext, n_steps, tolerance=1e-10, max_iterations=40):
@@ -511,6 +564,121 @@ class TestBeam4pElementNonlinear(BeamTestCase):
         loads = self.buckling_loads(model_part, nodes, (0.0, -1000.0, 0.0), 1000.0)
         timoshenko = 4.013 * np.sqrt(E_MOD * I33_ * G_MOD * I_T_) / LENGTH ** 2
         self.assertRelativelyEqual(loads[0], timoshenko, 5e-2)
+
+    def test_consistent_mass_matrix(self):
+        _, model_part, nodes = self.build_cantilever()
+        M = self.assemble_mass(model_part, nodes)
+
+        # The B-splines are a partition of unity, so each block sums up to the total (rotational) mass
+        self.assertRelativelyEqual(M[0::4, 0::4].sum(), AREA * LENGTH, 1e-12)
+        self.assertRelativelyEqual(M[1::4, 1::4].sum(), AREA * LENGTH, 1e-12)
+        self.assertRelativelyEqual(M[2::4, 2::4].sum(), AREA * LENGTH, 1e-12)
+        self.assertRelativelyEqual(M[3::4, 3::4].sum(), (I22_ + I33_) * LENGTH, 1e-12)
+        self.assertLess(np.abs(M - M.T).max(), 1e-12 * np.abs(M).max())
+        self.assertGreater(np.linalg.eigvalsh(M).min(), 0.0)
+
+    def test_rayleigh_damping_matrix(self):
+        _, model_part, _ = self.build_cantilever()
+        alpha, beta = 0.3, 2e-4
+        model_part.GetProperties()[1].SetValue(IGA.RAYLEIGH_ALPHA, alpha)
+        model_part.GetProperties()[1].SetValue(IGA.RAYLEIGH_BETA, beta)
+
+        for element in model_part.Elements:
+            damping, mass, stiffness = KM.Matrix(), KM.Matrix(), KM.Matrix()
+            element.CalculateDampingMatrix(damping, model_part.ProcessInfo)
+            element.CalculateMassMatrix(mass, model_part.ProcessInfo)
+            element.CalculateLeftHandSide(stiffness, model_part.ProcessInfo)
+            expected = alpha * np.array(mass) + beta * np.array(stiffness)
+            self.assertLess(np.abs(np.array(damping) - expected).max(), 1e-12 * np.abs(expected).max())
+
+    def test_derivatives_vectors(self):
+        _, model_part, nodes = self.build_cantilever(dynamic=True)
+        for i, node in enumerate(nodes):
+            node.SetSolutionStepValue(KM.VELOCITY, KM.Array3([i + 0.1, i + 0.2, i + 0.3]))
+            node.SetSolutionStepValue(KM.ANGULAR_VELOCITY_X, i + 0.4)
+            node.SetSolutionStepValue(KM.ACCELERATION, KM.Array3([i + 0.5, i + 0.6, i + 0.7]))
+            node.SetSolutionStepValue(KM.ANGULAR_ACCELERATION_X, i + 0.8)
+
+        for element in model_part.Elements:
+            velocities, accelerations = KM.Vector(), KM.Vector()
+            element.GetFirstDerivativesVector(velocities, 0)
+            element.GetSecondDerivativesVector(accelerations, 0)
+            for k, node in enumerate(element.GetGeometry()):
+                i = node.Id - 1
+                self.assertVectorAlmostEqual(velocities[4 * k:4 * k + 4], [i + 0.1, i + 0.2, i + 0.3, i + 0.4])
+                self.assertVectorAlmostEqual(accelerations[4 * k:4 * k + 4], [i + 0.5, i + 0.6, i + 0.7, i + 0.8])
+
+    def test_natural_frequencies(self):
+        # Clamped-free beam: bending (beta_1 L)^2 sqrt(EI / (rho A L^4)), torsion and axial pi / (2 L) sqrt(...)
+        _, model_part, nodes = self.build_cantilever()
+        omegas, _, _ = self.eigen_modes(model_part, nodes)
+        beta_1 = 1.875104068711961
+        references = [
+            beta_1 ** 2 * np.sqrt(E_MOD * I33_ / (AREA * LENGTH ** 4)),
+            beta_1 ** 2 * np.sqrt(E_MOD * I22_ / (AREA * LENGTH ** 4)),
+            np.pi / (2.0 * LENGTH) * np.sqrt(G_MOD * I_T_ / (I22_ + I33_)),
+            np.pi / (2.0 * LENGTH) * np.sqrt(E_MOD),
+        ]
+        for reference in references:
+            self.assertRelativelyEqual(omegas[np.argmin(np.abs(omegas - reference))], reference, 1e-5)
+
+    def run_free_vibration(self, reference_omega, tip_dof, steps_per_period=200):
+        """Releases the cantilever at rest in the mode closest to reference_omega and integrates one period with BDF2.
+        Returns the tip value of tip_dof over time, normalized by its initial value."""
+        _, model_part, nodes = self.build_cantilever(dynamic=True)
+        omegas, modes, free = self.eigen_modes(model_part, nodes)
+        self.apply_state(nodes, np.zeros(4 * len(nodes)))
+
+        shape = np.zeros(4 * len(nodes))
+        shape[free] = modes[:, np.argmin(np.abs(omegas - reference_omega))]
+        tip_index = 4 * (len(nodes) - 1) + tip_dof
+        shape *= 1e-6 / shape[tip_index]  # small amplitude, linear regime
+
+        model_part.ProcessInfo[KM.DOMAIN_SIZE] = 3
+        model_part.SetBufferSize(3)
+        for i, node in enumerate(nodes):
+            for step in range(3):
+                node.SetSolutionStepValue(KM.DISPLACEMENT, step, KM.Array3([float(v) for v in shape[4 * i:4 * i + 3]]))
+                node.SetSolutionStepValue(KM.ROTATION_X, step, float(shape[4 * i + 3]))
+
+        # The BDF scheme also integrates the rotation about the beam axis (ROTATION_X)
+        scheme = KM.ResidualBasedBDFCustomScheme(2, KM.Parameters(r'''{
+            "domain_size": 3,
+            "integration_order": 2,
+            "solution_variables": ["DISPLACEMENT", "ROTATION_X"]
+        }'''))
+        linear_solver = python_linear_solver_factory.ConstructSolver(
+            KM.Parameters(r'{"solver_type": "skyline_lu_factorization"}'))
+        strategy = KM.ResidualBasedNewtonRaphsonStrategy(
+            model_part, scheme, linear_solver, KM.ResidualCriteria(1e-10, 1e-14), 10, False, False, False)
+        strategy.SetEchoLevel(0)
+        strategy.Check()
+
+        tip_variable = (KM.DISPLACEMENT_X, KM.DISPLACEMENT_Y, KM.DISPLACEMENT_Z, KM.ROTATION_X)[tip_dof]
+        dt = 2.0 * np.pi / reference_omega / steps_per_period
+        start_time = model_part.ProcessInfo[KM.TIME]
+        values = []
+        for step in range(1, steps_per_period + 1):
+            model_part.CloneTimeStep(start_time + step * dt)
+            strategy.Solve()
+            values.append(nodes[-1].GetSolutionStepValue(tip_variable) / shape[tip_index])
+        return np.array(values), dt
+
+    def assertFreeVibrationPeriod(self, reference_omega, tip_dof):
+        values, dt = self.run_free_vibration(reference_omega, tip_dof)
+        # First zero crossing at a quarter of the period, and no loss of amplitude after half a period
+        i = np.where((values[:-1] > 0.0) & (values[1:] <= 0.0))[0][0]
+        crossing_time = dt * (i + 1) + dt * values[i] / (values[i] - values[i + 1])
+        quarter_period = 0.5 * np.pi / reference_omega
+        self.assertRelativelyEqual(crossing_time, quarter_period, 1e-3)
+        self.assertRelativelyEqual(values.min(), -1.0, 1e-2)
+
+    def test_free_vibration_bending(self):
+        beta_1 = 1.875104068711961
+        self.assertFreeVibrationPeriod(beta_1 ** 2 * np.sqrt(E_MOD * I33_ / (AREA * LENGTH ** 4)), tip_dof=2)
+
+    def test_free_vibration_torsion(self):
+        self.assertFreeVibrationPeriod(np.pi / (2.0 * LENGTH) * np.sqrt(G_MOD * I_T_ / (I22_ + I33_)), tip_dof=3)
 
     def test_linear_bending_is_mesh_independent(self):
         # The exact cubic deflection is in the spline space of every mesh, since the curve is linearly parametrized.

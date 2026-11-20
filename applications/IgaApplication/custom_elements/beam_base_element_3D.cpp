@@ -165,6 +165,49 @@ namespace Kratos
         }
     }
 
+    void BeamBaseElement3D::CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        const auto get_rayleigh_coefficient = [&](const Variable<double>& rVariable) -> double {
+            if (GetProperties().Has(rVariable)) {
+                return GetProperties()[rVariable];
+            }
+            if (rCurrentProcessInfo.Has(rVariable)) {
+                return rCurrentProcessInfo[rVariable];
+            }
+            return 0.0;
+        };
+
+        const double alpha = get_rayleigh_coefficient(RAYLEIGH_ALPHA);
+        const double beta = get_rayleigh_coefficient(RAYLEIGH_BETA);
+
+        EquationIdVectorType equation_ids;
+        EquationIdVector(equation_ids, rCurrentProcessInfo);
+        const SizeType number_of_dofs = equation_ids.size();
+
+        if (rDampingMatrix.size1() != number_of_dofs || rDampingMatrix.size2() != number_of_dofs) {
+            rDampingMatrix.resize(number_of_dofs, number_of_dofs, false);
+        }
+        noalias(rDampingMatrix) = ZeroMatrix(number_of_dofs, number_of_dofs);
+
+        if (beta != 0.0) {
+            MatrixType stiffness_matrix;
+            CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
+            noalias(rDampingMatrix) += beta * stiffness_matrix;
+        }
+
+        if (alpha != 0.0) {
+            MatrixType mass_matrix;
+            CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
+            noalias(rDampingMatrix) += alpha * mass_matrix;
+        }
+
+        KRATOS_CATCH("")
+    }
+
     int BeamBaseElement3D::Check(
         const ProcessInfo& rCurrentProcessInfo) const
     {
