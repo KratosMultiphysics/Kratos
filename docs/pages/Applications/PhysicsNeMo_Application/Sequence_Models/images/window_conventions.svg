@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="400" viewBox="0 0 1100 400" font-family="Helvetica, Arial, sans-serif">
+  <title>Window conventions of the time-dependent processes</title>
+  <desc>Three timelines: the rolling nodal history of TimeSeriesInferenceProcess, the seed-once roll-forward of SequenceInferenceProcess, and the training windows of temporal_training, all sharing the oldest-first convention.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/></marker></defs>
+  <rect width="1100" height="400" fill="#ffffff"/>
+  <g font-size="12.5" fill="#333">
+    <!-- time series -->
+    <text x="20" y="40" font-size="14" font-weight="bold" fill="#1f4e79">TimeSeriesInferenceProcess - rolling nodal history, K = history_size</text>
+    <g>
+      <rect x="20" y="55" width="60" height="30" fill="#eaf2fb" stroke="#1f4e79"/><text x="50" y="75" text-anchor="middle" font-size="11">t-3</text>
+      <rect x="85" y="55" width="60" height="30" fill="#fff4e0" stroke="#c27c0e"/><text x="115" y="75" text-anchor="middle" font-size="11">t-2</text>
+      <rect x="150" y="55" width="60" height="30" fill="#fff4e0" stroke="#c27c0e"/><text x="180" y="75" text-anchor="middle" font-size="11">t-1</text>
+      <rect x="215" y="55" width="60" height="30" fill="#fff4e0" stroke="#c27c0e"/><text x="245" y="75" text-anchor="middle" font-size="11">t</text>
+      <rect x="320" y="55" width="60" height="30" fill="#eef7ee" stroke="#2e6b2e"/><text x="350" y="75" text-anchor="middle" font-size="11">t+1</text>
+      <line x1="280" y1="70" x2="318" y2="70" stroke="#555" stroke-width="1.8" marker-end="url(#arrow)"/>
+    </g>
+    <text x="400" y="66">input (N, K x W): the K states concatenated oldest first,</text>
+    <text x="400" y="82">output (N, W): the next state, written to output_fields so the next step sees it.</text>
+    <text x="400" y="100" fill="#666" font-size="11.5">the first K-1 steps are warm-up (nothing predicted); the state is the solver's until the history is full</text>
+    <!-- sequence -->
+    <text x="20" y="145" font-size="14" font-weight="bold" fill="#1f4e79">SequenceInferenceProcess - seed once, roll forward, on grids (window_size = 2 here)</text>
+    <g>
+      <rect x="20" y="160" width="60" height="30" fill="#fff4e0" stroke="#c27c0e"/><text x="50" y="180" text-anchor="middle" font-size="11">solver 0</text>
+      <rect x="85" y="160" width="60" height="30" fill="#fff4e0" stroke="#c27c0e"/><text x="115" y="180" text-anchor="middle" font-size="11">solver 1</text>
+      <rect x="190" y="160" width="60" height="30" fill="#eef7ee" stroke="#2e6b2e"/><text x="220" y="180" text-anchor="middle" font-size="11">pred 2</text>
+      <rect x="255" y="160" width="60" height="30" fill="#eef7ee" stroke="#2e6b2e"/><text x="285" y="180" text-anchor="middle" font-size="11">pred 3</text>
+      <rect x="320" y="160" width="60" height="30" fill="#eef7ee" stroke="#2e6b2e"/><text x="350" y="180" text-anchor="middle" font-size="11">pred 4</text>
+      <line x1="150" y1="175" x2="188" y2="175" stroke="#555" stroke-width="1.8" marker-end="url(#arrow)"/>
+      <text x="169" y="165" text-anchor="middle" font-size="10">seed</text>
+    </g>
+    <text x="400" y="171">the window is filled from the solver's grid states once; from then on the model's own</text>
+    <text x="400" y="187">predictions feed it (One2ManyRNN emits several steps per call).</text>
+    <text x="400" y="205" fill="#666" font-size="11.5">window_as_time_axis presents the window as a fourth spatial axis for FNO dimension 4</text>
+    <!-- training windows -->
+    <text x="20" y="250" font-size="14" font-weight="bold" fill="#1f4e79">temporal_training - the same windows as training pairs</text>
+    <g font-size="11">
+      <text x="20" y="272" font-weight="bold">single_step</text>
+      <rect x="120" y="258" width="50" height="22" fill="#fff4e0" stroke="#c27c0e"/><rect x="172" y="258" width="50" height="22" fill="#fff4e0" stroke="#c27c0e"/>
+      <line x1="228" y1="269" x2="252" y2="269" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <rect x="256" y="258" width="50" height="22" fill="#eef7ee" stroke="#2e6b2e"/>
+      <text x="330" y="273">K states to the next; every consecutive window of a trajectory is a sample</text>
+      <text x="20" y="304" font-weight="bold">time_conditional</text>
+      <rect x="120" y="290" width="50" height="22" fill="#fff4e0" stroke="#c27c0e"/><rect x="172" y="290" width="50" height="22" fill="#f6f6f6" stroke="#666"/>
+      <text x="197" y="305" text-anchor="middle" font-size="10">t</text>
+      <line x1="228" y1="301" x2="252" y2="301" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <rect x="256" y="290" width="50" height="22" fill="#eef7ee" stroke="#2e6b2e"/>
+      <text x="330" y="305">initial state plus the target time to the state at that time</text>
+      <text x="20" y="336" font-weight="bold">one_shot</text>
+      <rect x="120" y="322" width="50" height="22" fill="#fff4e0" stroke="#c27c0e"/>
+      <line x1="176" y1="333" x2="200" y2="333" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <rect x="204" y="322" width="50" height="22" fill="#eef7ee" stroke="#2e6b2e"/><rect x="256" y="322" width="50" height="22" fill="#eef7ee" stroke="#2e6b2e"/><rect x="308" y="322" width="50" height="22" fill="#eef7ee" stroke="#2e6b2e"/>
+      <text x="380" y="337">the initial state to a whole window of future states</text>
+      <text x="20" y="368" font-weight="bold">TrainAutoregressive</text>
+      <text x="150" y="368">backpropagates through the model's own rollout (BPTT) with per-step gradient checkpointing;</text>
+      <text x="150" y="384">measured 2.7x lower rollout error than single-step training, at a learning rate about 100x smaller.</text>
+    </g>
+  </g>
+</svg>

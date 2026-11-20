@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="500" viewBox="0 0 1100 500" font-family="Helvetica, Arial, sans-serif">
+  <title>From Kratos entity data to a torch tensor and back</title>
+  <desc>The six data locations on the left, the tensor adaptor staging buffer in the middle, the (n_entities, width) concatenated tensor on the right with its VARIABLE__location keys, and the write-back path.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/></marker></defs>
+  <rect width="1100" height="500" fill="#ffffff"/>
+  <rect x="20" y="20" width="330" height="460" rx="10" fill="#eaf2fb" stroke="#1f4e79" stroke-width="1.5"/>
+  <text x="185" y="48" text-anchor="middle" font-size="16" font-weight="bold" fill="#1f4e79">ModelPart entities and their data</text>
+  <g font-size="12.5" fill="#333">
+    <rect x="35" y="65" width="300" height="64" rx="6" fill="#ffffff" stroke="#1f4e79"/>
+    <text x="45" y="84" font-weight="bold" fill="#1f4e79">Nodes</text>
+    <text x="45" y="102" font-family="monospace" font-size="11.5">node_historical      solution-step buffer</text>
+    <text x="45" y="118" font-family="monospace" font-size="11.5">node_non_historical  data-value container</text>
+    <rect x="35" y="140" width="300" height="64" rx="6" fill="#ffffff" stroke="#1f4e79"/>
+    <text x="45" y="159" font-weight="bold" fill="#1f4e79">Elements</text>
+    <text x="45" y="177" font-family="monospace" font-size="11.5">element              data-value container</text>
+    <text x="45" y="193" font-family="monospace" font-size="11.5">element_gauss_point  computed, read-only</text>
+    <rect x="35" y="215" width="300" height="64" rx="6" fill="#ffffff" stroke="#1f4e79"/>
+    <text x="45" y="234" font-weight="bold" fill="#1f4e79">Conditions</text>
+    <text x="45" y="252" font-family="monospace" font-size="11.5">condition            data-value container</text>
+    <text x="45" y="268" font-family="monospace" font-size="11.5">condition_gauss_point computed, read-only</text>
+    <text x="45" y="305" fill="#444">Entity storage is not contiguous: a node's</text>
+    <text x="45" y="321" fill="#444">VELOCITY lives inside that node, not in an array.</text>
+    <text x="45" y="345" fill="#444">Entities are visited in ascending Id order,</text>
+    <text x="45" y="361" fill="#444">whatever the creation order - that is the row order.</text>
+    <text x="45" y="395" font-weight="bold" fill="#1f4e79">Field spec</text>
+    <text x="45" y="413" font-family="monospace" font-size="11.5">{"variable_name": "VELOCITY",</text>
+    <text x="45" y="429" font-family="monospace" font-size="11.5"> "data_location": "node_historical"}</text>
+    <text x="45" y="455" fill="#444">The same variable at two locations is two fields.</text>
+  </g>
+  <rect x="385" y="20" width="330" height="460" rx="10" fill="#f6f6f6" stroke="#666" stroke-width="1.5"/>
+  <text x="550" y="48" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">Kratos.TensorAdaptors</text>
+  <g font-size="12.5" fill="#333">
+    <rect x="400" y="65" width="300" height="80" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="410" y="84" font-weight="bold">one adaptor per (container, variable)</text>
+    <text x="410" y="102" font-family="monospace" font-size="11.5">HistoricalVariableTensorAdaptor</text>
+    <text x="410" y="118" font-family="monospace" font-size="11.5">VariableTensorAdaptor</text>
+    <text x="410" y="134" font-family="monospace" font-size="11.5">GaussPointVariableTensorAdaptor ...</text>
+    <rect x="400" y="160" width="300" height="120" rx="6" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="410" y="180" font-weight="bold" fill="#7a4d00">the staging buffer</text>
+    <text x="410" y="200">CollectData()  entities -&gt; contiguous buffer</text>
+    <text x="410" y="218">.data          zero-copy numpy view of it</text>
+    <text x="410" y="236">StoreData()    buffer -&gt; entities</text>
+    <text x="410" y="262" fill="#444" font-size="11.5">zero-copy with respect to the buffer,</text>
+    <text x="410" y="276" fill="#444" font-size="11.5">not with respect to the entities</text>
+    <text x="410" y="310" font-weight="bold">utilities.tensor_adaptor_dataset_utils</text>
+    <text x="410" y="328">builds the right adaptor from the</text>
+    <text x="410" y="344">data-location string</text>
+    <text x="410" y="378" font-weight="bold">bridges.torch_bridge</text>
+    <text x="410" y="396" font-family="monospace" font-size="11.5">KratosTensorToTorch(adaptor)</text>
+    <text x="410" y="412" font-family="monospace" font-size="11.5">TorchToKratosTensor(tensor, adaptor)</text>
+    <text x="410" y="438" fill="#444" font-size="11.5">torch.from_numpy(adaptor.data): the same memory</text>
+  </g>
+  <rect x="750" y="20" width="330" height="460" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+  <text x="915" y="48" text-anchor="middle" font-size="16" font-weight="bold" fill="#2e6b2e">the tensor a model sees</text>
+  <g font-size="12.5" fill="#333">
+    <text x="915" y="78" text-anchor="middle" font-family="monospace" font-size="12">(n_entities, total_width)</text>
+    <!-- matrix sketch -->
+    <rect x="775" y="95" width="80" height="150" fill="#ffffff" stroke="#2e6b2e"/>
+    <rect x="855" y="95" width="130" height="150" fill="#ffffff" stroke="#2e6b2e"/>
+    <rect x="985" y="95" width="70" height="150" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="815" y="118" text-anchor="middle" font-size="11" fill="#2e6b2e">HEAT_FLUX</text>
+    <text x="815" y="132" text-anchor="middle" font-size="10">1 column</text>
+    <text x="920" y="118" text-anchor="middle" font-size="11" fill="#2e6b2e">VELOCITY</text>
+    <text x="920" y="132" text-anchor="middle" font-size="10">3 columns x y z</text>
+    <text x="1020" y="118" text-anchor="middle" font-size="11" fill="#2e6b2e">SDF</text>
+    <text x="1020" y="132" text-anchor="middle" font-size="10">1 column</text>
+    <g stroke="#2e6b2e" stroke-width="0.6" stroke-dasharray="2,3">
+      <line x1="775" y1="150" x2="1055" y2="150"/><line x1="775" y1="175" x2="1055" y2="175"/><line x1="775" y1="200" x2="1055" y2="200"/><line x1="775" y1="225" x2="1055" y2="225"/>
+    </g>
+    <text x="765" y="165" text-anchor="end" font-size="10" fill="#666">row 0 = node id 1</text>
+    <text x="765" y="190" text-anchor="end" font-size="10" fill="#666">row 1 = node id 2</text>
+    <text x="765" y="238" text-anchor="end" font-size="10" fill="#666">row n-1</text>
+    <text x="915" y="270" text-anchor="middle">input_fields concatenated column-wise,</text>
+    <text x="915" y="286" text-anchor="middle">in the order they are listed</text>
+    <text x="915" y="316" text-anchor="middle" font-weight="bold" fill="#2e6b2e">the same layout everywhere</text>
+    <text x="915" y="334" text-anchor="middle" font-family="monospace" font-size="11.5">"VELOCITY__node_historical"</text>
+    <text x="915" y="350" text-anchor="middle">is the key of that block in a sample_N.npz</text>
+    <text x="915" y="366" text-anchor="middle">and the column CreateNpzDataset produces</text>
+    <text x="915" y="396" text-anchor="middle" fill="#7a4d00" font-weight="bold">the card records the meaning</text>
+    <text x="915" y="414" text-anchor="middle">which field is in which column, in which</text>
+    <text x="915" y="430" text-anchor="middle">normalization - inverted before write-back</text>
+    <text x="915" y="458" text-anchor="middle" fill="#444" font-size="11.5">outputs split back by width, scattered to output_fields</text>
+  </g>
+  <g stroke="#555" stroke-width="1.8">
+    <line x1="350" y1="200" x2="385" y2="200" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+    <line x1="715" y1="170" x2="750" y2="170" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  </g>
+</svg>

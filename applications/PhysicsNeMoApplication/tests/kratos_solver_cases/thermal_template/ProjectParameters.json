@@ -1,0 +1,18 @@
+{
+    "case_settings": {
+        "conductivity": 1.0,
+        "heat_flux": 1.0,
+        "divisions": 8
+    },
+    "dataset_export": {
+        "model_part_name": "ThermalModelPart",
+        "list_of_fields": [
+            {
+                "variable_name": "TEMPERATURE",
+                "data_location": "node_historical"
+            }
+        ],
+        "output_path": "physics_nemo_dataset",
+        "output_interval": 1
+    }
+}

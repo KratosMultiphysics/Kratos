@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="470" viewBox="0 0 1100 470" font-family="Helvetica, Arial, sans-serif">
+  <title>The physicsnemo.mesh data model</title>
+  <desc>A Mesh is a tensorclass with points, cells and three TensorDicts of data. Its type is parametrized by the manifold and spatial dimensions, and cells are always simplices.</desc>
+  <rect width="1100" height="470" fill="#ffffff"/>
+  <!-- Mesh block -->
+  <rect x="20" y="20" width="420" height="430" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+  <text x="230" y="48" text-anchor="middle" font-size="18" font-weight="bold" fill="#2e6b2e">Mesh  (a tensorclass)</text>
+  <g font-size="13" fill="#333">
+    <rect x="35" y="65" width="390" height="54" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="45" y="85" font-family="monospace" font-size="13" font-weight="bold">points</text>
+    <text x="45" y="105" font-family="monospace" font-size="12">(n_points, n_spatial_dims)  float</text>
+    <rect x="35" y="128" width="390" height="54" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="45" y="148" font-family="monospace" font-size="13" font-weight="bold">cells</text>
+    <text x="45" y="168" font-family="monospace" font-size="12">(n_cells, n_manifold_dims + 1)  int, vertex indices</text>
+    <rect x="35" y="191" width="390" height="70" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="45" y="211" font-family="monospace" font-size="13" font-weight="bold">point_data   TensorDict</text>
+    <text x="45" y="230" font-family="monospace" font-size="12">"pressure"  (n_points,)        scalar</text>
+    <text x="45" y="246" font-family="monospace" font-size="12">"velocity"  (n_points, d)      vector</text>
+    <rect x="35" y="270" width="390" height="54" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="45" y="290" font-family="monospace" font-size="13" font-weight="bold">cell_data    TensorDict</text>
+    <text x="45" y="310" font-family="monospace" font-size="12">"stress"    (n_cells, d, d)    rank-2 tensor</text>
+    <rect x="35" y="333" width="390" height="54" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="45" y="353" font-family="monospace" font-size="13" font-weight="bold">global_data  TensorDict</text>
+    <text x="45" y="373" font-family="monospace" font-size="12">"Re"  ()   0-d tensors: case parameters, TIME</text>
+    <text x="45" y="410" font-size="12" fill="#444">Field rank lives in the shape, never flattened, so rotations know</text>
+    <text x="45" y="426" font-size="12" fill="#444">what to rotate. Derived geometry (normals, adjacency) is cached lazily.</text>
+    <text x="45" y="442" font-size="12" fill="#444">.to(device), .clone(), .save(path) / Mesh.load(path) as one object.</text>
+  </g>
+  <!-- dimensions -->
+  <rect x="470" y="20" width="610" height="215" rx="10" fill="#f6f6f6" stroke="#666" stroke-width="1.5"/>
+  <text x="775" y="48" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">Two dimensions parametrize the type: Mesh[n_manifold_dims, n_spatial_dims]</text>
+  <g font-size="13" fill="#333">
+    <text x="490" y="78" font-family="monospace" font-size="12.5">Mesh[0, 3]  point cloud            cells (n, 1)</text>
+    <text x="490" y="100" font-family="monospace" font-size="12.5">Mesh[1, 3]  curve or graph         cells (n, 2)  edges</text>
+    <text x="490" y="122" font-family="monospace" font-size="12.5">Mesh[2, 3]  surface                cells (n, 3)  triangles</text>
+    <text x="490" y="144" font-family="monospace" font-size="12.5">Mesh[3, 3]  volume                 cells (n, 4)  tetrahedra</text>
+    <text x="490" y="166" font-family="monospace" font-size="12.5">Mesh[2, 2]  planar (2-D Kratos case)   codimension 0</text>
+    <text x="490" y="196" font-size="12.5">codimension = n_spatial_dims - n_manifold_dims.  The boundary of a Mesh[n, m] is a Mesh[n-1, m]:</text>
+    <text x="490" y="214" font-size="12.5">volume.get_boundary_mesh() is a surface; a surface's boundary is a curve.</text>
+  </g>
+  <!-- simplices -->
+  <rect x="470" y="255" width="610" height="205" rx="10" fill="#fff4e0" stroke="#c27c0e" stroke-width="1.5"/>
+  <text x="775" y="283" text-anchor="middle" font-size="16" font-weight="bold" fill="#7a4d00">Cells are simplices, and only simplices</text>
+  <g stroke="#7a4d00" stroke-width="2" fill="none">
+    <circle cx="530" cy="340" r="4" fill="#7a4d00"/>
+    <line x1="600" y1="355" x2="660" y2="325"/>
+    <circle cx="600" cy="355" r="3" fill="#7a4d00"/><circle cx="660" cy="325" r="3" fill="#7a4d00"/>
+    <polygon points="720,360 790,360 755,310"/>
+    <circle cx="720" cy="360" r="3" fill="#7a4d00"/><circle cx="790" cy="360" r="3" fill="#7a4d00"/><circle cx="755" cy="310" r="3" fill="#7a4d00"/>
+    <polygon points="850,362 930,362 900,340"/>
+    <line x1="850" y1="362" x2="885" y2="305"/><line x1="930" y1="362" x2="885" y2="305"/><line x1="900" y1="340" x2="885" y2="305"/>
+    <line x1="850" y1="362" x2="900" y2="340" stroke-dasharray="4,3"/>
+    <circle cx="850" cy="362" r="3" fill="#7a4d00"/><circle cx="930" cy="362" r="3" fill="#7a4d00"/><circle cx="900" cy="340" r="3" fill="#7a4d00"/><circle cx="885" cy="305" r="3" fill="#7a4d00"/>
+  </g>
+  <g font-size="12" fill="#333" text-anchor="middle">
+    <text x="530" y="385">0-simplex</text><text x="530" y="400">point</text>
+    <text x="630" y="385">1-simplex</text><text x="630" y="400">segment</text>
+    <text x="755" y="385">2-simplex</text><text x="755" y="400">triangle</text>
+    <text x="890" y="385">3-simplex</text><text x="890" y="400">tetrahedron</text>
+  </g>
+  <text x="775" y="422" text-anchor="middle" font-size="12.5" fill="#444">Hexahedra, prisms, pyramids and quadrilaterals do not exist here;</text>
+  <text x="775" y="438" text-anchor="middle" font-size="12.5" fill="#444">that is what the Kratos mesh bridge's tessellation is for. The payoff: rectangular</text>
+  <text x="775" y="454" text-anchor="middle" font-size="12.5" fill="#444">tensors, dimension-generic algorithms and a rigorous discrete exterior calculus.</text>
+</svg>

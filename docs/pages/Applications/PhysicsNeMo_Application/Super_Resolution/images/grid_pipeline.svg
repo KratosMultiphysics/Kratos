@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="380" viewBox="0 0 1100 380" font-family="Helvetica, Arial, sans-serif">
+  <title>Mesh to grid to model to grid to mesh</title>
+  <desc>The grid bridge samples an unstructured field onto a voxel grid, a grid model maps it to another grid, and the result is scattered back onto the nodes of the same or a finer model part; the thin-axis squeeze handles planar cases.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/></marker></defs>
+  <rect width="1100" height="380" fill="#ffffff"/>
+  <g font-size="12.5" fill="#333">
+    <rect x="20" y="40" width="180" height="120" rx="8" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="110" y="64" text-anchor="middle" font-weight="bold" fill="#1f4e79">coarse model part</text>
+    <text x="110" y="84" text-anchor="middle">unstructured nodes,</text>
+    <text x="110" y="100" text-anchor="middle">input_fields</text>
+    <text x="110" y="128" text-anchor="middle" font-size="11.5" fill="#666">any element type</text>
+    <text x="110" y="144" text-anchor="middle" font-size="11.5" fill="#666">(the locator needs simplices)</text>
+    <rect x="240" y="40" width="190" height="120" rx="8" fill="#f6f6f6" stroke="#666"/>
+    <text x="335" y="64" text-anchor="middle" font-weight="bold">SampleFieldsOnGrid</text>
+    <text x="335" y="84" text-anchor="middle">FE shape-function interpolation</text>
+    <text x="335" y="100" text-anchor="middle">at each grid point; exact for</text>
+    <text x="335" y="116" text-anchor="middle">linear fields; fill_value outside</text>
+    <text x="335" y="144" text-anchor="middle" font-family="monospace" font-size="11.5">(C, D, H, W) on bounding_box</text>
+    <rect x="470" y="40" width="160" height="120" rx="8" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="550" y="64" text-anchor="middle" font-weight="bold" fill="#2e6b2e">grid model</text>
+    <text x="550" y="84" text-anchor="middle">SRResNet (coarse in,</text>
+    <text x="550" y="100" text-anchor="middle">fine out), FNO / AFNO /</text>
+    <text x="550" y="116" text-anchor="middle">UNet (same resolution)</text>
+    <text x="550" y="144" text-anchor="middle" font-family="monospace" font-size="11.5">batch of 1, model dtype</text>
+    <rect x="670" y="40" width="190" height="120" rx="8" fill="#f6f6f6" stroke="#666"/>
+    <text x="765" y="64" text-anchor="middle" font-weight="bold">ScatterGridToNodes</text>
+    <text x="765" y="84" text-anchor="middle">trilinear interpolation of the</text>
+    <text x="765" y="100" text-anchor="middle">output grid at the node</text>
+    <text x="765" y="116" text-anchor="middle">coordinates of the target part</text>
+    <text x="765" y="144" text-anchor="middle" font-family="monospace" font-size="11.5">channel axis 0, card de-normalized</text>
+    <rect x="900" y="40" width="180" height="120" rx="8" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="990" y="64" text-anchor="middle" font-weight="bold" fill="#1f4e79">fine (or same) model part</text>
+    <text x="990" y="84" text-anchor="middle">output_fields written</text>
+    <text x="990" y="100" text-anchor="middle">as ordinary nodal data</text>
+    <text x="990" y="128" text-anchor="middle" font-size="11.5" fill="#666">SuperResolutionProcess: two parts</text>
+    <text x="990" y="144" text-anchor="middle" font-size="11.5" fill="#666">GridInferenceProcess: one part</text>
+    <g stroke="#555" stroke-width="1.8">
+      <line x1="200" y1="100" x2="238" y2="100" marker-end="url(#arrow)"/>
+      <line x1="430" y1="100" x2="468" y2="100" marker-end="url(#arrow)"/>
+      <line x1="630" y1="100" x2="668" y2="100" marker-end="url(#arrow)"/>
+      <line x1="860" y1="100" x2="898" y2="100" marker-end="url(#arrow)"/>
+    </g>
+  </g>
+  <g font-size="12.5" fill="#333">
+    <rect x="20" y="195" width="1060" height="165" rx="8" fill="#fff4e0" stroke="#c27c0e" stroke-width="1.5"/>
+    <text x="32" y="220" font-size="14" font-weight="bold" fill="#7a4d00">The thin-axis squeeze idiom for planar (2-D) cases</text>
+    <!-- grid sketch -->
+    <g stroke="#7a4d00" stroke-width="1.2" fill="#ffffff">
+      <rect x="60" y="240" width="90" height="90"/><rect x="72" y="232" width="90" height="90"/>
+    </g>
+    <text x="118" y="345" text-anchor="middle" font-size="11.5">grid_shape [H, W, 2]</text>
+    <line x1="180" y1="285" x2="225" y2="285" stroke="#555" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <text x="203" y="275" text-anchor="middle" font-size="10.5">mean over</text>
+    <text x="203" y="300" text-anchor="middle" font-size="10.5">squeeze_axis</text>
+    <rect x="240" y="240" width="90" height="90" stroke="#7a4d00" stroke-width="1.2" fill="#ffffff"/>
+    <text x="285" y="345" text-anchor="middle" font-size="11.5">(C, H, W) to a 2-D model</text>
+    <line x1="345" y1="285" x2="390" y2="285" stroke="#555" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <text x="368" y="275" text-anchor="middle" font-size="10.5">duplicate</text>
+    <g stroke="#7a4d00" stroke-width="1.2" fill="#ffffff">
+      <rect x="405" y="240" width="90" height="90"/><rect x="417" y="232" width="90" height="90"/>
+    </g>
+    <text x="463" y="345" text-anchor="middle" font-size="11.5">back to [H, W, 2]</text>
+    <text x="560" y="250">A 2-D Kratos case still lives in 3-D coordinates. Sample it on a grid with one axis</text>
+    <text x="560" y="268">of size 2, average that axis away before the model, duplicate it after, and any 2-D</text>
+    <text x="560" y="286">grid model (FNO dimension 2, AFNO, a 2-D U-Net) deploys through the 3-D machinery.</text>
+    <text x="560" y="312" fill="#a03060">The squeeze is a mean, not numpy.squeeze - the thin axis has size 2, not 1.</text>
+    <text x="560" y="336" fill="#444">physicsnemo's own UNet is 3-D and takes the (C, D, H, W) path unsqueezed.</text>
+  </g>
+</svg>

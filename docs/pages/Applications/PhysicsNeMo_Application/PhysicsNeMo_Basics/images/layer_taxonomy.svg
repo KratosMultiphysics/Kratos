@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560" font-family="Helvetica, Arial, sans-serif">
+  <title>physicsnemo.nn: layers and functionals by family</title>
+  <desc>The layer families of physicsnemo.nn (modules with parameters) and the functional families of physicsnemo.nn.functional (stateless operations), with the ones this application calls directly highlighted.</desc>
+  <rect width="1100" height="560" fill="#ffffff"/>
+  <text x="550" y="30" text-anchor="middle" font-size="17" font-weight="bold" fill="#2e6b2e">physicsnemo.nn - the building blocks under physicsnemo.models</text>
+  <!-- layers -->
+  <rect x="20" y="50" width="640" height="490" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+  <text x="340" y="75" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">Layers  (nn.Module subclasses, carry parameters)</text>
+  <g font-size="12" fill="#333">
+    <rect x="35" y="90" width="300" height="62" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="45" y="108" font-weight="bold">Fourier, FFT and spectral</text>
+    <text x="45" y="125">SpectralConv1d/2d/3d, FNO blocks, AFNO token mixers,</text>
+    <text x="45" y="141">FourierEmbedding, Fourier feature layers</text>
+    <rect x="350" y="90" width="295" height="62" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="360" y="108" font-weight="bold">Attention and transformers</text>
+    <text x="360" y="125" font-size="11">TimmSelfAttention (is_causal), DiTBlock, physics attention</text>
+    <text x="360" y="141">(Transolver slices), FLARE attention, GALE, RoPE</text>
+    <rect x="35" y="162" width="300" height="62" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="45" y="180" font-weight="bold">Convolutional and U-Net</text>
+    <text x="45" y="197">conv blocks, UNet encoder/decoder layers, resampling</text>
+    <text x="45" y="213">and interpolation layers, group norm (Apex-fused)</text>
+    <rect x="350" y="162" width="295" height="62" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="360" y="180" font-weight="bold">Graph and geometry</text>
+    <text x="360" y="197" font-size="11">MeshGraphNet encode/process/decode layers, ball query,</text>
+    <text x="360" y="213" font-size="11">point-transformer attention, neighborhood attention (natten)</text>
+    <rect x="35" y="234" width="300" height="62" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="45" y="252" font-weight="bold">Fully connected and MLP</text>
+    <text x="45" y="269">FullyConnected, MLP layers, weight factorization and</text>
+    <text x="45" y="285">weight norm, SIREN, Pade, DGM and KAN layers</text>
+    <rect x="350" y="234" width="295" height="62" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="360" y="252" font-weight="bold">Embeddings and conditioning</text>
+    <text x="360" y="269">PositionalEmbedding, FourierPositionalEmbedding,</text>
+    <text x="360" y="285" font-size="11">ConditioningEmbedder, modulation (ModAFNO) embeddings</text>
+    <rect x="35" y="306" width="300" height="62" rx="6" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="45" y="324" font-weight="bold" fill="#7a4d00">Regularization  (used here)</text>
+    <text x="45" y="341">ConcreteDropout with a learned rate, drop_path,</text>
+    <text x="45" y="357" font-size="10.5">collect_concrete_dropout_losses, get_concrete_dropout_rates</text>
+    <rect x="350" y="306" width="295" height="62" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="360" y="324" font-weight="bold">Normalization, activations, pooling</text>
+    <text x="360" y="341">LayerNorm variants, running norm, get_activation("gelu"),</text>
+    <text x="360" y="357">fused SiLU, Sin, AttentionPooling, Gumbel softmax</text>
+    <rect x="35" y="378" width="610" height="62" rx="6" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="45" y="396" font-weight="bold">Specialized and experimental</text>
+    <text x="45" y="413">HEALPix layers (hpx), transformer decoders, 3-D diffusion U-Net blocks, point tokenizers,</text>
+    <text x="45" y="429">SO(2)/SO(3) equivariant convolutions and norms (experimental.nn.symmetry)</text>
+    <text x="35" y="470" fill="#444">Base class: physicsnemo.nn.Module (a physicsnemo.Module that records its constructor arguments).</text>
+    <text x="35" y="488" fill="#444">Write a custom block as one and it travels inside a .mdlus like any upstream architecture.</text>
+    <text x="35" y="516" fill="#7a4d00" font-weight="bold">Here:</text>
+    <text x="80" y="516" fill="#444" font-size="11.5">ConcreteDropout drives "mc_dropout" uncertainty; shrink_and_perturb_ drives TrainModel's warm restarts.</text>
+  </g>
+  <!-- functionals -->
+  <rect x="680" y="50" width="400" height="490" rx="10" fill="#f6f6f6" stroke="#666" stroke-width="1.5"/>
+  <text x="880" y="75" text-anchor="middle" font-size="15" font-weight="bold" fill="#333">Functionals  (nn.functional, stateless, autograd-aware)</text>
+  <g font-size="12" fill="#333">
+    <rect x="695" y="90" width="370" height="58" rx="6" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="705" y="108" font-weight="bold" fill="#7a4d00">Neighbors  (used by particle_bridge)</text>
+    <text x="705" y="125">knn, radius_search (ball query, Warp-accelerated),</text>
+    <text x="705" y="141">batched radius search for DoMINO-style models</text>
+    <rect x="695" y="158" width="370" height="58" rx="6" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="705" y="176" font-weight="bold" fill="#7a4d00">Derivatives  (used by grid_bridge, calculus_bridge)</text>
+    <text x="705" y="193">uniform_grid_ and rectilinear_grid_ gradient / divergence /</text>
+    <text x="705" y="209">curl / laplacian; spectral and finite-difference stencils</text>
+    <rect x="695" y="226" width="370" height="58" rx="6" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="705" y="244" font-weight="bold" fill="#7a4d00">Geometry  (used by mesh_bridge.deformation, .spatial)</text>
+    <text x="705" y="261">signed_distance_field, free_form_deform_points, displace_points,</text>
+    <text x="705" y="277">morph_points, RBF deform, strain / inversion / bending energies</text>
+    <rect x="695" y="294" width="370" height="58" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="705" y="312" font-weight="bold">Sampling</text>
+    <text x="705" y="329">farthest_point_sampling, weighted_multinomial, Poisson-disk</text>
+    <text x="705" y="345">sampling, voxelization</text>
+    <rect x="695" y="362" width="370" height="58" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="705" y="380" font-weight="bold">Interpolation and FFT</text>
+    <text x="705" y="397">grid_to_point_interpolation, irfft / irfft2 helpers,</text>
+    <text x="705" y="413">equivariant ops, regularization and parameterization functionals</text>
+    <rect x="695" y="430" width="370" height="58" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="705" y="448" font-weight="bold">Rendering</text>
+    <text x="705" y="465">differentiable rendering functionals for geometry-from-image</text>
+    <text x="705" y="481">problems</text>
+    <text x="695" y="516" fill="#444">Functionals take and return plain tensors, so they compose</text>
+    <text x="695" y="532" fill="#444">with Kratos data through torch_bridge with nothing in between.</text>
+  </g>
+</svg>
