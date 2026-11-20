@@ -44,6 +44,7 @@ private:
 
 // Benchmark for power operation on a vector
 static void BM_VectorPower(benchmark::State& state) {
+    ParallelUtilities::GetNumThreads();
     int nsize = state.range(0);
     std::vector<double> data_vector(nsize, 5.0);
 
@@ -56,6 +57,7 @@ static void BM_VectorPower(benchmark::State& state) {
 
 // Benchmark for reduction
 static void BM_VectorReduction(benchmark::State& state) {
+    ParallelUtilities::GetNumThreads();
     int nsize = state.range(0);
     std::vector<double> data_vector(nsize, 5.0);
 
@@ -72,6 +74,7 @@ static void BM_VectorReduction(benchmark::State& state) {
 
 // Benchmark for element-wise operations with thread-local storage
 static void BM_ThreadLocalStorage(benchmark::State& state) {
+    ParallelUtilities::GetNumThreads();
     constexpr std::size_t vec_size = 6;
     std::size_t n_elems = state.range(0);
 
