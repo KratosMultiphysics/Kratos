@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
 import KratosMultiphysics as Kratos
 
 class ExecutionPolicy(ABC):
@@ -43,4 +44,9 @@ class ExecutionPolicy(ABC):
     def Execute(self) -> None:
         """Solves the associated primal problem.
         """
+        pass
+
+    @abstractmethod
+    def GetPath(self) -> Path:
+        """Returns the path in which the execution policy is executed."""
         pass

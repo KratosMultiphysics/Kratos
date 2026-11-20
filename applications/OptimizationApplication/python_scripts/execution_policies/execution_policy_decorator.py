@@ -61,6 +61,9 @@ class ExecutionPolicyDecorator(ExecutionPolicy):
             else:
                 self.__ExecuteWithoutFileLogger()
 
+    def GetPath(self):
+        return self.__execution_policy.GetPath()
+
     def __ExecuteWithoutFileLogger(self):
         CallOnAll(self.__list_of_pre_operations, Kratos.Operation.Execute)
         self.__execution_policy.Execute()
