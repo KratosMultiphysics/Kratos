@@ -1100,7 +1100,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::AddBodyForces(
     const auto& r_geometry = GetGeometry();
     const auto& r_props = GetProperties();
 
-    array_3 body_forces = ZeroVector(3);
+    array_3 body_forces;
     constexpr double one_third = 1.0 / 3.0;
 
     double density = 0.0;
@@ -1113,11 +1113,14 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::AddBodyForces(
     }
 
     // We interpolate the volume acceleration at the center of the element
+    array_3 gravity;
+    gravity.clear();
     for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
-        noalias(body_forces) += r_geometry[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        noalias(gravity) += r_geometry[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     }
-    body_forces *= density * one_third * Area; // total weight of the element
-    body_forces * one_third; // we distribute it equally to the 3 nodes
+    gravity *= one_third;
+
+    noalias(body_forces) = gravity * density * Area * r_props[THICKNESS] * one_third; // total weight of the element divided by 3 nodes
 
     for (IndexType inode = 0; inode < r_geometry.size(); ++inode) {
         IndexType index = inode * 6;
