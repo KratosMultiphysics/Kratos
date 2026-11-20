@@ -34,8 +34,8 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    // The size type definition
-    typedef std::size_t SizeType;
+// The size type definition
+using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -76,10 +76,10 @@ class GenericConstitutiveLawIntegratorPlasticity
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     /// Definition of index
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The type of yield surface
-    typedef TYieldSurfaceType YieldSurfaceType;
+    using YieldSurfaceType = TYieldSurfaceType;
 
     /// The define the working dimension size, already defined in the yield surface
     static constexpr SizeType Dimension = YieldSurfaceType::Dimension;
@@ -88,7 +88,7 @@ class GenericConstitutiveLawIntegratorPlasticity
     static constexpr SizeType VoigtSize = YieldSurfaceType::VoigtSize;
 
     /// The type of plastic potential
-    typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
+    using PlasticPotentialType = typename YieldSurfaceType::PlasticPotentialType;
 
     /// Counted pointer of GenericConstitutiveLawIntegratorPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegratorPlasticity);
@@ -208,7 +208,9 @@ class GenericConstitutiveLawIntegratorPlasticity
             CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rFflux, rGflux, rPlasticDenominator);
             noalias(rConstitutiveMatrix) = tangent_tensor;
         }
-        KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        if (iteration > max_iter) {
+            KRATOS_WARNING_FIRST_N("GenericConstitutiveLawIntegratorKinematicPlasticity", 10) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        }
     }
 
     /**
@@ -1073,7 +1075,6 @@ class GenericConstitutiveLawIntegratorPlasticity
     ///@{
 
     ///@}
-
   protected:
     ///@name Protected static Member Variables
     ///@{
@@ -1103,7 +1104,6 @@ class GenericConstitutiveLawIntegratorPlasticity
     ///@{
 
     ///@}
-
   private:
     ///@name Static Member Variables
     ///@{
@@ -1133,9 +1133,7 @@ class GenericConstitutiveLawIntegratorPlasticity
     ///@{
 
     ///@}
-
 }; // Class GenericYieldSurface
-
 ///@}
 
 ///@name Type Definitions
