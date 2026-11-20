@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Anne van de Graaf
+//                   Wijtze Pieter Kikstra
 //
 
 #pragma once
@@ -17,29 +18,30 @@
 #include "includes/kratos_export_api.h"
 
 #include <algorithm>
+#include <iterator>
 
 namespace Kratos::Geo
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) PQ
+class KRATOS_API(GEO_MECHANICS_APPLICATION) PQTheta
 {
 public:
-    static constexpr std::size_t msVectorSize = 2;
+    static constexpr std::size_t msVectorSize = 3;
     using InternalVectorType                  = BoundedVector<double, msVectorSize>;
 
-    PQ() = default;
-    PQ(double P, double Q);
+    PQTheta() = default;
+    PQTheta(double P, double Q, double Theta); // Pressure, deviatoric stress, Lode angle in radians
 
     template <typename VectorType>
-    explicit PQ(const VectorType& rValues)
+    explicit PQTheta(const VectorType& rValues)
     {
         // For some reason, the `std::ranges` versions of the below algorithms don't play nicely
         // with UBlas vector expressions. Therefore, we're using the iterator-style algorithms.
         auto first = std::begin(rValues);
         auto last  = std::end(rValues);
         KRATOS_DEBUG_ERROR_IF(std::distance(first, last) != msVectorSize)
-            << "Cannot construct a PQ instance: expected " << msVectorSize << " values, but got "
-            << std::distance(first, last) << " value(s)\n";
+            << "Cannot construct a PQTheta instance: expected " << msVectorSize
+            << " values, but got " << std::distance(first, last) << " value(s)\n";
 
         std::copy(first, last, mValues.begin());
     }
@@ -49,6 +51,8 @@ public:
     double&                                 P() noexcept;
     [[nodiscard]] double                    Q() const noexcept;
     double&                                 Q() noexcept;
+    [[nodiscard]] double                    Theta() const noexcept;
+    double&                                 Theta() noexcept;
 
     template <typename VectorType>
     VectorType CopyTo() const
@@ -58,9 +62,9 @@ public:
         return result;
     }
 
-    PQ& operator+=(const PQ& rRhs);
+    PQTheta& operator+=(const PQTheta& rRhs);
     KRATOS_API(GEO_MECHANICS_APPLICATION)
-    friend PQ operator+(PQ Lhs, const PQ& rRhs);
+    friend PQTheta operator+(PQTheta Lhs, const PQTheta& rRhs);
 
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};
