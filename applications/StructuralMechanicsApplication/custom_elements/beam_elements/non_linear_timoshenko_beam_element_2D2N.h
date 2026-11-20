@@ -154,11 +154,11 @@ public:
         return GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
 
+private:
+
     ///@}
     ///@name Serialization
     ///@{
-
-private:
 
 };
 

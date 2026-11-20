@@ -203,6 +203,34 @@ int NonLinearTimoshenkoBeamElement3D2N::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void NonLinearTimoshenkoBeamElement3D2N::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+    int IntMethod = int(this->GetIntegrationMethod());
+    rSerializer.save("RotationOperators",mRotationOperators);
+    rSerializer.save("OldRotationOperators",mOldRotationOperators);
+    rSerializer.save("IntegrationMethod",IntMethod);
+    rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+    int IntMethod;
+    rSerializer.load("RotationOperators",mRotationOperators);
+    rSerializer.load("OldRotationOperators",mOldRotationOperators);
+
+    rSerializer.load("IntegrationMethod",IntMethod);
+    mThisIntegrationMethod = IntegrationMethod(IntMethod);
+    rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Vector NonLinearTimoshenkoBeamElement3D2N::CalculateStrainVector(        
     const double N1,
     const double N2,

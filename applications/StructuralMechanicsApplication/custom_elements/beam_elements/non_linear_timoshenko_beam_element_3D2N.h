@@ -374,6 +374,10 @@ private:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; // The vector containing the beam constitutive laws, one per each IP
     IntegrationMethod mThisIntegrationMethod;
+
+    friend class Serializer;
+    void save(Serializer &rSerializer) const override;
+    void load(Serializer &rSerializer) override;
 };
 
 } // namespace Kratos

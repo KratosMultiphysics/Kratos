@@ -426,9 +426,6 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void NonLinearTimoshenkoBeamElement2D2N::CalculateMassMatrix(Matrix& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
