@@ -94,6 +94,12 @@ public:
 
     double CalculateValue(ModelPart& rModelPart) override;
 
+    /**
+     * @brief Gradient of the sensor w.r.t. the element dofs, by forward finite differences on the element itself.
+     * @details Swaps a dof-free deep copy of each node into the element's geometry while perturbing it.
+     * Precondition: the element's Geometry object is not shared with another element or condition (only with the
+     * wrapped primal element), which holds for models read from mdpa.
+     */
     void CalculateGradient(
         const Element& rAdjointElement,
         const Matrix& rResidualGradient,
