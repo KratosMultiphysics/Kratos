@@ -10,108 +10,90 @@ __all__ = ["Factory"]
 
 
 import KratosMultiphysics
-import KratosMultiphysics.HDF5Application.core as core
-from KratosMultiphysics.HDF5Application.utils import ParametersWrapper
-from KratosMultiphysics.HDF5Application.utils import CreateOperationSettings
+from KratosMultiphysics.HDF5Application.core.controllers import DefaultController
+from KratosMultiphysics.HDF5Application.core.operations.aggregated_operations import ControlledOperation
+from KratosMultiphysics.HDF5Application.core.operations.aggregated_operations import AggregatedControlledOperations
+from KratosMultiphysics.HDF5Application.core.processes import HDF5Process
+from KratosMultiphysics.HDF5Application.core.operations.model_part import *
 
 
-def Factory(settings, Model):
-    """Return the process for single mesh temporal input with HDF5.
+def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> HDF5Process:
+    if not isinstance(settings, KratosMultiphysics.Parameters):
+        raise RuntimeError(f"settings should be of type KratosMultiphysics.Parameters")
+    if not isinstance(model, KratosMultiphysics.Model):
+        raise RuntimeError(f"model should be of type KratosMultiphysics.Model")
 
-    The input settings are given in the following table:
-    +-------------------------------------+------------+-----------------------------------------+
-    | Setting                             | Type       | Default Value                           |
-    +-------------------------------------+------------+-----------------------------------------+
-    | "model_part_name"                   | String     | ""                                      |
-    +-------------------------------------+------------+-----------------------------------------+
-    | "file_settings"                     | Parameters | "file_name": "<model_part_name>-<time>" |
-    |                                     |            | "time_format": "0.4f"                   |
-    |                                     |            | "echo_level":  0                        |
-    +-------------------------------------+------------+-----------------------------------------+
-    | "nodal_solution_step_data_settings" | Parameters | "prefix": "/ResultsData"                |
-    |                                     |            | "list_of_variables": []                 |
-    +-------------------------------------+------------+-----------------------------------------+
-    | "nodal_data_value_settings"         | Parameters | "prefix": "/ResultsData"                |
-    |                                     |            | "list_of_variables": []                 |
-    +-------------------------------------+------------+-----------------------------------------+
-    | "element_data_value_settings"       | Parameters | "prefix": "/ResultsData"                |
-    |                                     |            | "list_of_variables": []                 |
-    +-------------------------------------+------------+-----------------------------------------+
-    | "nodal_flag_value_settings"         | Parameters | "prefix": "/ResultsData"                |
-    |                                     |            | "list_of_variables": []                 |
-    +-------------------------------------+------------+-----------------------------------------+
-    | "element_flag_value_settings"       | Parameters | "prefix": "/ResultsData"                |
-    |                                     |            | "list_of_variables": []                 |
-    +-------------------------------------+------------+-----------------------------------------+
-    | "condition_flag_value_settings"     | Parameters | "prefix": "/ResultsData"                |
-    |                                     |            | "list_of_variables": []                 |
-    +-------------------------------------+------------+-----------------------------------------+
-    | "condition_data_value_settings"     | Parameters | "prefix": "/ResultsData"                |
-    |                                     |            | "list_of_variables": []                 |
-    +-------------------------------------+------------+-----------------------------------------+
-    """
-    core_settings = CreateCoreSettings(settings["Parameters"], Model)
-    return SingleMeshTemporalInputProcessFactory(core_settings, Model)
+    return SingleMeshTemporalInputProcess(model, settings["Parameters"])
 
 
-def SingleMeshTemporalInputProcessFactory(core_settings, Model):
-    return core.Factory(core_settings, Model, KratosMultiphysics.Process)
-
-
-def CreateCoreSettings(user_settings, model):
-    """Return the core settings."""
-    # Configure the defaults:
-    core_settings = ParametersWrapper("""
-        [{
-            "model_part_name" : "",
-            "process_step": "initialize_solution_step",
-            "io_settings": {
-                "io_type": "serial_hdf5_file_io",
-                "file_name": "<model_part_name>-<time>.h5",
-                "file_access_mode": "read_only"
-            },
-            "list_of_operations": []
-        }]
-        """)
-    # Apply the user settings:
-    user_settings.ValidateAndAssignDefaults(
-        KratosMultiphysics.Parameters("""
+class SingleMeshTemporalInputProcess(HDF5Process):
+    @classmethod
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        return KratosMultiphysics.Parameters("""
             {
-                "model_part_name" : "MainModelPart",
-                "file_settings" : {},
-                "nodal_solution_step_data_settings" : {},
-                "nodal_data_value_settings": {},
-                "element_data_value_settings" : {},
-                "nodal_flag_value_settings": {},
-                "element_flag_value_settings" : {},
-                "condition_data_value_settings" : {},
-                "condition_flag_value_settings" : {}
-            }
-            """)
-    )
-    user_settings = ParametersWrapper(user_settings)
-    core_settings[0]["model_part_name"] = user_settings["model_part_name"]
-    for key in user_settings["file_settings"]:
-        core_settings[0]["io_settings"][key] = user_settings["file_settings"][key]
-    model_part_name = user_settings["model_part_name"]
-    if model[model_part_name].IsDistributed():
-        core_settings[0]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
-    else:
-        core_settings[0]["io_settings"]["io_type"] = "serial_hdf5_file_io"
-    core_settings[0]["list_of_operations"] = [
-        CreateOperationSettings("nodal_solution_step_data_input",
-                                user_settings["nodal_solution_step_data_settings"]),
-        CreateOperationSettings("nodal_data_value_input",
-                                user_settings["nodal_data_value_settings"]),
-        CreateOperationSettings("element_data_value_input",
-                                user_settings["element_data_value_settings"]),
-        CreateOperationSettings("nodal_flag_value_input",
-                                user_settings["nodal_flag_value_settings"]),
-        CreateOperationSettings("element_flag_value_input",
-                                user_settings["element_flag_value_settings"]),
-        CreateOperationSettings("condition_flag_value_input",
-                                user_settings["condition_flag_value_settings"]),
-        CreateOperationSettings("condition_data_value_input",
-                                user_settings["condition_data_value_settings"])
-    ]
-    return core_settings
+                "model_part_name": "PLEASE_SPECIFY_MODEL_PART_NAME",
+                "file_settings": {
+                    "file_name"        : "<model_part_name>-<time>.h5",
+                    "time_format"      : "0.4f",
+                    "file_access_mode" : "read_only",
+                    "echo_level"       :  0
+                },
+                "nodal_solution_step_data_settings": {
+                    "prefix"           : "/ResultsData/NodalSolutionStepData/",
+                    "list_of_variables": [],
+                    "time_format"      : "0.4f"
+                },
+                "nodal_data_value_settings": {
+                    "prefix"           : "/ResultsData/NodalDataValues/",
+                    "list_of_variables": [],
+                    "time_format"      : "0.4f"
+                },
+                "nodal_flag_value_settings": {
+                    "prefix"           : "/ResultsData/NodalFlagValues/",
+                    "list_of_variables": [],
+                    "time_format"      : "0.4f"
+                },
+                "element_data_value_settings": {
+                    "prefix"           : "/ResultsData/ElementDataValues/",
+                    "list_of_variables": [],
+                    "time_format"      : "0.4f"
+                },
+                "element_flag_value_settings": {
+                    "prefix"           : "/ResultsData/ElementFlagValues/",
+                    "list_of_variables": [],
+                    "time_format"      : "0.4f"
+                },
+                "condition_data_value_settings": {
+                    "prefix"           : "/ResultsData/ConditionDataValues/",
+                    "list_of_variables": [],
+                    "time_format"      : "0.4f"
+                },
+                "condition_flag_value_settings": {
+                    "prefix"           : "/ResultsData/ConditionFlagValues/",
+                    "list_of_variables": [],
+                    "time_format"      : "0.4f"
+                }
+            }""")
+
+    def __init__(self, model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters) -> None:
+        parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
+        model_part = model[parameters["model_part_name"].GetString()]
+        super().__init__()
+
+        # create default controller
+        default_controller = DefaultController()
+
+        # create the aggregated operation with hdf5 file settings
+        operations = AggregatedControlledOperations(model_part, parameters["file_settings"])
+
+        # now adding temporal outputs.
+        operations.AddControlledOperation(ControlledOperation(NodalSolutionStepDataInput, self._GetValidatedParameters("nodal_solution_step_data_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalDataValueInput, self._GetValidatedParameters("nodal_data_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalFlagValueInput, self._GetValidatedParameters("nodal_flag_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementDataValueInput, self._GetValidatedParameters("element_data_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementFlagValueInput, self._GetValidatedParameters("element_flag_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionDataValueInput, self._GetValidatedParameters("condition_data_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionFlagValueInput, self._GetValidatedParameters("condition_flag_value_settings", parameters), default_controller))
+
+        # now add all operations to PrintOutput method
+        self.AddInitializeSolutionStep(operations)

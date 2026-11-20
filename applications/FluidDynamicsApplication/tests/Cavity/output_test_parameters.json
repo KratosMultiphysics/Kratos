@@ -124,6 +124,10 @@
                 "file_settings" : {
                     "file_access_mode" : "truncate"
                 },
+                "output_time_settings": {
+                    "output_control_type": "time",
+                    "output_interval"    : 0.1
+                },
                 "nodal_solution_step_data_settings" : {
                     "alpha_bossak" : 0.0,
                     "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
