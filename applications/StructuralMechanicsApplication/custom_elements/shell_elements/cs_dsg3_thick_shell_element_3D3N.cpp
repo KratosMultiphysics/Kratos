@@ -128,6 +128,21 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateOnIntegrationPoints(
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
     }
 
+    if constexpr (is_corotational) {
+        // TO DO
+    } else {
+        if (rVariable == SHELL_FORCE || rVariable == SHELL_MOMENT || rVariable == SHELL_SHEAR ||
+            rVariable == SHELL_STRESS_TOP_SURFACE || rVariable == SHELL_STRESS_BOTTOM_SURFACE ||
+            rVariable == SHELL_STRESS_MIDDLE_SURFACE) {
+                bounded_3_matrix rotation_matrix;
+                CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
+                for (IndexType i = 0; i < number_of_integration_points; ++i) {
+                    // Transform the local stresses to the global coordinate system
+                    noalias(rOutput[i]) = prod(trans(rotation_matrix), Matrix(prod(rOutput[i], rotation_matrix)));
+                }
+        }
+    }
+
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateOnIntegrationPoints")
 }
 
