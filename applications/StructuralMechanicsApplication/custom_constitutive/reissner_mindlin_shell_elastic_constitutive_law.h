@@ -205,7 +205,16 @@ public:
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue) override;
 
-    
+    /**
+     * @brief Computes the generalized constitutive matrix (8x8) for the shell element
+     * @details The generalized constitutive matrix is composed of the membrane (3), bending (3) and shear (2) constitutive matrices:
+     * D = | Dm  0   0 |
+     *     | 0   Db  0 |
+     *     | 0   0   Ds|
+     * @param rMatrix the generalized constitutive matrix to be computed
+     * @param rProperties the material properties
+     * @param rGeometry the geometry of the shell element
+     **/
     void CalculateGeneralizedConstitutiveMatrix(
         Matrix& rMatrix,
         const Properties& rProperties,
