@@ -33,7 +33,7 @@ SnakeGapSbmProcess::SnakeGapSbmProcess(
     mpGapConditionsSubModelPart = &(mpIgaModelPart->CreateSubModelPart("GapConditions"));
     mpGapInterfaceSubModelPart = &(mpIgaModelPart->CreateSubModelPart("GapInterfaces"));
     mGapElementName = ThisParameters["gap_element_name"].GetString();
-    mGapConditionName = "GapSbmSolidCondition"; //FIXME:
+    mGapConditionName = ThisParameters["gap_condition_name"].GetString();
     mGapInterfaceConditionName = ThisParameters["gap_interface_condition_name"].GetString();
     mGapSbmType = ThisParameters["gap_sbm_type"].GetString();
     mBackgroundSurfaceGeometryName =
@@ -62,15 +62,9 @@ SnakeGapSbmProcess::SnakeGapSbmProcess(
     if (ThisParameters.Has("polynomial_order"))
         mGapInterpolationOrder = ThisParameters["polynomial_order"].GetVector()[0];
 
-    mLambdaInner = 0.001;
-    mLambdaOuter = 0.999;
+    mLambdaInner = 0.0;
+    mLambdaOuter = 1.0;
     mInternalDivisions = ThisParameters["number_internal_divisions"].GetInt();
-
-    // if (mUseForMultipatch || mUseForLocalRefinement)
-    // {
-        // mLambdaInner = 0.001;
-        // mLambdaOuter = 0.999;
-    // }
 }
 
 void SnakeGapSbmProcess::CreateSbmExtendedGeometries()

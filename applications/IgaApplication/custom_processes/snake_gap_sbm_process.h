@@ -1578,7 +1578,8 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> FindClos
     const Vector& rDirection,
     std::vector<IndexType>* pClosestIntersectionCandidateIds = nullptr,
     const std::vector<IndexType>* pConsideredNodeIds = nullptr,
-    const bool ReverseNormalFilter = false) const;
+    const bool ReverseNormalFilter = false,
+    const bool IgnoreNormalFilter = false) const;
     
 /**
 * @brief Attaches the surrogate middle geometry to skin nodes.

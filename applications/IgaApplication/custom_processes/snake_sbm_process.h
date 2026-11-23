@@ -326,7 +326,8 @@ private:
     static bool IsPointInsideSkinBoundary(
         const Point& rPointToSearch,
         DynamicBins& rPointsBin,
-        const ModelPart& rSkinModelPartIn
+        const ModelPart& rSkinModelPartIn,
+        const double GeometricTolerance = 1.0e-4
         );
 
     /**

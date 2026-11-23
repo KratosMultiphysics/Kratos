@@ -166,6 +166,8 @@ private:
         const double& value,
         Condition::Pointer p_condition);
     
+    void ExpandElementConditionList();
+
     /**
      * @brief Sets one component of the NORMAL_STRESS vector stored on a condition.
      */

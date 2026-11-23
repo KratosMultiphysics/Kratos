@@ -45,12 +45,6 @@ Parameters GetSbmGeometryParameters(const Parameters& rParameters, const bool Is
     if (parameters.Has("upper_point_uvw")) {
         parameters.RemoveValue("upper_point_uvw");
     }
-    if (IsGapSbm && parameters.Has("create_surr_outer_from_surr_inner")) {
-        parameters.RemoveValue("create_surr_outer_from_surr_inner");
-    }
-    if (IsGapSbm && parameters.Has("create_surr_inner_from_surr_outer")) {
-        parameters.RemoveValue("create_surr_inner_from_surr_outer");
-    }
     if (IsGapSbm) {
         if (parameters.Has("lambda_inner")) {
             parameters.RemoveValue("lambda_inner");

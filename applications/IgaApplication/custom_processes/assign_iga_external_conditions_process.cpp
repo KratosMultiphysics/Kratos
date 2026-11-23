@@ -34,6 +34,52 @@ AssignIgaExternalConditionsProcess::AssignIgaExternalConditionsProcess(
         << "Missing \"model_part_name\" section" << std::endl;
 
     mElementConditionList = mParameters["element_condition_list"];
+    ExpandElementConditionList();
+}
+
+void AssignIgaExternalConditionsProcess::ExpandElementConditionList()
+{
+    Parameters expanded("[]");
+    for (IndexType i = 0; i < mElementConditionList.size(); ++i) {
+        const Parameters item = mElementConditionList[i];
+        if (!item.Has("apply_to_all_patches") || !item["apply_to_all_patches"].GetBool()) {
+            expanded.Append(item);
+            continue;
+        }
+
+        KRATOS_ERROR_IF_NOT(item.Has("iga_model_part_suffix") &&
+                            !item["iga_model_part_suffix"].GetString().empty())
+            << "AssignIgaExternalConditionsProcess: 'apply_to_all_patches' requires 'iga_model_part_suffix'." << std::endl;
+        const std::string suffix = item["iga_model_part_suffix"].GetString();
+        const std::string prefix = item.Has("patch_prefix") ? item["patch_prefix"].GetString() : "Patch";
+        ModelPart& r_root = mpModel->GetModelPart(mParameters["model_part_name"].GetString());
+        for (auto& r_patch : r_root.SubModelParts()) {
+            if (r_patch.Name().rfind(prefix, 0) != 0) {
+                continue;
+            }
+            const std::string target = r_patch.FullName() + "." + suffix;
+            if (!mpModel->HasModelPart(target)) {
+                continue;
+            }
+            const ModelPart& r_target = mpModel->GetModelPart(target);
+            if (r_target.NumberOfElements() == 0 && r_target.NumberOfConditions() == 0) {
+                continue;
+            }
+            Parameters clone = item.Clone();
+            if (clone.Has("iga_model_part")) {
+                clone["iga_model_part"].SetString(target);
+            } else {
+                clone.AddEmptyValue("iga_model_part").SetString(target);
+            }
+            clone.RemoveValue("apply_to_all_patches");
+            clone.RemoveValue("iga_model_part_suffix");
+            if (clone.Has("patch_prefix")) {
+                clone.RemoveValue("patch_prefix");
+            }
+            expanded.Append(clone);
+        }
+    }
+    mElementConditionList = expanded;
 }
 
 void AssignIgaExternalConditionsProcess::ExecuteInitialize(){
