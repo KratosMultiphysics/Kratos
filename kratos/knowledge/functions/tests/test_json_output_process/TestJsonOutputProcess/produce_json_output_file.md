@@ -1,0 +1,24 @@
+---
+type: Python Method
+title: produce_json_output_file
+resource: tests/test_json_output_process.py#L36-L45
+generated:
+  by: okf-rs/0.7.0
+relationships:
+  called_by:
+  - target: functions/tests/test_json_output_process/TestJsonOutputProcess/test_output_of_vector_variable
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/tests/test_json_output_process/TestJsonOutputProcess/test_output_of_resultant_vector_variable
+    resolved_by: tree-sitter
+    confidence: exact
+---
+
+# Signature
+
+`def produce_json_output_file(self, process_settings):`
+
+# Called by
+
+- [test_output_of_vector_variable](../../../../functions/tests/test_json_output_process/TestJsonOutputProcess/test_output_of_vector_variable.md)
+- [test_output_of_resultant_vector_variable](../../../../functions/tests/test_json_output_process/TestJsonOutputProcess/test_output_of_resultant_vector_variable.md)

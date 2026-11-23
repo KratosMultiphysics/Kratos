@@ -22,7 +22,7 @@ namespace Kratos
 
 const EntityDatabase::GPDatabaseType& EntityDatabase::GetResultaData(const SizeType GPIndex) const
 {
-    KRATOS_DEBUG_ERROR_IF(GPIndex == mData.size()) << "Incompatible size. GPIndex: " << GPIndex << ". Size: " << mData.size() << std::endl;
+    KRATOS_ERROR_IF(GPIndex >= mData.size()) << "Incompatible size. GPIndex: " << GPIndex << ". Size: " << mData.size() << std::endl;
     return mData[GPIndex];
 }
 
@@ -35,7 +35,7 @@ double EntityDatabase::GetValue(
     const SizeType GPIndex
     ) const
 {
-    KRATOS_DEBUG_ERROR_IF(ComponentIndex == GetResultaData(GPIndex).size()) << "Incompatible size. ComponentIndex: " << ComponentIndex << ". Size: " << GetResultaData(GPIndex).size() << std::endl;
+    KRATOS_ERROR_IF(ComponentIndex >= GetResultaData(GPIndex).size()) << "Incompatible size. ComponentIndex: " << ComponentIndex << ". Size: " << GetResultaData(GPIndex).size() << std::endl;
     return mData[GPIndex][ComponentIndex]->GetValue(Time);
 }
 
@@ -84,7 +84,7 @@ void EntityDatabase::Clear()
 
 const EntityDatabase& VariableDatabase::GetEntityData(const IndexType EntityIndex) const
 {
-    KRATOS_DEBUG_ERROR_IF(EntityIndex == mData.size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << mData.size() << std::endl;
+    KRATOS_ERROR_IF(EntityIndex >= mData.size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << mData.size() << std::endl;
     return mData[EntityIndex];
 }
 
@@ -98,7 +98,7 @@ double VariableDatabase::GetValue(
     const SizeType GPIndex
     ) const
 {
-    KRATOS_DEBUG_ERROR_IF(EntityIndex == mData.size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << mData.size() << std::endl;
+    KRATOS_ERROR_IF(EntityIndex >= mData.size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << mData.size() << std::endl;
     return mData[EntityIndex].GetValue(Time, ComponentIndex, GPIndex);
 }
 
@@ -113,6 +113,7 @@ void VariableDatabase::SetValues(
     const SizeType GPIndex
     )
 {
+    KRATOS_ERROR_IF(EntityIndex >= mData.size()) << "Incompatible size. EntityIndex: " << EntityIndex << ". Size: " << mData.size() << std::endl;
     auto& r_database = mData[EntityIndex];
     r_database.SetValues(rValuesX, rValuesY, ComponentIndex, GPIndex);
 }

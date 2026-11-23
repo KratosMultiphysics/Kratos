@@ -658,4 +658,85 @@ namespace Kratos::Testing {
         r_sub_model_part_4.Nodes().shrink_to_fit();
         KRATOS_EXPECT_EQ(r_sub_model_part_4.Nodes().capacity(), 7);
     }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveNodeFromAllLevelsPointerOverload, KratosCoreFastSuite)
+    {
+        // The reference/Pointer overloads of Remove*FromAllLevels must recurse
+        // through the whole parent chain (as the Id overload already did): the
+        // buggy version called the parent's single-level Remove, which descends
+        // from the parent but never reaches the parent's own ancestors.
+        Model model;
+        auto& r_root = model.CreateModelPart("Main");
+        auto& r_sub_1 = r_root.CreateSubModelPart("Level1");
+        auto& r_sub_2 = r_sub_1.CreateSubModelPart("Level2");
+
+        auto p_node = r_sub_2.CreateNewNode(1, 0.0, 0.0, 0.0);
+        r_sub_2.CreateNewNode(2, 1.0, 0.0, 0.0);
+
+        KRATOS_EXPECT_TRUE(r_root.HasNode(1));
+        KRATOS_EXPECT_TRUE(r_sub_1.HasNode(1));
+        KRATOS_EXPECT_TRUE(r_sub_2.HasNode(1));
+
+        r_sub_2.RemoveNodeFromAllLevels(p_node);
+
+        KRATOS_EXPECT_FALSE(r_sub_2.HasNode(1));
+        KRATOS_EXPECT_FALSE(r_sub_1.HasNode(1));
+        KRATOS_EXPECT_FALSE(r_root.HasNode(1));
+
+        // The untouched node is still present in all levels
+        KRATOS_EXPECT_TRUE(r_root.HasNode(2));
+        KRATOS_EXPECT_TRUE(r_sub_1.HasNode(2));
+        KRATOS_EXPECT_TRUE(r_sub_2.HasNode(2));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElementFromAllLevelsPointerOverload, KratosCoreFastSuite)
+    {
+        // The single-level Remove* functions descend (self + children) but never
+        // ascend; the pointer/reference overloads of RemoveElementFromAllLevels
+        // called the parent's single-level version, so the element survived in
+        // the parent's own ancestors. A root-owned element makes this visible.
+        Model model;
+        auto& r_root = model.CreateModelPart("Main");
+        auto& r_sub_1 = r_root.CreateSubModelPart("Level1");
+        auto& r_sub_2 = r_sub_1.CreateSubModelPart("Level2");
+
+        r_root.CreateNewNode(1, 0.0, 0.0, 0.0);
+        r_root.CreateNewNode(2, 1.0, 0.0, 0.0);
+        r_root.CreateNewNode(3, 0.0, 1.0, 0.0);
+        auto p_props = r_root.CreateNewProperties(0);
+
+        std::vector<ModelPart::IndexType> element_nodes {1, 2, 3};
+        auto p_element = r_root.CreateNewElement("Element2D3N", 1, element_nodes, p_props);
+
+        KRATOS_EXPECT_TRUE(r_root.HasElement(1));
+
+        r_sub_2.RemoveElementFromAllLevels(p_element);
+
+        KRATOS_EXPECT_FALSE(r_root.HasElement(1));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartRemovePropertiesFromAllLevelsPointerOverload, KratosCoreFastSuite)
+    {
+        Model model;
+        auto& r_root = model.CreateModelPart("Main");
+        auto& r_sub_1 = r_root.CreateSubModelPart("Level1");
+        auto& r_sub_2 = r_sub_1.CreateSubModelPart("Level2");
+
+        auto p_props = r_root.CreateNewProperties(3);
+        r_sub_1.AddProperties(p_props);
+        r_sub_2.AddProperties(p_props);
+
+        KRATOS_EXPECT_TRUE(r_root.HasProperties(3));
+        KRATOS_EXPECT_TRUE(r_sub_1.HasProperties(3));
+        KRATOS_EXPECT_TRUE(r_sub_2.HasProperties(3));
+
+        r_sub_2.RemovePropertiesFromAllLevels(p_props);
+
+        KRATOS_EXPECT_FALSE(r_sub_2.HasProperties(3));
+        KRATOS_EXPECT_FALSE(r_sub_1.HasProperties(3));
+        // Before the fix the missing 'return' in the sub-model-part branch also
+        // made every level attempt the removal redundantly, and the root never
+        // saw the recursive call: the root entry survived.
+        KRATOS_EXPECT_FALSE(r_root.HasProperties(3));
+    }
 }  // namespace Kratos::Testing.

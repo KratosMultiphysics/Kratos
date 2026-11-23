@@ -329,6 +329,12 @@ public:
      */
     void factorize()
     {
+        if (size == 0 || entriesD == NULL) {
+            // Nothing factorized: either the matrix was never copied or it is empty (0x0).
+            // Reading entriesD[0] below would be a null dereference / OOB read.
+            return;
+        }
+
         int i, j, k;
         int indexEntry, indexL, indexU;
         int jBeginRow, jBeginCol, jBeginMult, iBeginCol;

@@ -817,6 +817,7 @@ public:
                 noalias(temp_vector1) = it_node1->Coordinates(); //nodo 1 (origin)
                 int jjj;
                 int kkk;
+                bool diagonal_found = false;
 
                 for (int iii=1; iii!=4; ++iii)     //end node of the segment that will be used to create the plane (will be contained too)
                 {
@@ -866,11 +867,16 @@ public:
                         nodes_for_2triang[4] = TriangleNodesArray[kkk];
                         nodes_for_2triang[5] = TriangleNodesArray[0]; //finish 2nd triangle
                         //	KRATOS_WATCH(nodes_for_2triang);
+                        diagonal_found = true;
                         break; //no need to keep looking, we can exit the loop
 
                     } //closing the if
 
                 }//by the time this finishes i should already have TriangleNodesArray
+
+                // nodes_for_2triang is only assigned inside the branch above: without a
+                // valid diagonal the 6 node ids below would be uninitialized.
+                KRATOS_ERROR_IF_NOT(diagonal_found) << "CuttingUtility: no valid diagonal was found to split the quadrilateral obtained from the cut into two triangles (degenerate cut geometry)." << std::endl;
 
 
 

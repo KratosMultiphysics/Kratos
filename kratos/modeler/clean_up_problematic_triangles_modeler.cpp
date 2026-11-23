@@ -166,14 +166,27 @@ void CleanUpProblematicTrianglesModeler::CleanUpProblematicGeometries(
         for (auto& r_node_pair : replace_nodes) {
             const IndexType id = r_node_pair.first;
             auto& r_nodes_to_replace = r_node_pair.second;
-            for (const IndexType node_id : r_nodes_to_replace) {
-                const auto& r_sub_nodes_to_replace = replace_nodes[node_id];
-                for (const IndexType sub_node_id : r_sub_nodes_to_replace) {
-                    if (sub_node_id != id) {
-                        r_nodes_to_replace.insert(sub_node_id);
+
+            // r_nodes_to_replace must not be modified while it is being iterated
+            // (insertion can rehash the set and invalidate the range-for iterators),
+            // so merge transitively through a worklist and apply the insertions in bulk.
+            std::vector<IndexType> pending_merges;
+            std::vector<IndexType> worklist(r_nodes_to_replace.begin(), r_nodes_to_replace.end());
+            while (!worklist.empty()) {
+                const IndexType node_id = worklist.back();
+                worklist.pop_back();
+                const auto it_sub = replace_nodes.find(node_id);
+                if (it_sub == replace_nodes.end())
+                    continue;
+                for (const IndexType sub_node_id : it_sub->second) {
+                    if (sub_node_id != id && r_nodes_to_replace.find(sub_node_id) == r_nodes_to_replace.end()) {
+                        pending_merges.push_back(sub_node_id);
+                        worklist.push_back(sub_node_id);
                     }
                 }
             }
+            r_nodes_to_replace.insert(pending_merges.begin(), pending_merges.end());
+
             for (const IndexType node_id : r_nodes_to_replace) {
                 replace_nodes.erase(node_id);
                 nodes_to_erase.insert({node_id, id});

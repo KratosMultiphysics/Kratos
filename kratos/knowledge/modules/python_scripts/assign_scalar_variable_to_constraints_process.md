@@ -1,0 +1,30 @@
+---
+type: Python Module
+title: assign_scalar_variable_to_constraints_process
+resource: python_scripts/assign_scalar_variable_to_constraints_process.py#L1-L60
+generated:
+  by: okf-rs/0.7.0
+relationships:
+  imports:
+  - target: external/kratosmultiphysics
+    resolved_by: tree-sitter
+    confidence: exact
+  member_of:
+  - target: packages/KratosMultiphysics
+    resolved_by: tree-sitter
+    confidence: exact
+---
+
+# Contains
+
+- [Factory](../../functions/python_scripts/assign_scalar_variable_to_constraints_process/Factory.md)
+- [AssignScalarVariableToConstraintsProcess](../../classes/python_scripts/assign_scalar_variable_to_constraints_process/AssignScalarVariableToConstraintsProcess.md)
+- [__init__](../../functions/python_scripts/assign_scalar_variable_to_constraints_process/AssignScalarVariableToConstraintsProcess/__init__.md)
+
+# Imports
+
+- `KratosMultiphysics`
+
+# Member of
+
+- [KratosMultiphysics](../../packages/KratosMultiphysics.md)

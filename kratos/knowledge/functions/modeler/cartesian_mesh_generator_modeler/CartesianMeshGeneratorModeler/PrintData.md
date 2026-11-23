@@ -1,0 +1,11 @@
+---
+type: C++ Method
+title: PrintData
+resource: modeler/cartesian_mesh_generator_modeler.h#L495-L497
+generated:
+  by: okf-rs/0.7.0
+---
+
+# Signature
+
+`virtual void PrintData(std::ostream& rOStream) const`

@@ -478,7 +478,7 @@ void ModelPart::RemoveNodeFromAllLevels(ModelPart::NodeType& ThisNode, ModelPart
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveNode(ThisNode, ThisIndex);
+        mpParentModelPart->RemoveNodeFromAllLevels(ThisNode, ThisIndex);
         return;
     }
     RemoveNode(ThisNode, ThisIndex);
@@ -490,7 +490,7 @@ void ModelPart::RemoveNodeFromAllLevels(ModelPart::NodeType::Pointer pThisNode, 
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveNode(pThisNode, ThisIndex);
+        mpParentModelPart->RemoveNodeFromAllLevels(pThisNode, ThisIndex);
         return;
     }
     RemoveNode(pThisNode, ThisIndex);
@@ -924,7 +924,8 @@ void ModelPart::RemovePropertiesFromAllLevels(ModelPart::PropertiesType& ThisPro
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveProperties(ThisProperties, ThisIndex);
+        mpParentModelPart->RemovePropertiesFromAllLevels(ThisProperties, ThisIndex);
+        return;
     }
 
     RemoveProperties(ThisProperties, ThisIndex);
@@ -936,7 +937,8 @@ void ModelPart::RemovePropertiesFromAllLevels(ModelPart::PropertiesType::Pointer
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveProperties(pThisProperties, ThisIndex);
+        mpParentModelPart->RemovePropertiesFromAllLevels(pThisProperties, ThisIndex);
+        return;
     }
 
     RemoveProperties(pThisProperties, ThisIndex);
@@ -1094,7 +1096,7 @@ void ModelPart::RemoveElementFromAllLevels(ModelPart::IndexType ElementId, Model
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveElement(ElementId, ThisIndex);
+        mpParentModelPart->RemoveElementFromAllLevels(ElementId, ThisIndex);
         return;
     }
 
@@ -1107,7 +1109,7 @@ void ModelPart::RemoveElementFromAllLevels(ModelPart::ElementType& ThisElement, 
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveElement(ThisElement, ThisIndex);
+        mpParentModelPart->RemoveElementFromAllLevels(ThisElement, ThisIndex);
         return;
     }
 
@@ -1120,7 +1122,7 @@ void ModelPart::RemoveElementFromAllLevels(ModelPart::ElementType::Pointer pThis
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveElement(pThisElement, ThisIndex);
+        mpParentModelPart->RemoveElementFromAllLevels(pThisElement, ThisIndex);
         return;
     }
 
@@ -1534,7 +1536,7 @@ void ModelPart::RemoveConditionFromAllLevels(ModelPart::IndexType ConditionId, M
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveCondition(ConditionId, ThisIndex);
+        mpParentModelPart->RemoveConditionFromAllLevels(ConditionId, ThisIndex);
         return;
     }
 
@@ -1547,7 +1549,7 @@ void ModelPart::RemoveConditionFromAllLevels(ModelPart::ConditionType& ThisCondi
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveCondition(ThisCondition, ThisIndex);
+        mpParentModelPart->RemoveConditionFromAllLevels(ThisCondition, ThisIndex);
         return;
     }
 
@@ -1560,7 +1562,7 @@ void ModelPart::RemoveConditionFromAllLevels(ModelPart::ConditionType::Pointer p
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveCondition(pThisCondition, ThisIndex);
+        mpParentModelPart->RemoveConditionFromAllLevels(pThisCondition, ThisIndex);
         return;
     }
 

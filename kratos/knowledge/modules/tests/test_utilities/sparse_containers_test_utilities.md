@@ -1,0 +1,68 @@
+---
+type: C++ Module
+title: sparse_containers_test_utilities
+resource: tests/test_utilities/sparse_containers_test_utilities.cpp#L1-L213
+generated:
+  by: okf-rs/0.7.0
+relationships:
+  imports:
+  - target: external/utility
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/iostream
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/random
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/containers-csr-matrix-h
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/containers-sparse-graph-h
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/containers-sparse-contiguous-row-graph-h
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/containers-system-vector-h
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/includes-key-hash-h
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/testing-testing-h
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/sparse-containers-test-utilities-h
+    resolved_by: tree-sitter
+    confidence: exact
+  member_of:
+  - target: packages/KratosMultiphysics
+    resolved_by: tree-sitter
+    confidence: exact
+---
+
+# Contains
+
+- [RandomElementConnectivities](../../../functions/tests/test_utilities/sparse_containers_test_utilities/SparseContainersTestUtilities/RandomElementConnectivities.md)
+- [ElementConnectivities](../../../functions/tests/test_utilities/sparse_containers_test_utilities/SparseContainersTestUtilities/ElementConnectivities.md)
+- [GetReferenceMatrixAsMap](../../../functions/tests/test_utilities/sparse_containers_test_utilities/SparseContainersTestUtilities/GetReferenceMatrixAsMap.md)
+- [CheckCSRGraphArrays](../../../functions/tests/test_utilities/sparse_containers_test_utilities/SparseContainersTestUtilities/CheckCSRGraphArrays.md)
+- [CheckCSRMatrix](../../../functions/tests/test_utilities/sparse_containers_test_utilities/SparseContainersTestUtilities/CheckCSRMatrix.md)
+
+# Imports
+
+- `<utility>`
+- `<iostream>`
+- `<random>`
+- `"containers/csr_matrix.h"`
+- `"containers/sparse_graph.h"`
+- `"containers/sparse_contiguous_row_graph.h"`
+- `"containers/system_vector.h"`
+- `"includes/key_hash.h"`
+- `"testing/testing.h"`
+- `"sparse_containers_test_utilities.h"`
+
+# Member of
+
+- [KratosMultiphysics](../../../packages/KratosMultiphysics.md)

@@ -1,0 +1,12 @@
+---
+type: Python Method
+title: __GetDefaultSettings
+resource: python_scripts/modelers/import_obj_modeler.py#L94-L111
+visibility: private
+generated:
+  by: okf-rs/0.7.0
+---
+
+# Signature
+
+`def __GetDefaultSettings(cls):`

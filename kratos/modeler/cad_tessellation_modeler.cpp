@@ -145,6 +145,11 @@ std::vector<array_1d<double, 2>> CadTessellationModeler::ComputeBoundaryTessella
     std::vector<array_1d<double, 2>> boundary_segment_uv;
     array_1d<double,3> result = ZeroVector(3);
     array_1d<double,3> local_coordinate = ZeroVector(3);
+
+    KRATOS_ERROR_IF(tessellation.size() < 2)
+        << "CadTessellationModeler::ComputeBoundaryTessellation produced fewer than 2 points ("
+        << tessellation.size() << "), so the boundary segment cannot be tessellated." << std::endl;
+
     boundary_segment_uv.resize(tessellation.size() - 1, ZeroVector(2));
 
     for (IndexType i = 0; i < tessellation.size() - 1; ++i)

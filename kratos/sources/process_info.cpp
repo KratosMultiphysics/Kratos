@@ -130,6 +130,12 @@ ProcessInfo& ProcessInfo::FindSolutionStepInfo(IndexType ThisIndex)
     if(!mpPreviousSolutionStepInfo)
         return *this;
 
+    // The step-info chain may exist without a time-step chain (see
+    // CreateSolutionStepInfo, which only sets mpPreviousTimeStepInfo when
+    // mIsTimeStep was true), in which case this pointer is null.
+    if(!mpPreviousTimeStepInfo)
+        return *this;
+
     return mpPreviousTimeStepInfo->FindSolutionStepInfo(ThisIndex);
 }
 

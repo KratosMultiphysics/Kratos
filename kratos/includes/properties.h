@@ -146,6 +146,10 @@ public:
         mData = rOther.mData;
         mTables = rOther.mTables;
         mSubPropertiesList = rOther.mSubPropertiesList;
+        // Drop our own accessors first: emplace does not overwrite, so without
+        // clearing, keys absent from rOther would keep stale (and freshly cloned
+        // duplicates would leak) accessors after assignment.
+        mAccessors.clear();
         for (auto& r_item : rOther.mAccessors) {
             const auto key = r_item.first;
             const auto& rp_accessor = r_item.second;

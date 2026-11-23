@@ -536,6 +536,9 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ReadDataTXT(const
 
         while(std::getline(iss, token, '\t')) {
             const double value = std::stod(token, &sz);
+            KRATOS_ERROR_IF(sub_counter >= values.size() + 1)
+                << "TXT file: " << rFileName << " contains a line with more columns than the header announced ("
+                << values.size() + 1 << " expected, counting the time column). Offending line: " << line << std::endl;
             if (sub_counter == 0) {
                 time[counter] = value;
             } else {

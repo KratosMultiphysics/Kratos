@@ -224,8 +224,16 @@ public:
                     if (value > 0.0) {
                         const std::size_t j = index2_vector[k];
                         if (j > i) {
-                            rA(i,j) -= value;
-                            rA(j,i) -= value;
+                            // Off-diagonal entries must be updated atomically too:
+                            // entry (j,i) lives in row j's value range, which the
+                            // parallel iteration over row j scans concurrently (a
+                            // plain read-modify-write here races with that scan and
+                            // can lose updates, exactly like the diagonal entries
+                            // below, which are already protected).
+                            auto& r_aij = rA(i,j).ref();
+                            AtomicAdd(r_aij, -value);
+                            auto& r_aji = rA(j,i).ref();
+                            AtomicAdd(r_aji, -value);
                             // Values conflicting with other threads
                             auto& r_aii = rA(i,i).ref();
                             AtomicAdd(r_aii, value);

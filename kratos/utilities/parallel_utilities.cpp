@@ -147,7 +147,7 @@ int& ParallelUtilities::GetNumberOfThreads()
     return *mspNumThreads;
 }
 
-LockObject* ParallelUtilities::mspGlobalLock = nullptr;
-int* ParallelUtilities::mspNumThreads = nullptr;
+std::atomic<LockObject*> ParallelUtilities::mspGlobalLock = nullptr;
+std::atomic<int*> ParallelUtilities::mspNumThreads = nullptr;
 
 }  // namespace Kratos.

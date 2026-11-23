@@ -39,7 +39,7 @@ void EquationIdsTensorAdaptorCollectData(
         const auto& r_entity = *(rContainer.begin() + Index);
         r_entity.EquationIdVector(rTLS, rProcessInfo);
 
-        KRATOS_DEBUG_ERROR_IF_NOT(rTLS.size() == Stride)
+        KRATOS_ERROR_IF_NOT(rTLS.size() == Stride)
             << "Non-uniform equation id vectors are found in container having " << rContainer.size()
             << " " << ModelPart::Container<TContainerType>::GetEntityName() << "(s)"
             << " [ Required size of equation ids = " << Stride << ", found EquationIds = "

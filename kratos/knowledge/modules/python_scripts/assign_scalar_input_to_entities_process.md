@@ -1,0 +1,32 @@
+---
+type: Python Module
+title: assign_scalar_input_to_entities_process
+resource: python_scripts/assign_scalar_input_to_entities_process.py#L1-L108
+generated:
+  by: okf-rs/0.7.0
+relationships:
+  imports:
+  - target: external/kratosmultiphysics
+    resolved_by: tree-sitter
+    confidence: exact
+  member_of:
+  - target: packages/KratosMultiphysics
+    resolved_by: tree-sitter
+    confidence: exact
+---
+
+# Contains
+
+- [Factory](../../functions/python_scripts/assign_scalar_input_to_entities_process/Factory.md)
+- [AssignScalarInputToEntitiesProcess](../../classes/python_scripts/assign_scalar_input_to_entities_process/AssignScalarInputToEntitiesProcess.md)
+- [__init__](../../functions/python_scripts/assign_scalar_input_to_entities_process/AssignScalarInputToEntitiesProcess/__init__.md)
+- [ExecuteInitializeSolutionStep](../../functions/python_scripts/assign_scalar_input_to_entities_process/AssignScalarInputToEntitiesProcess/ExecuteInitializeSolutionStep.md)
+- [ExecuteFinalizeSolutionStep](../../functions/python_scripts/assign_scalar_input_to_entities_process/AssignScalarInputToEntitiesProcess/ExecuteFinalizeSolutionStep.md)
+
+# Imports
+
+- `KratosMultiphysics`
+
+# Member of
+
+- [KratosMultiphysics](../../packages/KratosMultiphysics.md)

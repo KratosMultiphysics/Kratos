@@ -76,6 +76,7 @@ public:
     /// Default constructor.
     ILUPreconditioner()
     {
+        mILUSize = 0;
         L = NULL;
         iL = NULL;
         jL = NULL;
@@ -86,7 +87,11 @@ public:
 
 
     /// Copy constructor.
-    ILUPreconditioner(const ILUPreconditioner& Other) {}
+    ILUPreconditioner(const ILUPreconditioner& Other)
+        : ILUPreconditioner()
+    {
+        *this = Other;
+    }
 
 
     /// Destructor.
@@ -116,7 +121,20 @@ public:
     /// Assignment operator.
     ILUPreconditioner& operator=(const ILUPreconditioner& Other)
     {
+        if (this == &Other)
+            return *this;
+
+        // Release own buffers before reassignment (they are fully overwritten below).
+        delete[] L;  L  = NULL;
+        delete[] iL; iL = NULL;
+        delete[] jL; jL = NULL;
+        delete[] U;  U  = NULL;
+        delete[] iU; iU = NULL;
+        delete[] jU; jU = NULL;
+
         mILUSize = Other.mILUSize;
+        if (Other.iL == NULL)      // Other has not been set up yet: nothing to copy.
+            return *this;
         unsigned int size = Other.iL[mILUSize];
         L = new double[size];
         U = new double[size];

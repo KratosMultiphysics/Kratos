@@ -1,0 +1,11 @@
+---
+type: C++ Function
+title: Assign
+resource: utilities/pointer_map_communicator.h#L91-L169
+generated:
+  by: okf-rs/0.7.0
+---
+
+# Signature
+
+`class ApplyProxy { public: ///@name Type definitions ///@{ using ProxyType = ApplyProxy<TPointerDataType, TValueDataType, TApplyFunctor>; using TGPMapCommunicator = GlobalPointerMapCommunicator<TPointerDataType, TValueDataType>; using GlobalPointerType = GlobalPointer<TPointerDataType>; using DataVectorType = std::vector<TValueDataType>; ///@} ///@name Life cycle ///@{ /** * @brief Construct a new Apply Proxy object * * @param rApplyFunctor Thread safe update lambda method * @param rPointerCommunicator Map communicator */ ApplyProxy( const TApplyFunctor& rApplyFunctor, TGPMapCommunicator& rPointerCommunicator) : mCurrentRank(rPointerCommunicator.GetMyPID()), mrApplyFunctor(rApplyFunctor), mrPointerCommunicator(rPointerCommunicator) { KRATOS_TRY if (rPointerCommunicator.IsDistributed()) { KRATOS_DEBUG_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "Constructing a proxy in a parallel " "region is not allowed.\n"; this->mUpdateMethod = &ProxyType::AssignLocalAndRemoteData; } else { this->mUpdateMethod = &ProxyType::AssignLocalData; } KRATOS_CATCH(""); } ///@} ///@name Public operations ///@{ /** * @brief Assigns value of the GlobalPointer * * This method assigns gp value by rValue using mrApplyFunctor in the case if * given rGlobalPointer is a local gp, otherwise mrNonLocalGlobalPointerMapsVector and * mrNonLocalDataValueMapsVector are used to store new gp and value, * which will be used in mpi communication. * * In the case of serial job, this method calls AssignLocalData, where no checks are done * to ensure gps are local because all gps are local. * * In case of distributed job, this method calls AssignLocalAndRemoteData where checks are * performed to identify gps are local or non-local, based on that mrApplyFunctor * methods are called or values corresponding to remote gps are stored. * * This does not have additional cost in serial run (except for function pointer call) * * @see GlobalPointerMapCommunicator * * @param rGP Global pointer of the destination * @param rValue Value to be used in assigning */ void Assign( GlobalPointerType& rGlobalPointer, const TValueDataType& rValue)`

@@ -291,7 +291,7 @@ public:
         IndexType row_begin = rA.index1_data()[i];
         IndexType row_end = rA.index1_data()[i+1];
         for(IndexType j=row_begin; j<row_end; ++j)
-            neighbors.push_back(rA.index1_data()[j]);
+            neighbors.push_back(rA.index2_data()[j]);
     }
 
 

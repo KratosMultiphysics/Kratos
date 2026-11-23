@@ -82,6 +82,9 @@ public:
      * @brief Default constructor
      */
     explicit ResidualBasedIncrementalAitkenStaticScheme() : BaseType()
+        , mIterationCounter(0)
+        , mDefaultOmega(1.0)
+        , mOldOmega(1.0)
     {
     }
 
