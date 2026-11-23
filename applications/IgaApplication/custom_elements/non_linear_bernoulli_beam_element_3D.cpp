@@ -23,6 +23,104 @@
 
 namespace Kratos
 {
+
+namespace
+{
+
+/*
+ * Products with the variation containers of a 3x3 matrix M with respect to the n element dofs:
+ *  - first variation:  (3 n) x 3     matrix with M,r(i, j)  at (i * n + r, j)
+ *  - second variation: (3 n) x (3 n) matrix with M,rs(i, j) at (i * n + r, j * n + s)
+ * A product of a first variation with a constant 3x3 matrix from the right is a plain prod(), the
+ * other products below are not, because of this layout.
+ */
+
+/// rResult += A * V,r for all dofs r, with V,r a first variation
+template<class TMatrixType>
+void AddMatrixTimesVariation(
+    Matrix& rResult,
+    const TMatrixType& rMatrix,
+    const Matrix& rVariation,
+    const std::size_t NumberOfDofs)
+{
+    for (std::size_t i = 0; i < 3; ++i) {
+        for (std::size_t j = 0; j < 3; ++j) {
+            for (std::size_t k = 0; k < 3; ++k) {
+                for (std::size_t r = 0; r < NumberOfDofs; ++r) {
+                    rResult(i * NumberOfDofs + r, j) += rMatrix(i, k) * rVariation(k * NumberOfDofs + r, j);
+                }
+            }
+        }
+    }
+}
+
+/// rResult += W,rs * A for all dofs r, s, with W,rs a second variation
+template<class TMatrixType>
+void AddSecondVariationTimesMatrix(
+    Matrix& rResult,
+    const Matrix& rSecondVariation,
+    const TMatrixType& rMatrix,
+    const std::size_t NumberOfDofs)
+{
+    for (std::size_t i = 0; i < 3; ++i) {
+        for (std::size_t j = 0; j < 3; ++j) {
+            for (std::size_t k = 0; k < 3; ++k) {
+                for (std::size_t r = 0; r < NumberOfDofs; ++r) {
+                    for (std::size_t s = 0; s < NumberOfDofs; ++s) {
+                        rResult(i * NumberOfDofs + r, j * NumberOfDofs + s) +=
+                            rSecondVariation(i * NumberOfDofs + r, k * NumberOfDofs + s) * rMatrix(k, j);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// rResult += A * W,rs for all dofs r, s, with W,rs a second variation
+template<class TMatrixType>
+void AddMatrixTimesSecondVariation(
+    Matrix& rResult,
+    const TMatrixType& rMatrix,
+    const Matrix& rSecondVariation,
+    const std::size_t NumberOfDofs)
+{
+    for (std::size_t i = 0; i < 3; ++i) {
+        for (std::size_t j = 0; j < 3; ++j) {
+            for (std::size_t k = 0; k < 3; ++k) {
+                for (std::size_t r = 0; r < NumberOfDofs; ++r) {
+                    for (std::size_t s = 0; s < NumberOfDofs; ++s) {
+                        rResult(i * NumberOfDofs + r, j * NumberOfDofs + s) +=
+                            rMatrix(i, k) * rSecondVariation(k * NumberOfDofs + r, j * NumberOfDofs + s);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// rResult += V,r * W,s for all dofs r, s: the mixed second variation of the product of two matrices V and W
+void AddVariationTimesVariation(
+    Matrix& rResult,
+    const Matrix& rFirstVariation,
+    const Matrix& rSecondVariation,
+    const std::size_t NumberOfDofs)
+{
+    for (std::size_t i = 0; i < 3; ++i) {
+        for (std::size_t j = 0; j < 3; ++j) {
+            for (std::size_t k = 0; k < 3; ++k) {
+                for (std::size_t r = 0; r < NumberOfDofs; ++r) {
+                    for (std::size_t s = 0; s < NumberOfDofs; ++s) {
+                        rResult(i * NumberOfDofs + r, j * NumberOfDofs + s) +=
+                            rFirstVariation(i * NumberOfDofs + r, k) * rSecondVariation(k * NumberOfDofs + s, j);
+                    }
+                }
+            }
+        }
+    }
+}
+
+} // namespace
+
     void NonLinearBernoulliBeamElement3D::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
@@ -847,21 +945,9 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Vector3d transformed_reference_normal;
         transformed_reference_normal.clear();
 
-        for (IndexType i = 0; i < 3; ++i) {
-            for (IndexType j = 0; j < 3; ++j) {
-                transformed_reference_normal[i] +=
-                    reference_lambda_matrix(i, j)
-                    * rKinematicVariables.N0[j];
-            }
-        }
+        noalias(transformed_reference_normal) += prod(reference_lambda_matrix, rKinematicVariables.N0);
 
-        for (IndexType i = 0; i < 3; ++i) {
-            for (IndexType j = 0; j < 3; ++j) {
-                rKinematicVariables.n(i) +=
-                    reference_rodrigues_matrix(i, j)
-                    * transformed_reference_normal[j];
-            }
-        }
+        noalias(rKinematicVariables.n) += prod(reference_rodrigues_matrix, transformed_reference_normal);
 
         rKinematicVariables.n /=
             norm_2(rKinematicVariables.n);
@@ -869,36 +955,16 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         rKinematicVariables.v =
             MathUtils<double>::CrossProduct(reference_tangent, rKinematicVariables.n);
 
-        for (IndexType i = 0; i < 3; ++i) {
-            for (IndexType j = 0; j < 3; ++j) {
-                for (IndexType k = 0; k < 3; ++k) {
-                    cross_section_transformation_derivative(i, j) +=
-                        reference_rodrigues_matrix_derivative(i, k)
-                        * reference_lambda_matrix(k, j);
-
-                    cross_section_transformation_derivative(i, j) +=
-                        reference_rodrigues_matrix(i, k)
-                        * reference_lambda_matrix_derivative(k, j);
-                }
-            }
-        }
+        noalias(cross_section_transformation_derivative) += prod(reference_rodrigues_matrix_derivative, reference_lambda_matrix);
+        noalias(cross_section_transformation_derivative) += prod(reference_rodrigues_matrix, reference_lambda_matrix_derivative);
 
         Vector3d a21_vector;
         Vector3d a31_vector;
         a21_vector.clear();
         a31_vector.clear();
 
-        for (IndexType i = 0; i < 3; ++i) {
-            for (IndexType j = 0; j < 3; ++j) {
-                a21_vector[i] +=
-                    cross_section_transformation_derivative(i, j)
-                    * rKinematicVariables.N0[j];
-
-                a31_vector[i] +=
-                    cross_section_transformation_derivative(i, j)
-                    * rKinematicVariables.V0[j];
-            }
-        }
+        noalias(a21_vector) += prod(cross_section_transformation_derivative, rKinematicVariables.N0);
+        noalias(a31_vector) += prod(cross_section_transformation_derivative, rKinematicVariables.V0);
 
         rKinematicVariables.B_n =
             inner_prod(a21_vector, reference_first_base_vector);
@@ -1016,23 +1082,9 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         reference_rodrigues_lambda_derivative_product.clear();
         reference_rodrigues_derivative_lambda_product.clear();
 
-        for (IndexType i = 0; i < 3; ++i) {
-            for (IndexType j = 0; j < 3; ++j) {
-                for (IndexType k = 0; k < 3; ++k) {
-                    reference_rodrigues_lambda_product(i, j) +=
-                        reference_rodrigues_matrix(i, k)
-                        * reference_lambda_matrix(k, j);
-
-                    reference_rodrigues_lambda_derivative_product(i, j) +=
-                        reference_rodrigues_matrix(i, k)
-                        * reference_lambda_matrix_derivative(k, j);
-
-                    reference_rodrigues_derivative_lambda_product(i, j) +=
-                        reference_rodrigues_matrix_derivative(i, k)
-                        * reference_lambda_matrix(k, j);
-                }
-            }
-        }
+        noalias(reference_rodrigues_lambda_product) += prod(reference_rodrigues_matrix, reference_lambda_matrix);
+        noalias(reference_rodrigues_lambda_derivative_product) += prod(reference_rodrigues_matrix, reference_lambda_matrix_derivative);
+        noalias(reference_rodrigues_derivative_lambda_product) += prod(reference_rodrigues_matrix_derivative, reference_lambda_matrix);
 
         Matrix3d current_lambda_reference_rodrigues_lambda_product;
         Matrix3d current_lambda_reference_rodrigues_lambda_derivative_product;
@@ -1043,27 +1095,10 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         current_lambda_reference_rodrigues_derivative_lambda_product.clear();
         current_lambda_derivative_reference_rodrigues_lambda_product.clear();
 
-        for (IndexType i = 0; i < 3; ++i) {
-            for (IndexType j = 0; j < 3; ++j) {
-                for (IndexType k = 0; k < 3; ++k) {
-                    current_lambda_reference_rodrigues_lambda_product(i, j) +=
-                        current_lambda_matrix(i, k)
-                        * reference_rodrigues_lambda_product(k, j);
-
-                    current_lambda_reference_rodrigues_lambda_derivative_product(i, j) +=
-                        current_lambda_matrix(i, k)
-                        * reference_rodrigues_lambda_derivative_product(k, j);
-
-                    current_lambda_reference_rodrigues_derivative_lambda_product(i, j) +=
-                        current_lambda_matrix(i, k)
-                        * reference_rodrigues_derivative_lambda_product(k, j);
-
-                    current_lambda_derivative_reference_rodrigues_lambda_product(i, j) +=
-                        current_lambda_matrix_derivative(i, k)
-                        * reference_rodrigues_lambda_product(k, j);
-                }
-            }
-        }
+        noalias(current_lambda_reference_rodrigues_lambda_product) += prod(current_lambda_matrix, reference_rodrigues_lambda_product);
+        noalias(current_lambda_reference_rodrigues_lambda_derivative_product) += prod(current_lambda_matrix, reference_rodrigues_lambda_derivative_product);
+        noalias(current_lambda_reference_rodrigues_derivative_lambda_product) += prod(current_lambda_matrix, reference_rodrigues_derivative_lambda_product);
+        noalias(current_lambda_derivative_reference_rodrigues_lambda_product) += prod(current_lambda_matrix_derivative, reference_rodrigues_lambda_product);
 
         Matrix3d current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term;
         Matrix3d current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term;
@@ -1077,31 +1112,11 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term.clear();
         cross_section_transformation.clear();
 
-        for (IndexType i = 0; i < 3; ++i) {
-            for (IndexType j = 0; j < 3; ++j) {
-                for (IndexType k = 0; k < 3; ++k) {
-                    current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term(i, j) +=
-                        current_rodrigues_matrix(i, k)
-                        * current_lambda_reference_rodrigues_lambda_derivative_product(k, j);
-
-                    current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term(i, j) +=
-                        current_rodrigues_matrix(i, k)
-                        * current_lambda_reference_rodrigues_derivative_lambda_product(k, j);
-
-                    current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term(i, j) +=
-                        current_rodrigues_matrix(i, k)
-                        * current_lambda_derivative_reference_rodrigues_lambda_product(k, j);
-
-                    current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term(i, j) +=
-                        current_rodrigues_matrix_derivative(i, k)
-                        * current_lambda_reference_rodrigues_lambda_product(k, j);
-
-                    cross_section_transformation(i, j) +=
-                        current_rodrigues_matrix(i, k)
-                        * current_lambda_reference_rodrigues_lambda_product(k, j);
-                }
-            }
-        }
+        noalias(current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term) += prod(current_rodrigues_matrix, current_lambda_reference_rodrigues_lambda_derivative_product);
+        noalias(current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term) += prod(current_rodrigues_matrix, current_lambda_reference_rodrigues_derivative_lambda_product);
+        noalias(current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term) += prod(current_rodrigues_matrix, current_lambda_derivative_reference_rodrigues_lambda_product);
+        noalias(current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term) += prod(current_rodrigues_matrix_derivative, current_lambda_reference_rodrigues_lambda_product);
+        noalias(cross_section_transformation) += prod(current_rodrigues_matrix, current_lambda_reference_rodrigues_lambda_product);
 
         const Matrix3d cross_section_transformation_derivative =
             current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term
@@ -1114,25 +1129,10 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         a21_vector.clear();
         a31_vector.clear();
 
-        for (IndexType i = 0; i < 3; ++i) {
-            for (IndexType j = 0; j < 3; ++j) {
-                a21_vector[i] +=
-                    cross_section_transformation_derivative(i, j)
-                    * rKinematicVariables.N0[j];
-
-                a31_vector[i] +=
-                    cross_section_transformation_derivative(i, j)
-                    * rKinematicVariables.V0[j];
-
-                rKinematicVariables.n[i] +=
-                    cross_section_transformation(i, j)
-                    * rKinematicVariables.N0[j];
-
-                rKinematicVariables.v[i] +=
-                    cross_section_transformation(i, j)
-                    * rKinematicVariables.V0[j];
-            }
-        }
+        noalias(a21_vector) += prod(cross_section_transformation_derivative, rKinematicVariables.N0);
+        noalias(a31_vector) += prod(cross_section_transformation_derivative, rKinematicVariables.V0);
+        noalias(rKinematicVariables.n) += prod(cross_section_transformation, rKinematicVariables.N0);
+        noalias(rKinematicVariables.v) += prod(cross_section_transformation, rKinematicVariables.V0);
 
         rKinematicVariables.b_n =
             inner_prod(a21_vector, current_first_base_vector);
@@ -1275,18 +1275,9 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Matrix3d reference_rodrigues_lambda_product_derivative;
         reference_rodrigues_lambda_product_derivative.clear();
 
-        for (size_t row_component = 0; row_component < 3; row_component++)
-        {
-            for (int column_component = 0; column_component < 3; column_component++)
-            {
-                for (int product_index = 0; product_index < 3; product_index++)
-                {
-                    reference_rodrigues_lambda_product(row_component, column_component) += reference_rodrigues_matrix(row_component, product_index) * reference_lambda_matrix(product_index, column_component);
-                    reference_rodrigues_lambda_derivative_product(row_component, column_component) += reference_rodrigues_matrix(row_component, product_index) * reference_lambda_matrix_derivative(product_index, column_component);
-                    reference_rodrigues_derivative_lambda_product(row_component, column_component) += reference_rodrigues_matrix_derivative(row_component, product_index) * reference_lambda_matrix(product_index, column_component);
-                }
-            }
-        }
+        noalias(reference_rodrigues_lambda_product) += prod(reference_rodrigues_matrix, reference_lambda_matrix);
+        noalias(reference_rodrigues_lambda_derivative_product) += prod(reference_rodrigues_matrix, reference_lambda_matrix_derivative);
+        noalias(reference_rodrigues_derivative_lambda_product) += prod(reference_rodrigues_matrix_derivative, reference_lambda_matrix);
         reference_rodrigues_lambda_product_derivative = reference_rodrigues_lambda_derivative_product + reference_rodrigues_derivative_lambda_product;
 
         Matrix3d current_lambda_reference_rodrigues_lambda_derivative_product;
@@ -1300,19 +1291,10 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Matrix3d current_lambda_reference_rodrigues_lambda_product_derivative;
         current_lambda_reference_rodrigues_lambda_product_derivative.clear();
 
-        for (size_t row_component = 0; row_component < 3; row_component++)
-        {
-            for (int column_component = 0; column_component < 3; column_component++)
-            {
-                for (int product_index = 0; product_index < 3; product_index++)
-                {
-                    current_lambda_reference_rodrigues_lambda_product(row_component, column_component) += current_lambda_matrix(row_component, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                    current_lambda_reference_rodrigues_lambda_derivative_product(row_component, column_component) += current_lambda_matrix(row_component, product_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                    current_lambda_reference_rodrigues_derivative_lambda_product(row_component, column_component) += current_lambda_matrix(row_component, product_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                    current_lambda_derivative_reference_rodrigues_lambda_product(row_component, column_component) += current_lambda_matrix_derivative(row_component, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                }
-            }
-        }
+        noalias(current_lambda_reference_rodrigues_lambda_product) += prod(current_lambda_matrix, reference_rodrigues_lambda_product);
+        noalias(current_lambda_reference_rodrigues_lambda_derivative_product) += prod(current_lambda_matrix, reference_rodrigues_lambda_derivative_product);
+        noalias(current_lambda_reference_rodrigues_derivative_lambda_product) += prod(current_lambda_matrix, reference_rodrigues_derivative_lambda_product);
+        noalias(current_lambda_derivative_reference_rodrigues_lambda_product) += prod(current_lambda_matrix_derivative, reference_rodrigues_lambda_product);
 
         current_lambda_reference_rodrigues_lambda_product_derivative = current_lambda_reference_rodrigues_lambda_derivative_product + current_lambda_reference_rodrigues_derivative_lambda_product + current_lambda_derivative_reference_rodrigues_lambda_product;
 
@@ -1327,20 +1309,11 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Matrix3d cross_section_transformation;
         cross_section_transformation.clear();
 
-        for (size_t row_component = 0; row_component < 3; row_component++)
-        {
-            for (int column_component = 0; column_component < 3; column_component++)
-            {
-                for (int product_index = 0; product_index < 3; product_index++)
-                {
-                    current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                    current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                    current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);
-                    current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term(row_component, column_component) += current_rodrigues_matrix_derivative(row_component, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
-                    cross_section_transformation(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
-                }
-            }
-        }
+        noalias(current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term) += prod(current_rodrigues_matrix, current_lambda_reference_rodrigues_lambda_derivative_product);
+        noalias(current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term) += prod(current_rodrigues_matrix, current_lambda_reference_rodrigues_derivative_lambda_product);
+        noalias(current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term) += prod(current_rodrigues_matrix, current_lambda_derivative_reference_rodrigues_lambda_product);
+        noalias(current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term) += prod(current_rodrigues_matrix_derivative, current_lambda_reference_rodrigues_lambda_product);
+        noalias(cross_section_transformation) += prod(current_rodrigues_matrix, current_lambda_reference_rodrigues_lambda_product);
 
         Matrix3d cross_section_transformation_derivative;
         cross_section_transformation_derivative.clear();
@@ -1351,22 +1324,10 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         lambda_variation_rodrigues_lambda_matrix.clear();
         lambda_derivative_variation_rodrigues_lambda_matrix.clear();
 
-        for (size_t row_component = 0; row_component < 3; row_component++)
-        {
-            for (int column_component = 0; column_component < 3; column_component++)
-            {
-                for (int product_index = 0; product_index < 3; product_index++)
-                {
-                    for (size_t dof_index = 0; dof_index < mNumberOfDofs; dof_index++)
-                    {
-                        lambda_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                        lambda_variation_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                        lambda_variation_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                        lambda_derivative_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                    }
-                }
-            }
-        }
+        noalias(lambda_variation_rodrigues_lambda_matrix) += prod(lambda_variation_matrix, reference_rodrigues_lambda_product);
+        noalias(lambda_variation_rodrigues_lambda_derivative_matrix) += prod(lambda_variation_matrix, reference_rodrigues_lambda_derivative_product);
+        noalias(lambda_variation_rodrigues_derivative_lambda_matrix) += prod(lambda_variation_matrix, reference_rodrigues_derivative_lambda_product);
+        noalias(lambda_derivative_variation_rodrigues_lambda_matrix) += prod(lambda_derivative_variation_matrix, reference_rodrigues_lambda_product);
 
         Matrix current_lambda_reference_rodrigues_lambda_product_derivative_variation;
         current_lambda_reference_rodrigues_lambda_product_derivative_variation.resize(3 * mNumberOfDofs, 3);
@@ -1385,28 +1346,16 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         rodrigues_lambda_variation_rodrigues_lambda_matrix.clear();
         rodrigues_variation_lambda_rodrigues_lambda_matrix.clear();
 
-        for (size_t row_component = 0; row_component < 3; row_component++)
-        {
-            for (int column_component = 0; column_component < 3; column_component++)
-            {
-                for (int product_index = 0; product_index < 3; product_index++)
-                {
-                    for (size_t dof_index = 0; dof_index < mNumberOfDofs; dof_index++)
-                    {
-                        rodrigues_variation_lambda_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                        rodrigues_variation_lambda_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                        rodrigues_variation_lambda_derivative_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);
-                        rodrigues_derivative_variation_lambda_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
-                        rodrigues_lambda_variation_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_variation_rodrigues_lambda_derivative_matrix(product_index * mNumberOfDofs + dof_index, column_component);
-                        rodrigues_lambda_variation_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_variation_rodrigues_derivative_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
-                        rodrigues_lambda_derivative_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_derivative_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
-                        rodrigues_derivative_lambda_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix_derivative(row_component, product_index) * lambda_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
-                        rodrigues_lambda_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
-                        rodrigues_variation_lambda_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
-                    }
-                }
-            }
-        }
+        noalias(rodrigues_variation_lambda_rodrigues_lambda_derivative_matrix) += prod(rodrigues_variation_matrix, current_lambda_reference_rodrigues_lambda_derivative_product);
+        noalias(rodrigues_variation_lambda_rodrigues_derivative_lambda_matrix) += prod(rodrigues_variation_matrix, current_lambda_reference_rodrigues_derivative_lambda_product);
+        noalias(rodrigues_variation_lambda_derivative_rodrigues_lambda_matrix) += prod(rodrigues_variation_matrix, current_lambda_derivative_reference_rodrigues_lambda_product);
+        noalias(rodrigues_derivative_variation_lambda_rodrigues_lambda_matrix) += prod(rodrigues_derivative_variation_matrix, current_lambda_reference_rodrigues_lambda_product);
+        AddMatrixTimesVariation(rodrigues_lambda_variation_rodrigues_lambda_derivative_matrix, current_rodrigues_matrix, lambda_variation_rodrigues_lambda_derivative_matrix, mNumberOfDofs);
+        AddMatrixTimesVariation(rodrigues_lambda_variation_rodrigues_derivative_lambda_matrix, current_rodrigues_matrix, lambda_variation_rodrigues_derivative_lambda_matrix, mNumberOfDofs);
+        AddMatrixTimesVariation(rodrigues_lambda_derivative_variation_rodrigues_lambda_matrix, current_rodrigues_matrix, lambda_derivative_variation_rodrigues_lambda_matrix, mNumberOfDofs);
+        AddMatrixTimesVariation(rodrigues_derivative_lambda_variation_rodrigues_lambda_matrix, current_rodrigues_matrix_derivative, lambda_variation_rodrigues_lambda_matrix, mNumberOfDofs);
+        AddMatrixTimesVariation(rodrigues_lambda_variation_rodrigues_lambda_matrix, current_rodrigues_matrix, lambda_variation_rodrigues_lambda_matrix, mNumberOfDofs);
+        noalias(rodrigues_variation_lambda_rodrigues_lambda_matrix) += prod(rodrigues_variation_matrix, current_lambda_reference_rodrigues_lambda_product);
 
         rodrigues_lambda_rodrigues_lambda_derivative_variation_matrix.clear();
         rodrigues_lambda_rodrigues_lambda_variation_matrix.clear();
@@ -1420,14 +1369,8 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Vector3d binormal_vector;
         binormal_vector.clear();
 
-        for (size_t row_component = 0; row_component < 3; row_component++)
-        {
-            for (int product_index = 0; product_index < 3; product_index++)
-            {
-                normal_vector(row_component) += cross_section_transformation(row_component, product_index) * reference_normal(product_index);
-                binormal_vector(row_component) += cross_section_transformation(row_component, product_index) * reference_binormal(product_index);
-            }
-        }
+        noalias(normal_vector) += prod(cross_section_transformation, reference_normal);
+        noalias(binormal_vector) += prod(cross_section_transformation, reference_binormal);
 
         Vector normal_vector_variation;
         normal_vector_variation.resize(3 * mNumberOfDofs);
@@ -1436,17 +1379,8 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         binormal_vector_variation.resize(3 * mNumberOfDofs);
         binormal_vector_variation.clear();
 
-        for (size_t row_component = 0; row_component < 3; row_component++)
-        {
-            for (size_t dof_index = 0; dof_index < mNumberOfDofs; dof_index++)
-            {
-                for (int product_index = 0; product_index < 3; product_index++)
-                {
-                    normal_vector_variation(row_component * mNumberOfDofs + dof_index) += rodrigues_lambda_rodrigues_lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index);
-                    binormal_vector_variation(row_component * mNumberOfDofs + dof_index) += rodrigues_lambda_rodrigues_lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index);
-                }
-            }
-        }
+        noalias(normal_vector_variation) += prod(rodrigues_lambda_rodrigues_lambda_variation_matrix, reference_normal);
+        noalias(binormal_vector_variation) += prod(rodrigues_lambda_rodrigues_lambda_variation_matrix, reference_binormal);
 
         Vector current_first_base_vector_variation;
         current_first_base_vector_variation.resize(3 * mNumberOfDofs);
@@ -1675,18 +1609,9 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Matrix3d reference_rodrigues_lambda_product_derivative;
         reference_rodrigues_lambda_product_derivative.clear();
 
-        for (size_t  row_component   = 0;row_component < 3;row_component++)
-        {
-            for (int column_component = 0;column_component < 3;column_component++)
-            {
-                for (int product_index = 0;product_index < 3;product_index++)
-                {
-                    reference_rodrigues_lambda_product(row_component, column_component) += reference_rodrigues_matrix(row_component, product_index) * reference_lambda_matrix(product_index, column_component);
-                    reference_rodrigues_lambda_derivative_product(row_component, column_component) += reference_rodrigues_matrix(row_component, product_index) * reference_lambda_matrix_derivative(product_index, column_component);
-                    reference_rodrigues_derivative_lambda_product(row_component, column_component) += reference_rodrigues_matrix_derivative(row_component, product_index) * reference_lambda_matrix(product_index, column_component);
-                }
-            }
-        }
+        noalias(reference_rodrigues_lambda_product) += prod(reference_rodrigues_matrix, reference_lambda_matrix);
+        noalias(reference_rodrigues_lambda_derivative_product) += prod(reference_rodrigues_matrix, reference_lambda_matrix_derivative);
+        noalias(reference_rodrigues_derivative_lambda_product) += prod(reference_rodrigues_matrix_derivative, reference_lambda_matrix);
         reference_rodrigues_lambda_product_derivative = reference_rodrigues_lambda_derivative_product + reference_rodrigues_derivative_lambda_product;
 
         Matrix3d current_lambda_reference_rodrigues_lambda_derivative_product;
@@ -1700,19 +1625,10 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Matrix3d current_lambda_reference_rodrigues_lambda_product_derivative;
         current_lambda_reference_rodrigues_lambda_product_derivative.clear();
 
-        for (size_t  row_component   = 0;row_component < 3;row_component++)
-        {
-            for (int column_component = 0;column_component < 3;column_component++)
-            {
-                for (int product_index = 0;product_index < 3;product_index++)
-                {
-                    current_lambda_reference_rodrigues_lambda_product(row_component, column_component) += current_lambda_matrix(row_component, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                    current_lambda_reference_rodrigues_lambda_derivative_product(row_component, column_component) += current_lambda_matrix(row_component, product_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                    current_lambda_reference_rodrigues_derivative_lambda_product(row_component, column_component) += current_lambda_matrix(row_component, product_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                    current_lambda_derivative_reference_rodrigues_lambda_product(row_component, column_component) += current_lambda_matrix_derivative(row_component, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                }
-            }
-        }
+        noalias(current_lambda_reference_rodrigues_lambda_product) += prod(current_lambda_matrix, reference_rodrigues_lambda_product);
+        noalias(current_lambda_reference_rodrigues_lambda_derivative_product) += prod(current_lambda_matrix, reference_rodrigues_lambda_derivative_product);
+        noalias(current_lambda_reference_rodrigues_derivative_lambda_product) += prod(current_lambda_matrix, reference_rodrigues_derivative_lambda_product);
+        noalias(current_lambda_derivative_reference_rodrigues_lambda_product) += prod(current_lambda_matrix_derivative, reference_rodrigues_lambda_product);
 
         current_lambda_reference_rodrigues_lambda_product_derivative = current_lambda_reference_rodrigues_lambda_derivative_product + current_lambda_reference_rodrigues_derivative_lambda_product + current_lambda_derivative_reference_rodrigues_lambda_product;
 
@@ -1727,20 +1643,11 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Matrix3d cross_section_transformation;
         cross_section_transformation.clear();
 
-        for (size_t  row_component   = 0;row_component < 3;row_component++)
-        {
-            for (int column_component = 0;column_component < 3;column_component++)
-            {
-                for (int product_index = 0;product_index < 3;product_index++)
-                {
-                    current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                    current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                    current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);
-                    current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term(row_component, column_component) += current_rodrigues_matrix_derivative(row_component, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
-                    cross_section_transformation(row_component, column_component) += current_rodrigues_matrix(row_component, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
-                }
-            }
-        }
+        noalias(current_rodrigues_current_lambda_reference_rodrigues_lambda_derivative_term) += prod(current_rodrigues_matrix, current_lambda_reference_rodrigues_lambda_derivative_product);
+        noalias(current_rodrigues_current_lambda_reference_rodrigues_derivative_lambda_term) += prod(current_rodrigues_matrix, current_lambda_reference_rodrigues_derivative_lambda_product);
+        noalias(current_rodrigues_current_lambda_derivative_reference_rodrigues_lambda_term) += prod(current_rodrigues_matrix, current_lambda_derivative_reference_rodrigues_lambda_product);
+        noalias(current_rodrigues_derivative_current_lambda_reference_rodrigues_lambda_term) += prod(current_rodrigues_matrix_derivative, current_lambda_reference_rodrigues_lambda_product);
+        noalias(cross_section_transformation) += prod(current_rodrigues_matrix, current_lambda_reference_rodrigues_lambda_product);
 
         Matrix3d cross_section_transformation_derivative;
         cross_section_transformation_derivative.clear();
@@ -1752,22 +1659,10 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         lambda_variation_rodrigues_lambda_matrix.clear();
         lambda_derivative_variation_rodrigues_lambda_matrix.clear();
 
-        for (size_t  row_component   = 0;row_component < 3;row_component++)
-        {
-            for (int column_component = 0;column_component < 3;column_component++)
-            {
-                for (int product_index = 0;product_index < 3;product_index++)
-                {
-                    for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)
-                    {
-                        lambda_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                        lambda_variation_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                        lambda_variation_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                        lambda_derivative_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += lambda_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                    }
-                }
-            }
-        }
+        noalias(lambda_variation_rodrigues_lambda_matrix) += prod(lambda_variation_matrix, reference_rodrigues_lambda_product);
+        noalias(lambda_variation_rodrigues_lambda_derivative_matrix) += prod(lambda_variation_matrix, reference_rodrigues_lambda_derivative_product);
+        noalias(lambda_variation_rodrigues_derivative_lambda_matrix) += prod(lambda_variation_matrix, reference_rodrigues_derivative_lambda_product);
+        noalias(lambda_derivative_variation_rodrigues_lambda_matrix) += prod(lambda_derivative_variation_matrix, reference_rodrigues_lambda_product);
 
         Matrix current_lambda_reference_rodrigues_lambda_product_derivative_variation;
         current_lambda_reference_rodrigues_lambda_product_derivative_variation.resize(3 * mNumberOfDofs, 3);
@@ -1786,28 +1681,16 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         rodrigues_lambda_variation_rodrigues_lambda_matrix.clear();
         rodrigues_variation_lambda_rodrigues_lambda_matrix.clear();
 
-        for (size_t  row_component   = 0;row_component < 3;row_component++)
-        {
-            for (int column_component = 0;column_component < 3;column_component++)
-            {
-                for (int product_index = 0;product_index < 3;product_index++)
-                {
-                    for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)
-                    {
-                        rodrigues_variation_lambda_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                        rodrigues_variation_lambda_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                        rodrigues_variation_lambda_derivative_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);
-                        rodrigues_derivative_variation_lambda_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
-                        rodrigues_lambda_variation_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_variation_rodrigues_lambda_derivative_matrix(product_index * mNumberOfDofs + dof_index, column_component);
-                        rodrigues_lambda_variation_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_variation_rodrigues_derivative_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
-                        rodrigues_lambda_derivative_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_derivative_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
-                        rodrigues_derivative_lambda_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix_derivative(row_component, product_index) * lambda_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
-                        rodrigues_lambda_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += current_rodrigues_matrix(row_component, product_index) * lambda_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component);
-                        rodrigues_variation_lambda_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
-                    }
-                }
-            }
-        }
+        noalias(rodrigues_variation_lambda_rodrigues_lambda_derivative_matrix) += prod(rodrigues_variation_matrix, current_lambda_reference_rodrigues_lambda_derivative_product);
+        noalias(rodrigues_variation_lambda_rodrigues_derivative_lambda_matrix) += prod(rodrigues_variation_matrix, current_lambda_reference_rodrigues_derivative_lambda_product);
+        noalias(rodrigues_variation_lambda_derivative_rodrigues_lambda_matrix) += prod(rodrigues_variation_matrix, current_lambda_derivative_reference_rodrigues_lambda_product);
+        noalias(rodrigues_derivative_variation_lambda_rodrigues_lambda_matrix) += prod(rodrigues_derivative_variation_matrix, current_lambda_reference_rodrigues_lambda_product);
+        AddMatrixTimesVariation(rodrigues_lambda_variation_rodrigues_lambda_derivative_matrix, current_rodrigues_matrix, lambda_variation_rodrigues_lambda_derivative_matrix, mNumberOfDofs);
+        AddMatrixTimesVariation(rodrigues_lambda_variation_rodrigues_derivative_lambda_matrix, current_rodrigues_matrix, lambda_variation_rodrigues_derivative_lambda_matrix, mNumberOfDofs);
+        AddMatrixTimesVariation(rodrigues_lambda_derivative_variation_rodrigues_lambda_matrix, current_rodrigues_matrix, lambda_derivative_variation_rodrigues_lambda_matrix, mNumberOfDofs);
+        AddMatrixTimesVariation(rodrigues_derivative_lambda_variation_rodrigues_lambda_matrix, current_rodrigues_matrix_derivative, lambda_variation_rodrigues_lambda_matrix, mNumberOfDofs);
+        AddMatrixTimesVariation(rodrigues_lambda_variation_rodrigues_lambda_matrix, current_rodrigues_matrix, lambda_variation_rodrigues_lambda_matrix, mNumberOfDofs);
+        noalias(rodrigues_variation_lambda_rodrigues_lambda_matrix) += prod(rodrigues_variation_matrix, current_lambda_reference_rodrigues_lambda_product);
 
 
 
@@ -1822,25 +1705,10 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         lambda_second_variation_rodrigues_derivative_lambda_matrix.clear();
         lambda_second_variation_rodrigues_lambda_derivative_matrix.clear();
 
-        for (size_t  row_component   = 0;row_component < 3;row_component++)
-        {
-            for (int column_component = 0;column_component < 3;column_component++)
-            {
-                for (int product_index = 0;product_index < 3;product_index++)
-                {
-                    for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)
-                    {
-                        for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)
-                        {
-                            lambda_second_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += lambda_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                            lambda_derivative_second_variation_rodrigues_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += lambda_derivative_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_lambda_product(product_index, column_component);
-                            lambda_second_variation_rodrigues_derivative_lambda_matrix(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += lambda_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                            lambda_second_variation_rodrigues_lambda_derivative_matrix(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += lambda_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                        }
-                    }
-                }
-            }
-        }
+        AddSecondVariationTimesMatrix(lambda_second_variation_rodrigues_lambda_matrix, lambda_second_variation_matrix, reference_rodrigues_lambda_product, mNumberOfDofs);
+        AddSecondVariationTimesMatrix(lambda_derivative_second_variation_rodrigues_lambda_matrix, lambda_derivative_second_variation_matrix, reference_rodrigues_lambda_product, mNumberOfDofs);
+        AddSecondVariationTimesMatrix(lambda_second_variation_rodrigues_derivative_lambda_matrix, lambda_second_variation_matrix, reference_rodrigues_derivative_lambda_product, mNumberOfDofs);
+        AddSecondVariationTimesMatrix(lambda_second_variation_rodrigues_lambda_derivative_matrix, lambda_second_variation_matrix, reference_rodrigues_lambda_derivative_product, mNumberOfDofs);
 
         // 5. Second variation of T,1 = (R_t Lambda P),1: all product-rule terms of R_t, Lambda and P with two
         //    variations distributed over R_t and Lambda (P is independent of the dofs), Eq. (A.2) and (A.4)
@@ -1892,36 +1760,21 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_term.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
         current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_term.clear();
 
-        for (size_t  row_component   = 0;row_component < 3;row_component++)
-        {
-            for (int column_component = 0;column_component < 3;column_component++)
-            {
-                for (int product_index = 0;product_index < 3;product_index++)
-                {
-                    for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)
-                    {
-                        for (size_t  second_dof_index  = 0;second_dof_index < mNumberOfDofs;second_dof_index++)
-                        {
-                            current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix_derivative(row_component, product_index) * lambda_second_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
-                            current_rodrigues_lambda_derivative_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * lambda_derivative_second_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
-                            current_rodrigues_lambda_second_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * lambda_second_variation_rodrigues_derivative_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
-                            current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * lambda_second_variation_rodrigues_lambda_derivative_matrix(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
-                            current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_derivative_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * lambda_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + second_dof_index, column_component);
-                            current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * lambda_derivative_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + second_dof_index, column_component);
-                            current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * lambda_variation_rodrigues_derivative_lambda_matrix(product_index * mNumberOfDofs + second_dof_index, column_component);
-                            current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * lambda_variation_rodrigues_lambda_derivative_matrix(product_index * mNumberOfDofs + second_dof_index, column_component);
-                            current_rodrigues_derivative_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_derivative_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
-                            current_rodrigues_second_variation_lambda_derivative_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_derivative_reference_rodrigues_lambda_product(product_index, column_component);
-                            current_rodrigues_second_variation_lambda_reference_rodrigues_derivative_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_derivative_lambda_product(product_index, column_component);
-                            current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_derivative_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_lambda_derivative_product(product_index, column_component);
-                            current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += current_rodrigues_matrix(row_component, product_index) * lambda_second_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index);
-                            current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * lambda_variation_rodrigues_lambda_matrix(product_index * mNumberOfDofs + second_dof_index, column_component);
-                            current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_term(row_component * mNumberOfDofs + dof_index, column_component * mNumberOfDofs + second_dof_index) += rodrigues_second_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index * mNumberOfDofs + second_dof_index) * current_lambda_reference_rodrigues_lambda_product(product_index, column_component);
-                        }
-                    }
-                }
-            }
-        }
+        AddMatrixTimesSecondVariation(current_rodrigues_derivative_lambda_second_variation_reference_rodrigues_lambda_term, current_rodrigues_matrix_derivative, lambda_second_variation_rodrigues_lambda_matrix, mNumberOfDofs);
+        AddMatrixTimesSecondVariation(current_rodrigues_lambda_derivative_second_variation_reference_rodrigues_lambda_term, current_rodrigues_matrix, lambda_derivative_second_variation_rodrigues_lambda_matrix, mNumberOfDofs);
+        AddMatrixTimesSecondVariation(current_rodrigues_lambda_second_variation_reference_rodrigues_derivative_lambda_term, current_rodrigues_matrix, lambda_second_variation_rodrigues_derivative_lambda_matrix, mNumberOfDofs);
+        AddMatrixTimesSecondVariation(current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_derivative_term, current_rodrigues_matrix, lambda_second_variation_rodrigues_lambda_derivative_matrix, mNumberOfDofs);
+        AddVariationTimesVariation(current_rodrigues_derivative_variation_lambda_variation_reference_rodrigues_lambda_term, rodrigues_derivative_variation_matrix, lambda_variation_rodrigues_lambda_matrix, mNumberOfDofs);
+        AddVariationTimesVariation(current_rodrigues_variation_lambda_derivative_variation_reference_rodrigues_lambda_term, rodrigues_variation_matrix, lambda_derivative_variation_rodrigues_lambda_matrix, mNumberOfDofs);
+        AddVariationTimesVariation(current_rodrigues_variation_lambda_variation_reference_rodrigues_derivative_lambda_term, rodrigues_variation_matrix, lambda_variation_rodrigues_derivative_lambda_matrix, mNumberOfDofs);
+        AddVariationTimesVariation(current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_derivative_term, rodrigues_variation_matrix, lambda_variation_rodrigues_lambda_derivative_matrix, mNumberOfDofs);
+        AddSecondVariationTimesMatrix(current_rodrigues_derivative_second_variation_lambda_reference_rodrigues_lambda_term, rodrigues_derivative_second_variation_matrix, current_lambda_reference_rodrigues_lambda_product, mNumberOfDofs);
+        AddSecondVariationTimesMatrix(current_rodrigues_second_variation_lambda_derivative_reference_rodrigues_lambda_term, rodrigues_second_variation_matrix, current_lambda_derivative_reference_rodrigues_lambda_product, mNumberOfDofs);
+        AddSecondVariationTimesMatrix(current_rodrigues_second_variation_lambda_reference_rodrigues_derivative_lambda_term, rodrigues_second_variation_matrix, current_lambda_reference_rodrigues_derivative_lambda_product, mNumberOfDofs);
+        AddSecondVariationTimesMatrix(current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_derivative_term, rodrigues_second_variation_matrix, current_lambda_reference_rodrigues_lambda_derivative_product, mNumberOfDofs);
+        AddMatrixTimesSecondVariation(current_rodrigues_lambda_second_variation_reference_rodrigues_lambda_term, current_rodrigues_matrix, lambda_second_variation_rodrigues_lambda_matrix, mNumberOfDofs);
+        AddVariationTimesVariation(current_rodrigues_variation_lambda_variation_reference_rodrigues_lambda_term, rodrigues_variation_matrix, lambda_variation_rodrigues_lambda_matrix, mNumberOfDofs);
+        AddSecondVariationTimesMatrix(current_rodrigues_second_variation_lambda_reference_rodrigues_lambda_term, rodrigues_second_variation_matrix, current_lambda_reference_rodrigues_lambda_product, mNumberOfDofs);
 
         Matrix cross_section_transformation_derivative_second_variation;
         cross_section_transformation_derivative_second_variation.resize(3 * mNumberOfDofs, 3 * mNumberOfDofs);
@@ -1932,14 +1785,8 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         Vector3d binormal_vector;
         binormal_vector.clear();
 
-        for (size_t  row_component   = 0;row_component < 3;row_component++)
-        {
-            for (int product_index = 0;product_index < 3;product_index++)
-            {
-                normal_vector(row_component) += cross_section_transformation(row_component, product_index) * reference_normal(product_index);
-                binormal_vector(row_component) += cross_section_transformation(row_component, product_index) * reference_binormal(product_index);
-            }
-        }
+        noalias(normal_vector) += prod(cross_section_transformation, reference_normal);
+        noalias(binormal_vector) += prod(cross_section_transformation, reference_binormal);
 
         Vector normal_vector_variation;
         normal_vector_variation.resize(3 * mNumberOfDofs);
@@ -1948,17 +1795,8 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         binormal_vector_variation.resize(3 * mNumberOfDofs);
         binormal_vector_variation.clear();
 
-        for (size_t  row_component   = 0;row_component < 3;row_component++)
-        {
-            for (size_t  dof_index  = 0;dof_index < mNumberOfDofs;dof_index++)
-            {
-                for (int product_index = 0;product_index < 3;product_index++)
-                {
-                    normal_vector_variation(row_component * mNumberOfDofs + dof_index) += rodrigues_lambda_rodrigues_lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_normal(product_index);
-                    binormal_vector_variation(row_component * mNumberOfDofs + dof_index) += rodrigues_lambda_rodrigues_lambda_variation_matrix(row_component * mNumberOfDofs + dof_index, product_index) * reference_binormal(product_index);
-                }
-            }
-        }
+        noalias(normal_vector_variation) += prod(rodrigues_lambda_rodrigues_lambda_variation_matrix, reference_normal);
+        noalias(binormal_vector_variation) += prod(rodrigues_lambda_rodrigues_lambda_variation_matrix, reference_binormal);
 
         // 6. Second variation of T = R_t Lambda P, needed for the second variation of the axes a_alpha
         Matrix cross_section_transformation_second_variation;

@@ -408,6 +408,39 @@ class TestBeam4pElementNonlinear(BeamTestCase):
         return model, model_part, nodes
 
     @staticmethod
+    def build_curved_beam(twisted):
+        """Quarter circle of radius 1 (degree 3, 3 knot spans), clamped at its start. If twisted, the cross section
+        rotates along the curve, so that the reference twist and its derivative are non-zero."""
+        model = KM.Model()
+        model_part = create_model_part(model)
+        properties = create_properties(model_part, 1, (0.0, 0.0, 1.0))
+        if twisted:
+            properties.SetValue(IGA.LOCAL_AXIS_ORIENTATION, np.array(
+                [[0.0, 0.0, 0.0, 1.0], [0.5, 1.0, 1.0, 1.0], [1.0, 0.0, 1.0, 1.0]], dtype=float))
+
+        nodes = KM.NodesVector()
+        for i, point in enumerate(((1.0, 0.0, 0.0), (1.0, 1.0, 0.0), (0.0, 1.0, 0.0)), 1):
+            nodes.append(model_part.CreateNewNode(i, *point))
+        curve = KM.NurbsCurveGeometry3D(nodes, 2, KM.Vector([0.0, 0.0, 1.0, 1.0]), KM.Vector([1.0, np.sqrt(0.5), 1.0]))
+        curve.SetId(2)
+        model_part.AddGeometry(curve)
+        refine_curve(model, "modeler_tests/beam_curved_refinements.iga.json")
+
+        curve = model_part.GetGeometry(2)
+        create_elements(model_part, curve, properties)
+        IGA.ComputeBeamVectorsProcess(model_part, curve).ExecuteInitialize()
+        add_dofs(model_part)
+
+        nodes = sorted(model_part.Nodes, key=lambda node: node.Id)
+        clamp(nodes, 1)
+
+        model_part.SetBufferSize(1)
+        model_part.CloneTimeStep(1.0)
+        for element in model_part.Elements:
+            element.Initialize(model_part.ProcessInfo)
+        return model, model_part, nodes
+
+    @staticmethod
     def free_dofs(nodes):
         fixed = {4 * i + j for i, node in enumerate(nodes) for j, dof in enumerate(DOFS) if node.IsFixed(dof)}
         return [i for i in range(4 * len(nodes)) if i not in fixed]
@@ -523,6 +556,39 @@ class TestBeam4pElementNonlinear(BeamTestCase):
                         "the tangent stiffness is not the derivative of the internal forces")
         self.assertLess(np.abs(K - (K_mat + K_geo)).max() / scale, 1e-12,
                         "the material and geometric parts do not add up to the tangent stiffness")
+
+    def assertTangentMatchesFiniteDifferences(self, model_part, nodes, u0):
+        K, _ = self.assemble(model_part, nodes, u0)
+        K_mat, _ = self.assemble(model_part, nodes, u0, build_level=1)
+        K_geo, _ = self.assemble(model_part, nodes, u0, build_level=2)
+
+        h = 1e-7
+        K_fd = np.zeros_like(K)
+        for j in range(K.shape[0]):
+            u_plus = u0.copy()
+            u_plus[j] += h
+            u_minus = u0.copy()
+            u_minus[j] -= h
+            _, R_plus = self.assemble(model_part, nodes, u_plus)
+            _, R_minus = self.assemble(model_part, nodes, u_minus)
+            K_fd[:, j] = -(R_plus - R_minus) / (2.0 * h)
+
+        scale = np.abs(K).max()
+        self.assertLess(np.abs(K - K_fd).max() / scale, 1e-6,
+                        "the tangent stiffness is not the derivative of the internal forces")
+        self.assertLess(np.abs(K - (K_mat + K_geo)).max() / scale, 1e-12,
+                        "the material and geometric parts do not add up to the tangent stiffness")
+        self.assertGreater(np.abs(K_geo).max() / scale, 1e-4, "the geometric stiffness is not exercised")
+
+    def test_tangent_matches_finite_differences_curved_twisted(self):
+        # Curved and twisted reference configuration at a deformed state: all terms of the formulation are non-zero
+        _, model_part, nodes = self.build_curved_beam(twisted=True)
+        rng = np.random.default_rng(42)
+        u0 = np.zeros(4 * len(nodes))
+        for i in range(len(nodes)):
+            u0[4 * i:4 * i + 3] = 0.02 * rng.standard_normal(3)
+            u0[4 * i + 3] = 0.1 * rng.standard_normal()
+        self.assertTangentMatchesFiniteDifferences(model_part, nodes, u0)
 
     def test_quadratic_newton_convergence(self):
         _, model_part, nodes = self.build_cantilever()
