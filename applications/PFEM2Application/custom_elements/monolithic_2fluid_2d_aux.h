@@ -27,10 +27,11 @@ namespace Kratos
 
 /**
  * @class MonolithicPFEM22DAux
- * @brief Auxiliary 2D element that calculates the standard FEM inner product (w, f) = \int w * f d\Omega
- * @details Evaluates the consistent mass/weight matrix M_ij = \int N_i N_j d\Omega and the RHS
- *          inner product vector (w, f)_i = \int N_i f d\Omega for the scalar TEMPERATURE DOF,
- *          where f is an interpolated nodal source term (e.g. HEAT_FLUX, HEAT_SOURCE, or BODY_FORCE_X).
+ * @brief Auxiliary 2D element solving the transient heat/diffusion equation with a theta-method.
+ * @details Solves \f$ \partial T / \partial t - k \nabla^2 T = f \f$ for the scalar TEMPERATURE DOF
+ *          using \f$ \theta = \text{TIMEDIS\_THETA} \f$ from ProcessInfo (default 1.0: BDF1 / Backward
+ *          Euler; 0.5: Crank-Nicolson; 0.0: Forward Euler), diffusivity \f$ k = \text{CONDUCTIVITY} \f$
+ *          from Properties (default 1.0), and nodal/property source \f$ f \f$.
  */
 class MonolithicPFEM22DAux : public Element
 {
@@ -105,7 +106,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void GetNodalSource(array_1d<double, 3>& rSource) const;
+    void GetNodalSource(array_1d<double, 3>& rSource, const IndexType StepIndex = 0) const;
 
     ///@}
 

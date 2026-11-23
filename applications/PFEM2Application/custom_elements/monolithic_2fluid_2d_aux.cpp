@@ -17,6 +17,23 @@
 namespace Kratos
 {
 
+namespace
+{
+    template <class TMatrixType>
+    void FillConsistentMassMatrix(TMatrixType& rMassMatrix, const double Area)
+    {
+        const double factor = Area / 12.0;
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            for (unsigned int j = 0; j < 3; ++j)
+            {
+                rMassMatrix(i, j) = factor;
+            }
+            rMassMatrix(i, i) += factor;
+        }
+    }
+}
+
     //************************************************************************************
     //************************************************************************************
     MonolithicPFEM22DAux::MonolithicPFEM22DAux(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -53,7 +70,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void MonolithicPFEM22DAux::GetNodalSource(array_1d<double, 3>& rSource) const
+    void MonolithicPFEM22DAux::GetNodalSource(array_1d<double, 3>& rSource, const IndexType StepIndex) const
     {
         const GeometryType& rGeom = this->GetGeometry();
         rSource = ZeroVector(3);
@@ -61,19 +78,20 @@ namespace Kratos
         bool found_nodal = false;
         for (unsigned int i = 0; i < 3; ++i)
         {
+            const IndexType step = (rGeom[i].GetBufferSize() > StepIndex) ? StepIndex : 0;
             if (rGeom[i].SolutionStepsDataHas(HEAT_FLUX))
             {
-                rSource[i] = rGeom[i].FastGetSolutionStepValue(HEAT_FLUX);
+                rSource[i] = rGeom[i].FastGetSolutionStepValue(HEAT_FLUX, step);
                 found_nodal = true;
             }
             else if (rGeom[i].SolutionStepsDataHas(BODY_FORCE))
             {
-                rSource[i] = rGeom[i].FastGetSolutionStepValue(BODY_FORCE)[0];
+                rSource[i] = rGeom[i].FastGetSolutionStepValue(BODY_FORCE, step)[0];
                 found_nodal = true;
             }
         }
 
-        // If no non-zero nodal source was found, check property-level HEAT_FLUX / HEAT_SOURCE
+        // If no nodal source variable is present, fall back to property-level HEAT_FLUX
         if (!found_nodal)
         {
             double prop_source = 0.0;
@@ -104,15 +122,7 @@ namespace Kratos
 
         // Consistent mass matrix for linear 2D triangle:
         // M_ij = (Area / 12) * (1 + delta_ij)
-        const double factor = Area / 12.0;
-        for (unsigned int i = 0; i < NumNodes; ++i)
-        {
-            for (unsigned int j = 0; j < NumNodes; ++j)
-            {
-                rMassMatrix(i, j) = factor;
-            }
-            rMassMatrix(i, i) += factor;
-        }
+        FillConsistentMassMatrix(rMassMatrix, Area);
 
         KRATOS_CATCH("")
     }
@@ -126,7 +136,6 @@ namespace Kratos
 
         const unsigned int NumNodes = 3;
 
-        // Check sizes
         if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
             rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
@@ -135,24 +144,56 @@ namespace Kratos
             rRightHandSideVector.resize(NumNodes, false);
         noalias(rRightHandSideVector) = ZeroVector(NumNodes);
 
-        // Compute consistent mass matrix M_ij = \int N_i N_j d\Omega
-        this->CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+        KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(DELTA_TIME))
+            << "DELTA_TIME is not set in ProcessInfo." << std::endl;
+        const double dt = rCurrentProcessInfo[DELTA_TIME];
+        KRATOS_ERROR_IF(dt <= 0.0)
+            << "DELTA_TIME must be positive, got " << dt << std::endl;
+        const double inv_dt = 1.0 / dt;
 
-        // Get nodal source values f_j
-        array_1d<double, 3> f_nodal;
-        this->GetNodalSource(f_nodal);
+        // theta = 1.0 -> BDF1 (Backward Euler), 0.5 -> Crank-Nicolson, 0.0 -> Forward Euler
+        const double theta = rCurrentProcessInfo.Has(TIMEDIS_THETA)
+            ? rCurrentProcessInfo[TIMEDIS_THETA]
+            : 1.0;
 
-        // (w, f)_i = \int N_i f(\mathbf{x}) d\Omega = \sum_j M_ij * f_j
-        noalias(rRightHandSideVector) = prod(rLeftHandSideMatrix, f_nodal);
+        const double diffusivity = this->GetProperties().Has(CONDUCTIVITY)
+            ? this->GetProperties()[CONDUCTIVITY]
+            : 1.0;
 
-        // Subtract current solution contribution to obtain standard residual form:
-        // Residual = (w, f) - M * T_current
-        array_1d<double, 3> current_temperature;
+        double Area;
+        BoundedMatrix<double, 3, 2> DN_DX;
+        array_1d<double, 3> N;
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+        // Consistent mass matrix M_ij = (Area / 12) * (1 + delta_ij)
+        BoundedMatrix<double, 3, 3> M;
+        FillConsistentMassMatrix(M, Area);
+
+        // Diffusion (stiffness) matrix K_ij = Area * k * (grad N_i . grad N_j)
+        const BoundedMatrix<double, 3, 3> K = Area * diffusivity * prod(DN_DX, trans(DN_DX));
+
+        array_1d<double, 3> T_curr, T_prev;
         for (unsigned int i = 0; i < NumNodes; ++i)
         {
-            current_temperature[i] = this->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE);
+            const auto& rNode = this->GetGeometry()[i];
+            T_curr[i] = rNode.FastGetSolutionStepValue(TEMPERATURE, 0);
+            T_prev[i] = (rNode.GetBufferSize() > 1)
+                ? rNode.FastGetSolutionStepValue(TEMPERATURE, 1)
+                : T_curr[i];
         }
-        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, current_temperature);
+
+        array_1d<double, 3> f_curr, f_prev;
+        this->GetNodalSource(f_curr, 0);
+        this->GetNodalSource(f_prev, 1);
+
+        const array_1d<double, 3> f_theta = theta * f_curr + (1.0 - theta) * f_prev;
+        const array_1d<double, 3> T_theta = theta * T_curr + (1.0 - theta) * T_prev;
+
+        // Theta-method residual form: (1/dt * M + theta * K) * dT = M * f_theta - (1/dt) * M * (T_curr - T_prev) - K * T_theta
+        noalias(rLeftHandSideMatrix) = inv_dt * M + theta * K;
+        noalias(rRightHandSideVector) = prod(M, f_theta)
+            - inv_dt * prod(M, T_curr - T_prev)
+            - prod(K, T_theta);
 
         KRATOS_CATCH("")
     }

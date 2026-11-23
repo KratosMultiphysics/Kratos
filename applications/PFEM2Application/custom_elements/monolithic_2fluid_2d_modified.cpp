@@ -19,6 +19,23 @@
 namespace Kratos
 {
 
+	namespace
+	{
+    	template <class TMatrixType>
+    	void FillConsistentMassMatrix(TMatrixType& rMassMatrix, const double Area)
+    	{
+        	const double factor = Area / 12.0;
+        	for (unsigned int i = 0; i < 3; ++i)
+        	{
+            	for (unsigned int j = 0; j < 3; ++j)
+            	{
+               	 rMassMatrix(i, j) = factor;
+            	}
+            	rMassMatrix(i, i) += factor;
+        	}
+    	}
+	}
+
 	//************************************************************************************
 	//************************************************************************************
 	MonolithicPFEM22DModified::MonolithicPFEM22DModified(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -45,29 +62,6 @@ namespace Kratos
 	{
 	}
 
-	//************************************************************************************
-	//************************************************************************************
-
-
-	void MonolithicPFEM22DModified::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY;
-
-		switch ( rCurrentProcessInfo[FRACTIONAL_STEP] )
-		{
-			case 10: //calculating pressure projection. notthing returned. saving data in PRESS_PROJ, PRESS_PROJ_NO_RO , NODAL_MASS and NODAL_AREA
-			{
-				this->CalculatePressureProjection(rCurrentProcessInfo);
-				break;
-			}
-			default:
-			{
-				KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
-			}
-		}
-
-		KRATOS_CATCH("");
-	}
 
 	//************************************************************************************
 	//************************************************************************************
@@ -76,7 +70,70 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
-		KRATOS_THROW_ERROR(std::logic_error, "MonolithicPFEM22DModified::CalculateLocalSystem has yet to be implemented", "");
+		const int TDim = 2;
+
+		const SizeType NumNodes = TDim+1;
+		const SizeType LocalSize = TDim+1;
+		const GeometryType& rGeom = this->GetGeometry();
+
+		if (rLeftHandSideMatrix.size1() != LocalSize || rLeftHandSideMatrix.size2() != LocalSize)
+            rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
+
+        if (rRightHandSideVector.size() != LocalSize)
+            rRightHandSideVector.resize(LocalSize, false);
+        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+		KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(DELTA_TIME))
+            << "DELTA_TIME is not set in ProcessInfo." << std::endl;
+        const double dt = rCurrentProcessInfo[DELTA_TIME];
+        KRATOS_ERROR_IF(dt <= 0.0)
+            << "DELTA_TIME must be positive, got " << dt << std::endl;
+        const double inv_dt = 1.0 / dt;
+
+        // theta = 1.0 -> BDF1 (Backward Euler), 0.5 -> Crank-Nicolson, 0.0 -> Forward Euler
+        const double theta = rCurrentProcessInfo.Has(TIMEDIS_THETA)
+            ? rCurrentProcessInfo[TIMEDIS_THETA]
+            : 1.0;
+
+        const double diffusivity = this->GetProperties().Has(CONDUCTIVITY)
+            ? this->GetProperties()[CONDUCTIVITY]
+            : 1.0;
+
+		double Area;
+        BoundedMatrix<double, 3, 2> DN_DX;
+        array_1d<double, 3> N;
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+		// Consistent mass matrix M_ij = (Area / 12) * (1 + delta_ij)
+        BoundedMatrix<double, 3, 3> M;
+        FillConsistentMassMatrix(M, Area);
+
+		// Diffusion (stiffness) matrix K_ij = Area * k * (grad N_i . grad N_j)
+        const BoundedMatrix<double, 3, 3> K = Area * diffusivity * prod(DN_DX, trans(DN_DX));
+
+        array_1d<double, 3> T_curr, T_prev;
+        for (unsigned int i = 0; i < NumNodes; ++i)
+        {
+            const auto& rNode = this->GetGeometry()[i];
+            T_curr[i] = rNode.FastGetSolutionStepValue(TEMPERATURE, 0);
+            T_prev[i] = (rNode.GetBufferSize() > 1)
+                ? rNode.FastGetSolutionStepValue(TEMPERATURE, 1)
+                : T_curr[i];
+        }
+
+        array_1d<double, 3> f_curr, f_prev;
+        this->GetNodalSource(f_curr, 0);
+        this->GetNodalSource(f_prev, 1);
+
+        const array_1d<double, 3> f_theta = theta * f_curr + (1.0 - theta) * f_prev;
+        const array_1d<double, 3> T_theta = theta * T_curr + (1.0 - theta) * T_prev;
+
+        // Theta-method residual form: (1/dt * M + theta * K) * dT = M * f_theta - (1/dt) * M * (T_curr - T_prev) - K * T_theta
+        noalias(rLeftHandSideMatrix) = inv_dt * M + theta * K;
+        noalias(rRightHandSideVector) = prod(M, f_theta)
+            - inv_dt * prod(M, T_curr - T_prev)
+            - prod(K, T_theta);
 
 		KRATOS_CATCH("");
 	}
@@ -98,48 +155,18 @@ namespace Kratos
 
 	void MonolithicPFEM22DModified::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 	{
-		if(CurrentProcessInfo[FRACTIONAL_STEP]<100 )
-		{
 		const int TDim = 2;
 
 		const SizeType NumNodes = TDim+1;
-		const SizeType LocalSize = (TDim+1)*(TDim+1);
+		const SizeType LocalSize = TDim+1;
 		const GeometryType& rGeom = this->GetGeometry();
-
-		SizeType LocalIndex = 0;
 
 		if (rResult.size() != LocalSize)
 			rResult.resize(LocalSize, false);
 
 		for (SizeType i = 0; i < NumNodes; ++i)
 		{
-			rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_X).EquationId();
-			rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
-			rResult[LocalIndex++] = rGeom[i].GetDof(PRESSURE).EquationId();
-		}
-		}
-		else
-		{
-			const int TDim = 2;
-
-			const SizeType NumNodes = TDim+1;
-			const SizeType LocalSize = (TDim+1);
-			const GeometryType& rGeom = this->GetGeometry();
-
-			SizeType LocalIndex = 0;
-
-			if (rResult.size() != LocalSize)
-				rResult.resize(LocalSize, false);
-
-			for (SizeType i = 0; i < NumNodes; ++i)
-			{
-				if(CurrentProcessInfo[FRACTIONAL_STEP]==100)
-					rResult[LocalIndex++] = rGeom[i].GetDof(DISTANCE).EquationId();
-				if(CurrentProcessInfo[FRACTIONAL_STEP]==101)
-					rResult[LocalIndex++] = rGeom[i].GetDof(PROJECTED_VELOCITY_X).EquationId();
-				if(CurrentProcessInfo[FRACTIONAL_STEP]==102)
-					rResult[LocalIndex++] = rGeom[i].GetDof(PROJECTED_VELOCITY_Y).EquationId();
-			}
+			rResult[i] = rGeom[i].GetDof(TEMPERATURE).EquationId();
 		}
 	}
 
@@ -147,51 +174,20 @@ namespace Kratos
 	//************************************************************************************
 
 	void MonolithicPFEM22DModified::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& CurrentProcessInfo) const
-	{                                                                                                                                                                                                                   
-		if(CurrentProcessInfo[FRACTIONAL_STEP]<100 )
-		{
+	{           
 		const int TDim = 2;
-
+		
 		const SizeType NumNodes = TDim+1;
-		const SizeType LocalSize = (TDim+1)*(TDim+1);
-		const GeometryType& rGeom = this->GetGeometry();
+        const SizeType LocalSize = TDim+1;
+        const GeometryType& rGeom = this->GetGeometry();
 
 		if (ElementalDofList.size() != LocalSize)
-			ElementalDofList.resize(LocalSize);
+            ElementalDofList.resize(LocalSize);
 
-		SizeType LocalIndex = 0;
-
-		for (SizeType i = 0; i < NumNodes; ++i)
-		{
-			ElementalDofList[LocalIndex++] = rGeom[i].pGetDof(VELOCITY_X);
-			ElementalDofList[LocalIndex++] = rGeom[i].pGetDof(VELOCITY_Y);
-			ElementalDofList[LocalIndex++] = rGeom[i].pGetDof(PRESSURE);
-		}
-		}
-		else
-		{
-			const int TDim = 2;
-
-			const SizeType NumNodes = TDim+1;
-			const SizeType LocalSize = (TDim+1);
-			const GeometryType& rGeom = this->GetGeometry();
-
-			if (ElementalDofList.size() != LocalSize)
-				ElementalDofList.resize(LocalSize);
-
-			SizeType LocalIndex = 0;
-
-			for (SizeType i = 0; i < NumNodes; ++i)
-			{
-				if(CurrentProcessInfo[FRACTIONAL_STEP]==100)
-					ElementalDofList[LocalIndex++] = rGeom[i].pGetDof(DISTANCE);
-				if(CurrentProcessInfo[FRACTIONAL_STEP]==101)
-					ElementalDofList[LocalIndex++] = rGeom[i].pGetDof(PROJECTED_VELOCITY_X);
-				if(CurrentProcessInfo[FRACTIONAL_STEP]==102)
-					ElementalDofList[LocalIndex++] = rGeom[i].pGetDof(PROJECTED_VELOCITY_Y);
-			}
-		}
-
+        for (SizeType i = 0; i < NumNodes; ++i)
+        {
+            ElementalDofList[i] = rGeom[i].pGetDof(TEMPERATURE);
+        }
 
 	}
 
@@ -199,126 +195,38 @@ namespace Kratos
 	//************************************************************************************
 	//************************************************************************************
 
-	void MonolithicPFEM22DModified::CalculatePressureProjection(const ProcessInfo& CurrentProcessInfo)
-	{
-		KRATOS_TRY
+	void MonolithicPFEM22DModified::GetNodalSource(array_1d<double, 3>& rSource, const IndexType StepIndex) const
+    {
+        const GeometryType& rGeom = this->GetGeometry();
+        rSource = ZeroVector(3);
 
-		const unsigned int TDim=2;
-
-		double Area;
-		Geometry<Node >& geom = this->GetGeometry();
-		BoundedMatrix<double, (TDim+1), TDim > DN_DX;
-		array_1d<double, (TDim+1) > N;
-		GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
-		const double factor = 1.0/ (1.0 + double (TDim) );
-
-		//const int number_of_particles_in_elem = this->GetValue(NUMBER_OF_FLUID_PARTICLES);
-
-		//if( (number_of_particles_in_elem>0))
-		if(true)
-		{
-
-            const double density_air = CurrentProcessInfo[DENSITY_AIR]; //para clindro en rey 100:  0.0005 * 2.0*Area;
-            const double density_water = CurrentProcessInfo[DENSITY_WATER];
-
-            array_1d<double,TDim+1>  pressures = ZeroVector(TDim+1); //to calculate the deformation Gradient F. Dimension = velocity dofs
-            BoundedMatrix<double,TDim+1, TDim > coords; //coordinates of the nodes
-            bool has_negative_node=false;
-            bool has_positive_node=false;
-            double element_mean_distance=0.0;
-            for(unsigned int iii = 0; iii<(TDim+1); iii++)
+        bool found_nodal = false;
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            const IndexType step = (rGeom[i].GetBufferSize() > StepIndex) ? StepIndex : 0;
+            if (rGeom[i].SolutionStepsDataHas(HEAT_FLUX))
             {
-                //saving everything
-                pressures(iii) = GetGeometry()[iii].FastGetSolutionStepValue(PRESSURE);
-
-                //
-                const array_1d<double, 3 > & xyz = this->GetGeometry()[iii].Coordinates();
-                for (unsigned int j = 0; j < TDim; j++)
-                    coords(iii, j) = xyz[j];
-                //
-                if (this->GetGeometry()[iii].FastGetSolutionStepValue(DISTANCE)<0.0)
-                    has_negative_node=true;
-                else
-                    has_positive_node=true;
-
-                element_mean_distance+=factor*this->GetGeometry()[iii].FastGetSolutionStepValue(DISTANCE);
+                rSource[i] = rGeom[i].FastGetSolutionStepValue(HEAT_FLUX, step);
+                found_nodal = true;
             }
-
-            bool split_element=false;
-            if (has_positive_node && has_negative_node)
-                split_element=true;
-
-            if (split_element==false) //we only calculate if we have a pure fluid element
+            else if (rGeom[i].SolutionStepsDataHas(BODY_FORCE))
             {
-
-
-                BoundedMatrix<double, (TDim+1), (TDim+1)*TDim > G_matrix; //(gradient)
-                noalias(G_matrix) = ZeroMatrix((TDim+1), (TDim+1)*TDim);
-
-                //const double water_fraction = -( element_mean_distance - 1.0) *0.5;
-                //const double water_fraction = 0.5*(1.0-(sin(3.14159*element_mean_distance*0.5)));
-                //double density = density_water*(water_fraction)+density_air*(1.0-water_fraction);
-                double density = density_air;
-                if (has_negative_node==true)
-                    density= density_water;
-
-                for (unsigned int i = 0; i < (TDim+1); i++) //loop in shape functions (row)
-                {
-                    for (unsigned int j = 0; j < (TDim+1) ; j++) //loop in shape functions (column)
-                    {
-                        for (unsigned int k = 0; k < (TDim) ; k++) //x,y,(z)
-                        {
-                            G_matrix(i, (j*2)+k ) = DN_DX(i,k)*Area*factor; //mass_factor=(1/3 in 2d, 1/4 in 3d)
-                        }
-                    }
-                }
-                G_matrix /=density;
-
-                //now we save the data:
-                for (unsigned int i=0; i!=(TDim+1); i++) //loop around the nodes of the element to add contribution to node i
-                {
-                    geom[i].SetLock();
-                    array_1d<double, 3 > & current_press_proj = geom[i].FastGetSolutionStepValue(PRESS_PROJ);
-
-                    for (unsigned int j = 0; j < (TDim+1) ; j++) //loop around the nodes of the element to add contribution of node j to node i
-                    {
-
-                        for (unsigned int k = 0; k < (TDim) ; k++) //x,y,(z)
-                        {
-                            current_press_proj[k] += G_matrix(j,i*(TDim)+k)*(pressures(j));///-old_pressures(j)); //gamma=0!
-                        }
-                    }
-
-                    geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*factor;
-
-                    geom[i].UnSetLock();
-
-                }
-
-            } //closing the useful elements
-            else// we add some small addition to the area so that we do not have a division by zero.
-            {
-                for (unsigned int i=0; i!=(TDim+1); i++) //loop around the nodes of the element to add contribution to node i
-                {
-                    geom[i].SetLock();
-                    geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*factor*0.000000000000001;
-                    geom[i].UnSetLock();
-                }
+                rSource[i] = rGeom[i].FastGetSolutionStepValue(BODY_FORCE, step)[0];
+                found_nodal = true;
             }
+        }
 
-		} //closing the if(is_inactive==false)
-		else// we add some small addition to the area so that we do not have a division by zero.
-		{
-			for (unsigned int i=0; i!=(TDim+1); i++) //loop around the nodes of the element to add contribution to node i
-			{
-				geom[i].SetLock();
-				geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*factor*0.000000000000001;
-				geom[i].UnSetLock();
-			}
-		}
+        // If no nodal source variable is present, fall back to property-level HEAT_FLUX
+        if (!found_nodal)
+        {
+            double prop_source = 0.0;
+            if (this->GetProperties().Has(HEAT_FLUX))
+                prop_source = this->GetProperties()[HEAT_FLUX];
 
-		KRATOS_CATCH("");
-	}
+            for (unsigned int i = 0; i < 3; ++i)
+                rSource[i] = prop_source;
+        }
+    }
 
 
 	void MonolithicPFEM22DModified::AddViscousTerm(BoundedMatrix<double, 13, 13 > & output,

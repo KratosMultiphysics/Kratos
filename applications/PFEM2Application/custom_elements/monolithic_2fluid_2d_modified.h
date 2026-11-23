@@ -82,8 +82,6 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void AddExplicitContribution(const ProcessInfo& CurrentProcessInfo) override;
-
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& CurrentProcessInfo) const override;
@@ -93,7 +91,7 @@ public:
 
 protected:
 
-    void CalculatePressureProjection(const ProcessInfo& CurrentProcessInfo);
+    void GetNodalSource(array_1d<double, 3>& rSource, const IndexType StepIndex = 0) const;
 
     virtual void AddViscousTerm(MatrixType& rDampMatrix,
         const BoundedMatrix<double, 3, 2>& rShapeDeriv,

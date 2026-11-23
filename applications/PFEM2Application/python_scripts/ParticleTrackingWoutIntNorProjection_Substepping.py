@@ -1,4 +1,5 @@
 from KratosMultiphysics import *
+import KratosMultiphysics
 from KratosMultiphysics.PFEM2Application import *
 import KratosMultiphysics as kratoscore
 #from KratosMultiphysics.OpenCLApplication import *        #in case you want to use the gpu to solve the system
@@ -96,9 +97,9 @@ class PFEM2Solver:
         self.domain_size = domain_size
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part)
+        self.neighbour_search = KratosMultiphysics.FindGlobalNodalNeighboursProcess(model_part)
         (self.neighbour_search).Execute()
-        self.neighbour_elements_search= GenericFindElementalNeighboursProcess(model_part)
+        self.neighbour_elements_search= KratosMultiphysics.GenericFindElementalNeighboursProcess(model_part)
         (self.neighbour_elements_search).Execute()
         ##calculate normals
         self.normal_tools = BodyNormalCalculationUtils()
@@ -199,15 +200,15 @@ class PFEM2Solver:
 
         #Reseeding using streamlines in inverse way in case there are too few particles. Not very accurate since particles follow streamlines, no matter if it's water or air.
         #(for 1 fluid should be accurate though
-        pre_minimum_number_of_particles=2*self.domain_size;
-        (self.moveparticles).PreReseed_Temperature(pre_minimum_number_of_particles);
-        t4 = timer.time()
-        self.reseed = self.reseed + t4-t3
-        self.prereseed = self.prereseed + t4-t3
+        # pre_minimum_number_of_particles=2*self.domain_size;
+        # (self.moveparticles).PreReseed_Temperature(pre_minimum_number_of_particles);
+        # t4 = timer.time()
+        # self.reseed = self.reseed + t4-t3
+        # self.prereseed = self.prereseed + t4-t3
 
         # #transferring data from the particles to the mesh:
         # (self.moveparticles).TransferLagrangianToEulerian_Temperature()
-        # (self.moveparticles).TransferLagrangianToEulerianSecondOrder_Temperature()
+        # (self.moveparticles).GLSC_Temperature()
         # t5 = timer.time()
         # self.lagrangiantoeulerian = self.lagrangiantoeulerian + t5-t4
 

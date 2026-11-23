@@ -293,8 +293,5 @@ class PFEM2Solver:
     def InterpolateParticleTemperature_prescribed_tzero(self):
         (self.moveparticles).InterpolateParticleTemperature_prescribed_tzero()
 
-    def PreReseed_Temperature_RK2_WitSubstepping(self, pre_minimum_number_of_particles):
-        (self.moveparticles).PreReseed_Temperature_RK2_WitSubstepping(pre_minimum_number_of_particles)
-
     def PreReseed_Temperature_RK2_WithSubstepping(self, pre_minimum_number_of_particles):
         (self.moveparticles).PreReseed_Temperature_RK2_WithSubstepping(pre_minimum_number_of_particles)

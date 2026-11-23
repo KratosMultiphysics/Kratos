@@ -136,6 +136,7 @@ public:
 		this->VELOCITY=ZeroVector(3);
 		this->DISTANCE=0.0;
 		this->ELEMENT_ID=0;
+		this->TEMPERATURE=0.0;
     }
     
     PFEM_Particle_Fluid() : Point(0.0, 0.0, 0.0)
@@ -144,6 +145,7 @@ public:
 		this->VELOCITY=ZeroVector(3);
 		this->DISTANCE=0.0;
 		this->ELEMENT_ID=0;
+		this->TEMPERATURE=0.0;
     }
     
     ~PFEM_Particle_Fluid()

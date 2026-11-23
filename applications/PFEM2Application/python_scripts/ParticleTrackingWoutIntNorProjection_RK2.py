@@ -207,7 +207,7 @@ class PFEM2Solver:
 
         # #transferring data from the particles to the mesh:
         # (self.moveparticles).TransferLagrangianToEulerian_Temperature()
-        (self.moveparticles).TransferLagrangianToEulerianSecondOrder_Temperature()
+        (self.moveparticles).GLSC_Temperature()
         # t5 = timer.time()
         # self.lagrangiantoeulerian = self.lagrangiantoeulerian + t5-t4
 
