@@ -12,6 +12,7 @@
 #include "non_linear_timoshenko_beam_element_3D2N.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -315,9 +316,9 @@ BoundedMatrix<double, 12, 6> NonLinearTimoshenkoBeamElement3D2N::CalculateDoFMap
     matrix.clear();
 
     noalias(project(matrix, range(0, 3), range(0, 3)))  = IdentityMatrix(3);
-    noalias(project(matrix, range(3, 6), range(3, 6)))  = -CL_utils::CalculateSpinMatrix(rD1);
-    noalias(project(matrix, range(6, 9), range(3, 6)))  = -CL_utils::CalculateSpinMatrix(rD2);
-    noalias(project(matrix, range(9, 12), range(3, 6))) = -CL_utils::CalculateSpinMatrix(rD3);
+    noalias(project(matrix, range(3, 6), range(3, 6)))  = -ConstitutiveLawUtilities<6>::CalculateSpinMatrix(rD1);
+    noalias(project(matrix, range(6, 9), range(3, 6)))  = -ConstitutiveLawUtilities<6>::CalculateSpinMatrix(rD2);
+    noalias(project(matrix, range(9, 12), range(3, 6))) = -ConstitutiveLawUtilities<6>::CalculateSpinMatrix(rD3);
 
     return matrix;
 }
@@ -601,8 +602,8 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
                 noalias(di_b) = column(mRotationOperators[b], i);
 
                 // Shear and axial submatrix
-                noalias(project(Kn_ab, range(0, 3), range(3, 6))) += -dN[a] * N[b] * Q[i] * CL_utils::CalculateSpinMatrix(di_b); // i director vector
-                noalias(project(Kn_ab, range(3, 6), range(0, 3))) += N[a] * dN[b] * Q[i] * CL_utils::CalculateSpinMatrix(di);
+                noalias(project(Kn_ab, range(0, 3), range(3, 6))) += -dN[a] * N[b] * Q[i] * ConstitutiveLawUtilities<6>::CalculateSpinMatrix(di_b); // i director vector
+                noalias(project(Kn_ab, range(3, 6), range(0, 3))) += N[a] * dN[b] * Q[i] * ConstitutiveLawUtilities<6>::CalculateSpinMatrix(di);
                 noalias(project(Kn_ab, range(3, 6), range(3, 6))) += delta(a, b) * N[a] * Q[i] * (outer_prod(di_a, dr) - (inner_prod(di_a, dr) * IdentityMatrix(3)));
 
                 // Bending submatrix
@@ -614,12 +615,12 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
                         noalias(dk) = N[0] * column(mRotationOperators[0], k) + N[1] * column(mRotationOperators[1], k);
 
                         noalias(Gi_ab) += epsilon(j, i, k) *
-                                          ((dN[a] * N[b] - N[a] * dN[b]) * CL_utils::CalculateSpinMatrix(column(mRotationOperators[a], k)) +
-                                           delta(a, b) * (dN[a] * CL_utils::CalculateSpinMatrix(dk) - N[a] * CL_utils::CalculateSpinMatrix(dk_s)));
+                                          ((dN[a] * N[b] - N[a] * dN[b]) * ConstitutiveLawUtilities<6>::CalculateSpinMatrix(column(mRotationOperators[a], k)) +
+                                           delta(a, b) * (dN[a] * ConstitutiveLawUtilities<6>::CalculateSpinMatrix(dk) - N[a] * ConstitutiveLawUtilities<6>::CalculateSpinMatrix(dk_s)));
                     } // k loop
                 } // j loop
                 Gi_ab *= 0.5 * M[i];
-                noalias(project(Km_ab, range(3, 6), range(3, 6))) -= prod(Gi_ab, CL_utils::CalculateSpinMatrix(di_b));
+                noalias(project(Km_ab, range(3, 6), range(3, 6))) -= prod(Gi_ab, ConstitutiveLawUtilities<6>::CalculateSpinMatrix(di_b));
             } // i loop
 
             noalias(project(Kn, range(a * block_size, a * block_size + block_size), range(range(b * block_size, b * block_size + block_size)))) = Kn_ab;
@@ -726,8 +727,8 @@ void NonLinearTimoshenkoBeamElement3D2N::FinalizeNonLinearIteration(
     noalias(delta_rot_2) = curr_rot_2 - old_rot_2;
 
     BoundedMatrix<double, 3, 3> exp_delta_rot_1, exp_delta_rot_2;
-    noalias(exp_delta_rot_1) = CL_utils::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_1);
-    noalias(exp_delta_rot_2) = CL_utils::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_2);
+    noalias(exp_delta_rot_1) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_1);
+    noalias(exp_delta_rot_2) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_2);
 
     // Let's update the nodal triads
     noalias(mRotationOperators[0]) = prod(exp_delta_rot_1, mOldRotationOperators[0]);

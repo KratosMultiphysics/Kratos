@@ -12,8 +12,6 @@
 
 #include "includes/element.h"
 
-#include "custom_utilities/constitutive_law_utilities.h"
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -58,8 +56,6 @@ public:
     using BaseType = Element;
 
     using array3 = array_1d<double, 3>;
-
-    using CL_utils = ConstitutiveLawUtilities<6>;
 
     NonLinearTimoshenkoBeamElement3D2N() {}
 
