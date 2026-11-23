@@ -29,6 +29,21 @@
 
 namespace Kratos
 {
+
+namespace {
+
+// Shared validation of the declaration line that follows "Begin Constraints <Name>".
+// Its first word is the slave variable (mandatory); master variables are optional.
+void CheckConstraintDeclarationLine(
+    const std::vector<std::string>& rWords,
+    const std::string& rConstraintName,
+    const std::size_t NumberOfLines)
+{
+    KRATOS_ERROR_IF(rWords.empty()) << "Empty constraint declaration line for " << rConstraintName << ": the slave variable must be present (master variables are optional). [Line " << NumberOfLines << " ]" << std::endl;
+}
+
+} // namespace
+
 /// Constructor with  filenames.
 ModelPartIO::ModelPartIO(std::filesystem::path const& Filename, const Flags Options)
     : mNumberOfLines(1)
@@ -1360,7 +1375,7 @@ void ModelPartIO::FillNodalConnectivitiesFromConstraintBlockInList(
     std::string current_line;
     std::getline(*mpStream, current_line);
     const auto words = StringUtilities::SplitStringIntoAVector(current_line);
-    KRATOS_ERROR_IF(words.empty()) << "Empty constraint declaration line for " << constraint_name << ": the slave variable must be present (master variables are optional). [Line " << mNumberOfLines << " ]" << std::endl;
+    CheckConstraintDeclarationLine(words, constraint_name, mNumberOfLines);
 
     // The first word is the slave variable, the second and following ones are the master variables
     SizeType number_of_master_dofs = words.size() - 1;
@@ -2457,7 +2472,7 @@ void ModelPartIO::ReadConstraintsBlock(
     std::string current_line;
     std::getline(*mpStream, current_line);
     const auto words = StringUtilities::SplitStringIntoAVector(current_line);
-    KRATOS_ERROR_IF(words.empty()) << "Empty constraint declaration line for " << constraint_name << ": the slave variable must be present (master variables are optional). [Line " << mNumberOfLines << " ]" << std::endl;
+    CheckConstraintDeclarationLine(words, constraint_name, mNumberOfLines);
 
     // Read the slave variable
     const Variable<double>& r_slave_variable = KratosComponents<Variable<double>>::Get(words[0]);
@@ -3561,7 +3576,7 @@ ModelPartIO::SizeType ModelPartIO::ReadConstraintsConnectivitiesBlock(Connectivi
     std::string current_line;
     std::getline(*mpStream, current_line);
     const auto words = StringUtilities::SplitStringIntoAVector(current_line);
-    KRATOS_ERROR_IF(words.empty()) << "Empty constraint declaration line for " << constraint_name << ": the slave variable must be present (master variables are optional). [Line " << mNumberOfLines << " ]" << std::endl;
+    CheckConstraintDeclarationLine(words, constraint_name, mNumberOfLines);
 
     // The first word is the slave variable, the second and following ones are the master variables
     SizeType number_of_master_dofs = words.size() - 1;
@@ -3866,7 +3881,7 @@ void ModelPartIO::FillNodalConnectivitiesFromConstraintBlock(ConnectivitiesConta
     std::string current_line;
     std::getline(*mpStream, current_line);
     const auto words = StringUtilities::SplitStringIntoAVector(current_line);
-    KRATOS_ERROR_IF(words.empty()) << "Empty constraint declaration line for " << constraint_name << ": the slave variable must be present (master variables are optional). [Line " << mNumberOfLines << " ]" << std::endl;
+    CheckConstraintDeclarationLine(words, constraint_name, mNumberOfLines);
 
     // The first word is the slave variable, the second and following ones are the master variables
     SizeType number_of_master_dofs = words.size() - 1;
@@ -5078,7 +5093,7 @@ void ModelPartIO::DivideConstraintsBlock(
     std::string current_line;
     std::getline(*mpStream, current_line);
     const auto words = StringUtilities::SplitStringIntoAVector(current_line);
-    KRATOS_ERROR_IF(words.empty()) << "Empty constraint declaration line for " << constraint_name << ": the slave variable must be present (master variables are optional). [Line " << mNumberOfLines << " ]" << std::endl;
+    CheckConstraintDeclarationLine(words, constraint_name, mNumberOfLines);
 
     std::string header = "Begin Constraints\t" +  constraint_name;
     for (const auto& var : words) {

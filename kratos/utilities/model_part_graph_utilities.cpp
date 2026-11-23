@@ -193,9 +193,11 @@ void ModelPartGraphUtilities::BreadthFirstSearch(
         q.pop();
         for (ModelPartGraphUtilities::IndexType i = rRowIndices[currVertex]; i != rRowIndices[currVertex+1]; ++i) {
             int adjVertex = rColIndices[i];
-            // 'visited' is keyed only by the nodes handed to ComputeConnectedComponents,
-            // while the graph spans all nodes: neighbours outside that set are simply
-            // not part of the traversal and must be skipped, not dereferenced.
+            // 'visited' is keyed only by the nodes of the model part whose components are
+            // being computed, while the CSR graph is built from all element/condition
+            // connectivities. A neighbour outside that node set is not part of the
+            // returned components (colors are only reported for those nodes), so it is
+            // skipped. Previously it was dereferenced via find()->second on end().
             auto it_adj = visited.find(adjVertex);
             if (it_adj == visited.end())
                 continue;

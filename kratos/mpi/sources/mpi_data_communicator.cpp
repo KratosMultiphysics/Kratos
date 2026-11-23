@@ -183,9 +183,7 @@ void MPIDataCommunicator::RecvImpl(__VA_ARGS__& rRecvValues,                    
     const int RecvSource, const int RecvTag) const {                                            \
     std::vector<__VA_ARGS__> recv(1);                                                           \
     RecvDetail(recv, RecvSource, RecvTag);                                                      \
-    if (!recv.empty()) {                                                                        \
-        rRecvValues = recv[0];                                                                  \
-    }                                                                                           \
+    rRecvValues = recv[0];                                                                      \
 }                                                                                               \
 void MPIDataCommunicator::RecvImpl(std::vector<__VA_ARGS__>& rRecvValues,                       \
     const int RecvSource, const int RecvTag) const {                                            \

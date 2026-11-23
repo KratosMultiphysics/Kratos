@@ -100,6 +100,11 @@ public:
     void CollectData() override;
 
     /**
+     * @brief Checks the container shape and that every entity has uniform equation-id count.
+     */
+    void Check() const override;
+
+    /**
      * @brief Store internal data to the given TContainerType container.
      *
      */

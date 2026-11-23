@@ -76,21 +76,6 @@ public:
         ///@{
 
         /**
-        * @brief Constructor.
-        * @param it The underlying iterator representing the current position in the sequence.
-        * @details This constructor initializes a ByteIterator object with the specified underlying iterator.
-        * The current byte is determined from the value pointed to by the underlying iterator.
-        * The byte index is set to the first byte (index 0).
-        */
-        ByteIterator(TIteratorType it)
-            : mIt(it),
-            mItEnd(it),
-            mValue(*it),
-            mByteIndex(0u),
-            mIsLastElement(true)
-        {}
-
-        /**
         * @brief Constructor with the end of the underlying sequence.
         * @param it The underlying iterator representing the current position in the sequence.
         * @param it_end The underlying iterator representing the end of the sequence.
