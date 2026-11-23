@@ -126,8 +126,6 @@ void SensitivityUtilities::ComputeEntityGeometryNeighbourNodeMap(
                     derivative_node_map[i_deriv_node] = 0;
                 } else {
                     const auto p_itr = rNeighbourNodeIdsMap.find(base_node_id);
-                    KRATOS_ERROR_IF(p_itr == rNeighbourNodeIdsMap.end())
-                        << base_node_id << " is not found in nodal neighbours map.";
                     const auto& r_neighbour_node_indices = p_itr->second;
 
                     derivative_node_map[i_deriv_node] =
