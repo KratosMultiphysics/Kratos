@@ -726,8 +726,8 @@ void NonLinearTimoshenkoBeamElement3D2N::FinalizeNonLinearIteration(
     noalias(delta_rot_2) = curr_rot_2 - old_rot_2;
 
     BoundedMatrix<double, 3, 3> exp_delta_rot_1, exp_delta_rot_2;
-    noalias(exp_delta_rot_1) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_1);
-    noalias(exp_delta_rot_2) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_2);
+    noalias(exp_delta_rot_1) = CL_utils::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_1);
+    noalias(exp_delta_rot_2) = CL_utils::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_2);
 
     // Let's update the nodal triads
     noalias(mRotationOperators[0]) = prod(exp_delta_rot_1, mOldRotationOperators[0]);

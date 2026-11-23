@@ -89,7 +89,7 @@ double GeoYoungsModulusFormulations::CalculateYoungsModulusSchanzVermeer(const P
     const auto reference_pressure = rProperties[GEO_PRESSURE_REFERENCE];
     const auto exponent           = rProperties[GEO_STRESS_DEPENDENCY_EXPONENT];
 
-    const auto friction_angle_rad = ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties);
+    const auto friction_angle_rad = GeoMechanicsConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties);
     const auto stress_shift = rProperties[GEO_COHESION] / std::tan(friction_angle_rad);
 
     // Regularization: the minor principal stress is not allowed to exceed GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS

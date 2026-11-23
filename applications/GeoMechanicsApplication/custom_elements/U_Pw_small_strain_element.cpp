@@ -96,7 +96,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 
     const CheckProperties check_properties(r_properties, "property", this->Id(),
                                            CheckProperties::Bounds::AllInclusive);
-    if (!ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)) {
+    if (!GeoMechanicsConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)) {
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
         check_properties.CheckPermeabilityProperties(r_geometry.WorkingSpaceDimension());
@@ -104,7 +104,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
     const auto expected_size = this->GetStressStatePolicy().GetVoigtSize();
-    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, this->Id());
+    GeoMechanicsConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, this->Id());
 
     const auto error_code = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
 
@@ -229,7 +229,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
         Variables.F            = deformation_gradients[integration_point];
         Variables.StrainVector = strain_vectors[integration_point];
 
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
+        GeoMechanicsConstitutiveLawUtilities::SetConstitutiveParameters(
             ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Np,
             Variables.GradNpT, Variables.F, determinants_of_deformation_gradients[integration_point]);
 
@@ -1304,7 +1304,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
 
     const auto& r_properties = this->GetProperties();
 
-    rVariables.IsConstantWaterPressure = ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties);
+    rVariables.IsConstantWaterPressure = GeoMechanicsConstitutiveLawUtilities::IsConstantWaterPressure(r_properties);
     rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
 
     rVariables.ConsiderGeometricStiffness =
@@ -1378,7 +1378,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
         // Explicitly convert from `row`'s return type to `Vector` to avoid ending up with a pointer
         // to an implicitly converted object
         const auto shape_function_values = Vector{row(rNuContainer, integration_point)};
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
+        GeoMechanicsConstitutiveLawUtilities::SetConstitutiveParameters(
             rConstitutiveParameters, rStrainVectors[integration_point],
             rConstitutiveMatrices[integration_point], shape_function_values,
             rDNu_DXContainer[integration_point], rDeformationGradients[integration_point],

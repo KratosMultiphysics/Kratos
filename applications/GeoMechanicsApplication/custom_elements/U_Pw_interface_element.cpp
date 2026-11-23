@@ -158,7 +158,7 @@ void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const 
 void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo)
 {
     const auto number_of_dofs = GetDofs().size();
-    const auto is_constant_pw_field = ConstitutiveLawUtilities::IsConstantWaterPressure(GetProperties());
+    const auto is_constant_pw_field = GeoMechanicsConstitutiveLawUtilities::IsConstantWaterPressure(GetProperties());
     rLeftHandSideMatrix = ZeroMatrix{number_of_dofs, number_of_dofs};
 
     for (auto contribution : mContributions) {
@@ -266,7 +266,7 @@ void UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix(Element::MatrixTy
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                  const ProcessInfo&   rProcessInfo)
 {
-    const auto is_constant_pw_field = ConstitutiveLawUtilities::IsConstantWaterPressure(GetProperties());
+    const auto is_constant_pw_field = GeoMechanicsConstitutiveLawUtilities::IsConstantWaterPressure(GetProperties());
     rRightHandSideVector = ZeroVector{GetDofs().size()};
 
     for (auto contribution : mContributions) {
@@ -467,7 +467,7 @@ void UPwInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     Element::Initialize(rCurrentProcessInfo);
     // IGNORE_UNDRAINED is deprecated
-    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(GetProperties());
+    GeoMechanicsConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(GetProperties());
 
     mConstitutiveLaws.clear();
     mRetentionLaws.clear();
@@ -512,7 +512,7 @@ int UPwInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 
         const auto r_properties  = GetProperties();
         const auto expected_size = mpStressStatePolicy->GetVoigtSize();
-        ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, Id());
+        GeoMechanicsConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, Id());
 
         error = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, GetDisplacementGeometry(), rCurrentProcessInfo);
         return error;

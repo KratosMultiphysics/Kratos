@@ -140,7 +140,7 @@ int MohrCoulombLaw::Check(const Properties&   rMaterialProperties,
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
     const CheckProperties check_properties(rMaterialProperties, "property", CheckProperties::Bounds::AllInclusive);
-    if (ConstitutiveLawUtilities::WantTensionCutOff(rMaterialProperties)) {
+    if (GeoMechanicsConstitutiveLawUtilities::WantTensionCutOff(rMaterialProperties)) {
         check_properties.Check(
             GEO_TENSILE_STRENGTH,
             rMaterialProperties[GEO_COHESION] /
@@ -304,11 +304,11 @@ void MohrCoulombLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters
 Matrix MohrCoulombLaw::CalculateElasticConstitutiveTensor(const Properties& rProperties)
 {
     const auto [reference_youngs_modulus, poisson_ratio] =
-        ConstitutiveLawUtilities::GetOrCalculateElasticProperties(rProperties);
+        GeoMechanicsConstitutiveLawUtilities::GetOrCalculateElasticProperties(rProperties);
     const auto youngs_modulus = GeoYoungsModulusFormulations::GetYoungsModulus(
         mYoungsModulusFormulation, rProperties, reference_youngs_modulus, mStressVectorFinalized);
 
-    return ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
+    return GeoMechanicsConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
         youngs_modulus, poisson_ratio, mpConstitutiveDimension->GetStrainSize(),
         mpConstitutiveDimension->GetNumberOfNormalComponents());
 }

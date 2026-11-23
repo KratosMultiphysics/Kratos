@@ -110,7 +110,7 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     const CheckProperties check_properties(r_properties, "property", element_Id,
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
-    if (!ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)) {
+    if (!GeoMechanicsConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)) {
         check_properties.Check(TRANSVERSAL_PERMEABILITY);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
@@ -119,10 +119,10 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
     ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
 
-    ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(r_properties, element_Id);
+    GeoMechanicsConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(r_properties, element_Id);
 
     constexpr auto expected_size = TDim == 2 ? VOIGT_SIZE_2D_INTERFACE : VOIGT_SIZE_3D_INTERFACE;
-    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, element_Id);
+    GeoMechanicsConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, element_Id);
 
     return ierr;
 
@@ -438,7 +438,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
+        GeoMechanicsConstitutiveLawUtilities::SetConstitutiveParameters(
             ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
             Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
@@ -774,7 +774,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
 
         Vector TotalStressVector(mStressVector[0].size());
 
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
+        GeoMechanicsConstitutiveLawUtilities::SetConstitutiveParameters(
             ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
             Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
@@ -1025,7 +1025,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMaterialStiffness
     InterfaceElementVariables Variables;
     this->InitializeElementVariables(Variables, r_geometry, r_properties, CurrentProcessInfo);
 
-    ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveParameters, Variables.StrainVector,
+    GeoMechanicsConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveParameters, Variables.StrainVector,
                                                         Variables.ConstitutiveMatrix, Variables.Np,
                                                         Variables.GradNpT, Variables.F, Variables.detF);
 
@@ -1100,7 +1100,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
     InterfaceElementVariables Variables;
     this->InitializeElementVariables(Variables, r_geometry, r_properties, CurrentProcessInfo);
 
-    ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveParameters, Variables.StrainVector,
+    GeoMechanicsConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveParameters, Variables.StrainVector,
                                                         Variables.ConstitutiveMatrix, Variables.Np,
                                                         Variables.GradNpT, Variables.F, Variables.detF);
 
@@ -1174,7 +1174,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeElementVariables
     KRATOS_TRY
 
     // Properties variables
-    rVariables.IsConstantWaterPressure = ConstitutiveLawUtilities::IsConstantWaterPressure(rProperties);
+    rVariables.IsConstantWaterPressure = GeoMechanicsConstitutiveLawUtilities::IsConstantWaterPressure(rProperties);
     rVariables.DynamicViscosityInverse = 1.0 / rProperties[DYNAMIC_VISCOSITY];
 
     // ProcessInfo variables

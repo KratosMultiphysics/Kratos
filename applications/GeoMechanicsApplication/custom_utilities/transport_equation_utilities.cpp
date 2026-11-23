@@ -49,7 +49,7 @@ std::vector<double> GeoTransportEquationUtilities::CalculateInverseBiotModuli(
     const std::vector<double>& DerivativesOfSaturation,
     const Properties&          rProperties)
 {
-    const auto bulk_modulus_fluid = ConstitutiveLawUtilities::IsConstantWaterPressure(rProperties)
+    const auto bulk_modulus_fluid = GeoMechanicsConstitutiveLawUtilities::IsConstantWaterPressure(rProperties)
                                         ? TINY
                                         : rProperties[BULK_MODULUS_FLUID];
 

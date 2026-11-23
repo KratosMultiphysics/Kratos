@@ -42,7 +42,7 @@ double GetCapSize(const Properties& rProperties)
     }
 
     if (rProperties.Has(GEO_FRICTION_ANGLE)) {
-        const auto k0_nc = ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(
+        const auto k0_nc = GeoMechanicsConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(
             MathUtils<>::DegreesToRadians(rProperties[GEO_FRICTION_ANGLE]));
         return CalculateCapSizeFromK0NC(k0_nc);
     }

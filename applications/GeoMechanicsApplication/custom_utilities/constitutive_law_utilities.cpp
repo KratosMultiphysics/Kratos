@@ -46,7 +46,7 @@ double GetValueOfUMatParameter(const Properties& rProperties, const Variable<int
 
 namespace Kratos
 {
-int ConstitutiveLawUtilities::GetStateVariableIndex(const Variable<double>& rThisVariable)
+int GeoMechanicsConstitutiveLawUtilities::GetStateVariableIndex(const Variable<double>& rThisVariable)
 {
     int index = -1;
     if (const std::string prefix{"STATE_VARIABLE_"}; rThisVariable.Name().substr(0, prefix.length()) == prefix) {
@@ -56,7 +56,7 @@ int ConstitutiveLawUtilities::GetStateVariableIndex(const Variable<double>& rThi
     return index - 1;
 }
 
-void ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveLaw::Parameters& rConstitutiveParameters,
+void GeoMechanicsConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                                          Vector&       rStrainVector,
                                                          Matrix&       rConstitutiveMatrix,
                                                          const Vector& rN,
@@ -72,7 +72,7 @@ void ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveLaw::Parame
     rConstitutiveParameters.SetDeterminantF(detF);
 }
 
-double ConstitutiveLawUtilities::GetCohesion(const Properties& rProperties)
+double GeoMechanicsConstitutiveLawUtilities::GetCohesion(const Properties& rProperties)
 {
     if (rProperties.Has(GEO_COHESION)) return rProperties[GEO_COHESION];
 
@@ -86,7 +86,7 @@ double ConstitutiveLawUtilities::GetCohesion(const Properties& rProperties)
     }
 }
 
-bool ConstitutiveLawUtilities::HasFrictionAngle(const Properties& rProperties)
+bool GeoMechanicsConstitutiveLawUtilities::HasFrictionAngle(const Properties& rProperties)
 {
     // Friction angle can be supplied either directly via GEO_FRICTION_ANGLE
     // or via UMAT parameters + INDEX_OF_UMAT_PHI_PARAMETER.
@@ -94,7 +94,7 @@ bool ConstitutiveLawUtilities::HasFrictionAngle(const Properties& rProperties)
            (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS));
 }
 
-void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperties, IndexType ElementId)
+void GeoMechanicsConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperties, IndexType ElementId)
 {
     double      phi = 0.0;
     std::string phi_name;
@@ -125,7 +125,7 @@ void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperti
         << " (" << phi << " degrees) should be between 0 and 90 degrees." << std::endl;
 }
 
-double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rProperties)
+double GeoMechanicsConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rProperties)
 {
     if (rProperties.Has(GEO_FRICTION_ANGLE)) {
         return rProperties[GEO_FRICTION_ANGLE];
@@ -142,12 +142,12 @@ double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rPr
     }
 }
 
-double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rProperties)
+double GeoMechanicsConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rProperties)
 {
     return MathUtils<>::DegreesToRadians(GetFrictionAngleInDegrees(rProperties));
 }
 
-Matrix ConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(double      NormalStiffness,
+Matrix GeoMechanicsConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(double      NormalStiffness,
                                                                         double      ShearStiffness,
                                                                         std::size_t TractionSize,
                                                                         std::size_t NumberOfNormalComponents)
@@ -160,7 +160,7 @@ Matrix ConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(double  
     return result;
 }
 
-void ConstitutiveLawUtilities::CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId)
+void GeoMechanicsConstitutiveLawUtilities::CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId)
 {
     const std::size_t strain_size = rProperties[CONSTITUTIVE_LAW]->GetStrainSize();
     KRATOS_ERROR_IF_NOT(strain_size == ExpectedSize)
@@ -168,7 +168,7 @@ void ConstitutiveLawUtilities::CheckStrainSize(const Properties& rProperties, st
         << ExpectedSize << " at element Id = " << ElementId << "." << std::endl;
 }
 
-void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId)
+void GeoMechanicsConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId)
 {
     ConstitutiveLaw::Features LawFeatures;
     rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
@@ -183,18 +183,18 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
         << ElementId << "." << std::endl;
 }
 
-double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians)
+double GeoMechanicsConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians)
 {
     return 1.0 - std::sin(FrictionAngleInRadians);
 }
 
-double ConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(const Properties& rProperties, double UndrainedPoissonsRatio)
+double GeoMechanicsConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(const Properties& rProperties, double UndrainedPoissonsRatio)
 {
     const auto denominator = 1.0 + rProperties[POISSON_RATIO];
     return rProperties[YOUNG_MODULUS] * (1.0 + UndrainedPoissonsRatio) / denominator;
 }
 
-double ConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(const Properties& rProperties)
+double GeoMechanicsConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(const Properties& rProperties)
 {
     const auto result = rProperties.Has(GEO_POISSON_UNDRAINED)
                             ? rProperties[GEO_POISSON_UNDRAINED]
@@ -209,7 +209,7 @@ double ConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(const Prop
     return result;
 }
 
-double ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(const Properties& rProperties)
+double GeoMechanicsConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(const Properties& rProperties)
 {
     const auto skempton_b       = GetOrCalculateSkemptonB(rProperties);
     const auto biot_coefficient = rProperties[BIOT_COEFFICIENT];
@@ -220,7 +220,7 @@ double ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(const Propertie
     return (3.0 * poissons_ratio + biot_coefficient * skempton_b * (1.0 - 2.0 * poissons_ratio)) / denominator;
 }
 
-double ConstitutiveLawUtilities::GetOrCalculateSkemptonB(const Properties& rProperties)
+double GeoMechanicsConstitutiveLawUtilities::GetOrCalculateSkemptonB(const Properties& rProperties)
 {
     if (rProperties.Has(GEO_SKEMPTON_B)) {
         return rProperties[GEO_SKEMPTON_B];
@@ -241,7 +241,7 @@ double ConstitutiveLawUtilities::GetOrCalculateSkemptonB(const Properties& rProp
     return std::clamp(result, 0.0, 1.0);
 }
 
-std::pair<double, double> ConstitutiveLawUtilities::GetOrCalculateElasticProperties(const Properties& rProperties)
+std::pair<double, double> GeoMechanicsConstitutiveLawUtilities::GetOrCalculateElasticProperties(const Properties& rProperties)
 {
     if (IsUndrained(rProperties)) {
         const auto nu = GetOrCalculateUndrainedPoissonsRatio(rProperties);
@@ -251,7 +251,7 @@ std::pair<double, double> ConstitutiveLawUtilities::GetOrCalculateElasticPropert
     return {rProperties[YOUNG_MODULUS], rProperties[POISSON_RATIO]};
 }
 
-Matrix ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(double      YoungsModulus,
+Matrix GeoMechanicsConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(double      YoungsModulus,
                                                                         double      PoissonsRatio,
                                                                         std::size_t StrainSize,
                                                                         std::size_t NumberOfNormalComponents)
@@ -276,7 +276,7 @@ Matrix ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(double  
     return result;
 }
 
-DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& rDrainageTypeName)
+DrainageType GeoMechanicsConstitutiveLawUtilities::StringToDrainageType(const std::string& rDrainageTypeName)
 {
     using enum DrainageType;
     static const std::map<std::string, DrainageType, std::less<>> drainage_type_map = {
@@ -287,17 +287,17 @@ DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& r
     return drainage_type_map.at(GeoStringUtilities::ToLower(rDrainageTypeName));
 }
 
-bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProperties)
+bool GeoMechanicsConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProperties)
 {
     return StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) == DrainageType::CONSTANT_WATER_PRESSURE;
 }
 
-bool ConstitutiveLawUtilities::IsUndrained(const Properties& rProperties)
+bool GeoMechanicsConstitutiveLawUtilities::IsUndrained(const Properties& rProperties)
 {
     return StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) == DrainageType::UNDRAINED;
 }
 
-void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
+void GeoMechanicsConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
 {
     const auto fully_coupled_drainage_type     = "FULLY_COUPLED"s;
     const auto constant_pw_field_drainage_type = "CONSTANT_PW_FIELD"s;
@@ -328,7 +328,7 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
     rProperties.Erase(IGNORE_UNDRAINED);
 }
 
-double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Properties& rProperties,
+double GeoMechanicsConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Properties& rProperties,
                                                                       double VolumetricStrainIncrement)
 {
     const auto bulk_modulus_fluid = rProperties[BULK_MODULUS_FLUID];
@@ -343,7 +343,7 @@ double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Prop
     return biot_coefficient * VolumetricStrainIncrement / denominator;
 }
 
-bool ConstitutiveLawUtilities::WantTensionCutOff(const Properties& rMaterialProperties)
+bool GeoMechanicsConstitutiveLawUtilities::WantTensionCutOff(const Properties& rMaterialProperties)
 {
     if (rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) && rMaterialProperties[GEO_ENABLE_TENSION_CUT_OFF]) {
         return true;

@@ -755,7 +755,7 @@ Vector& SmallStrainUMATLaw<TVoigtSize>::GetValue(const Variable<Vector>& rVariab
 template <SizeType TVoigtSize>
 double& SmallStrainUMATLaw<TVoigtSize>::GetValue(const Variable<double>& rVariable, double& rValue)
 {
-    int index = ConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
+    int index = GeoMechanicsConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
 
     KRATOS_DEBUG_ERROR_IF(index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1))
         << "GetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
@@ -770,7 +770,7 @@ void SmallStrainUMATLaw<TVoigtSize>::SetValue(const Variable<double>& rVariable,
                                               const double&           rValue,
                                               const ProcessInfo&      rCurrentProcessInfo)
 {
-    const int index = ConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
+    const int index = GeoMechanicsConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
 
     KRATOS_DEBUG_ERROR_IF(index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1))
         << "SetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;

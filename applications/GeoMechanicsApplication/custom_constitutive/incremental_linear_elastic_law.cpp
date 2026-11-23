@@ -151,11 +151,11 @@ void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& rElasticMatr
     const auto& r_properties = rParameters.GetMaterialProperties();
 
     const auto [youngs_modulus_constant, poisson_ratio] =
-        ConstitutiveLawUtilities::GetOrCalculateElasticProperties(r_properties);
+        GeoMechanicsConstitutiveLawUtilities::GetOrCalculateElasticProperties(r_properties);
     const auto youngs_modulus = GeoYoungsModulusFormulations::GetYoungsModulus(
         mYoungsModulusFormulation, r_properties, youngs_modulus_constant, mStressVectorFinalized);
 
-    rElasticMatrix = ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
+    rElasticMatrix = GeoMechanicsConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
         youngs_modulus, poisson_ratio, mpConstitutiveDimension->GetStrainSize(),
         mpConstitutiveDimension->GetNumberOfNormalComponents());
 

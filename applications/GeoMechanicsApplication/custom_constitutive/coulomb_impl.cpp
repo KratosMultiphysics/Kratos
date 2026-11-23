@@ -45,7 +45,7 @@ auto CalculatePrincipalStressCorrection(const Geo::PrincipalStresses& rTrialPrin
 
 std::optional<TensionCutoff> CreateOptionalTensionCutOff(const Properties& rMaterialProperties)
 {
-    if (ConstitutiveLawUtilities::WantTensionCutOff(rMaterialProperties)) {
+    if (GeoMechanicsConstitutiveLawUtilities::WantTensionCutOff(rMaterialProperties)) {
         return std::make_optional<TensionCutoff>(rMaterialProperties[GEO_TENSILE_STRENGTH]);
     }
 

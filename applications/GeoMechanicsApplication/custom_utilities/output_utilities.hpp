@@ -30,8 +30,8 @@ public:
                                              OutputIter                   Destination,
                                              const Properties&            rProperties)
     {
-        const auto c = ConstitutiveLawUtilities::GetCohesion(rProperties);
-        const auto phi_in_radians = ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties);
+        const auto c = GeoMechanicsConstitutiveLawUtilities::GetCohesion(rProperties);
+        const auto phi_in_radians = GeoMechanicsConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties);
         auto calculate_shear_capacity = [c, phi_in_radians](const auto& rStressVector) {
             return StressStrainUtilities::CalculateMohrCoulombShearCapacity(rStressVector, c, phi_in_radians);
         };
