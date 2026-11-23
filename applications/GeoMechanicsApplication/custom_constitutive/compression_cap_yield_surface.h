@@ -22,6 +22,7 @@ namespace Kratos
 {
 
 class CheckProperties;
+class Serializer;
 
 namespace Geo
 {
@@ -46,7 +47,7 @@ private:
     void InitializeKappaDependentFunctions();
     void CheckMaterialProperties() const;
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const;
     void load(Serializer& rSerializer);
 

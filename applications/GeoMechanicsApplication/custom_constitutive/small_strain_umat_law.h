@@ -28,6 +28,8 @@
 
 namespace Kratos
 {
+
+class Serializer;
 /*
    - structure of UMATs:
    - Function to get stress, stiffness matrix
@@ -407,7 +409,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-    friend class Serializer;
+    friend Serializer;
 
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
