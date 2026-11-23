@@ -116,8 +116,12 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement2D6N", mSmallStrainUPwDiffOrderElement2D6N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement2D8N", mSmallStrainUPwDiffOrderElement2D8N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement2D9N", mSmallStrainUPwDiffOrderElement2D9N)
+    // For 10-noded and 15-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
+    // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
+#if 0
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement2D10N", mSmallStrainUPwDiffOrderElement2D10N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement2D15N", mSmallStrainUPwDiffOrderElement2D15N)
+#endif
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement3D10N", mSmallStrainUPwDiffOrderElement3D10N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement3D20N", mSmallStrainUPwDiffOrderElement3D20N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement3D27N", mSmallStrainUPwDiffOrderElement3D27N)
@@ -137,8 +141,12 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderAxisymmetricElement2D6N", mSmallStrainUPwDiffOrderAxisymmetricElement2D6N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderAxisymmetricElement2D8N", mSmallStrainUPwDiffOrderAxisymmetricElement2D8N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderAxisymmetricElement2D9N", mSmallStrainUPwDiffOrderAxisymmetricElement2D9N)
+    // For 10-noded and 15-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
+    // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
+#if 0
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderAxisymmetricElement2D10N", mSmallStrainUPwDiffOrderAxisymmetricElement2D10N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderAxisymmetricElement2D15N", mSmallStrainUPwDiffOrderAxisymmetricElement2D15N)
+#endif
 
     // Small strain interface elements
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainInterfaceElement2D4N", mUPwSmallStrainInterfaceElement2D4N)
@@ -177,8 +185,12 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement2D6N", mUpdatedLagrangianUPwDiffOrderElement2D6N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement2D8N", mUpdatedLagrangianUPwDiffOrderElement2D8N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement2D9N", mUpdatedLagrangianUPwDiffOrderElement2D9N)
+    // For 10-noded and 15-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
+    // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
+#if 0
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement2D10N", mUpdatedLagrangianUPwDiffOrderElement2D10N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement2D15N", mUpdatedLagrangianUPwDiffOrderElement2D15N)
+#endif
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement3D10N", mUpdatedLagrangianUPwDiffOrderElement3D10N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement3D20N", mUpdatedLagrangianUPwDiffOrderElement3D20N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement3D27N", mUpdatedLagrangianUPwDiffOrderElement3D27N)
@@ -198,10 +210,14 @@ void KratosGeoMechanicsApplication::Register()
                             mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D8N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderAxisymmetricElement2D9N",
                             mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D9N)
+    // For 10-noded and 15-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
+    // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
+#if 0
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderAxisymmetricElement2D10N",
                             mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D10N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderAxisymmetricElement2D15N",
                             mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D15N)
+#endif
 
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D3N", mUPwUpdatedLagrangianAxisymmetricFICElement2D3N)
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D4N", mUPwUpdatedLagrangianAxisymmetricFICElement2D4N)
@@ -407,6 +423,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(GEO_COMPRESSION_CAP_SIZE)
     KRATOS_REGISTER_VARIABLE(GEO_PRECONSOLIDATION_STRESS)
     KRATOS_REGISTER_VARIABLE(GEO_CAP_HARDENING_TYPE)
+    KRATOS_REGISTER_VARIABLE(GEO_CONTACT_SURFACE_PERIMETER)
 
     KRATOS_REGISTER_VARIABLE(GEO_YOUNGS_MODULUS_FORMULATION)
     KRATOS_REGISTER_VARIABLE(GEO_PRESSURE_REFERENCE)

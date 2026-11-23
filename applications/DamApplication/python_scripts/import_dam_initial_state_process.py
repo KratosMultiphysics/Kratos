@@ -29,6 +29,7 @@ class ImportDamInitialStateProcess(KM.Process):
             "import_reference_temperature"].GetBool()
         self.reference_temperature_policy = settings[
             "reference_temperature_policy"].GetString()
+        self.transfer_method = settings["transfer_method"].GetString()
         self.echo_level = settings["echo_level"].GetInt()
         if not (self.import_stresses or self.import_temperature or
                 self.import_reference_temperature):
@@ -38,6 +39,10 @@ class ImportDamInitialStateProcess(KM.Process):
             raise Exception(
                 "ImportDamInitialStateProcess: unsupported reference_temperature_policy "
                 "'{}'.".format(self.reference_temperature_policy))
+        if self.transfer_method not in ("matching_mesh", "spatial_mapping"):
+            raise Exception(
+                "ImportDamInitialStateProcess: unsupported transfer_method "
+                "'{}'.".format(self.transfer_method))
         self._applied = False
 
         # Used by the analysis to detect reference-field imports and to reject
@@ -55,6 +60,7 @@ class ImportDamInitialStateProcess(KM.Process):
             "import_temperature": false,
             "import_reference_temperature": false,
             "reference_temperature_policy": "preserve",
+            "transfer_method": "matching_mesh",
             "echo_level": 0
         }""")
 
@@ -67,13 +73,30 @@ class ImportDamInitialStateProcess(KM.Process):
         """
         if not hasattr(self, "_data"):
             data = dam_initial_state_file.ReadFile(self.input_file_name)
-            dam_initial_state_file.ValidateDestination(
-                self.model_part,
-                data,
-                self.import_stresses,
-                self.import_temperature,
-                self.import_reference_temperature,
-                self.reference_temperature_policy)
+            if self.transfer_method == "spatial_mapping":
+                from KratosMultiphysics.DamApplication import dam_initial_state_mapping
+                dam_initial_state_mapping.ValidateSpatialDestination(
+                    self.model_part,
+                    data,
+                    self.import_stresses,
+                    self.import_temperature,
+                    self.import_reference_temperature,
+                    self.reference_temperature_policy)
+                data = dam_initial_state_mapping.BuildSpatialMappedData(
+                    self.model_part,
+                    data,
+                    self.import_stresses,
+                    self.import_temperature,
+                    self.import_reference_temperature,
+                    self.reference_temperature_policy)
+            else:
+                dam_initial_state_file.ValidateDestination(
+                    self.model_part,
+                    data,
+                    self.import_stresses,
+                    self.import_temperature,
+                    self.import_reference_temperature,
+                    self.reference_temperature_policy)
             self._data = data
         return self._data
 

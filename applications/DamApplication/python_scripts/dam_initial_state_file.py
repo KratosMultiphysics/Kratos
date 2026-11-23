@@ -363,8 +363,8 @@ def _compare_value(actual, expected, label, tolerance=1.e-12):
                 label, actual, expected))
 
 
-def ValidateDestination(part, data, import_stresses, import_temperature,
-                        import_reference_temperature, reference_temperature_policy):
+def ValidateImportSelection(part, data, import_stresses, import_temperature,
+                            import_reference_temperature, reference_temperature_policy):
     if not (import_stresses or import_temperature or import_reference_temperature):
         raise RuntimeError("At least one initial-state field must be selected for import.")
     if reference_temperature_policy not in ("preserve", "initial_temperature"):
@@ -393,10 +393,48 @@ def ValidateDestination(part, data, import_stresses, import_temperature,
         raise RuntimeError(
             "NODAL_REFERENCE_TEMPERATURE is not defined on the destination model part.")
 
+
+def ValidateDestinationDimension(part, data):
     if not part.ProcessInfo.Has(KM.DOMAIN_SIZE):
         raise RuntimeError("DOMAIN_SIZE is not defined on the destination model part.")
     if int(part.ProcessInfo[KM.DOMAIN_SIZE]) != data["dimension"]:
         raise RuntimeError("Source and destination dimensions differ.")
+
+
+def ValidateDestinationZeroDisplacement(part):
+    if not part.HasNodalSolutionStepVariable(KM.DISPLACEMENT):
+        raise RuntimeError("DISPLACEMENT is not defined on the destination model part.")
+    for node in part.Nodes:
+        for step in range(node.GetBufferSize()):
+            displacement = node.GetSolutionStepValue(KM.DISPLACEMENT, step)
+            if sum(value * value for value in displacement) > 1.e-24:
+                raise RuntimeError(
+                    "Destination node {} has a nonzero displacement in buffer step {}."
+                    .format(node.Id, step))
+
+
+def ValidateThermalStressImport(part, data, import_stresses):
+    thermal_law_present = any(
+        material["law"] in THERMAL_LAWS for material in data["materials"])
+    if import_stresses and thermal_law_present:
+        if not part.HasNodalSolutionStepVariable(KM.TEMPERATURE):
+            raise RuntimeError(
+                "TEMPERATURE is not defined on the destination model part; "
+                "thermal-strain compensation for imported stresses is impossible.")
+        if not part.HasNodalSolutionStepVariable(
+                KratosDam.NODAL_REFERENCE_TEMPERATURE):
+            raise RuntimeError(
+                "NODAL_REFERENCE_TEMPERATURE is not defined on the destination "
+                "model part; thermal-strain compensation for imported stresses "
+                "is impossible.")
+
+
+def ValidateDestination(part, data, import_stresses, import_temperature,
+                        import_reference_temperature, reference_temperature_policy):
+    ValidateImportSelection(
+        part, data, import_stresses, import_temperature,
+        import_reference_temperature, reference_temperature_policy)
+    ValidateDestinationDimension(part, data)
     if part.NumberOfNodes() != len(data["nodes"]):
         raise RuntimeError("Source and destination node counts differ.")
     if part.NumberOfElements() != len(data["elements"]):
@@ -481,29 +519,8 @@ def ValidateDestination(part, data, import_stresses, import_temperature,
         elif material["law"] in THERMAL_LAWS:
             raise RuntimeError("Thermal material entry is missing thermal_expansion.")
 
-    if not part.HasNodalSolutionStepVariable(KM.DISPLACEMENT):
-        raise RuntimeError("DISPLACEMENT is not defined on the destination model part.")
-    for node in part.Nodes:
-        for step in range(node.GetBufferSize()):
-            displacement = node.GetSolutionStepValue(KM.DISPLACEMENT, step)
-            if sum(value * value for value in displacement) > 1.e-24:
-                raise RuntimeError(
-                    "Destination node {} has a nonzero displacement in buffer step {}."
-                    .format(node.Id, step))
-
-    thermal_law_present = any(
-        material["law"] in THERMAL_LAWS for material in data["materials"])
-    if import_stresses and thermal_law_present:
-        if not part.HasNodalSolutionStepVariable(KM.TEMPERATURE):
-            raise RuntimeError(
-                "TEMPERATURE is not defined on the destination model part; "
-                "thermal-strain compensation for imported stresses is impossible.")
-        if not part.HasNodalSolutionStepVariable(
-                KratosDam.NODAL_REFERENCE_TEMPERATURE):
-            raise RuntimeError(
-                "NODAL_REFERENCE_TEMPERATURE is not defined on the destination "
-                "model part; thermal-strain compensation for imported stresses "
-                "is impossible.")
+    ValidateDestinationZeroDisplacement(part)
+    ValidateThermalStressImport(part, data, import_stresses)
 
     if import_stresses:
         KratosDam.DamInitialStateTransferUtility.ValidateInitialStresses(

@@ -5,7 +5,9 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suites
+import test_eigen_sparse_lu
 import test_linear_system
+import test_rigid_body_mode_pinning
 import test_sparse_matrix_linear_operator
 
 def AssembleTestSuites():
@@ -27,6 +29,8 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_system.TestLinearSystem]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrix_linear_operator.TestSparseMatrixLinearOperator]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_eigen_sparse_lu.TestEigenSparseLUSolver]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_rigid_body_mode_pinning.TestRigidBodyModePinning]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

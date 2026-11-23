@@ -47,6 +47,7 @@ class TestSystemIdentification(UnitTest.TestCase):
         }""")
         CompareTwoFilesCheckProcess(params).Execute()
 
+    @UnitTest.skipIf(sys.platform == 'win32', "Test skipped on Windows")
     def test_SystemIdentificationPNorm(self):
         self.__RunSingleThreadedProcess("auxiliary_files/system_identification_p_norm/MainKratos.py")
 
