@@ -29,13 +29,27 @@ namespace
 
 /*
  * Products with the variation containers of a 3x3 matrix M with respect to the n element dofs:
- *  - first variation:  (3 n) x 3     matrix with M,r(i, j)  at (i * n + r, j)
- *  - second variation: (3 n) x (3 n) matrix with M,rs(i, j) at (i * n + r, j * n + s)
- * A product of a first variation with a constant 3x3 matrix from the right is a plain prod(), the
- * other products below are not, because of this layout.
+ *  - first variation:  (3 n) x 3 matrix. Its row block i, rows i * n ... (i + 1) * n, holds M,r(i, :) for all r.
+ *  - second variation: (3 n) x (3 n) matrix of n x n blocks. Block (i, j) holds M,rs(i, j) for all r, s.
+ * A product of a first variation with a constant 3x3 matrix from the right is a plain prod(). The products
+ * below are not, because of this layout, and are written block-wise.
  */
 
-/// rResult += A * V,r for all dofs r, with V,r a first variation
+/// Row block i of a first variation: the n x 3 matrix M,r(i, :) for all dofs r
+template<class TMatrixType>
+auto RowBlock(TMatrixType& rVariation, const std::size_t i, const std::size_t NumberOfDofs)
+{
+    return subrange(rVariation, i * NumberOfDofs, (i + 1) * NumberOfDofs, 0, 3);
+}
+
+/// Block (i, j) of a second variation: the n x n matrix M,rs(i, j) for all dofs r, s
+template<class TMatrixType>
+auto Block(TMatrixType& rSecondVariation, const std::size_t i, const std::size_t j, const std::size_t NumberOfDofs)
+{
+    return subrange(rSecondVariation, i * NumberOfDofs, (i + 1) * NumberOfDofs, j * NumberOfDofs, (j + 1) * NumberOfDofs);
+}
+
+/// rResult += A * V,r for all dofs r: row block i of the result is sum_k A(i, k) * (row block k of V)
 template<class TMatrixType>
 void AddMatrixTimesVariation(
     Matrix& rResult,
@@ -44,17 +58,14 @@ void AddMatrixTimesVariation(
     const std::size_t NumberOfDofs)
 {
     for (std::size_t i = 0; i < 3; ++i) {
-        for (std::size_t j = 0; j < 3; ++j) {
-            for (std::size_t k = 0; k < 3; ++k) {
-                for (std::size_t r = 0; r < NumberOfDofs; ++r) {
-                    rResult(i * NumberOfDofs + r, j) += rMatrix(i, k) * rVariation(k * NumberOfDofs + r, j);
-                }
-            }
+        auto result_block = RowBlock(rResult, i, NumberOfDofs);
+        for (std::size_t k = 0; k < 3; ++k) {
+            noalias(result_block) += rMatrix(i, k) * RowBlock(rVariation, k, NumberOfDofs);
         }
     }
 }
 
-/// rResult += W,rs * A for all dofs r, s, with W,rs a second variation
+/// rResult += W,rs * A for all dofs r, s: block (i, j) of the result is sum_k W_ik * A(k, j)
 template<class TMatrixType>
 void AddSecondVariationTimesMatrix(
     Matrix& rResult,
@@ -64,19 +75,15 @@ void AddSecondVariationTimesMatrix(
 {
     for (std::size_t i = 0; i < 3; ++i) {
         for (std::size_t j = 0; j < 3; ++j) {
+            auto result_block = Block(rResult, i, j, NumberOfDofs);
             for (std::size_t k = 0; k < 3; ++k) {
-                for (std::size_t r = 0; r < NumberOfDofs; ++r) {
-                    for (std::size_t s = 0; s < NumberOfDofs; ++s) {
-                        rResult(i * NumberOfDofs + r, j * NumberOfDofs + s) +=
-                            rSecondVariation(i * NumberOfDofs + r, k * NumberOfDofs + s) * rMatrix(k, j);
-                    }
-                }
+                noalias(result_block) += rMatrix(k, j) * Block(rSecondVariation, i, k, NumberOfDofs);
             }
         }
     }
 }
 
-/// rResult += A * W,rs for all dofs r, s, with W,rs a second variation
+/// rResult += A * W,rs for all dofs r, s: block (i, j) of the result is sum_k A(i, k) * W_kj
 template<class TMatrixType>
 void AddMatrixTimesSecondVariation(
     Matrix& rResult,
@@ -86,35 +93,33 @@ void AddMatrixTimesSecondVariation(
 {
     for (std::size_t i = 0; i < 3; ++i) {
         for (std::size_t j = 0; j < 3; ++j) {
+            auto result_block = Block(rResult, i, j, NumberOfDofs);
             for (std::size_t k = 0; k < 3; ++k) {
-                for (std::size_t r = 0; r < NumberOfDofs; ++r) {
-                    for (std::size_t s = 0; s < NumberOfDofs; ++s) {
-                        rResult(i * NumberOfDofs + r, j * NumberOfDofs + s) +=
-                            rMatrix(i, k) * rSecondVariation(k * NumberOfDofs + r, j * NumberOfDofs + s);
-                    }
-                }
+                noalias(result_block) += rMatrix(i, k) * Block(rSecondVariation, k, j, NumberOfDofs);
             }
         }
     }
 }
 
-/// rResult += V,r * W,s for all dofs r, s: the mixed second variation of the product of two matrices V and W
+/**
+ * rResult += V,r * W,s for all dofs r, s: the mixed second variation of the product of two matrices V and W.
+ * Block (i, j) of the result is sum_k V,r(i, k) W,s(k, j) = A_i * B_j^T, with A_i the row block i of V and
+ * B_j the n x 3 matrix with B_j(s, k) = W,s(k, j).
+ */
 void AddVariationTimesVariation(
     Matrix& rResult,
     const Matrix& rFirstVariation,
     const Matrix& rSecondVariation,
     const std::size_t NumberOfDofs)
 {
-    for (std::size_t i = 0; i < 3; ++i) {
-        for (std::size_t j = 0; j < 3; ++j) {
-            for (std::size_t k = 0; k < 3; ++k) {
-                for (std::size_t r = 0; r < NumberOfDofs; ++r) {
-                    for (std::size_t s = 0; s < NumberOfDofs; ++s) {
-                        rResult(i * NumberOfDofs + r, j * NumberOfDofs + s) +=
-                            rFirstVariation(i * NumberOfDofs + r, k) * rSecondVariation(k * NumberOfDofs + s, j);
-                    }
-                }
-            }
+    Matrix second_factor(NumberOfDofs, 3);
+    for (std::size_t j = 0; j < 3; ++j) {
+        for (std::size_t k = 0; k < 3; ++k) {
+            noalias(column(second_factor, k)) = subrange(column(rSecondVariation, j), k * NumberOfDofs, (k + 1) * NumberOfDofs);
+        }
+        for (std::size_t i = 0; i < 3; ++i) {
+            auto result_block = Block(rResult, i, j, NumberOfDofs);
+            noalias(result_block) += prod(RowBlock(rFirstVariation, i, NumberOfDofs), trans(second_factor));
         }
     }
 }
