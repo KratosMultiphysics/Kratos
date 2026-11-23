@@ -59,7 +59,7 @@ public:
 
     using array3 = array_1d<double, 3>;
 
-    using CL_utils = ConstitutiveLawUtilities<6>;
+    using CL_utils = typename ConstitutiveLawUtilities<6>;
 
     NonLinearTimoshenkoBeamElement3D2N() {}
 
