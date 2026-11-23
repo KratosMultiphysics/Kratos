@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <mutex>
 
 // External includes
 
@@ -21,6 +22,33 @@
 
 namespace Kratos
 {
+
+namespace
+{
+
+/**
+ * @brief Torsional constant I_T, defaulting to the polar moment I22 + I33 when it is not provided.
+ * @details The default is exact for circular (solid or hollow) cross sections only; for other
+ * sections it overestimates the torsional stiffness, hence the warning.
+ */
+double GetTorsionalInertia(const Properties& rMaterialProperties)
+{
+    if (rMaterialProperties.Has(I_T)) {
+        return rMaterialProperties[I_T];
+    }
+
+    static std::once_flag warning_flag;
+    std::call_once(warning_flag, [](){
+        KRATOS_WARNING("BernoulliBeamElasticConstitutiveLaw")
+            << "I_T is not defined in the properties, using I22 + I33 instead. "
+            << "This is only exact for circular cross sections." << std::endl;
+    });
+
+    return rMaterialProperties[I22] + rMaterialProperties[I33];
+}
+
+} // namespace
+
 
 BernoulliBeamElasticConstitutiveLaw::BernoulliBeamElasticConstitutiveLaw()
     : ConstitutiveLaw()
@@ -64,13 +92,12 @@ int BernoulliBeamElasticConstitutiveLaw::Check(
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CROSS_AREA)) << "CROSS_AREA is not defined in the properties" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I33)) << "I33 is not defined in the properties" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I22)) << "I22 is not defined in the properties" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I_T)) << "I_T is not defined in the properties" << std::endl;
 
     // Validate property values
     KRATOS_ERROR_IF_NOT(rMaterialProperties[CROSS_AREA] > 0.0) << "CROSS_AREA must be positive" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[I33] > 0.0) << "I33 must be positive" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties[I22] > 0.0) << "I22 must be positive" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[I_T] > 0.0) << "I_T must be positive" << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties.Has(I_T) && rMaterialProperties[I_T] <= 0.0) << "I_T must be positive" << std::endl;
 
     return 0;
 }
@@ -108,7 +135,7 @@ void BernoulliBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Consti
     // Moments of inertia about the local cross-section axes 2 (normal n) and 3 (v = t x n)
     const double I_22 = r_material_properties[I22];
     const double I_33 = r_material_properties[I33];
-    const double I_t = r_material_properties[I_T];
+    const double I_t = GetTorsionalInertia(r_material_properties);
 
     if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         auto &r_stress_vector = rValues.GetStressVector();

@@ -355,7 +355,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         const double inverse_a4 =
             inverse_a2 * inverse_a2;
 
-        if (CalculateStiffnessMatrixFlag == true) {
+        if (CalculateStiffnessMatrixFlag) {
             if (calculate_material_stiffness) {
                 // Material stiffness
                 rLeftHandSideMatrix +=
@@ -454,7 +454,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
             }
         }
 
-        if (CalculateResidualVectorFlag == true) {
+        if (CalculateResidualVectorFlag) {
             // Internal forces. Each B matrix has a single non-zero row, the one of its generalized strain.
             const Vector& r_stress_vector = constitutive_variables.StressVector;
 
@@ -505,8 +505,9 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
         const double numerical_limit =
             std::numeric_limits<double>::epsilon();
 
+        // I_T is optional: the constitutive law uses I22 + I33 if it is not provided
         KRATOS_ERROR_IF(
-            !GetProperties().Has(I_T) ||
+            GetProperties().Has(I_T) &&
             GetProperties()[I_T] <= numerical_limit)
             << "Please provide a reasonable value for \"I_T\" "
             << "(torsional moment of inertia) for element #"

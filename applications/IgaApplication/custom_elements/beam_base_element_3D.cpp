@@ -219,22 +219,22 @@ namespace Kratos
         const auto& r_geometry = GetGeometry();
 
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
-            if (r_geometry[i].SolutionStepsDataHas(DISPLACEMENT) == false) {
+            if (!r_geometry[i].SolutionStepsDataHas(DISPLACEMENT)) {
                 KRATOS_ERROR
                     << "missing variable DISPLACEMENT on node "
                     << r_geometry[i].Id() << std::endl;
             }
 
-            if (r_geometry[i].SolutionStepsDataHas(ROTATION_X) == false) {
+            if (!r_geometry[i].SolutionStepsDataHas(ROTATION_X)) {
                 KRATOS_ERROR
                     << "missing variable ROTATION_X on node "
                     << r_geometry[i].Id() << std::endl;
             }
 
             if (
-                r_geometry[i].HasDofFor(DISPLACEMENT_X) == false ||
-                r_geometry[i].HasDofFor(DISPLACEMENT_Y) == false ||
-                r_geometry[i].HasDofFor(DISPLACEMENT_Z) == false)
+                !r_geometry[i].HasDofFor(DISPLACEMENT_X) ||
+                !r_geometry[i].HasDofFor(DISPLACEMENT_Y) ||
+                !r_geometry[i].HasDofFor(DISPLACEMENT_Z))
             {
                 KRATOS_ERROR
                     << "missing one of the dofs for the variable "
@@ -242,7 +242,7 @@ namespace Kratos
                     << r_geometry[i].Id() << std::endl;
             }
 
-            if (r_geometry[i].HasDofFor(ROTATION_X) == false) {
+            if (!r_geometry[i].HasDofFor(ROTATION_X)) {
                 KRATOS_ERROR
                     << "missing dof for the variable ROTATION_X on node "
                     << r_geometry[i].Id() << std::endl;

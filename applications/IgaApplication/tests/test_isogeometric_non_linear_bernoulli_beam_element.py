@@ -42,7 +42,8 @@ def create_properties(model_part, properties_id, normal, young_modulus=E_MOD, po
     properties.SetValue(IGA.CROSS_AREA, area)
     properties.SetValue(IGA.I22, i22)
     properties.SetValue(IGA.I33, i33)
-    properties.SetValue(IGA.I_T, i_t)
+    if i_t is not None:  # I_T is optional, I22 + I33 is used otherwise
+        properties.SetValue(IGA.I_T, i_t)
     properties.SetValue(KM.YOUNG_MODULUS, young_modulus)
     properties.SetValue(KM.POISSON_RATIO, poisson_ratio)
     properties.SetValue(KM.DENSITY, 1.0)
@@ -141,11 +142,11 @@ class TestBeam4pElement(BeamTestCase):
     """Linear response of the NonLinearBernoulliBeamElement3D compared to beam theory."""
 
     @staticmethod
-    def solve_cantilever(force, moment=(0.0, 0.0, 0.0), normal=(0.0, 0.0, 1.0), volume_acceleration=None):
+    def solve_cantilever(force, moment=(0.0, 0.0, 0.0), normal=(0.0, 0.0, 1.0), volume_acceleration=None, i_t=I_T_):
         """Cantilever along +X, clamped at x = 0 and loaded at the tip. Returns the tip node."""
         model = KM.Model()
         model_part = create_model_part(model, body_forces=volume_acceleration is not None)
-        properties = create_properties(model_part, 1, normal)
+        properties = create_properties(model_part, 1, normal, i_t=i_t)
 
         curve = create_straight_curve(model_part, (0.0, 0.0, 0.0), (1.0, 0.0, 0.0))
         create_elements(model_part, curve, properties)
@@ -266,6 +267,13 @@ class TestBeam4pElement(BeamTestCase):
         self.assertRelativelyEqual(tip.GetSolutionStepValue(KM.ROTATION_X), reference, 1e-8)
         self.assertLess(abs(tip.GetSolutionStepValue(KM.DISPLACEMENT_Y)), 1e-8 * reference)
         self.assertLess(abs(tip.GetSolutionStepValue(KM.DISPLACEMENT_Z)), 1e-8 * reference)
+
+    def test_torsion_without_torsional_constant(self):
+        # Without I_T the polar moment I22 + I33 is used as torsional constant
+        tip = self.solve_cantilever((0.0, 0.0, 0.0), moment=(1.0, 0.0, 0.0), i_t=None)
+        reference = LENGTH / (G_MOD * (I22_ + I33_))
+
+        self.assertRelativelyEqual(tip.GetSolutionStepValue(KM.ROTATION_X), reference, 1e-8)
 
     def test_self_weight(self):
         # Uniform line load q = rho * A * g from the body forces: tip deflection q L^4 / (8 E I)
