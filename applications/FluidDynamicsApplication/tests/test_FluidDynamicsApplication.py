@@ -64,6 +64,7 @@ from test_compute_y_plus_process import ComputeYPlusProcessTest
 from test_fluid_computation_processes import FluidComputationProcessesTest
 from slip_spurious_tangential_correction_test import SlipSpuriousTangentialCorrectionTest
 from apply_wall_law_process_test import ApplyWallLawProcessTest
+from test_apply_mass_flow_process import ApplyMassFlowProcessTest
 from test_navier_stokes_fractional_vectorial_convection import NavierStokesFractionalVectorialConvectionTest
 from test_python_pool import TestBufferPoolNumPy
 if HAS_CUPY:
@@ -116,6 +117,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBufferPoolNumPy]))
     if HAS_CUPY:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBufferPoolCuPy]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyMassFlowProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CoupledFluidThermalSolverTest]))
 
     # Create a test suite with the selected tests plus all small tests

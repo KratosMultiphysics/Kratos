@@ -455,7 +455,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateMassMat
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    rMassMatrix.resize(0, 0);
+    rMassMatrix.resize(0, 0, false);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>

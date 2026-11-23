@@ -6,6 +6,8 @@ The Interface Geometry is a custom geometry that can be used to define a line or
 
 The geometry is defined by two lines or planes, one on each side of the interface. The two sides of the interface connect to other model parts. Most calculations are performed on the 'mid-geometry', which is defined by the midpoints of the two lines/planes. The midpoints are calculated for each node pair by taking the average position. The mid-geometries are depicted as the grey lines in the figures below. This means, that if a certain property is queried at a certain position on the interface, the call is forwarded to the underlying mid-geometry.
 
+For the element that is built on top of these geometries, see the [U-Pw interface element documentation](../custom_elements/README.md#u-pw-interface-elements).
+
 At this point, the following interfaces are supported
 - 2+2 and 3+3 line interface geometries, based on the [2D2Line](../../../kratos/geometries/line_2d_2.h) and [2D3Line](../../../kratos/geometries/line_2d_3.h) geometries respectively.
 - 3+3 and 6+6 triangular plane interface geometries, based on the [Triangle3D3](../../../kratos/geometries/triangle_3d_3.h) and [Triangle3D6](../../../kratos/geometries/triangle_3d_6.h) geometries respectively.

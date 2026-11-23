@@ -830,7 +830,7 @@ public:
 
         if (rResult.size1() != 1
             && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
-            rResult.resize(1, shape_function_container.NumberOfNonzeroControlPoints());
+            rResult.resize(1, shape_function_container.NumberOfNonzeroControlPoints(), false);
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
             rResult(0, i) = shape_function_container(i, 1);

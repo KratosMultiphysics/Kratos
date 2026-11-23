@@ -956,7 +956,7 @@ public:
 
         if (rResult.size2() != 2
             || rResult.size1() != shape_function_container.NumberOfNonzeroControlPoints())
-            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints(), 2);
+            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints(), 2, false);
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
             rResult(i, 0) = shape_function_container(i, 1);

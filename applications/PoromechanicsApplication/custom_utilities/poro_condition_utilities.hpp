@@ -29,9 +29,15 @@ public:
 
     static inline void CalculateNuMatrix(BoundedMatrix<double,2,4>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
-        //Line_2d_2
-        rNu(0,0) = Ncontainer(GPoint,0); rNu(0,2) = Ncontainer(GPoint,1); 
-        rNu(1,1) = Ncontainer(GPoint,0); rNu(1,3) = Ncontainer(GPoint,1);
+        // Line_2d_2: Nu = [N0 0 N1 0; 0 N0 0 N1].
+        // All eight entries are explicitly initialized. BoundedMatrix does not
+        // zero-initialize its storage, so leaving the off-diagonal entries
+        // unassigned would make the coupling and added-mass contributions
+        // depend on uninitialized memory.
+        rNu(0,0) = Ncontainer(GPoint,0); rNu(0,1) = 0.0;
+        rNu(0,2) = Ncontainer(GPoint,1); rNu(0,3) = 0.0;
+        rNu(1,0) = 0.0;                  rNu(1,1) = Ncontainer(GPoint,0);
+        rNu(1,2) = 0.0;                  rNu(1,3) = Ncontainer(GPoint,1);
     }
     
     //----------------------------------------------------------------------------------------
