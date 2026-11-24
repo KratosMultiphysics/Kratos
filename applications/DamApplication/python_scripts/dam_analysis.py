@@ -163,19 +163,11 @@ class DamAnalysis(AnalysisStage):
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["loads_process_list"] )
         self.list_of_processes += KratosMultiphysics.process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["temperature_by_device_list"] )
 
-        for attribute in ("transfers_initial_stress",
-                          "transfers_initial_temperature",
-                          "transfers_reference_temperature"):
-            transferring_processes = [
-                process for process in self.list_of_processes
-                if getattr(process, attribute, False)]
-            if len(transferring_processes) > 1:
-                raise RuntimeError(
-                    "More than one process transfers the same initial-state field "
-                    "('{}'). Use only one initial-state processor per field.".format(
-                        attribute))
+        initial_state_import_processes = [
+            process for process in self.list_of_processes
+            if hasattr(process, "PrevalidateInitialState")]
 
-        if any(getattr(process, "transfers_reference_temperature", False)
+        if any(getattr(process, "imports_reference_temperature", False)
                for process in self.list_of_processes):
             reference_processes = [
                 process for process in self.list_of_processes
@@ -189,9 +181,7 @@ class DamAnalysis(AnalysisStage):
                     "that assigns it is active. Remove or disable the "
                     "reference-temperature process for this analysis.")
 
-        if self.add_previous_results and any(
-                getattr(process, "transfers_initial_stress", False)
-                for process in self.list_of_processes):
+        if self.add_previous_results and initial_state_import_processes:
             raise RuntimeError(
                 "An initial-state transfer process cannot be combined with "
                 "'transfer_results_process.add_previous_results'. Use only one "
@@ -316,6 +306,13 @@ class DamAnalysis(AnalysisStage):
         if self.consider_construction:
             # Execute initialize solution
             self.construction_utilities.BeforeSolutionLoop()
+
+        # Validate every configured initial-state import before any process
+        # applies fields. This rejects overlapping stress elements and
+        # conflicting shared-node temperatures without modifying the model.
+        if initial_state_import_processes:
+            from KratosMultiphysics.DamApplication import dam_initial_state_file
+            dam_initial_state_file.ValidateCombinedImports(initial_state_import_processes)
 
         # ExecuteBeforeSolutionLoop
         for self.process in self.list_of_processes:

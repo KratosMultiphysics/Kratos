@@ -43,224 +43,220 @@ interface keep working without changes.
   mixed element types and `Variable<Matrix>` results are not supported reliably
   by the standard VTK process and are not enabled automatically.
 
-## Selective initial stresses from a previous calculation ##
+## Final-state export and initial-state import ##
 
-A new analysis can start from selected Gauss-point stresses of an earlier
-calculation without restarting the earlier ModelPart. The source checkpoint is
-loaded into an isolated `Model`, only the Cauchy stresses are copied, and each
-destination constitutive law receives its own `InitialState`. Displacements,
-reactions, velocities, accelerations, time, step counters, loads, boundary
-conditions and temperature fields remain those of the new analysis.
+DamApplication provides an explicit two-stage transfer workflow:
 
-Add the process to `loads_process_list` (or `constraints_process_list`):
+1. **Export final state** at the end of a calculation.
+2. **Import initial state** at the start of a new, independent calculation.
 
-```json
-{
-    "python_module": "selective_initial_stress_process",
-    "kratos_module": "KratosMultiphysics.DamApplication",
-    "Parameters": {
-        "model_part_name": "MainModelPart.Parts_Concrete",
-        "source_model_part_name": "Parts_Concrete",
-        "source_root_model_part_name": "MainModelPart",
-        "restart_settings": {
-            "input_filename": "previous_case/MainModelPart",
-            "input_output_path": "checkpoints",
-            "restart_load_file_label": "1.0"
-        }
-    }
-}
-```
+The new analysis starts with zero displacement and keeps its own mesh, loads,
+supports, time step and solver history. This is not a full restart.
 
-The process runs once in `ExecuteBeforeSolutionLoop`, after solver
-initialization and before the initial GiD output. It requires the original
-zero-displacement datum and a same-mesh source. Supported configurations are
-the Dam `SmallDisplacement` solid elements T3/T6/Q4/Q8/Q9 in 2D and
-T4/T10/P6/P15/H8/H20/H27 in 3D. The actual element integration rule is used and
-must match between source and destination. Supported constitutive laws are
-`LinearElasticPlaneStrain2DLaw`, `LinearElasticPlaneStress2DLaw` and
-`LinearElastic3DLaw`, together with the Dam thermoelastic laws
-`ThermalLinearElastic2DPlaneStrain`, `ThermalLinearElastic2DPlaneStress` and
-`ThermalLinearElastic3DLaw`. Damage, plasticity and other history-dependent
-laws are rejected. Mechanical nodal-Young's-modulus and flexible linear-elastic
-variants are not enabled; their material compatibility is nodal/accessor-based
-and requires separate validation. Dam's thermal nodal aliases map to the
-supported thermal laws. For this checkpoint-based process, the thermoelastic
-laws require `T == T_ref` at the moment of import; prescribe
-the reference field with the existing
-`impose_nodal_reference_temperature_process`. The current temperature always
-belongs to the new analysis and may be computed by its thermal solver. The
-lightweight file-based `load_dam_initial_state_process` below supports
-`T != T_ref` through initial-strain compensation.
+The JSON/gzip file format is versioned. Version 2 may contain:
 
-The process assigns stresses only. It does not derive or apply the loads that
-equilibrated the source stresses, so the new loads and boundary conditions must
-be compatible with the imported field. In particular, importing gravity-induced
-stresses without the corresponding body-force (gravity) loading leaves the free
-degrees of freedom unbalanced and produces an artificial initial displacement.
-Keep the body forces, tractions and supports that equilibrate the source
-stresses; the validated benchmark retains the same gravity load in the new
-analysis.
-
-The process never assigns or transfers `TEMPERATURE` or
-`NODAL_REFERENCE_TEMPERATURE`. For the thermoelastic law it only reads both
-fields to enforce `T == T_ref` at the moment of import. The reference field
-remains the responsibility of `impose_nodal_reference_temperature_process`, and
-the current temperature remains owned and evolved by the new analysis.
-
-`transfer_results_process.add_previous_results` must remain false when this
-process is used; DamAnalysis rejects the combination explicitly.
-
-## Lightweight initial-state import/export ##
-
-`save_dam_initial_state_process` and `load_dam_initial_state_process` provide
-a small, versioned alternative to a full Kratos restart. The file may contain
-only:
-
-- Gauss-point initial stress vectors (one vector per element integration point).
+- Gauss-point total Cauchy stresses.
 - Nodal `TEMPERATURE`.
 - Nodal `NODAL_REFERENCE_TEMPERATURE`.
 
-It never stores displacements, reactions, velocity, acceleration, time, step
-counters, loads or unrelated constitutive history. Import always leaves the
-destination at its own zero displacement and independent solution history.
+### Export final state ###
 
-The file is JSON (optionally compressed with a `.gz` suffix). It contains node
-IDs/reference coordinates, element IDs/connectivity, geometry types, the actual
-integration method and local point ordering, material/law metadata, field
-presence and the selected stress vectors. This is enough to validate an identical
-mesh and reject incompatible files before changing the destination.
-
-### Saving ###
+`export_dam_final_state_process` runs during `ExecuteFinalize`. It writes the
+selected fields at the end of the analysis. Stresses are always the final total
+Gauss-point Cauchy stresses, including accumulated thermal contributions.
 
 ```json
 {
-    "python_module": "save_dam_initial_state_process",
+    "python_module": "export_dam_final_state_process",
     "kratos_module": "KratosMultiphysics.DamApplication",
     "Parameters": {
         "model_part_name": "MainModelPart.Parts_Concrete",
-        "save_initial_stresses": true,
-        "save_initial_temperature": false,
-        "save_reference_temperature": false,
-        "stress_source": "current_cauchy",
-        "output_file_name": "stage_a_initial_state.json"
+        "export_stresses": true,
+        "export_temperature": true,
+        "export_reference_temperature": true,
+        "output_file_name": "concrete_final_state.json.gz"
     }
 }
 ```
 
-The process writes during `ExecuteFinalize`, before the solver is cleared.
+At least one field must be selected. The output extension must be `.json` or
+`.json.gz`. Each process and file covers one structural part.
 
-`stress_source` has two explicit modes:
+### Import initial state ###
 
-- `current_cauchy`: exports the current total Cauchy stress at every Gauss point.
-- `stored_initial_stress`: exports the stress held in each constitutive
-  `InitialState`. Missing or malformed stored states are rejected; it never
-  falls back to the current Cauchy stress.
-
-### Loading ###
+`import_dam_initial_state_process` runs during `ExecuteBeforeSolutionLoop`,
+after solver initialization and before the first solve.
 
 ```json
 {
-    "python_module": "load_dam_initial_state_process",
+    "python_module": "import_dam_initial_state_process",
     "kratos_module": "KratosMultiphysics.DamApplication",
     "Parameters": {
         "model_part_name": "MainModelPart.Parts_Concrete",
-        "input_file_name": "stage_b_initial_state.json",
-        "transfer_initial_stresses": true,
-        "transfer_initial_temperature": true,
-        "transfer_reference_temperature": false,
-        "reference_temperature_policy": "initial_temperature"
+        "input_file_name": "concrete_final_state.json.gz",
+        "import_stresses": true,
+        "import_temperature": true,
+        "import_reference_temperature": true,
+        "reference_temperature_policy": "preserve",
+        "transfer_method": "matching_mesh"
     }
 }
 ```
 
-The three transfer flags are independent. Stresses reuse the existing
-validated `InitialState` assignment and its geometry/law restrictions.
-Temperatures are assigned by node ID to all solution-step buffer entries, after
-solver initialization and before the first solve. A second processor that
-transfers the same field is rejected by `DamAnalysis`.
+`transfer_method` defaults to `matching_mesh`. Set it to `spatial_mapping`
+whenever the destination mesh differs from the source (different node or element
+IDs, connectivity, element type or integration rule). `matching_mesh` remains
+the correct choice only for identically matching meshes.
+
+The three import flags are independent. Imported stresses are assigned at every
+Gauss point through the constitutive `InitialState`. Nodal temperatures are
+assigned to all solution-step buffer entries. Displacements, reactions,
+velocities, accelerations, time and step counters are never transferred.
+
+### Nonmatching 2D and 3D meshes ###
+
+`transfer_method` selects how the source fields are transferred:
+
+- `matching_mesh` (default): the original exact transfer. Source and destination
+  must have the same nodes, elements, connectivity and integration rules.
+- `spatial_mapping`: transfer between different discretizations of the same
+  physical domain, in 2D or in 3D. Source and destination may have different
+  node and element IDs, counts, connectivity, element types and integration
+  rules. Source and destination dimensions must match.
+
+`spatial_mapping` rebuilds the source geometry from the JSON version 2 metadata
+and locates every destination point with the Kratos Core point locator using the
+Dam bounding-box search configuration. The same algorithm and utilities are used
+in 2D and 3D; only the geometry tables, the polynomial basis and the locator
+dimension differ. Gauss-point stresses are reconstructed element-locally from the
+source Gauss-point values, without global nodal smoothing, so material interfaces
+are preserved. `TEMPERATURE` and `NODAL_REFERENCE_TEMPERATURE` are interpolated
+independently with the containing source element shape functions.
+
+The supported source element types are:
+
+| Dimension | Geometries | Elements |
+|---|---|---|
+| 2D | `Triangle2D3`, `Triangle2D6` | `SmallDisplacementElement2D3N`, `2D6N` |
+| 2D | `Quadrilateral2D4`, `Quadrilateral2D8`, `Quadrilateral2D9` | `SmallDisplacementElement2D4N`, `2D8N`, `2D9N` |
+| 3D | `Tetrahedra3D4`, `Tetrahedra3D10` | `SmallDisplacementElement3D4N`, `3D10N` |
+| 3D | `Prism3D6`, `Prism3D15` | `SmallDisplacementElement3D6N`, `3D15N` |
+| 3D | `Hexahedra3D8`, `Hexahedra3D20`, `Hexahedra3D27` | `SmallDisplacementElement3D8N`, `3D20N`, `3D27N` |
+
+Mixed source/destination element types and Gauss rules from `GI_GAUSS_1` to
+`GI_GAUSS_5` are supported when the destination points lie inside the source
+domain. It requires:
+
+- the same physical domain, coordinate system and units;
+- compatible materials and constitutive laws (identical properties in this
+  version);
+- zero destination displacement;
+- destination points inside the source domain. Points outside the source domain
+  are rejected; no extrapolation or zero default is used.
+
+Stress reconstruction is limited by the information stored at the source Gauss
+points. A `Tetrahedra3D4` or `Triangle2D3` with one point is reconstructed as a
+constant field. Higher-order and over-integrated source rules support larger
+local polynomial spaces: the trilinear space for `Hexahedra3D8`, the
+tri-quadratic space for `Hexahedra3D20`/`Hexahedra3D27` with their 27-point rule,
+and the corresponding quadratic spaces for the higher-order tetrahedra and
+prisms. A curved or distorted element is reconstructed in its local coordinates;
+fields that are affine in physical coordinates are reproduced only when the
+selected local space contains the element mapping. Use a richer rule such as
+`GI_GAUSS_4`/`GI_GAUSS_5` when the default rule is insufficient for the required
+accuracy.
+
+Each source file and import process covers one structural part. A locator is
+built per source material, so stresses are never interpolated between different
+materials. Shared-node temperature consistency and disjoint stress-element
+checks use the existing multi-part validation. Structural-part separation relies
+on using separate source files/processes per part; material records that are
+identical within one file are treated as the same material.
+
+A multi-part source must represent the intended mechanical connection. When the
+physical model has a connected material interface, build the source as one model
+part with shared interface nodes and export each structural part from it. Two
+independent source blocks describe a different boundary-value problem at the
+interface and can produce large apparent interface stress differences even when
+the source mesh is fine; those differences are not a mapping defect. A
+connected coarse source transferred to a finer destination can also differ from
+the finer reference where the coarse source under-resolves a stress
+concentration. Re-equilibration closes the destination residual but does not
+recreate stress information that the source discretization never contained, so
+the final stress need not equal the finer reference. For a fine source
+transferred to a coarser destination, differences that remain after
+re-equilibration are coarse-discretization limitations, not interpolation
+errors.
+
+Mapping between different discretizations does not preserve the discrete
+equilibrium of the source mesh exactly. The helper
+`dam_initial_state_mapping.EvaluateMechanicalResidual` provides a read-only
+diagnostic of the destination free-DOF residual and reaction sums after loads
+and supports have been initialized. It traverses the model-part tree and
+assembles mechanical elements and conditions into one residual by shared node
+ID. Only entities whose local DOF list contains displacement `X`/`Y` (and `Z`
+in 3D) DOFs are included; temperature-only entities are skipped. Nodal loads
+that are not represented by a condition and master-slave constraints are not
+included. The import process does not modify mapped stresses or solve for a
+correction automatically. The same diagnostic handles 2D and 3D model parts.
+
+Three different error sources must not be conflated: the analytic interpolation
+error of the reconstruction (small, and exact for representable fields), the
+initial mechanical residual after a nonmatching transfer (not required to be
+zero), and the difference between coarse and fine discretizations (which can
+remain after re-equilibration whenever the source and destination resolve the
+stress field differently).
+
+### Multi-part models ###
+
+Each import process and each state file covers one structural part. Use multiple
+export and import processes with independent files and field selections for
+multi-part models.
+
+DamAnalysis validates all configured imports together before any field is
+assigned:
+
+- stress imports must target disjoint element sets;
+- shared-node `TEMPERATURE` values must agree;
+- shared-node `NODAL_REFERENCE_TEMPERATURE` values must agree;
+- reference-temperature policies and assignment conflicts are checked.
+
+Conflicts are rejected before the model is modified. To recover global initial
+equilibrium, transfer all relevant structural parts; an uncovered part keeps its
+own state.
 
 ### Reference-temperature alternatives ###
 
-- `preserve` (default): import `TEMPERATURE` and
+- `preserve` (default): imports `TEMPERATURE` and
   `NODAL_REFERENCE_TEMPERATURE` exactly as stored, including when they differ.
-  When stresses are imported together with a supported thermoelastic law, the
-  import additionally stores an initial strain
-  `epsilon_init = -epsilon_th(T, T_ref)` in the constitutive `InitialState`.
-  This cancels the initial thermal contribution, so the imported stress is
-  reproduced at zero displacement without spurious thermal stress or double
-  counting. Later thermal increments are measured relative to the imported
-  instant, `epsilon_th(t) - epsilon_th(0)`. Both temperature fields remain
-  unchanged.
-- `initial_temperature`: optional explicit datum reset. It sets
-  `NODAL_REFERENCE_TEMPERATURE = TEMPERATURE` at import, so the source reference
-  field is intentionally discarded. It requires
-  `transfer_initial_temperature=true` and forbids
-  `transfer_reference_temperature=true`. Use it only when changing the stored
-  reference field is intended; it is not required for construction analyses.
+- `initial_temperature`: sets `NODAL_REFERENCE_TEMPERATURE = TEMPERATURE` at
+  import. It requires `import_temperature=true` and forbids
+  `import_reference_temperature=true`.
 
-### Independent temperatures and initial-strain compensation ###
+When the reference field is imported, remove or disable an existing process that
+assigns `NODAL_REFERENCE_TEMPERATURE`; DamAnalysis rejects the combination before
+the solution loop.
 
-For a supported thermoelastic law the constitutive response is
+### Thermal initial-strain compensation ###
+
+For supported thermoelastic laws the constitutive response is
 
 ```
 sigma = C : (epsilon_total - epsilon_th - epsilon_init) + sigma_init
 epsilon_th = alpha_eff * (T - T_ref)
 ```
 
-The import sets `epsilon_init = -epsilon_th(T0, T_ref0)` and
-`sigma_init = sigma_imported`. At zero displacement `epsilon_total = 0`, hence
-`sigma = sigma_imported`: the initial thermal term is cancelled exactly and the
-imported stress becomes the initial total stress. The compensation vector is
-zero for non-thermal laws.
+Import sets `epsilon_init = -epsilon_th(T0, T_ref0)` and
+`sigma_init = sigma_imported`. At zero displacement the imported stress is
+reproduced exactly, independently of whether `T != T_ref`. Later thermal
+increments are measured from the imported instant. Both temperature fields stay
+unchanged under `preserve`.
 
-`epsilon_th` is evaluated with the same element geometry, integration method,
-shape functions, material properties and Dam thermal law used by the solver, so
-the plane-stress, plane-strain and 3D factors are respected. It is computed at
-every Gauss point before any constitutive state is changed. The calculation is
-not a stress correction and does not alter the imported stress or either
-temperature field.
+### Stage A: export final gravity state ###
 
-The source mode recorded in the file determines the physical interpretation:
-
-- `stress_source = "stored_initial_stress"`: the imported values are the
-  previously stored gravity prestress. They become the initial total stress at
-  the imported instant. This is not an exact transfer of accumulated
-  construction thermal stresses; only the stored prestress is carried.
-- `stress_source = "current_cauchy"`: the imported values are the final total
-  Cauchy stresses of the source thermomechanical analysis, including its
-  accumulated thermal stress. With the compensation above they are reproduced
-  exactly at zero displacement. This is the appropriate choice for continuing a
-  staged construction state.
-
-The load process prints the interpretation when `echo_level > 0`. In both modes
-the destination must retain the gravity, tractions and supports that equilibrated
-the imported stress field; otherwise the free degrees of freedom are not in
-equilibrium and an initial displacement develops.
-
-When the reference temperature is imported (either policy), the existing
-reference-temperature process must be removed or disabled. The standard
-`impose_nodal_reference_temperature_process` assigns its own reference field at
-every step and would silently replace the imported datum, so `DamAnalysis`
-rejects the combination before the solution loop with a clear error. If several
-processes are configured to transfer the same initial-state field, that
-combination is also rejected. Temperature itself is never re-applied by the
-import: thermal boundary processes and the thermal solver remain responsible for
-its evolution.
-
-The `initial_temperature` policy remains an explicit alternative datum reset: it
-makes the imported temperature the new zero-thermal-strain reference and
-discards the source reference field. It is not a workaround for independent
-temperatures; the default `preserve` policy handles `T != T_ref` directly.
-
-### Stage A: gravity stress export ###
-
-Run Stage A with the same supported thermoelastic constitutive law that Stages B
-and C use, with `TEMPERATURE == NODAL_REFERENCE_TEMPERATURE` and no imposed
-thermal gradient or temperature increment. Under those conditions the
-thermoelastic law has zero thermal strain and the thermoelastic gravity solution
-coincides with the purely mechanical one (verified to machine precision in the
-regression suite). Keep gravity as the only mechanical loading. At the end of the
-analysis:
+Run Stage A with the same supported thermoelastic law used by later stages, with
+`TEMPERATURE == NODAL_REFERENCE_TEMPERATURE` and gravity as the only mechanical
+loading. At the end:
 
 ```json
 "loads_process_list": [
@@ -275,161 +271,97 @@ analysis:
         }
     },
     {
-        "python_module": "save_dam_initial_state_process",
+        "python_module": "export_dam_final_state_process",
         "kratos_module": "KratosMultiphysics.DamApplication",
         "Parameters": {
             "model_part_name": "MainModelPart.Parts_Concrete",
-            "save_initial_stresses": true,
-            "save_initial_temperature": false,
-            "save_reference_temperature": false,
-            "stress_source": "current_cauchy",
-            "output_file_name": "stage_a_gravity.json"
+            "export_stresses": true,
+            "export_temperature": false,
+            "export_reference_temperature": false,
+            "output_file_name": "concrete_gravity.json"
         }
     }
 ]
 ```
 
-For a total-stress transfer, Stage A may instead be any equilibrated
-thermomechanical state. Export it with `stress_source = "current_cauchy"`,
-`save_initial_temperature = true` and `save_reference_temperature = true`. The
-import reproduces that total Cauchy stress at zero displacement while preserving
-both temperature fields.
+Repeat the export process for each structural part.
 
-### Stage compatibility ###
+### Stage B: prestressed thermomechanical analysis ###
 
-The lightweight file validates the exact constitutive identity, not just
-physically equivalent elastic parameters. Source and destination must have the
-same element type, geometry type, connectivity/order, integration method and
-local integration-point ordering, plus the same constitutive-law class name,
-strain size, working dimension, `YOUNG_MODULUS`, `POISSON_RATIO`, `DENSITY`,
-`THICKNESS` (2D) and `THERMAL_EXPANSION` (thermoelastic laws). Importing a file
-written with `LinearElasticPlaneStrain2DLaw` into a
-`ThermalLinearElastic2DPlaneStrain` model is therefore rejected with a clear
-constitutive-law mismatch. This is intentional: the stored `InitialState`
-semantics, thermal-strain formulation and exported metadata must be identical
-between stages. Use the thermoelastic law in Stage A as well.
-
-### Stage B: prestressed transient thermomechanical analysis ###
-
-Start with the same mesh and law, import the Stage A stresses, initialize the
-temperature/reference fields with the existing Dam processes, and apply the
-thermal loading normally. At the end, export the stored prestress and the final
-temperature fields:
+Import the Stage A state, apply the thermal loading normally, and export the
+final total Cauchy stresses together with the final nodal temperature fields:
 
 ```json
 "loads_process_list": [
     {
-        "python_module": "assign_vector_variable_process",
-        "kratos_module": "KratosMultiphysics",
-        "Parameters": {
-            "model_part_name": "MainModelPart.Parts_Concrete",
-            "variable_name": "VOLUME_ACCELERATION",
-            "constrained": false,
-            "value": [0.0, -10.0, 0.0]
-        }
-    },
-    {
-        "python_module": "load_dam_initial_state_process",
+        "python_module": "import_dam_initial_state_process",
         "kratos_module": "KratosMultiphysics.DamApplication",
         "Parameters": {
             "model_part_name": "MainModelPart.Parts_Concrete",
-            "input_file_name": "stage_a_gravity.json",
-            "transfer_initial_stresses": true,
-            "transfer_initial_temperature": false,
-            "transfer_reference_temperature": false,
-            "reference_temperature_policy": "preserve"
+            "input_file_name": "concrete_gravity.json",
+            "import_stresses": true,
+            "import_temperature": false,
+            "import_reference_temperature": false,
+            "reference_temperature_policy": "preserve",
+            "transfer_method": "spatial_mapping"
         }
     },
     {
-        "python_module": "save_dam_initial_state_process",
+        "python_module": "export_dam_final_state_process",
         "kratos_module": "KratosMultiphysics.DamApplication",
         "Parameters": {
             "model_part_name": "MainModelPart.Parts_Concrete",
-            "save_initial_stresses": true,
-            "save_initial_temperature": true,
-            "save_reference_temperature": true,
-            "stress_source": "stored_initial_stress",
-            "output_file_name": "stage_b_final.json"
+            "export_stresses": true,
+            "export_temperature": true,
+            "export_reference_temperature": true,
+            "output_file_name": "concrete_final.json"
         }
     }
 ]
 ```
-
-The existing `impose_nodal_reference_temperature_process` and the thermal
-boundary processes remain in `constraints_process_list`. The saved
-`stored_initial_stress` is the imported gravity prestress, not the evolved total
-Cauchy stress.
-
-Do not use `MECHANICAL_STRESS_TENSOR` (or `MECHANICAL_STRESS_VECTOR`) to recover
-the gravity prestress once thermal loading is active. In the thermoelastic laws,
-the constitutive output is assembled as `C * epsilon_total`, not
-`C * (epsilon_total - epsilon_thermal)`; the element output path likewise does
-not reconstruct a gravity-only field. Under thermal loading it therefore differs
-from the original gravity Cauchy stress. The only reliable source of the
-originally imposed prestress is the constitutive `InitialState`, which is why
-Stage B must export with `stress_source = "stored_initial_stress"` rather than
-reading the current total stress again.
-
-For a total-stress transfer, replace `stress_source = "stored_initial_stress"`
-with `"current_cauchy"` in the Stage B save process. The saved field then
-contains the evolved total Cauchy stress, including accumulated thermal stress.
-Stage C reproduces that total stress at zero displacement through the
-initial-strain compensation. This is a different interpretation from the
-gravity-prestress workflow above, where only the stored prestress is carried.
-If that Stage B import also includes `reference_temperature`, remove or disable
-the reference-temperature process exactly as in Stage C.
 
 ### Stage C: new independent analysis ###
 
-Import all three fields with the default `preserve` policy. Both temperature
-fields are kept exactly as stored, including `T != T_ref`:
+Import the Stage B final state, then apply the next mechanical or thermal
+increment:
 
 ```json
-"loads_process_list": [
-    {
-        "python_module": "assign_vector_variable_process",
-        "kratos_module": "KratosMultiphysics",
-        "Parameters": {
-            "model_part_name": "MainModelPart.Parts_Concrete",
-            "variable_name": "VOLUME_ACCELERATION",
-            "constrained": false,
-            "value": [0.0, -10.0, 0.0]
-        }
-    },
-    {
-        "python_module": "load_dam_initial_state_process",
-        "kratos_module": "KratosMultiphysics.DamApplication",
-        "Parameters": {
-            "model_part_name": "MainModelPart.Parts_Concrete",
-            "input_file_name": "stage_b_final.json",
-            "transfer_initial_stresses": true,
-            "transfer_initial_temperature": true,
-            "transfer_reference_temperature": true,
-            "reference_temperature_policy": "preserve"
-        }
+{
+    "python_module": "import_dam_initial_state_process",
+    "kratos_module": "KratosMultiphysics.DamApplication",
+    "Parameters": {
+        "model_part_name": "MainModelPart.Parts_Concrete",
+        "input_file_name": "concrete_final.json",
+        "import_stresses": true,
+        "import_temperature": true,
+        "import_reference_temperature": true,
+        "reference_temperature_policy": "preserve",
+        "transfer_method": "spatial_mapping"
     }
-]
+}
 ```
 
-The destination starts with zero displacement, the imported stress as the
-initial total stress, and both imported temperature fields unchanged. An initial
-strain cancels the initial thermal contribution, so no artificial thermal stress
-or double counting appears. Subsequent mechanical or thermal loading belongs to
-this new analysis; thermal increments are measured from the imported instant.
+The imported total stresses are reproduced at zero displacement and the final
+temperature fields are preserved. For `matching_mesh`, the initial residual
+matches the source equilibrium state. For `spatial_mapping` between different
+discretizations, the initial residual generally does not match the source
+equilibrium state; it is a mapped, generally non-equilibrium state and is
+reduced by the subsequent solution.
 
-Remove or disable the existing reference-temperature process for this analysis:
-`DamAnalysis` rejects importing the reference field while a process that assigns
-it is active.
+### Compatibility ###
 
-If changing the stored reference field is intended, the explicit
-`initial_temperature` policy remains available: set
-`"transfer_reference_temperature": false` and
-`"reference_temperature_policy": "initial_temperature"`. It sets
-`T_ref = T` and discards the source reference field, so it is a deliberate datum
-reset rather than the default construction workflow.
-
-The file format is versioned and validated before any destination field is
-changed. Different meshes, connectivity, reference coordinates, integration
-rules, materials, laws, stress dimensions, or missing stored initial states are
-rejected explicitly. Damage, plasticity, history-dependent laws, different-mesh
-mapping and MPI configurations remain outside this validated scope.
+- The JSON/gzip format was simplified to version 2. Files from the previous
+  experimental layout are not read.
+- The Python process names, parameters and C++ utility were intentionally
+  renamed. Compatibility aliases are not provided.
+- The legacy `.mdpa` nodal mapping and standard Kratos restart remain separate
+  and unchanged.
+- `matching_mesh` requires exact matching of the source and destination mesh
+  metadata: element type, geometry type, connectivity and order, integration
+  rule, material/law metadata, and reference coordinates. It validates all of
+  them before modifying the destination.
+- `spatial_mapping` permits different node and element IDs, connectivity,
+  supported geometry types, element types and integration rules. It validates
+  source/destination dimension compatibility, supported geometries and laws,
+  material compatibility, zero destination displacement, source-domain coverage
+  and shared-node/material consistency before modifying the destination.
