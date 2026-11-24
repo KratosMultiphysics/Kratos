@@ -213,16 +213,16 @@ public:
 
     void ApplyLinearSystemConstraints(
         ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData,
-        const bool SkipLeftHandSide = false) override
+        const bool RightHandSideOnly = false) override
     {
         // Calculate the effective LHS, RHS and solution vector
-        ApplyBlockBuildMasterSlaveConstraints(rImplicitStrategyData, SkipLeftHandSide);
+        ApplyBlockBuildMasterSlaveConstraints(rImplicitStrategyData, RightHandSideOnly);
 
         // Apply the Dirichlet BCs in a block way by leveraging the CSR matrix implementation
         auto p_eff_lin_sys = rImplicitStrategyData.pGetEffectiveLinearSystem();
         auto& r_eff_rhs = *(p_eff_lin_sys->pGetVector(DenseVectorTag::RHS));
         auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
-        if (SkipLeftHandSide) {
+        if (RightHandSideOnly) {
             ApplyBlockBuildDirichletConditions(r_eff_dof_set, r_eff_rhs);
         } else {
             auto& r_eff_lhs = *(p_eff_lin_sys->pGetMatrix(SparseMatrixTag::LHS));
@@ -244,13 +244,13 @@ private:
     /**
      * @brief Applies the master-slave constraints
      * This method applies the master-slave constraints following a block-type build
-     * Note that the application of the constraints to the LHS is skipped if the SkipLeftHandSide flag is set to true
+     * Note that the application of the constraints to the LHS is skipped if the RightHandSideOnly flag is set to true
      * @param rImplicitStrategyData Auxiliary container with the linear system arrays
-     * @param SkipLeftHandSide Flag to indicate if the application to the LeftHandSide should be skipped
+     * @param RightHandSideOnly Flag to indicate if the application to the LeftHandSide should be skipped
      */
     void ApplyBlockBuildMasterSlaveConstraints(
         ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData,
-        const bool SkipLeftHandSide = false)
+        const bool RightHandSideOnly = false)
     {
         const auto& r_model_part = this->GetModelPart();
         auto p_lin_sys = rImplicitStrategyData.pGetLinearSystem();
@@ -277,7 +277,7 @@ private:
             p_eff_T->TransposeSpMV(*p_rhs, *p_eff_rhs);
 
             // Apply constraints to LHS
-            if (!SkipLeftHandSide) {
+            if (!RightHandSideOnly) {
                 auto p_lhs = p_lin_sys->pGetMatrix(SparseMatrixTag::LHS);
                 auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rImplicitStrategyData.pGetEffectiveT());
                 auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
@@ -325,7 +325,7 @@ private:
         // Note that we initialize to 1 so we start assuming all free
         // Also note that the type is uint_8 for the sake of efficiency
         const std::size_t system_size = rLHS.size1();
-        std::vector<uint8_t> free_dofs_vector(system_size, 1); //FIXME: this is only valid for the serial case (distributed case use the distributed vector here, that is VectorType)
+        std::vector<IndexType> free_dofs_vector(system_size, 1); //FIXME: this is only valid for the serial case (distributed case use the distributed vector here, that is VectorType)
 
         // Loop the DOFs to find which ones are fixed
         // Note that DOFs are assumed to be numbered consecutively in the block building

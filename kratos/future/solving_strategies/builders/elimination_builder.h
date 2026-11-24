@@ -250,7 +250,7 @@ public:
 
     void ApplyLinearSystemConstraints(
         ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData,
-        const bool SkipLeftHandSide = false) override
+        const bool RightHandSideOnly = false) override
     {
         // Get effective arrays
         auto p_eff_lin_sys = rImplicitStrategyData.pGetEffectiveLinearSystem();
@@ -283,7 +283,7 @@ public:
             rImplicitStrategyData.pGetEffectiveT()->TransposeSpMV(r_rhs, r_eff_rhs);
 
             // Apply constraints to LHS
-            if (!SkipLeftHandSide) {
+            if (!RightHandSideOnly) {
                 auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
                 auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
                 auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
@@ -297,7 +297,7 @@ public:
             rImplicitStrategyData.pGetEffectiveT()->TransposeSpMV(r_rhs, r_eff_rhs);
 
             // Apply Dirichlet constraints to LHS
-            if (!SkipLeftHandSide) {
+            if (!RightHandSideOnly) {
                 auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
                 auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
                 auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
