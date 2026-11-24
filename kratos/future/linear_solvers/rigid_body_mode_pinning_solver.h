@@ -102,7 +102,7 @@ public:
         const double RigidBodyTolerance = 1.0e-6
         ) : BaseType(),
             mpLinearSolver(pLinearSolver),
-            mKernel(Tolerance)
+            mKernel(RigidBodyTolerance)
     {
         this->mEchoLevel = 0;
     }
