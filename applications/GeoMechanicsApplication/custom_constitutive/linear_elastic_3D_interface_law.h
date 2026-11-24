@@ -58,9 +58,6 @@ public:
     /// The size type definition
     using SizeType = std::size_t;
 
-    /// Static definition of the dimension
-    static constexpr SizeType Dimension = N_DIM_3D;
-
     /// Counted pointer of LinearElastic2DInterfaceLaw
     KRATOS_CLASS_POINTER_DEFINITION(LinearElastic3DInterfaceLaw);
 

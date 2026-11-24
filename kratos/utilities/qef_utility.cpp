@@ -215,7 +215,7 @@ array_1d<double, 3> QuadraticErrorFunction::ComputeQuadraticErrorFunctionPoint(
     noalias(ata_pseudo_inverse) = prod(trans(V_matrix), BoundedMatrix<double,3,3>(prod(d, trans(U_matrix))));
 
     // Compute the product of ATA and the center vector.
-    const BoundedMatrix<double, 3, 3> ata_c = prod(rATA, rMatCenter);
+    const BoundedMatrix<double, 3, 1> ata_c = prod(rATA, rMatCenter);
     // Compute the solution vector: center + ATA_inverse * (ATB - ATA * center)
     const BoundedMatrix<double, 3, 1> solution = prod(ata_pseudo_inverse, rATB - ata_c) + rMatCenter;
 

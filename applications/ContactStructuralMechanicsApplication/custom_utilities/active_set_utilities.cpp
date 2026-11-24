@@ -187,13 +187,15 @@ std::size_t ComputeALMFrictionlessActiveSet(ModelPart& rModelPart)
         is_converged = block_for_each<SumReduction<IndexType>>(rModelPart.GetSubModelPart("Contact").Nodes(), [&](Node& rNode) {
             if (rNode.Is(SLAVE)) {
                 const double epsilon = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : common_epsilon;
-                const double augmented_normal_pressure = scale_factor * rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) + epsilon * rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
+                const double weighted_gap = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
+                double &r_LM = rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
+                const double augmented_normal_pressure = scale_factor * r_LM + epsilon * weighted_gap;
 
                 rNode.SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 
                 if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
                     if (rNode.IsNot(ACTIVE)) {
-                        rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = augmented_normal_pressure/scale_factor;
+                        r_LM = augmented_normal_pressure / (scale_factor);
                         rNode.Set(ACTIVE, true);
                         return 1;
                     }

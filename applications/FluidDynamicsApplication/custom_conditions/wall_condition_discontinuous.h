@@ -234,9 +234,9 @@ public:
             const SizeType LocalSize = TDim * TNumNodes;
 
             if (rLeftHandSideMatrix.size1() != LocalSize)
-                rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+                rLeftHandSideMatrix.resize(LocalSize,LocalSize, false);
             if (rRightHandSideVector.size() != LocalSize)
-                rRightHandSideVector.resize(LocalSize);
+                rRightHandSideVector.resize(LocalSize, false);
 
             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
             noalias(rRightHandSideVector) = ZeroVector(LocalSize);
@@ -251,9 +251,9 @@ public:
             const SizeType LocalSize = TNumNodes;
 
             if (rLeftHandSideMatrix.size1() != LocalSize)
-                rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+                rLeftHandSideMatrix.resize(LocalSize,LocalSize, false);
             if (rRightHandSideVector.size() != LocalSize)
-                rRightHandSideVector.resize(LocalSize);
+                rRightHandSideVector.resize(LocalSize, false);
 
             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
             noalias(rRightHandSideVector) = ZeroVector(LocalSize);
@@ -435,10 +435,10 @@ public:
                     const double W = Weight*Density*Proj;
                     for (unsigned int i = 0; i < TNumNodes; i++)
                     {
-                        double row = i*LocalSize;
+                        unsigned int row = i*LocalSize;
                         for (unsigned int j = 0; j < TNumNodes; j++)
                         {
-                            double col = j*LocalSize;
+                            unsigned int col = j*LocalSize;
                             const array_1d<double,3>& rVel = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
                             for (unsigned int d = 0; d < TDim; d++)
                             {

@@ -24,6 +24,7 @@
 #include "future/python/add_io_to_python.h"
 #include "future/python/add_linear_operators_to_python.h"
 #include "future/python/add_linear_solvers_to_python.h"
+#include "future/python/add_preconditioners_to_python.h"
 #include "future/python/add_processes_to_python.h"
 #include "future/python/add_strategies_to_python.h"
 
@@ -39,6 +40,8 @@ void AddFutureToPython(py::module& m)
     AddIOToPython(m);
 
     AddLinearOperatorsToPython(m);
+
+    AddPreconditionersToPython(m);
 
     AddLinearSolversToPython(m);
 

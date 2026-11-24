@@ -113,11 +113,11 @@ void SupportSolidCondition::CalculateLocalSystem(
     const SizeType mat_size = GetGeometry().size() * 2;
 
     if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
+        rRightHandSideVector.resize(mat_size, false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
-        rLeftHandSideMatrix.resize(mat_size, mat_size);
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
@@ -541,7 +541,7 @@ void SupportSolidCondition::CalculateRightHandSide(
         const SizeType mat_size = number_of_control_points * 2;
 
         if (rB.size1() != 3 || rB.size2() != mat_size)
-            rB.resize(3, mat_size);
+            rB.resize(3, mat_size, false);
         noalias(rB) = ZeroMatrix(3, mat_size);
 
         for (IndexType r = 0; r < mat_size; r++)

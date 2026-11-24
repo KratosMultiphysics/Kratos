@@ -153,6 +153,10 @@ SmallStrainUMATLaw<TVoigtSize>& SmallStrainUMATLaw<TVoigtSize>::operator=(const 
 {
     KRATOS_TRY
 
+    // Self-assignment guard
+    if (this == &rOther) {
+        return *this;
+    }
     ConstitutiveLaw::operator=(rOther);
     this->mIsModelInitialized      = rOther.mIsModelInitialized;
     this->mIsUMATLoaded            = rOther.mIsUMATLoaded;
@@ -258,8 +262,8 @@ void SmallStrainUMATLaw<TVoigtSize>::ResetStateVariables(const Properties& rMate
     const auto& state_variables   = rMaterialProperties[STATE_VARIABLES];
     const auto  n_state_variables = state_variables.size();
 
-    mStateVariables.resize(n_state_variables);
-    mStateVariablesFinalized.resize(n_state_variables);
+    mStateVariables.resize(n_state_variables, false);
+    mStateVariablesFinalized.resize(n_state_variables, false);
 
     noalias(mStateVariables)          = state_variables;
     noalias(mStateVariablesFinalized) = state_variables;
@@ -738,10 +742,10 @@ template <SizeType TVoigtSize>
 Vector& SmallStrainUMATLaw<TVoigtSize>::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
     if (rVariable == STATE_VARIABLES) {
-        rValue.resize(mStateVariablesFinalized.size());
+        rValue.resize(mStateVariablesFinalized.size(), false);
         noalias(rValue) = mStateVariablesFinalized;
     } else if (rVariable == CAUCHY_STRESS_VECTOR) {
-        rValue.resize(mStressVectorFinalized.size());
+        rValue.resize(mStressVectorFinalized.size(), false);
         noalias(rValue) = mStressVectorFinalized;
     }
 

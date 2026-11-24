@@ -2,9 +2,8 @@ import typing
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 
-def FilterRadiusFactory(model_part: Kratos.ModelPart, container_type: Kratos.Globals.DataLocation, filter_radius_settings: Kratos.Parameters) -> ContainerExpressionTypes:
+def FilterRadiusFactory(model_part: Kratos.ModelPart, container_type: Kratos.Globals.DataLocation, filter_radius_settings: Kratos.Parameters) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
     if not filter_radius_settings.Has("filter_radius_type"):
         raise RuntimeError(f"\"filter_radius_type\" not specified in the following settings:\n{filter_radius_settings}")
 
@@ -15,9 +14,15 @@ def FilterRadiusFactory(model_part: Kratos.ModelPart, container_type: Kratos.Glo
             "filter_radius"     : 0.2
         }""")
         filter_radius_settings.ValidateAndAssignDefaults(defaults)
-        filter_radius = GetContainerExpression(model_part, container_type)
-        Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, filter_radius_settings["filter_radius"].GetDouble())
-        return filter_radius
+
+        if container_type == Kratos.Globals.DataLocation.NodeHistorical or container_type == Kratos.Globals.DataLocation.NodeNonHistorical:
+            return Kratos.TensorAdaptors.DoubleTensorAdaptor(model_part.Nodes, Kratos.DoubleNDData([model_part.NumberOfNodes()], filter_radius_settings["filter_radius"].GetDouble()), copy=False)
+        elif container_type == Kratos.Globals.DataLocation.Condition:
+            return Kratos.TensorAdaptors.DoubleTensorAdaptor(model_part.Conditions, Kratos.DoubleNDData([model_part.NumberOfConditions()], filter_radius_settings["filter_radius"].GetDouble()), copy=False)
+        elif container_type == Kratos.Globals.DataLocation.Element:
+            return Kratos.TensorAdaptors.DoubleTensorAdaptor(model_part.Elements, Kratos.DoubleNDData([model_part.NumberOfElements()], filter_radius_settings["filter_radius"].GetDouble()), copy=False)
+        else:
+            raise RuntimeError(f"Unsupported container_type.")
     else:
         raise RuntimeError(f"Unsupported filter_radius_type = \"{filter_radius_type}\".")
 
@@ -48,13 +53,3 @@ def ExplicitFilterDampingFactory(model: Kratos.Model, data_location: Kratos.Glob
         if damping_type not in damping_types_dict[data_location].keys():
             raise RuntimeError(f"Unsupported damping_type = \"{damping_type}\". Followings are supported:\n\t" + "\n\t".join(damping_types_dict[data_location].keys()))
         return damping_types_dict[data_location][damping_type](model, parameters, stride)
-
-def GetContainerExpression(model_part: Kratos.ModelPart, container_type: Kratos.Globals.DataLocation) -> ContainerExpressionTypes:
-    if container_type == Kratos.Globals.DataLocation.NodeHistorical or container_type == Kratos.Globals.DataLocation.NodeNonHistorical:
-        return Kratos.Expression.NodalExpression(model_part)
-    elif container_type == Kratos.Globals.DataLocation.Condition:
-        return Kratos.Expression.ConditionExpression(model_part)
-    elif container_type == Kratos.Globals.DataLocation.Element:
-        return Kratos.Expression.ElementExpression(model_part)
-    else:
-        raise RuntimeError(f"Unsupported container_type.")

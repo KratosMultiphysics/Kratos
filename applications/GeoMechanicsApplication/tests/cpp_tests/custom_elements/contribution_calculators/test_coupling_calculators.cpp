@@ -47,8 +47,8 @@ typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider Crea
     auto get_bishop_coefficients = [BishopCoefficient, NumberOfIntegrationPoints]() {
         return std::vector(NumberOfIntegrationPoints, BishopCoefficient);
     };
-    auto get_voigt_vector    = [rVoigtVector]() { return rVoigtVector; };
-    auto get_fluid_pressures = [rFluidPressures]() { return rFluidPressures; };
+    auto get_voigt_vector = [rVoigtVector]() { return rVoigtVector; };
+    auto get_fluid_pressures = [rFluidPressures](const Variable<double>&) { return rFluidPressures; };
 
     return typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider(
         get_np_container, get_b_matrices, get_voigt_vector, get_integration_coefficients,

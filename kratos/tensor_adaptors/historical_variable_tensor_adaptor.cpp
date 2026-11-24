@@ -214,13 +214,29 @@ void HistoricalVariableTensorAdaptor::StoreData()
 
 std::string HistoricalVariableTensorAdaptor::Info() const
 {
+    // the base info goes first: it throws for an unloaded (default-constructed) instance, whose mpVariable is null
+    const auto base_info = BaseType::Info();
     std::stringstream info;
     info << "HistoricalVariableTensorAdaptor:";
     std::visit([&info](auto pVariable) {
         info << " Variable = " << pVariable->Name();
     }, this->mpVariable);
-    info << ", Step index = " << mStepIndex << ", " << BaseType::Info();
+    info << ", Step index = " << mStepIndex << ", " << base_info;
     return info.str();
+}
+
+void HistoricalVariableTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+    TensorAdaptorUtils::SaveVariablePointer(rSerializer, "Variable", mpVariable);
+    rSerializer.save("StepIndex", mStepIndex);
+}
+
+void HistoricalVariableTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    TensorAdaptorUtils::LoadVariablePointer(rSerializer, "Variable", mpVariable);
+    rSerializer.load("StepIndex", mStepIndex);
 }
 
 } // namespace Kratos

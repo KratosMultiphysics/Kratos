@@ -2,6 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
 
 from geomechanics_analysis import GeoMechanicsAnalysis
+from KratosMultiphysics.GeoMechanicsApplication import validation_helpers
 
 class PipingAnalysis(GeoMechanicsAnalysis):
     '''Main script for geomechanics simulations.'''
@@ -14,7 +15,7 @@ class PipingAnalysis(GeoMechanicsAnalysis):
         super().FinalizeSolutionStep()
 
         if(self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] > self.max_iterations):
-            raise Exception("max_number_of_iterations_exceeded")
+            raise RuntimeError("max_number_of_iterations_exceeded")
 
 
     def __reduce_time_step(self):
@@ -32,7 +33,6 @@ class PipingAnalysis(GeoMechanicsAnalysis):
 
     def __increase_time_step(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling with factor: ", self.increase_factor)
-        # converged = True
         self.new_delta_time *= self.increase_factor
         t = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
         new_time = t + self.new_delta_time
@@ -70,7 +70,7 @@ class PipingAnalysis(GeoMechanicsAnalysis):
                 self.__increase_time_step()
 
         if (not converged):
-            raise Exception('The maximum number of cycles is reached without convergence!')
+            raise RuntimeError('The maximum number of cycles is reached without convergence!')
 
         self.FinalizeSolutionStep()
 
@@ -147,14 +147,16 @@ if __name__ == '__main__':
         err_msg += '    "python geomechanics_analysis.py"\n'
         err_msg += '- With custom parameter file:\n'
         err_msg += '    "python geomechanics_analysis.py <my-parameter-file>.json"\n'
-        raise Exception(err_msg)
+        raise ValueError(err_msg)
 
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
         parameter_file_name = "ProjectParameters.json"
 
-    with open(parameter_file_name,'r') as parameter_file:
+    path_to_parameter_file = validation_helpers.validated_parameter_path(parameter_file_name)
+
+    with open(path_to_parameter_file,'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
 
     model = Kratos.Model()

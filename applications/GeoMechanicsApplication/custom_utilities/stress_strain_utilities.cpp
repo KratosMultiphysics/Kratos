@@ -23,7 +23,6 @@
 
 namespace Kratos
 {
-
 double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVector)
 {
     const auto LocalStressTensor =
@@ -146,17 +145,10 @@ Vector StressStrainUtilities::CalculateHenckyStrain(const Matrix& rDeformationGr
     // From tensor to vector
     if (rDeformationGradient.size1() == 2 && VoigtSize == 4) {
         // Plane strain
-        Vector StrainVector2D;
-        StrainVector2D = MathUtils<double>::StrainTensorToVector(ETensor, 3);
-        Vector StrainVector(4);
-        StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector2D[0];
-        StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector2D[1];
-        StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector2D[2];
-        return StrainVector;
-    } else {
-        return MathUtils<double>::StrainTensorToVector(ETensor, VoigtSize);
+        const auto StrainVector2D = MathUtils<double>::StrainTensorToVector(ETensor, 3);
+        return UblasUtilities::CreateVector({StrainVector2D[0], StrainVector2D[1], 0.0, StrainVector2D[2]});
     }
+    return MathUtils<double>::StrainTensorToVector(ETensor, VoigtSize);
 }
 
 Matrix StressStrainUtilities::CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient)
@@ -233,23 +225,22 @@ Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalSt
 
 Geo::SigmaTau StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const Geo::PrincipalStresses& rPrincipalStresses)
 {
-    return Geo::SigmaTau{{0.5 * (rPrincipalStresses.Values()[0] + rPrincipalStresses.Values()[2]),
-                          0.5 * (rPrincipalStresses.Values()[0] - rPrincipalStresses.Values()[2])}};
+    return Geo::SigmaTau{0.5 * (rPrincipalStresses.Values()[0] + rPrincipalStresses.Values()[2]),
+                         0.5 * (rPrincipalStresses.Values()[0] - rPrincipalStresses.Values()[2])};
 }
 
 Geo::PrincipalStresses StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
     const Geo::SigmaTau& rSigmaTau, const Geo::PrincipalStresses& rPrincipalStresses)
 {
-    return Geo::PrincipalStresses{{rSigmaTau.Sigma() + rSigmaTau.Tau(), rPrincipalStresses.Values()[1],
-                                   rSigmaTau.Sigma() - rSigmaTau.Tau()}};
+    return Geo::PrincipalStresses{rSigmaTau.Sigma() + rSigmaTau.Tau(), rPrincipalStresses.Values()[1],
+                                  rSigmaTau.Sigma() - rSigmaTau.Tau()};
 }
 
-Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
+Geo::PQ StressStrainUtilities::TransformPrincipalStressesToPandQ(const Geo::PrincipalStresses& rPrincipalStresses)
 {
     auto stress_vector = Vector(6, 0.0);
-    std::ranges::copy(rPrincipalStresses, stress_vector.begin());
-    return UblasUtilities::CreateVector(
-        {CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector)});
+    std::ranges::copy(rPrincipalStresses.Values(), stress_vector.begin());
+    return Geo::PQ{CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector)};
 }
 
 std::vector<Vector> StressStrainUtilities::CalculateStressVectorsFromStrainVectors(
@@ -264,7 +255,7 @@ std::vector<Vector> StressStrainUtilities::CalculateStressVectorsFromStrainVecto
         auto law_parameters = ConstitutiveLaw::Parameters{};
         law_parameters.SetStrainVector(Strain);
         auto result = Vector{};
-        result.resize(rpLaw->GetStrainSize());
+        result.resize(rpLaw->GetStrainSize(), false);
         law_parameters.SetStressVector(result);
         law_parameters.SetMaterialProperties(rProperties);
         law_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);

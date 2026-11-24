@@ -26,6 +26,7 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) LumpedIntegrationScheme : public IntegrationScheme
 {
 public:
+    LumpedIntegrationScheme() = default;
     explicit LumpedIntegrationScheme(std::size_t NumberOfPoints);
     ~LumpedIntegrationScheme() override = default;
 
@@ -34,6 +35,10 @@ public:
 
 private:
     static Geo::IntegrationPointVectorType CreateIntegrationPoints(std::size_t NumberOfPoints);
+
+    friend Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
     Geo::IntegrationPointVectorType mIntegrationPoints;
 };

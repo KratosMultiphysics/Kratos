@@ -62,11 +62,41 @@ file(GLOB_RECURSE KRATOS_TRILINOS_PYTHON_INTERFACE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
+# Adding Tpetra definitions
+if(HAVE_TPETRA)
+    add_definitions(-DHAVE_TPETRA)
+endif()
+
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_TRILINOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    if(NOT HAVE_TPETRA)
+        list(FILTER KRATOS_TRILINOS_TEST_SOURCES EXCLUDE REGEX ".*experimental.*")
+    else()
+        # Keep all experimental tests out of unity batches to avoid Epetra/Tpetra alias and type collisions.
+        set(KRATOS_TRILINOS_EXPERIMENTAL_TEST_SOURCES ${KRATOS_TRILINOS_TEST_SOURCES})
+        list(FILTER KRATOS_TRILINOS_EXPERIMENTAL_TEST_SOURCES INCLUDE REGEX ".*[Ee]xperimental.*\\.cpp$")
+        if(KRATOS_TRILINOS_EXPERIMENTAL_TEST_SOURCES)
+            set_source_files_properties(${KRATOS_TRILINOS_EXPERIMENTAL_TEST_SOURCES} PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+        endif()
+    endif()
     kratos_add_gtests(TARGET KratosTrilinosCore SOURCES "${KRATOS_TRILINOS_TEST_SOURCES}" USE_MPI)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+## Kratos benchmark sources. Disabled by default
+if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/*.cpp
+    )
+
+    foreach(file ${KRATOS_BENCHMARK_SOURCES})
+        get_filename_component(filename ${file} NAME_WE)
+        add_executable(${filename} ${file})
+        target_link_libraries(${filename} PUBLIC KratosTrilinosCore benchmark::benchmark)
+        set_target_properties(${filename} PROPERTIES COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
+        install(TARGETS ${filename} DESTINATION benchmark)
+    endforeach(file ${KRATOS_BENCHMARK_SOURCES})
+endif(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
 
 # ###############################################################
 ## TrilinosApplication core library (C++ parts)
@@ -93,6 +123,15 @@ ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # Exclude from unity build
 set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/linear_solver_trilinos.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+# Conflicts with the Epetra adapter headers and their side-effects, which are included in other TUs that can't be excluded from unity batches due to their own issues, so exclude this TU as well to avoid both issues.
+if(HAVE_TPETRA)
+    # Uses #define KRATOS_AMGCL_MPI / #undef around amgcl_solver_impl.hpp; macro side-effects and heavy Epetra adapter headers are incompatible with unity batches.
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/external_includes/amgcl_mpi_solver_impl.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    # Includes MatrixMarket_Tpetra.hpp whose mmio_Tpetra.h declares mm_read_mtx_crd_size with size_t* — conflicts with Kratos' mmio.h (int*) under C linkage.
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/trilinos_matrix_market_io.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    # Defines anonymous-namespace helpers (ClearMatrix, SetToZero, TwoNorm, Mult, …) that collide with identically-named helpers in add_trilinos_space_to_python.cpp when merged, causing unresolved overloads.
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_space_experimental_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+endif(HAVE_TPETRA)
 
 # Changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

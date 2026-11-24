@@ -234,13 +234,13 @@ namespace Kratos
             ConstitutiveVariables(const SizeType StrainSize)
             {
                 if (StrainVector.size() != StrainSize)
-                    StrainVector.resize(StrainSize);
+                    StrainVector.resize(StrainSize, false);
 
                 if (StressVector.size() != StrainSize)
-                    StressVector.resize(StrainSize);
+                    StressVector.resize(StrainSize, false);
 
                 if (D.size1() != StrainSize || D.size2() != StrainSize)
-                    D.resize(StrainSize, StrainSize);
+                    D.resize(StrainSize, StrainSize, false);
 
                 noalias(StrainVector) = ZeroVector(StrainSize);
                 noalias(StressVector) = ZeroVector(StrainSize);
@@ -280,6 +280,15 @@ namespace Kratos
             const Matrix& rB, 
             ConstitutiveLaw::Parameters& rValues,
             ConstitutiveVariables& rConstitutiveVariables) const;
+
+        void BuildStressMatrixFromVoigt(
+            Matrix& rStressMatrix,
+            const Vector& rVoigtVector) const;
+
+        void BuildStressMatrixFromVoigt(
+            Matrix& rStressMatrix,
+            const Matrix& rVoigtMatrix,
+            const IndexType Column) const;
 
         // member variables
         unsigned int mDim;

@@ -13,7 +13,7 @@ All the memory management within Kratos is done through "Shared Pointers". Essen
 A good description of the design and behaviour of `shared_ptr` can be found at the links:
 
 * [Wikipedia](http://en.wikipedia.org/wiki/Smart_pointer) 
-* [Boost](http://www.boost.org/doc/libs/1_63_0/libs/smart_ptr/smart_ptr.htm) 
+* [Boost](http://www.boost.org/doc/libs/1_85_0/libs/smart_ptr/smart_ptr.htm) 
 
 In the practice when using Shared Pointers within Kratos one should be aware of their performance pitfalls so to be able to avoid them.
 

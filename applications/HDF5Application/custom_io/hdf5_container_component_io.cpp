@@ -16,7 +16,7 @@
 #include <type_traits>
 
 // Project includes
-#include "expression/container_data_io.h"
+#include "utilities/container_io_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 

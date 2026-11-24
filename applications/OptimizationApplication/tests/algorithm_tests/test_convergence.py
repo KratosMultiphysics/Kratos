@@ -60,12 +60,13 @@ class TestConvergence(kratos_unittest.TestCase):
         algorithm_data = ComponentDataView("algorithm", self.optimization_problem)
         convergence_criterium = l2_conv_criterion.L2ConvCriterion(param, self.optimization_problem)
         convergence_criterium.Initialize()
-        search_direction = KratosOA.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
-        KratosOA.CollectiveExpressionIO.Read(search_direction, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
+        search_direction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)])
+        search_direction.CollectData()
         algorithm_data.GetBufferedData()["search_direction"] = search_direction
         self.assertFalse(convergence_criterium.IsConverged())
         self.optimization_problem.AdvanceStep()
-        algorithm_data.GetBufferedData()["search_direction"] = search_direction / 100000
+        algorithm_data.GetBufferedData()["search_direction"] = search_direction
+        search_direction.data[:] /= 100000
         self.assertTrue(convergence_criterium.IsConverged())
 
     def test_L2_max(self):
@@ -87,8 +88,8 @@ class TestConvergence(kratos_unittest.TestCase):
         convergence_criterium.Add(convergence_criterium_additional)
         convergence_criterium.Initialize()
 
-        search_direction = KratosOA.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
-        KratosOA.CollectiveExpressionIO.Read(search_direction, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
+        search_direction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)])
+        search_direction.CollectData()
         algorithm_data.GetBufferedData()["search_direction"] = search_direction
         self.assertFalse(convergence_criterium.IsConverged())
         self.optimization_problem.AdvanceStep()
@@ -270,8 +271,8 @@ class TestConvergence(kratos_unittest.TestCase):
         convergence_criterion = combined_conv_criterion.CombinedConvCriterion(self.model, params, self.optimization_problem)
         convergence_criterion.Initialize()
 
-        search_direction = KratosOA.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
-        KratosOA.CollectiveExpressionIO.Read(search_direction, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
+        search_direction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)])
+        search_direction.CollectData()
         algorithm_data.GetBufferedData()["search_direction"] = search_direction
         algorithm_data.GetBufferedData()["std_obj_value"] = 0.1
 
@@ -281,11 +282,13 @@ class TestConvergence(kratos_unittest.TestCase):
         algorithm_data.GetBufferedData()["std_obj_value"] = 1e-4
         self.assertTrue(convergence_criterion.IsConverged())
         self.optimization_problem.AdvanceStep()
-        algorithm_data.GetBufferedData()["search_direction"] = search_direction / 1e+6
+        search_direction.data[:] /= 1e+6
+        algorithm_data.GetBufferedData()["search_direction"] = search_direction
         algorithm_data.GetBufferedData()["std_obj_value"] = 0.1
         self.assertFalse(convergence_criterion.IsConverged())
         self.optimization_problem.AdvanceStep()
-        algorithm_data.GetBufferedData()["search_direction"] = search_direction / 1e+6
+        search_direction.data[:] /= 1e+6
+        algorithm_data.GetBufferedData()["search_direction"] = search_direction
         algorithm_data.GetBufferedData()["std_obj_value"] = 1e-9
         self.assertTrue(convergence_criterion.IsConverged())
 

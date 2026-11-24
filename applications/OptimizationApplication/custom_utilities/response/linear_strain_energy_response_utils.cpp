@@ -27,8 +27,8 @@
 #include "utilities/model_part_operation_utilities.h"
 
 // Application includes
-#include "expression/variable_expression_io.h"
-#include "custom_utilities/properties_variable_expression_io.h"
+#include "tensor_adaptors/variable_tensor_adaptor.h"
+#include "custom_utilities/tensor_adaptors/properties_variable_tensor_adaptor.h"
 #include "optimization_application_variables.h"
 
 // Include base h
@@ -83,26 +83,51 @@ double LinearStrainEnergyResponseUtils::CalculateValue(ModelPart& rEvaluatedMode
 
 void LinearStrainEnergyResponseUtils::CalculateGradient(
     const PhysicalFieldVariableTypes& rPhysicalVariable,
-    ModelPart& rGradientRequiredModelPart,
-    ModelPart& rGradientComputedModelPart,
-    std::vector<ContainerExpressionType>& rListOfContainerExpressions,
+    ModelPart& rValueInfluencingModelPart,
+    CombinedTensorAdaptor<double>& rCombinedTensorAdaptor,
     const double PerturbationSize)
 {
     KRATOS_TRY
 
+    CombinedTensorAdaptor<double> temp_cta(rCombinedTensorAdaptor, false, false, false);
+
     std::visit([&](auto pVariable) {
         if (*pVariable == YOUNG_MODULUS) {
-            block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(YOUNG_MODULUS_SENSITIVITY, 0.0); });
-            CalculateStrainEnergyLinearlyDependentPropertyGradient(rGradientComputedModelPart, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
+            // clears the existing values because there may be left over vales on the containers in the provided combined tensor adaptors.
+            for (const auto& p_ta : temp_cta.GetTensorAdaptors()) {
+                if (!std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(p_ta->GetContainer())) {
+                    KRATOS_ERROR << pVariable->Name() << " sensitivity can be computed only on elemental containers.";
+                }
+                block_for_each(*std::get<ModelPart::ElementsContainerType::Pointer>(p_ta->GetContainer()), [](auto& rElement) { rElement.GetProperties().SetValue(YOUNG_MODULUS_SENSITIVITY, 0.0); });
+            }
+            CalculateStrainEnergyLinearlyDependentPropertyGradient(rValueInfluencingModelPart, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
         } else if (*pVariable == THICKNESS) {
-            block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
-            CalculateStrainEnergySemiAnalyticPropertyGradient(rGradientComputedModelPart, PerturbationSize, THICKNESS, THICKNESS_SENSITIVITY);
+            // clears the existing values because there may be left over vales on the containers in the provided combined tensor adaptors.
+            for (const auto& p_ta : temp_cta.GetTensorAdaptors()) {
+                if (!std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(p_ta->GetContainer())) {
+                    KRATOS_ERROR << pVariable->Name() << " sensitivity can be computed only on elemental containers.";
+                }
+                block_for_each(*std::get<ModelPart::ElementsContainerType::Pointer>(p_ta->GetContainer()), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
+            }
+            CalculateStrainEnergySemiAnalyticPropertyGradient(rValueInfluencingModelPart, PerturbationSize, THICKNESS, THICKNESS_SENSITIVITY);
         } else if (*pVariable == POISSON_RATIO) {
-            block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(POISSON_RATIO_SENSITIVITY, 0.0); });
-            CalculateStrainEnergySemiAnalyticPropertyGradient(rGradientComputedModelPart, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
+            // clears the existing values because there may be left over vales on the containers in the provided combined tensor adaptors.
+            for (const auto& p_ta : temp_cta.GetTensorAdaptors()) {
+                if (!std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(p_ta->GetContainer())) {
+                    KRATOS_ERROR << pVariable->Name() << " sensitivity can be computed only on elemental containers.";
+                }
+                block_for_each(*std::get<ModelPart::ElementsContainerType::Pointer>(p_ta->GetContainer()), [](auto& rElement) { rElement.GetProperties().SetValue(POISSON_RATIO_SENSITIVITY, 0.0); });
+            }
+            CalculateStrainEnergySemiAnalyticPropertyGradient(rValueInfluencingModelPart, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
         } else if (*pVariable == SHAPE) {
-            VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, rGradientRequiredModelPart.Nodes());
-            CalculateStrainEnergySemiAnalyticShapeGradient(rGradientComputedModelPart, PerturbationSize, SHAPE_SENSITIVITY);
+            // clears the existing values because shape sensitivity is summed from each element on nodes
+            for (const auto& p_ta : temp_cta.GetTensorAdaptors()) {
+                if (!std::holds_alternative<ModelPart::NodesContainerType::Pointer>(p_ta->GetContainer())) {
+                    KRATOS_ERROR << "SHAPE sensitivity can be computed only on nodal containers.";
+                }
+                VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, *std::get<ModelPart::NodesContainerType::Pointer>(p_ta->GetContainer()));
+            }
+            CalculateStrainEnergySemiAnalyticShapeGradient(rValueInfluencingModelPart, PerturbationSize, SHAPE_SENSITIVITY);
         } else {
             KRATOS_ERROR
                 << "Unsupported sensitivity w.r.t. " << pVariable->Name()
@@ -113,39 +138,35 @@ void LinearStrainEnergyResponseUtils::CalculateGradient(
                 << "\n\t" << SHAPE.Name();
         }
 
-        // now fill the container expressions
-        for (auto& p_container_expression : rListOfContainerExpressions) {
-            std::visit([pVariable](auto& pContainerExpression){
-                using container_type = std::decay_t<decltype(*pContainerExpression)>;
+        // now fill the container tensor adaptors
+        for (auto p_tensor_adaptor : rCombinedTensorAdaptor.GetTensorAdaptors()) {
+            std::visit([&p_tensor_adaptor, &pVariable](const auto& pContainer) {
+                using container_type = BareType<decltype(*pContainer)>;
 
-                if (*pVariable == SHAPE) {
-                    if constexpr(std::is_same_v<container_type, ContainerExpression<ModelPart::NodesContainerType>>) {
-                        VariableExpressionIO::Read(*pContainerExpression, &SHAPE_SENSITIVITY, false);
-                    } else {
-                        KRATOS_ERROR << "Requesting sensitivity w.r.t. "
-                                        "SHAPE for a Container expression "
-                                        "which is not a NodalExpression. [ "
-                                        "Requested container expression = "
-                                        << *pContainerExpression << " ].\n";
-                    }
+                if constexpr(std::is_same_v<container_type, ModelPart::NodesContainerType>) {
+                    KRATOS_ERROR_IF_NOT(*pVariable == SHAPE)
+                        << "Sensitivity w.r.t. " << pVariable->Name()
+                        << " can be computed on an element tensor adaptor only. "
+                        << "Requested tensor adaptor = "
+                        << *p_tensor_adaptor << " ].\n";
+                    VariableTensorAdaptor(*p_tensor_adaptor, &SHAPE_SENSITIVITY, false).CollectData();
                 } else {
-                    if constexpr(std::is_same_v<container_type, ContainerExpression<ModelPart::ElementsContainerType>>) {
-                        const auto& sensitivity_variable = KratosComponents<Variable<double>>::Get(pVariable->Name() + "_SENSITIVITY");
-                        PropertiesVariableExpressionIO::Read(*pContainerExpression, &sensitivity_variable);
-                    } else {
-                        KRATOS_ERROR << "Requesting sensitivity w.r.t. "
-                                     << pVariable->Name()
-                                     << " for a Container expression "
-                                        "which is not an ElementExpression. [ "
-                                        "Requested container expression = "
-                                     << *pContainerExpression << " ].\n";
-                    }
+                    KRATOS_ERROR_IF(*pVariable == SHAPE)
+                        << "Sensitivity w.r.t. " << pVariable->Name()
+                        << " can be computed on a nodal tensor adaptor only. "
+                        << "Requested tensor adaptor = "
+                        << *p_tensor_adaptor << " ].\n";
+
+                    const auto& sensitivity_variable = KratosComponents<Variable<double>>::Get(pVariable->Name() + "_SENSITIVITY");
+                    PropertiesVariableTensorAdaptor(*p_tensor_adaptor, &sensitivity_variable, false).CollectData();
                 }
-
-
-            }, p_container_expression);
+            }, p_tensor_adaptor->GetContainer());
         }
     }, rPhysicalVariable);
+
+    // update the combined tensor adaptor flat vector.
+    // below will never call the CollectData recursively.
+    temp_cta.CollectData();
 
     KRATOS_CATCH("");
 }

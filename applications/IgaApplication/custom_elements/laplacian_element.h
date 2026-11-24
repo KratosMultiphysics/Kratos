@@ -119,6 +119,16 @@ public:
 
     /**
     * @brief This is called during the assembling process in order
+    *        to calculate the mass matrix
+    * @param rMassMatrix the mass matrix
+    * @param rCurrentProcessInfo the current process info
+    */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix, 
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * @brief This is called during the assembling process in order
     *        to calculate the condition right hand side matrix
     * @param rLeftHandSideMatrix the condition right hand side matrix
     * @param rCurrentProcessInfo the current process info
@@ -126,6 +136,9 @@ public:
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector, 
         const ProcessInfo& rCurrentProcessInfo) override;
+
+    /// @brief Computes and stores the gradient variable for the geometry at the end of the step.
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(
         EquationIdVectorType& rResult, 

@@ -21,6 +21,7 @@
 
 // Application includes
 #include "custom_conditions/sbm_laplacian_condition_neumann.h"
+#include "includes/global_pointer_variables.h"
 
 
 namespace Kratos
@@ -42,11 +43,11 @@ void SbmLaplacianConditionNeumann::CalculateLocalSystem(
     const std::size_t mat_size = GetGeometry().size() * 1;
 
     if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
+        rRightHandSideVector.resize(mat_size, false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
-        rLeftHandSideMatrix.resize(mat_size, mat_size);
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
@@ -82,10 +83,23 @@ void SbmLaplacianConditionNeumann::InitializeMemberVariables()
 void SbmLaplacianConditionNeumann::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
+    if (this->Has(NEIGHBOUR_NODES) && !this->Has(NEIGHBOUR_CONDITIONS)) {
+        auto& r_projection_nodes = this->GetValue(NEIGHBOUR_NODES);
+        KRATOS_ERROR_IF(r_projection_nodes.size() != 1)
+            << "Expected one projection node in condition #" << Id() << std::endl;
+        mpProjectionNode = &r_projection_nodes[0];
+        mDistanceVector.resize(3, false);
+        noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+        // The modeler already applies the inner/outer orientation.
+        mTrueNormal = mpProjectionNode->GetValue(NORMAL);
+        mTrueDotSurrogateNormal = inner_prod(mNormalParameterSpace, mTrueNormal);
+        return;
+    }
+
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
     // Find the closest node in condition
-    int closestNodeId;
+    int closestNodeId = 0;
     if (mDim > 2) {
         double incumbent_dist = 1e16;
         // Loop over the three nodes of the closest skin element
@@ -100,7 +114,7 @@ void SbmLaplacianConditionNeumann::InitializeSbmMemberVariables()
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
-    mDistanceVector.resize(3);
+    mDistanceVector.resize(3, false);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 
     // loopIdentifier is inner or outer
@@ -244,7 +258,7 @@ void SbmLaplacianConditionNeumann::ComputeGradientTaylorExpansionContribution(Ma
 
     if (grad_H_sum.size1() != 3 || grad_H_sum.size2() != number_of_nodes)
     {
-        grad_H_sum.resize(3, number_of_nodes);
+        grad_H_sum.resize(3, number_of_nodes, false);
     }
 
     // Neumann (Taylor expansion of the gradient)

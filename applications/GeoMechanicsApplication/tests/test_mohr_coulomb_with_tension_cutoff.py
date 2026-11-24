@@ -1,8 +1,8 @@
 import os
 import KratosMultiphysics                as Kratos
+import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
-
 
 class KratosGeoMechanicsMohrCoulombWithTensionTests(KratosUnittest.TestCase):
     """
@@ -17,60 +17,72 @@ class KratosGeoMechanicsMohrCoulombWithTensionTests(KratosUnittest.TestCase):
         sig_xx = sig_integrationpoint1_element1[0,0]
         index = dimension - 1
         sig_yy_or_zz = sig_integrationpoint1_element1[index,index]
-        return sig_xx, sig_yy_or_zz
+        plastic_status_ips = test_helper.get_on_integration_points(simulation, KratosGeo.GEO_PLASTICITY_STATUS)
+        return sig_xx, sig_yy_or_zz, plastic_status_ips[0][0]
 
     def test_dirichlet_corner_return_zone_2d(self):
-        sig_xx, sig_yy = self.simulate_mohr_coulomb('test_dirichlet_corner_return_zone_2d', 2)
+        sig_xx, sig_yy, plastic_status = self.simulate_mohr_coulomb('test_dirichlet_corner_return_zone_2d', 2)
         self.assertAlmostEqual(sig_xx, 10.0)
         self.assertAlmostEqual(sig_yy, -1.5179192179966735)
+        self.assertEqual(plastic_status, 3)
 
     def test_dirichlet_elastic_zone_2d(self):
-        sig_xx, sig_yy = self.simulate_mohr_coulomb('test_dirichlet_elastic_zone_2d', 2)
+        sig_xx, sig_yy, plastic_status = self.simulate_mohr_coulomb('test_dirichlet_elastic_zone_2d', 2)
         self.assertAlmostEqual(sig_xx, -10.0)
         self.assertAlmostEqual(sig_yy, -10.0)
+        self.assertEqual(plastic_status, 0)
 
     def test_dirichlet_regular_failure_zone_2d(self):
-        sig_xx, sig_yy = self.simulate_mohr_coulomb('test_dirichlet_regular_failure_zone_2d', 2)
+        sig_xx, sig_yy, plastic_status = self.simulate_mohr_coulomb('test_dirichlet_regular_failure_zone_2d', 2)
         self.assertAlmostEqual(sig_xx, 3.430712712091948)
         self.assertAlmostEqual(sig_yy, -25.759721409731483)
+        self.assertEqual(plastic_status, 4)
 
     def test_dirichlet_tension_apex_return_zone_2d(self):
-        sig_xx, sig_yy = self.simulate_mohr_coulomb('test_dirichlet_tension_apex_return_zone_2d', 2)
+        # tension apex could not be reached without Poisson's ratio, so a different material file is used here
+        sig_xx, sig_yy, plastic_status = self.simulate_mohr_coulomb('test_dirichlet_tension_apex_return_zone_2d', 2)
         self.assertAlmostEqual(sig_xx, 10.0)
         self.assertAlmostEqual(sig_yy, 10.0)
+        self.assertEqual(plastic_status, 1)
 
     def test_dirichlet_tension_cutoff_return_zone_2d(self):
-        sig_xx, sig_yy = self.simulate_mohr_coulomb('test_dirichlet_tension_cutoff_return_zone_2d', 2)
+        sig_xx, sig_yy, plastic_status = self.simulate_mohr_coulomb('test_dirichlet_tension_cutoff_return_zone_2d', 2)
         self.assertAlmostEqual(sig_xx, 10.0)
         self.assertAlmostEqual(sig_yy, 8.0)
+        self.assertEqual(plastic_status, 2)
 
     def test_dirichlet_corner_return_zone_3d(self):
-        sig_xx, sig_zz = self.simulate_mohr_coulomb('test_dirichlet_corner_return_zone_3d', 3)
+        sig_xx, sig_zz, plastic_status = self.simulate_mohr_coulomb('test_dirichlet_corner_return_zone_3d', 3)
         self.assertAlmostEqual(sig_xx, 10.0)
         self.assertAlmostEqual(sig_zz, -1.5179192179966735)
+        self.assertEqual(plastic_status, 3)
 
     def test_dirichlet_elastic_zone_3d(self):
-        sig_xx, sig_zz = self.simulate_mohr_coulomb('test_dirichlet_elastic_zone_3d', 3)
+        sig_xx, sig_zz, plastic_status = self.simulate_mohr_coulomb('test_dirichlet_elastic_zone_3d', 3)
         self.assertAlmostEqual(sig_xx, -10.0)
         self.assertAlmostEqual(sig_zz, -10.0)
+        self.assertEqual(plastic_status, 0)
 
     def test_dirichlet_regular_failure_zone_3d(self):
-        sig_xx, sig_zz = self.simulate_mohr_coulomb('test_dirichlet_regular_failure_zone_3d', 3)
+        sig_xx, sig_zz, plastic_status = self.simulate_mohr_coulomb('test_dirichlet_regular_failure_zone_3d', 3)
         self.assertAlmostEqual(sig_xx, 3.430712712091948)
         self.assertAlmostEqual(sig_zz, -25.759721409731483)
+        self.assertEqual(plastic_status, 4)
 
     def test_dirichlet_tension_apex_return_zone_3d(self):
-        sig_xx, sig_zz = self.simulate_mohr_coulomb('test_dirichlet_tension_apex_return_zone_3d', 3)
+        sig_xx, sig_zz, plastic_status = self.simulate_mohr_coulomb('test_dirichlet_tension_apex_return_zone_3d', 3)
         self.assertAlmostEqual(sig_xx, 10.0)
         self.assertAlmostEqual(sig_zz, 10.0)
+        self.assertEqual(plastic_status, 1)
 
     def test_dirichlet_tension_cutoff_return_zone_3d(self):
-        sig_xx, sig_zz = self.simulate_mohr_coulomb('test_dirichlet_tension_cutoff_return_zone_3d', 3)
+        sig_xx, sig_zz, plastic_status = self.simulate_mohr_coulomb('test_dirichlet_tension_cutoff_return_zone_3d', 3)
         self.assertAlmostEqual(sig_xx, 10.0)
         self.assertAlmostEqual(sig_zz, 8.0)
+        self.assertEqual(plastic_status, 2)
         
     def test_column_under_gravity(self):
-        sig_xx, sig_yy = self.simulate_mohr_coulomb('test_column_under_gravity', 2)
+        sig_xx, sig_yy, _ = self.simulate_mohr_coulomb('test_column_under_gravity', 2)
         self.assertAlmostEqual(sig_xx, -6300.238764425369)
         self.assertAlmostEqual(sig_yy, -22364.817908413854)
 

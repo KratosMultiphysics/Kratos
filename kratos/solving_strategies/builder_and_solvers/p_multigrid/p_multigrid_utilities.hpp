@@ -13,15 +13,15 @@
 #pragma once
 
 // Project includes
+#include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // CSRHashMap, CSRHashSet
 #include "geometries/geometry_data.h" // GeometryData
 #include "geometries/geometry.h" // Geometry
-#include "spaces/ublas_space.h" // TUblasSparseSpace
+#include "spaces/default_spaces.h"
 #include "includes/lock_object.h" // LockObject
 
 // System includes
 #include <tuple> // std::tuple
 #include <vector> // std::vector
-#include <unordered_map> // std::unordered_map
 #include <limits> // std::numeric_limits
 #include <cstdint> // std::uint8_t
 #include <algorithm> // std::remove_if
@@ -305,7 +305,7 @@ template <unsigned OrderReduction, class TValue>
 void MakePRestrictionOperator(ModelPart& rModelPart,
                               const std::size_t FineSystemSize,
                               const PointerVectorSet<Dof<double>>& rParentIndirectDofSet,
-                              typename TUblasSparseSpace<TValue>::MatrixType& rRestrictionOperator,
+                              typename TDefaultSparseSpace<TValue>::MatrixType& rRestrictionOperator,
                               const VariablesList::Pointer& rpVariableList,
                               std::vector<detail::DofData>& rDofSet,
                               PointerVectorSet<Dof<double>>& rIndirectDofSet,
@@ -316,7 +316,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
 
     KRATOS_TRY
 
-    using GlobalIndex = typename TUblasSparseSpace<TValue>::MatrixType::size_type;
+    using GlobalIndex = typename TDefaultSparseSpace<TValue>::MatrixType::size_type;
     using LocalIndex = std::uint8_t;
 
     // Construct an extended representation of the restriction operator.
@@ -329,7 +329,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     // fine row indices are stored, from which coarse row indices can later
     // be computed.
     std::vector<std::pair<
-        std::unordered_map<
+        CSRHashMap<
             GlobalIndex,    // <== column index
             TValue          // <== value
         >,
@@ -483,7 +483,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     KRATOS_ERROR_IF_NOT(rows.size() == i_coarse_dof);
 
     // Resize the restriction operator.
-    rRestrictionOperator = typename TUblasSparseSpace<TValue>::MatrixType(i_coarse_dof, FineSystemSize, entry_count);
+    rRestrictionOperator = typename TDefaultSparseSpace<TValue>::MatrixType(i_coarse_dof, FineSystemSize, entry_count);
     KRATOS_CATCH("")
 
     // todo
@@ -498,7 +498,7 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     // This means that fine Dofs can be reused for the coarse system.
     KRATOS_TRY
     // Collect solution step variables and store them in a hash map.
-    std::unordered_map<typename Variable<double>::KeyType,const Variable<double>*> solution_step_variable_map;
+    CSRHashMap<typename Variable<double>::KeyType,const Variable<double>*> solution_step_variable_map;
 
     for (const auto& r_variable_data : rModelPart.GetNodalSolutionStepVariablesList()) {
         const std::string& r_name = r_variable_data.Name();

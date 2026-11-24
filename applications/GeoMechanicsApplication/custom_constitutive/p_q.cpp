@@ -7,7 +7,6 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//
 //  Main authors:    Anne van de Graaf
 //
 
@@ -31,5 +30,17 @@ double& PQ::P() noexcept { return mValues[0]; }
 double PQ::Q() const noexcept { return mValues[1]; }
 
 double& PQ::Q() noexcept { return mValues[1]; }
+
+PQ& PQ::operator+=(const PQ& rRhs)
+{
+    std::ranges::transform(mValues, rRhs.mValues, mValues.begin(), std::plus{});
+    return *this;
+}
+
+PQ operator+(PQ Lhs, const PQ& rRhs)
+{
+    Lhs += rRhs;
+    return Lhs;
+}
 
 } // namespace Kratos::Geo

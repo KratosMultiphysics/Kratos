@@ -7,8 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
-//                   Ruben Zorrilla
+//  Main authors:    Ruben Zorrilla
 //
 
 #pragma once
@@ -26,75 +25,125 @@
 namespace Kratos::Future
 {
 
-// Base class for all direct solvers in Kratos.
-/* This class define the general interface for direct solvers in Kratos.
-   direct solver is a template class with this parameter:
-   - TMatrixType which specify type
-     of the unknowns, coefficients, sparse matrix, vector of
-   unknowns, right hand side vector and their respective operators.
-   - TDenseMatrixType which specify type of the
-     matrices used as temporary matrices or multi solve unknowns and
-   right hand sides and their operators.
-*/
-template<class TMatrixType = CsrMatrix<>, class TVectorType = SystemVector<>>
-class DirectSolver : public Future::LinearSolver<TMatrixType, TVectorType>
+/**
+ * @class DirectSolver
+ * @ingroup KratosCore
+ * @brief Base class for all direct solvers in Kratos.
+ * @details This class defines the general interface for direct solvers in Kratos.
+ * @tparam TLinearAlgebra The version of the linear algebra to be used.
+ * @author Ruben Zorrilla
+ */
+template<class TLinearAlgebra>
+class DirectSolver : public Future::LinearSolver<TLinearAlgebra>
 {
 public:
+    ///@name Type Definitions
+    ///@{
 
     /// Counted pointer of DirectSolver
     KRATOS_CLASS_POINTER_DEFINITION(DirectSolver);
 
-    using BaseType = Future::LinearSolver<TMatrixType, TVectorType>;
+    /// Base type definition
+    using BaseType = Future::LinearSolver<TLinearAlgebra>;
 
-    using VectorType = TVectorType;
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-    using SparseMatrixType = TMatrixType;
-
-    using DenseMatrixType = typename BaseType::DenseMatrixType;
-
-    /// Default constructor.
-    DirectSolver() = default;
-
-    DirectSolver(Parameters settings) {}
+    /**
+     * @brief Default constructor.
+     */
+    DirectSolver()
+        : BaseType()
+    {}
 
     /// Destructor.
     ~DirectSolver() override = default;
 
     /// Copy constructor.
-    DirectSolver(const DirectSolver& Other) {}
+    DirectSolver(const DirectSolver& Other) = delete;
 
-    /// Print information about this object.
+    ///@}
+    ///@name Operatiors
+    ///@{
+
+    /// Assignment operator.
+    DirectSolver& operator=(const DirectSolver& Other) = delete;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters(R"({
+            "solver_type" : "direct_solver"
+        })");
+        default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
+
+        return default_parameters;
+    }
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /**
+     * @brief Print information about this object.
+     * @param rOStream The output stream.
+     */
     void  PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Direct solver";
     }
 
-    /// Print object's data.
+    /**
+     * @brief Print object's data.
+     * @param rOStream The output stream.
+     */
     void  PrintData(std::ostream& rOStream) const override
     {
     }
 
-private:
-
-    /// Assignment operator.
-    DirectSolver& operator=(const DirectSolver& Other);
-
+    ///@}
 }; // Class DirectSolver
 
-/// input stream function
-template<class TMatrixType, class TVectorType>
+///@}
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+/**
+ * @brief input stream function
+ * @param rIStream The input stream.
+ * @param rThis The object relative to the input stream.
+ */
+template<class TLinearAlgebra>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    DirectSolver<TMatrixType, TVectorType>& rThis)
+    DirectSolver<TLinearAlgebra>& rThis)
 {
     return rIStream;
 }
 
-/// output stream function
-template<class TMatrixType, class TVectorType>
+/**
+ * @brief output stream function
+ * @param rOStream The output stream.
+ * @param rThis The object relative to the output stream.
+ */
+template<class TLinearAlgebra>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const DirectSolver<TMatrixType,TVectorType>& rThis)
+    const DirectSolver<TLinearAlgebra>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -102,5 +151,7 @@ inline std::ostream& operator << (
 
     return rOStream;
 }
+
+///@}
 
 }  // namespace Kratos::Future.

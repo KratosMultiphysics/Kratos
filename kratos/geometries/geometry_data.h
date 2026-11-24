@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "integration/integration_point.h"
 #include "geometries/geometry_dimension.h"
 #include "geometries/geometry_shape_function_container.h"
@@ -138,10 +138,13 @@ public:
         Kratos_Nurbs_Surface,
         Kratos_Nurbs_Volume,
         Kratos_Nurbs_Curve_On_Surface,
+        Kratos_Nurbs_Surface_On_Volume,
         Kratos_Surface_In_Nurbs_Volume,
         Kratos_Brep_Curve,
         Kratos_Brep_Surface,
+        Kratos_Brep_Volume,
         Kratos_Brep_Curve_On_Surface,
+        Kratos_Brep_Surface_On_Volume,
         Kratos_Quadrature_Point_Geometry,
         Kratos_Coupling_Geometry,
         Kratos_Quadrature_Point_Curve_Geometry,

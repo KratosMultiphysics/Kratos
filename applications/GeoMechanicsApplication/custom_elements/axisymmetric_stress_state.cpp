@@ -31,11 +31,11 @@ Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         rDN_DX,
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         const IndexType index = dimension * i;
 
-        result(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = rDN_DX(i, INDEX_X);
-        result(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = rDN_DX(i, INDEX_Y);
-        result(INDEX_2D_PLANE_STRAIN_ZZ, index + INDEX_X) = rN[i] / radius;
-        result(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = rDN_DX(i, INDEX_Y);
-        result(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = rDN_DX(i, INDEX_X);
+        result(0, index + 0) = rDN_DX(i, 0);
+        result(1, index + 1) = rDN_DX(i, 1);
+        result(2, index + 0) = rN[i] / radius;
+        result(3, index + 0) = rDN_DX(i, 1);
+        result(3, index + 1) = rDN_DX(i, 0);
     }
 
     return result;

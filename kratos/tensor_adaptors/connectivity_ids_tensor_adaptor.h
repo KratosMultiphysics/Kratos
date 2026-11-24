@@ -19,7 +19,7 @@
 
 // Project includes
 #include "tensor_adaptor.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "utilities/data_type_traits.h"
 
 namespace Kratos {
@@ -69,6 +69,12 @@ public:
   ConnectivityIdsTensorAdaptor(const BaseType &rOther, const bool Copy = true);
 
   ConnectivityIdsTensorAdaptor(const ConnectivityIdsTensorAdaptor& rOther) = default;
+
+  /**
+   * @brief Construct an empty, invalid instance.
+   * @details Only intended for @ref Serializer::load to construct into before populating via @ref load.
+   */
+  ConnectivityIdsTensorAdaptor() = default;
 
   // Destructor
   ~ConnectivityIdsTensorAdaptor() override = default;
@@ -132,6 +138,17 @@ private:
       return rEntity.GetGeometry();
     }
   }
+
+  ///@name Serialization
+  ///@{
+
+  friend class Serializer;
+
+  void save(Serializer& rSerializer) const override;
+
+  void load(Serializer& rSerializer) override;
+
+  ///@}
 };
 
 /// @}

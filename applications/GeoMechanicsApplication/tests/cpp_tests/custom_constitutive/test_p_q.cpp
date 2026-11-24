@@ -7,7 +7,6 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//
 //  Main authors:    Anne van de Graaf
 //
 
@@ -34,8 +33,8 @@ class TestPQFixture : public ::testing::Test
 {
 };
 
-using TestVectorTypes = ::testing::Types<Vector, BoundedVector<double, 2>, std::vector<double>>;
-TYPED_TEST_SUITE(TestPQFixture, TestVectorTypes);
+using VectorTypesForTypedPQTest = ::testing::Types<Vector, BoundedVector<double, 2>, std::vector<double>>;
+TYPED_TEST_SUITE(TestPQFixture, VectorTypesForTypedPQTest);
 
 TYPED_TEST(TestPQFixture, PQ_CanBeConstructedFromAnyVectorWithSizeOf2)
 {
@@ -66,6 +65,20 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_RaisesADebugErrorWhenAttempt
     // Act & Assert
     EXPECT_THROW(Geo::PQ{too_short}, Exception);
     EXPECT_THROW(Geo::PQ{too_long}, Exception);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_CanBeConstructedFromAVectorExpression)
+{
+    // Arrange
+    const auto     some_matrix = UblasUtilities::CreateMatrix({{1.0, 2.0}, {3.0, 4.0}});
+    const auto     some_vector = UblasUtilities::CreateVector({2.0, 3.0});
+    constexpr auto some_scalar = 1.5;
+
+    // Act & Assert
+    // The following code won't compile when the template constructor of class `PQ` (which receives
+    // a vector-like object) uses `std::ranges` algorithms when a UBlas vector expression is given.
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::PQ{some_scalar * prod(some_matrix, some_vector)}.Values(),
+                              (std::vector{12.0, 27.0}), Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_CanBeConstructedFromFromTwoValues)
@@ -99,6 +112,27 @@ TYPED_TEST(TestPQFixture, PQ_CanBeCopiedToAnyVectorTypeWithSizeOf2)
 
     // Act & Assert
     KRATOS_EXPECT_VECTOR_NEAR(stress_state.CopyTo<TypeParam>(), (std::vector{1.0, 2.0}), Defaults::absolute_tolerance);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_SupportsCompoundAssignment)
+{
+    // Arrange
+    auto stress_state = Geo::PQ{1.0, 2.0};
+
+    // Act
+    stress_state += Geo::PQ{3.0, 4.0};
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(stress_state.Values(), (std::vector{4.0, 6.0}), Defaults::absolute_tolerance);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_SupportsAdditionOfTwoInstances)
+{
+    // Arrange & Act
+    const auto summed_stress_state = Geo::PQ{1.0, 3.0} + Geo::PQ{2.0, 4.0};
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(summed_stress_state.Values(), (std::vector{3.0, 7.0}), Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing

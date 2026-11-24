@@ -22,7 +22,7 @@ namespace Kratos
 {
 
 template <unsigned int TNumNodes>
-class PermeabilityCalculator : public ContributionCalculator<TNumNodes> ///
+class PermeabilityCalculator : public ContributionCalculator<TNumNodes>
 {
 public:
     struct InputProvider {
@@ -95,7 +95,6 @@ private:
             const auto relative_permeability =
                 mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(
                     retention_parameters);
-
             noalias(result) += GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
                 r_shape_function_gradients[integration_point_index], dynamic_viscosity_inverse, material_permeability,
                 relative_permeability, r_integration_coefficients[integration_point_index]);

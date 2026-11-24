@@ -20,6 +20,7 @@
 #include "includes/properties.h"
 #include "includes/variables.h"
 
+#include <limits>
 #include <optional>
 #include <string>
 
@@ -39,6 +40,8 @@ public:
 
     static void CheckForNonZeroZCoordinateIn2D(const Geometry<Node>& rGeometry);
 
+    static void CheckValuesAreAscending(const Vector& rValues, const std::string& rName, bool AllowEqual = false);
+
 private:
     static std::string PrintVectorContent(const std::vector<size_t>& rVector);
 }; /* Class CheckUtilities*/
@@ -53,9 +56,9 @@ public:
         ExclusiveLowerAndInclusiveUpper
     };
 
-    CheckProperties(const Properties& rProperties, const std::string& rPrintName, Bounds RangeBoundsType);
+    CheckProperties(const Properties& rProperties, std::string PrintName, Bounds RangeBoundsType);
 
-    CheckProperties(const Properties& rProperties, const std::string& rPrintName, std::size_t ElementId, Bounds RangeBoundsType);
+    CheckProperties(const Properties& rProperties, std::string PrintName, std::size_t ElementId, Bounds RangeBoundsType);
 
     CheckProperties(const CheckProperties&) = delete;
 
@@ -130,7 +133,7 @@ public:
 
 private:
     const Properties&                mrProperties;
-    const std::string                mrPrintName;
+    const std::string                mPrintName;
     const std::optional<std::size_t> mElementId = std::nullopt;
     mutable Bounds                   mRangeBoundsType;
     const double                     mDefaultLowerBound = 0.0;
@@ -166,8 +169,9 @@ private:
                 UpperBound && ((mRangeBoundsType == AllInclusive) ||
                                (mRangeBoundsType == ExclusiveLowerAndInclusiveUpper));
             std::ostringstream print_range;
-            print_range << (include_lower_bound ? "[" : "(") << LowerBound << ", "
-                        << (UpperBound ? double_to_string(*UpperBound) : "-")
+            print_range << (include_lower_bound ? "[" : "(")
+                        << (LowerBound == -std::numeric_limits<double>::infinity() ? "-" : double_to_string(LowerBound))
+                        << ", " << (UpperBound ? double_to_string(*UpperBound) : "-")
                         << (include_upper_bound ? "]" : ")");
             KRATOS_ERROR << rVariable.Name() << print_property_id() << print_element_id()
                          << " has an invalid value: " << value << " is out of the range "
@@ -175,7 +179,7 @@ private:
         }
     }
 
-    std::string double_to_string(double value) const;
+    static std::string double_to_string(double value);
 
     std::string print_property_id() const;
 

@@ -296,7 +296,7 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
     const bool ComputeRHS
     )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     // The slave geometry
     const GeometryType& r_slave_geometry = this->GetParentGeometry();
@@ -324,6 +324,8 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
     const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
     const bool consider_tessellation = r_properties.Has(CONSIDER_TESSELLATION) ? r_properties[CONSIDER_TESSELLATION] : false;
     IntegrationUtility integration_utility = IntegrationUtility (integration_order, distance_threshold, 0, zero_tolerance_factor, consider_tessellation);
+    const double reference_length = rCurrentProcessInfo.Has(PROBLEM_REFERENCE_LENGTH) ? rCurrentProcessInfo[PROBLEM_REFERENCE_LENGTH] : 1.0;
+    const double integration_area_tolerance = rCurrentProcessInfo.Has(INTEGRATION_OVER_TOTAL_AREA_TOLERANCE) ? rCurrentProcessInfo[INTEGRATION_OVER_TOTAL_AREA_TOLERANCE] : 1.0e-12;
 
     // The master geometry
     const GeometryType& r_master_geometry = this->GetPairedGeometry();
@@ -337,7 +339,7 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
     integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
 
     const double geometry_area = r_slave_geometry.Area();
-    if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {
+    if (is_inside && ((integration_area / geometry_area) > integration_area_tolerance * reference_length * reference_length)) {
         const IntegrationMethod this_integration_method = GetIntegrationMethod();
 
         // Initialize general variables for the current master element
@@ -351,7 +353,7 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
 
         if constexpr (TNormalVariation) DerivativesUtilitiesType::CalculateDeltaNormalMaster(derivative_data.DeltaNormalMaster, r_master_geometry);
 
-        const bool dual_LM =  DerivativesUtilitiesType::CalculateAeAndDeltaAe(r_slave_geometry, r_normal_slave, r_master_geometry, derivative_data, general_variables, consider_normal_variation, conditions_points_slave, this_integration_method, GetAxisymmetricCoefficient(general_variables));
+        const bool dual_LM =  DerivativesUtilitiesType::CalculateAeAndDeltaAe(r_slave_geometry, r_normal_slave, r_master_geometry, r_normal_master, derivative_data, general_variables, consider_normal_variation, conditions_points_slave, this_integration_method, GetAxisymmetricCoefficient(general_variables));
 
         PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
         array_1d<BelongType, TDim> belong_array;

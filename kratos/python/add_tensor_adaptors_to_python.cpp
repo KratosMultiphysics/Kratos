@@ -24,11 +24,13 @@
 #include "python/numpy_utils.h"
 #include "utilities/container_io_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "tensor_adaptors/tensor_adaptor_utils.h"
 
 // Tensor adaptors
 #include "tensor_adaptors/combined_tensor_adaptor.h"
 #include "tensor_adaptors/connectivity_ids_tensor_adaptor.h"
 #include "tensor_adaptors/equation_ids_tensor_adaptor.h"
+#include "tensor_adaptors/fixity_tensor_adaptor.h"
 #include "tensor_adaptors/flags_tensor_adaptor.h"
 #include "tensor_adaptors/gauss_point_variable_tensor_adaptor.h"
 #include "tensor_adaptors/historical_variable_tensor_adaptor.h"
@@ -36,6 +38,7 @@
 #include "tensor_adaptors/geometries_tensor_adaptor.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "tensor_adaptors/variable_tensor_adaptor.h"
+#include "tensor_adaptors/geometry_metrics_tensor_adaptor.h"
 
 // Include base h
 #include "add_tensor_adaptors_to_python.h"
@@ -52,6 +55,7 @@ void AddBaseTensorAdaptor(
      // add the base tensor adaptor
      using tensor_adaptor = TensorAdaptor<TDataType>;
      pybind11::class_<tensor_adaptor, typename tensor_adaptor::Pointer>(rModule, (rName + "Adaptor").c_str())
+          .def(pybind11::init<>())
           .def(pybind11::init<typename tensor_adaptor::ContainerPointerType, typename NDData<TDataType>::Pointer, const bool>(),
                pybind11::arg("container"),
                pybind11::arg("nd_data"),
@@ -95,6 +99,7 @@ void AddCombinedTensorAdaptor(
 {
      using combined_ta_type = CombinedTensorAdaptor<TDataType>;
      pybind11::class_<combined_ta_type, typename combined_ta_type::Pointer, typename combined_ta_type::BaseType>(rModule, rName.c_str())
+          .def(pybind11::init<>())
           .def(pybind11::init<const typename combined_ta_type::TensorAdaptorVectorType &, const bool, const bool, const bool>(),
                pybind11::arg("list_of_tensor_adaptors"),
                pybind11::arg("perform_collect_data_recursively") = true,
@@ -128,7 +133,12 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
      Detail::AddCombinedTensorAdaptor<int>(tensor_adaptor_sub_module, "IntCombinedTensorAdaptor");
      Detail::AddCombinedTensorAdaptor<double>(tensor_adaptor_sub_module, "DoubleCombinedTensorAdaptor");
 
+     auto tensor_adaptor_utils = tensor_adaptor_sub_module.def_submodule("Utils");
+     tensor_adaptor_utils.def("CreateNodalConditionNeighboursCountTensorAdaptor", &TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor<ModelPart::ConditionsContainerType>, py::arg("model_part"));
+     tensor_adaptor_utils.def("CreateNodalElementNeighboursCountTensorAdaptor", &TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor<ModelPart::ElementsContainerType>, py::arg("model_part"));
+
      py::class_<HistoricalVariableTensorAdaptor, HistoricalVariableTensorAdaptor::Pointer, HistoricalVariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "HistoricalVariableTensorAdaptor")
+          .def(py::init<>())
           .def(py::init<ModelPart::NodesContainerType::Pointer, HistoricalVariableTensorAdaptor::VariablePointerType, const int>(),
                py::arg("container"),
                py::arg("variable"),
@@ -145,6 +155,7 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
                py::arg("copy") = true);
 
      py::class_<VariableTensorAdaptor, VariableTensorAdaptor::Pointer, VariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "VariableTensorAdaptor")
+          .def(py::init<>())
           .def(py::init<ModelPart::NodesContainerType::Pointer, VariableTensorAdaptor::VariablePointerType>(),
                py::arg("container"),
                py::arg("variable"))
@@ -193,6 +204,7 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
                py::arg("copy") = true);
 
      py::class_<GaussPointVariableTensorAdaptor, GaussPointVariableTensorAdaptor::Pointer, GaussPointVariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "GaussPointVariableTensorAdaptor")
+          .def(py::init<>())
           .def(py::init<ModelPart::ConditionsContainerType::Pointer, GaussPointVariableTensorAdaptor::VariablePointerType, ProcessInfo::Pointer>(),
                py::arg("container"),
                py::arg("variable"),
@@ -208,6 +220,7 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
                py::arg("copy") = true);
 
      py::class_<EquationIdsTensorAdaptor, EquationIdsTensorAdaptor::Pointer, EquationIdsTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "EquationIdsTensorAdaptor")
+          .def(py::init<>())
           .def(py::init<ModelPart::ConditionsContainerType::Pointer, ProcessInfo::Pointer>(),
                py::arg("container"),
                py::arg("process_info"))
@@ -220,6 +233,7 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
                py::arg("copy") = true);
 
      py::class_<FlagsTensorAdaptor, FlagsTensorAdaptor::Pointer, FlagsTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "FlagsTensorAdaptor")
+          .def(py::init<>())
           .def(py::init<ModelPart::NodesContainerType::Pointer, const Flags&>(),
                py::arg("container"),
                py::arg("flag"))
@@ -234,6 +248,7 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
                py::arg("flag"), py::arg("copy") = true);
 
      py::class_<NodePositionTensorAdaptor, NodePositionTensorAdaptor::Pointer, NodePositionTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "NodePositionTensorAdaptor")
+          .def(py::init<>())
           .def(py::init<ModelPart::NodesContainerType::Pointer, Globals::Configuration>(),
                py::arg("container"),
                py::arg("configuration"))
@@ -252,11 +267,13 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
      py::enum_<GeometriesTensorAdaptorType::DatumType>(geometries_tensor_adaptor,"DatumType")
           .value("ShapeFunctions", GeometriesTensorAdaptorType::DatumType::ShapeFunctions)
           .value("ShapeFunctionDerivatives", GeometriesTensorAdaptorType::DatumType::ShapeFunctionDerivatives)
+          .value("Normals", GeometriesTensorAdaptorType::DatumType::Normals)
           .value("Jacobians", GeometriesTensorAdaptorType::DatumType::Jacobians)
           .value("IntegrationWeights", GeometriesTensorAdaptorType::DatumType::IntegrationWeights)
           .export_values();
 
      geometries_tensor_adaptor
+          .def(py::init<>())
           .def(py::init<ModelPart::GeometryContainerType::Pointer, GeometriesTensorAdaptorType::DatumType,GeometryData::IntegrationMethod>(),
                py::arg("container"),
                py::arg("datum"),
@@ -289,6 +306,7 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
                py::arg("copy") = true);
 
      py::class_<ConnectivityIdsTensorAdaptor, ConnectivityIdsTensorAdaptor::Pointer, ConnectivityIdsTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "ConnectivityIdsTensorAdaptor")
+          .def(py::init<>())
           .def(py::init<ModelPart::GeometryContainerType::Pointer>(),
                py::arg("container"))
           .def(py::init<ModelPart::ElementsContainerType::Pointer>(),
@@ -296,6 +314,42 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
           .def(py::init<ModelPart::ConditionsContainerType::Pointer>(),
                py::arg("container"))
           .def(py::init<const ConnectivityIdsTensorAdaptor::BaseType&, const bool>(),
+               py::arg("tensor_adaptor"),
+               py::arg("copy") = true);
+
+     py::class_<GeometryMetricsTensorAdaptor, GeometryMetricsTensorAdaptor::Pointer, GeometryMetricsTensorAdaptor::BaseType> geometric_tensor_adaptor(tensor_adaptor_sub_module, "GeometryMetricsTensorAdaptor");
+
+     py::enum_<GeometryMetricsTensorAdaptor::Metric>(geometric_tensor_adaptor,"Metric")
+          .value("DomainSize", GeometryMetricsTensorAdaptor::Metric::DomainSize)
+          .export_values();
+
+     geometric_tensor_adaptor
+          .def(py::init<>())
+          .def(py::init<const GeometryMetricsTensorAdaptor::BaseType&, GeometryMetricsTensorAdaptor::Metric, const bool>(),
+               py::arg("tensor_adaptor"),
+               py::arg("datum"),
+               py::arg("copy") = true)
+          .def(py::init<ModelPart::GeometryContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
+               py::arg("container"),
+               py::arg("datum"))
+          .def(py::init<ModelPart::ConditionsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
+               py::arg("container"),
+               py::arg("datum"))
+          .def(py::init<ModelPart::ElementsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
+               py::arg("container"),
+               py::arg("datum"));
+     py::class_<FixityTensorAdaptor, FixityTensorAdaptor::Pointer, FixityTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "FixityTensorAdaptor")
+          .def(py::init<>())
+          .def(py::init([](ModelPart::NodesContainerType::Pointer pNodes, py::sequence DofVariableList){
+               std::vector<const Variable<double>*> dof_variable_list;
+               dof_variable_list.reserve(DofVariableList.size());
+               for (auto dof_variable : DofVariableList) {
+                    dof_variable_list.push_back(dof_variable.cast<const Variable<double>*>());
+               }
+               return FixityTensorAdaptor(pNodes, dof_variable_list);}),
+               py::arg("container"),
+               py::arg("dof_variable_list"))
+          .def(py::init<const FixityTensorAdaptor::BaseType&, const bool>(),
                py::arg("tensor_adaptor"),
                py::arg("copy") = true);
 }

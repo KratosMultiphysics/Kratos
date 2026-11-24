@@ -80,6 +80,68 @@ namespace
         // Call the CL to calculate the material response
         pConstitutiveLaw->CalculateMaterialResponsePK2(cl_parameters);
     }
+
+    /**
+     * @brief Computes the Almansi strain vector e = 0.5 * (I - inv(F * F^T)) from the deformation gradient
+     */
+    Vector ReferenceAlmansiStrain(const Matrix& rDeformationGradient)
+    {
+        const std::size_t dimension = rDeformationGradient.size1();
+        const Matrix B_matrix = prod(rDeformationGradient, trans(rDeformationGradient));
+        Matrix inverse_B_matrix(dimension, dimension);
+        double det_B;
+        MathUtils<double>::InvertMatrix(B_matrix, inverse_B_matrix, det_B);
+        const Matrix almansi_tensor = 0.5 * (IdentityMatrix(dimension) - inverse_B_matrix);
+        return MathUtils<double>::StrainTensorToVector(almansi_tensor, dimension == 2 ? 3 : 6);
+    }
+
+    /**
+     * @brief Checks that the Kirchhoff response and the CalculateValue interface return the Almansi strain
+     * @details The strain is calculated from the deformation gradient (the strain is not provided by the "element")
+     */
+    void CheckAlmansiStrain(
+        const Matrix& rDeformationGradient,
+        ConstitutiveLaw::Pointer pConstitutiveLaw)
+    {
+        const std::size_t strain_size = pConstitutiveLaw->GetStrainSize();
+
+        Properties material_properties;
+        material_properties.SetValue(YOUNG_MODULUS, 250.0);
+        material_properties.SetValue(POISSON_RATIO, 0.25);
+
+        // The strain is requested alone, as the elements do
+        Flags cl_options;
+        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        Vector strain_vector = ZeroVector(strain_size);
+        ConstitutiveLaw::Parameters cl_parameters;
+        cl_parameters.SetOptions(cl_options);
+        cl_parameters.SetStrainVector(strain_vector);
+        cl_parameters.SetDeterminantF(MathUtils<double>::Det(rDeformationGradient));
+        cl_parameters.SetDeformationGradientF(rDeformationGradient);
+        cl_parameters.SetMaterialProperties(material_properties);
+
+        const Vector reference_almansi = ReferenceAlmansiStrain(rDeformationGradient);
+
+        // Kirchhoff response
+        pConstitutiveLaw->CalculateMaterialResponseKirchhoff(cl_parameters);
+        KRATOS_EXPECT_VECTOR_NEAR(strain_vector, reference_almansi, 1.0e-12);
+
+        // CalculateValue interface
+        Vector almansi_value;
+        pConstitutiveLaw->CalculateValue(cl_parameters, ALMANSI_STRAIN_VECTOR, almansi_value);
+        KRATOS_EXPECT_VECTOR_NEAR(almansi_value, reference_almansi, 1.0e-12);
+
+        // The Green-Lagrange strain must not be modified
+        Vector green_lagrange_value;
+        pConstitutiveLaw->CalculateValue(cl_parameters, GREEN_LAGRANGE_STRAIN_VECTOR, green_lagrange_value);
+        const Matrix C_matrix = prod(trans(rDeformationGradient), rDeformationGradient);
+        const Matrix green_lagrange_tensor = 0.5 * (C_matrix - IdentityMatrix(rDeformationGradient.size1()));
+        const Vector reference_green_lagrange = MathUtils<double>::StrainTensorToVector(green_lagrange_tensor, strain_size);
+        KRATOS_EXPECT_VECTOR_NEAR(green_lagrange_value, reference_green_lagrange, 1.0e-12);
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHyperElasticIsotropicNeoHookeanPlaneStrain2D, KratosConstitutiveLawsFastSuite)
@@ -178,6 +240,39 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHyperElasticSimoTaylorNeoHookean3D, Kra
     std::vector<double> const_mat_row_0_result({3336930.174379,6349857.4992591,30503623.332614,-4449525.130806,13348575.392418,-10011431.544314});
     KRATOS_EXPECT_VECTOR_NEAR(pk2_vect, pk2_stress_result, 1.0e-5);
     KRATOS_EXPECT_VECTOR_NEAR(row(C_mat, 0), const_mat_row_0_result, 1.0e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHyperElasticIsotropicNeoHookeanPlaneStrain2DAlmansiStrain, KratosConstitutiveLawsFastSuite)
+{
+    Matrix def_grad = ZeroMatrix(2,2);
+    def_grad(0,0) = 2.0;
+    def_grad(1,1) = 3.0/4.0;
+    def_grad(1,0) = 1.0;
+    CheckAlmansiStrain(def_grad, Kratos::make_shared<HyperElasticIsotropicNeoHookeanPlaneStrain2D>());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHyperElasticIsotropicNeoHookean3DAlmansiStrain, KratosConstitutiveLawsFastSuite)
+{
+    Matrix def_grad = ZeroMatrix(3,3);
+    def_grad(0,0) = 2.0;
+    def_grad(1,1) = 3.0/4.0;
+    def_grad(2,2) = 0.5;
+    def_grad(0,2) = 0.5;
+    def_grad(1,0) = 1.0;
+    def_grad(2,0) = 1.0;
+    CheckAlmansiStrain(def_grad, Kratos::make_shared<HyperElasticIsotropicNeoHookean3D>());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHyperElasticSimoTaylorNeoHookean3DAlmansiStrain, KratosConstitutiveLawsFastSuite)
+{
+    Matrix def_grad = ZeroMatrix(3,3);
+    def_grad(0,0) = 2.0;
+    def_grad(1,1) = 3.0/4.0;
+    def_grad(2,2) = 0.5;
+    def_grad(0,2) = 0.5;
+    def_grad(1,0) = 1.0;
+    def_grad(2,0) = 1.0;
+    CheckAlmansiStrain(def_grad, Kratos::make_shared<HyperElasticSimoTaylorNeoHookean3D>());
 }
 
 } // namespace Kratos::Testing

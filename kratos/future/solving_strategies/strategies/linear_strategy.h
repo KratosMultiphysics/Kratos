@@ -21,6 +21,7 @@
 #include "utilities/builtin_timer.h"
 
 #ifdef KRATOS_USE_FUTURE
+#include "future/linear_operators/sparse_matrix_linear_operator.h"
 #include "future/linear_solvers/linear_solver.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/strategies/implicit_strategy.h"
@@ -56,8 +57,8 @@ namespace Kratos::Future
  * @author Riccardo Rossi
  */
 //TODO: Check if TSparseGraphType is really needed
-template <class TMatrixType, class TVectorType, class TSparseGraphType>
-class LinearStrategy : public ImplicitStrategy<TMatrixType, TVectorType, TSparseGraphType>
+template <class TLinearAlgebra>
+class LinearStrategy : public ImplicitStrategy<TLinearAlgebra>
 {
 public:
     ///@name Type Definitions */
@@ -67,13 +68,19 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(LinearStrategy);
 
     /// The definition of the current class base type
-    using BaseType = ImplicitStrategy<TMatrixType, TVectorType, TSparseGraphType>;
+    using BaseType = ImplicitStrategy<TLinearAlgebra>;
 
     // Scheme pointer type definition
     using SchemePointerType = typename BaseType::SchemePointerType;
 
     // Linear solver pointer definition
     using LinearSolverPointerType = typename BaseType::LinearSolverPointerType;
+
+    /// Dense vector tag type definition
+    using DenseVectorTag = typename LinearSystemTags::DenseVectorTag;
+
+    /// Sparse matrix tag type definition
+    using SparseMatrixTag = typename LinearSystemTags::SparseMatrixTag;
 
     ///@}
     ///@name Life Cycle
@@ -170,7 +177,7 @@ public:
         ModelPart& rModelPart,
         Parameters ThisParameters) const override
     {
-        return Kratos::make_shared<LinearStrategy<TMatrixType, TVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
+        return Kratos::make_shared<LinearStrategy<TLinearAlgebra>>(rModelPart, ThisParameters);
     }
 
     bool SolveSolutionStep() override
@@ -181,28 +188,29 @@ public:
         // Get system data
         auto& r_dof_set = this->GetDofSet();
         auto& r_eff_dof_set = this->GetEffectiveDofSet();
-        auto& r_linear_system_container = this->GetLinearSystemContainer();
+        auto& r_strategy_data_container = this->GetImplicitStrategyData();
 
         // Get system arrays
-        auto p_dx = r_linear_system_container.pDx;
-        auto p_rhs = r_linear_system_container.pRhs;
-        auto p_lhs = r_linear_system_container.pLhs;
-        auto p_constraints_T = r_linear_system_container.pConstraintsT;
-        auto p_constraints_q = r_linear_system_container.pConstraintsQ;
+        auto p_linear_system = r_strategy_data_container.pGetLinearSystem();
+        auto& r_dx = *(p_linear_system->pGetVector(DenseVectorTag::Dx));
+        auto& r_lhs = *(p_linear_system->pGetMatrix(SparseMatrixTag::LHS));
+        auto& r_rhs = *(p_linear_system->pGetVector(DenseVectorTag::RHS));
+        auto p_constraints_T = r_strategy_data_container.pGetConstraintsT();
+        auto p_constraints_q = r_strategy_data_container.pGetConstraintsQ();
 
         // Initialize non-linear iteration (once as this is a linear strategy)
-        p_scheme->InitializeNonLinIteration(r_linear_system_container);
+        p_scheme->InitializeNonLinIteration(r_strategy_data_container);
 
         if (!(this->GetStiffnessMatrixIsBuilt())) {
             // Initialize values
-            p_lhs->SetValue(0.0);
-            p_rhs->SetValue(0.0);
-            p_dx->SetValue(0.0);
+            r_lhs.SetValue(0.0);
+            r_rhs.SetValue(0.0);
+            r_dx.SetValue(0.0);
 
             // Build the local system and apply the Dirichlet conditions
-            p_scheme->Build(*p_lhs, *p_rhs);
-            p_scheme->BuildLinearSystemConstraints(r_linear_system_container);
-            p_scheme->ApplyLinearSystemConstraints(r_linear_system_container);
+            p_scheme->Build(r_lhs, r_rhs);
+            p_scheme->BuildLinearSystemConstraints(r_strategy_data_container);
+            p_scheme->ApplyLinearSystemConstraints(r_strategy_data_container);
             this->SetStiffnessMatrixIsBuilt(true);
         } else {
             //FIXME: Do the RHS-only one!!!!
@@ -218,29 +226,35 @@ public:
         }
 
         // Get the effective arrays to solve the system
-        auto p_eff_dx = r_linear_system_container.pEffectiveDx;
-        auto p_eff_rhs = r_linear_system_container.pEffectiveRhs;
-        auto p_eff_lhs = r_linear_system_container.pEffectiveLhs;
+        auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
+        auto p_eff_dx = p_eff_lin_sys->pGetVector(DenseVectorTag::Dx);
+        auto p_eff_lhs = p_eff_lin_sys->pGetMatrix(SparseMatrixTag::LHS);
+        auto p_eff_rhs = p_eff_lin_sys->pGetVector(DenseVectorTag::RHS);
+        auto p_eff_lhs_lin_op = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(p_eff_lhs);
 
         // Solve the system
         const auto& rp_linear_solver = this->pGetLinearSolver();
-        if (rp_linear_solver->AdditionalPhysicalDataIsNeeded()) {
-            rp_linear_solver->ProvideAdditionalData(*p_eff_lhs, *p_eff_dx, *p_eff_rhs, r_eff_dof_set, this->GetModelPart());
+        if (rp_linear_solver->RequiresAdditionalData()) {
+            p_eff_lin_sys->SetAdditionalData(this->GetModelPart(), r_eff_dof_set);
+            rp_linear_solver->PrepareAdditionalData(*p_eff_lin_sys);
         }
-        rp_linear_solver->Solve(*p_eff_lhs, *p_eff_dx, *p_eff_rhs);
+        rp_linear_solver->Initialize(*p_eff_lin_sys);
+        rp_linear_solver->InitializeSolutionStep(*p_eff_lin_sys);
+        rp_linear_solver->PerformSolutionStep(*p_eff_lin_sys);
+        rp_linear_solver->FinalizeSolutionStep(*p_eff_lin_sys);
 
         // Debugging info
         this->EchoInfo();
 
         // Update results (note that this also updates the mesh if needed)
-        p_scheme->Update(r_linear_system_container);
+        p_scheme->Update(r_strategy_data_container);
 
         // Finalize current (unique) non linear iteration
-        p_scheme->FinalizeNonLinIteration(r_linear_system_container);
+        p_scheme->FinalizeNonLinIteration(r_strategy_data_container);
 
         // Calculate reactions if required //TODO: Think on the constraints in here!!!
         if (this->GetComputeReactions()) {
-            p_scheme->CalculateReactions(r_dof_set, *p_rhs);
+            p_scheme->CalculateReactions(r_dof_set, r_rhs);
         }
 
         //FIXME: Free the effective arrays memory if p_lhs != p_eff_lhs

@@ -62,6 +62,17 @@ namespace Kratos
             const std::vector<double>& rSpansU,
             const std::vector<double>& rSpansV,
             IntegrationInfo& rIntegrationInfo);
+        
+        // This function computes the triangulation of a given knot span. This function is used for the IgaVTKOutputProcess
+        static void ComputeSpanTriangulation(
+            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rOuterLoops,
+            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rInnerLoops,
+            const double u0,
+            const double u1,
+            const double v0,
+            const double v1,
+            bool& rIsTrimmed,
+            std::vector<Matrix>& rTriangles);
 
         struct DPState {
             bool visible;

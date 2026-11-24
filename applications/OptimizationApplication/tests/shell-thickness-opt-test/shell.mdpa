@@ -482,7 +482,7 @@ Begin Nodes
 	440	0.2305777591	0.9723683416	0.0365199293
 End Nodes
 
-Begin Elements ShellThickElement3D4N
+Begin Elements MITCThickShellElement3D4N
 	1	0	1	5	41	23
 	2	0	23	41	42	24
 	3	0	24	42	43	25
@@ -883,7 +883,7 @@ Begin Elements ShellThickElement3D4N
 	398	0	438	29	30	439
 	399	0	439	30	31	440
 	400	0	440	31	3	359
-End Elements // ShellThickElement3D4N
+End Elements // MITCThickShellElement3D4N
 
 Begin Conditions SurfaceLoadCondition3D4N
 	1	0	1	5	41	23

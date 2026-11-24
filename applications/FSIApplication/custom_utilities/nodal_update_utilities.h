@@ -18,14 +18,13 @@
 /* External includes */
 
 /* Project includes */
-#include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/mesh_moving_variables.h"
 #include "includes/fsi_variables.h"
 #include "containers/array_1d.h"
 #include "includes/model_part.h"
 #include "includes/communicator.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
 

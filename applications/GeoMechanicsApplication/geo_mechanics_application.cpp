@@ -14,7 +14,14 @@
 
 // Application includes
 #include "geo_mechanics_application.h"
+#include "custom_constitutive/coulomb_yield_surface.h"
+#include "custom_constitutive/tension_cutoff.h"
+#include "custom_constitutive/thermal_filter_law.h"
+#include "custom_elements/lobatto_integration_scheme.h"
+#include "custom_elements/lumped_integration_scheme.h"
 #include "custom_retention/saturated_below_phreatic_level_law.h"
+#include "custom_retention/saturated_law.h"
+#include "custom_retention/van_genuchten_law.h"
 
 namespace Kratos
 {
@@ -37,6 +44,10 @@ void KratosGeoMechanicsApplication::Register()
                     << "  //    / / //       //   / /          \n"
                     << " ((____/ / ((____   ((___/ /  MECHANICS\n"
                     << " Initializing KratosGeoMechanicsApplication..." << std::endl;
+
+    // Register custom geometries
+    KRATOS_REGISTER_GEOMETRY("LineInterfaceGeometryInPlaneStrain2Plus2N", mLineInterfaceGeometryInPlaneStrain2Plus2N)
+    KRATOS_REGISTER_GEOMETRY("LineInterfaceGeometryInPlaneStrain3Plus3N", mLineInterfaceGeometryInPlaneStrain3Plus3N)
 
     // Register Elements
     //  transient one-phase flow elements:
@@ -105,8 +116,12 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement2D6N", mSmallStrainUPwDiffOrderElement2D6N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement2D8N", mSmallStrainUPwDiffOrderElement2D8N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement2D9N", mSmallStrainUPwDiffOrderElement2D9N)
+    // For 10-noded and 15-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
+    // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
+#if 0
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement2D10N", mSmallStrainUPwDiffOrderElement2D10N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement2D15N", mSmallStrainUPwDiffOrderElement2D15N)
+#endif
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement3D10N", mSmallStrainUPwDiffOrderElement3D10N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement3D20N", mSmallStrainUPwDiffOrderElement3D20N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement3D27N", mSmallStrainUPwDiffOrderElement3D27N)
@@ -126,8 +141,12 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderAxisymmetricElement2D6N", mSmallStrainUPwDiffOrderAxisymmetricElement2D6N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderAxisymmetricElement2D8N", mSmallStrainUPwDiffOrderAxisymmetricElement2D8N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderAxisymmetricElement2D9N", mSmallStrainUPwDiffOrderAxisymmetricElement2D9N)
+    // For 10-noded and 15-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
+    // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
+#if 0
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderAxisymmetricElement2D10N", mSmallStrainUPwDiffOrderAxisymmetricElement2D10N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderAxisymmetricElement2D15N", mSmallStrainUPwDiffOrderAxisymmetricElement2D15N)
+#endif
 
     // Small strain interface elements
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainInterfaceElement2D4N", mUPwSmallStrainInterfaceElement2D4N)
@@ -140,6 +159,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement4Plus4N", mUPwSurfaceInterfaceElement4Plus4N)
     KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement6Plus6N", mUPwSurfaceInterfaceElement6Plus6N)
     KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement8Plus8N", mUPwSurfaceInterfaceElement8Plus8N)
+    KRATOS_REGISTER_ELEMENT("Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N",
+                            mUPwLineInterfacePlaneStrainDiffOrderElement3Plus3N)
 
     // Updated-Lagrangian elements
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D3N", mUPwUpdatedLagrangianElement2D3N)
@@ -164,8 +185,12 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement2D6N", mUpdatedLagrangianUPwDiffOrderElement2D6N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement2D8N", mUpdatedLagrangianUPwDiffOrderElement2D8N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement2D9N", mUpdatedLagrangianUPwDiffOrderElement2D9N)
+    // For 10-noded and 15-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
+    // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
+#if 0
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement2D10N", mUpdatedLagrangianUPwDiffOrderElement2D10N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement2D15N", mUpdatedLagrangianUPwDiffOrderElement2D15N)
+#endif
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement3D10N", mUpdatedLagrangianUPwDiffOrderElement3D10N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement3D20N", mUpdatedLagrangianUPwDiffOrderElement3D20N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderElement3D27N", mUpdatedLagrangianUPwDiffOrderElement3D27N)
@@ -185,16 +210,17 @@ void KratosGeoMechanicsApplication::Register()
                             mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D8N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderAxisymmetricElement2D9N",
                             mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D9N)
+    // For 10-noded and 15-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
+    // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
+#if 0
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderAxisymmetricElement2D10N",
                             mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D10N)
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianUPwDiffOrderAxisymmetricElement2D15N",
                             mUpdatedLagrangianUPwDiffOrderAxisymmetricElement2D15N)
+#endif
 
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D3N", mUPwUpdatedLagrangianAxisymmetricFICElement2D3N)
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D4N", mUPwUpdatedLagrangianAxisymmetricFICElement2D4N)
-
-    // Register geo structural elements
-    KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear2D2N", mGeoCrBeamElementLinear2D2N)
 
     // Register thermal elements
     KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement2D3N", mTransientThermalElement2D3N)
@@ -253,6 +279,9 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_CONDITION("PwPointFluxCondition2D1N", mPwPointFluxCondition2D1N)
     KRATOS_REGISTER_CONDITION("PwPointFluxCondition3D1N", mPwPointFluxCondition3D1N)
+
+    KRATOS_REGISTER_CONDITION("GeoSeepageCondition2D2N", mGeoSeepageCondition2D2N)
+    KRATOS_REGISTER_CONDITION("GeoSeepageCondition2D3N", mGeoSeepageCondition2D3N)
 
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N)
@@ -329,8 +358,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElastic3DLaw", mLinearElastic3DLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw)
-
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUDSM3DLaw", mSmallStrainUDSM3DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUDSM2DPlaneStrainLaw", mSmallStrainUDSM2DPlaneStrainLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUDSM2DInterfaceLaw", mSmallStrainUDSM2DInterfaceLaw)
@@ -346,17 +373,22 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DInterfaceLaw", mLinearElastic2DInterfaceLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DInterfaceLaw", mLinearElastic3DInterfaceLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw", mLinearElastic2DBeamLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussBackboneConstitutiveLaw", mTrussBackboneConstitutiveLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw",
+                                     mPiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElasticInterfaceLaw", mIncrementalLinearElasticInterfaceLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElasticInterface3DSurfaceLaw",
                                      mIncrementalLinearElasticInterface3DSurfaceLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff2D", mMohrCoulombWithTensionCutOff2D)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff3D", mMohrCoulombWithTensionCutOff3D)
+    // Deprecated! Keeping the old names for backward compatibility, but will be removed.
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff2D", mMohrCoulombLawPlaneStrain)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff3D", mMohrCoulombLaw3D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombWithTensionCutOff", mInterfaceCoulombLawPlaneStrain)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombWithTensionCutOff", mInterfaceCoulombWithTensionCutOff)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombLawPlaneStrain", mMohrCoulombLawPlaneStrain)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombLaw3D", mMohrCoulombLaw3D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombLawPlaneStrain", mInterfaceCoulombLawPlaneStrain)
 
     // Register Variables
     KRATOS_REGISTER_VARIABLE(VELOCITY_COEFFICIENT)
@@ -368,6 +400,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(HYDRAULIC_HEAD)
 
     KRATOS_REGISTER_VARIABLE(HYDRAULIC_DISCHARGE)
+    KRATOS_REGISTER_VARIABLE(NODAL_WATER_FLOW_RATE)
 
     KRATOS_REGISTER_VARIABLE(DENSITY_SOLID)
     KRATOS_REGISTER_VARIABLE(BULK_MODULUS_SOLID)
@@ -377,6 +410,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(GEO_COHESION)
     KRATOS_REGISTER_VARIABLE(GEO_FRICTION_ANGLE)
     KRATOS_REGISTER_VARIABLE(GEO_DILATANCY_ANGLE)
+    KRATOS_REGISTER_VARIABLE(GEO_ENABLE_TENSION_CUT_OFF)
     KRATOS_REGISTER_VARIABLE(GEO_TENSILE_STRENGTH)
     KRATOS_REGISTER_VARIABLE(GEO_COULOMB_HARDENING_TYPE)
     KRATOS_REGISTER_VARIABLE(GEO_COHESION_FUNCTION_COEFFICIENTS)
@@ -384,9 +418,17 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS)
     KRATOS_REGISTER_VARIABLE(GEO_MAX_PLASTIC_ITERATIONS)
     KRATOS_REGISTER_VARIABLE(GEO_ABS_YIELD_FUNCTION_TOLERANCE)
+    KRATOS_REGISTER_VARIABLE(GEO_MAX_RELATIVE_OVERSHOOT)
+    KRATOS_REGISTER_VARIABLE(GEO_MAX_NUMBER_OF_SUB_STEPS)
     KRATOS_REGISTER_VARIABLE(GEO_COMPRESSION_CAP_SIZE)
     KRATOS_REGISTER_VARIABLE(GEO_PRECONSOLIDATION_STRESS)
     KRATOS_REGISTER_VARIABLE(GEO_CAP_HARDENING_TYPE)
+    KRATOS_REGISTER_VARIABLE(GEO_CONTACT_SURFACE_PERIMETER)
+
+    KRATOS_REGISTER_VARIABLE(GEO_YOUNGS_MODULUS_FORMULATION)
+    KRATOS_REGISTER_VARIABLE(GEO_PRESSURE_REFERENCE)
+    KRATOS_REGISTER_VARIABLE(GEO_STRESS_DEPENDENCY_EXPONENT)
+    KRATOS_REGISTER_VARIABLE(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS)
 
     KRATOS_REGISTER_VARIABLE(SPECIFIC_HEAT_CAPACITY_WATER)
     KRATOS_REGISTER_VARIABLE(SPECIFIC_HEAT_CAPACITY_SOLID)
@@ -420,6 +462,10 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(OCR)
     KRATOS_REGISTER_VARIABLE(POISSON_UNLOADING_RELOADING)
     KRATOS_REGISTER_VARIABLE(POP)
+    KRATOS_REGISTER_VARIABLE(GEO_POISSON_UNDRAINED)
+    KRATOS_REGISTER_VARIABLE(GEO_SKEMPTON_B)
+
+    KRATOS_REGISTER_VARIABLE(GEO_DRAINAGE_TYPE)
 
     KRATOS_REGISTER_VARIABLE(ACCUMULATED_STRAIN)
 
@@ -473,7 +519,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(BIOT_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(PLATE_SHAPE_CORRECTION_FACTOR)
 
-    KRATOS_REGISTER_VARIABLE(RESET_DISPLACEMENTS)
     KRATOS_REGISTER_VARIABLE(CONSIDER_GEOMETRIC_STIFFNESS)
 
     KRATOS_REGISTER_VARIABLE(CONSIDER_GAP_CLOSURE)
@@ -596,14 +641,31 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_VARIABLE(STRAINS_OF_PIECEWISE_LINEAR_LAW)
     KRATOS_REGISTER_VARIABLE(STRESSES_OF_PIECEWISE_LINEAR_LAW)
+    KRATOS_REGISTER_VARIABLE(GEO_PIECEWISE_LINEAR_MOMENT_LAW)
+    KRATOS_REGISTER_VARIABLE(GEO_UNLOADING_RELOADING_MODULUS)
 
     KRATOS_REGISTER_VARIABLE(INTERFACE_NORMAL_STIFFNESS)
     KRATOS_REGISTER_VARIABLE(INTERFACE_SHEAR_STIFFNESS)
 
     KRATOS_REGISTER_VARIABLE(GEO_SHEAR_CAPACITY)
+    KRATOS_REGISTER_VARIABLE(GEO_PLASTICITY_STATUS)
 
     Serializer::Register("PlaneStrain", PlaneStrain{});
-    Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});
+    Serializer::Register("ThreeDimensional", ThreeDimensional{});
     Serializer::Register("SaturatedBelowPhreaticLevelLaw", SaturatedBelowPhreaticLevelLaw{});
+    Serializer::Register("SaturatedLaw", SaturatedLaw{});
+    Serializer::Register("VanGenuchtenLaw", VanGenuchtenLaw{});
+    Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});
+    Serializer::Register("ThreeDimensionalStressState", ThreeDimensionalStressState{});
+    Serializer::Register("AxisymmetricStressState", AxisymmetricStressState{});
+    Serializer::Register("Line2DInterfaceStressState", Line2DInterfaceStressState{});
+    Serializer::Register("SurfaceInterfaceStressState", SurfaceInterfaceStressState{});
+    Serializer::Register("InterfacePlaneStrain", InterfacePlaneStrain{});
+    Serializer::Register("InterfaceThreeDimensionalSurface", InterfaceThreeDimensionalSurface{});
+    Serializer::Register("CoulombYieldSurface", CoulombYieldSurface{});
+    Serializer::Register("TensionCutoff", TensionCutoff{});
+    Serializer::Register("GeoThermalFilterLaw", GeoThermalFilterLaw{});
+    Serializer::Register("LobattoIntegrationScheme", LobattoIntegrationScheme{});
+    Serializer::Register("LumpedIntegrationScheme", LumpedIntegrationScheme{});
 }
 } // namespace Kratos.

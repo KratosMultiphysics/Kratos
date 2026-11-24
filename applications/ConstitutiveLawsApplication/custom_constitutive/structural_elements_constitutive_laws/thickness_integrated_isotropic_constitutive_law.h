@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/constitutive_law.h"
 
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -44,9 +45,9 @@ namespace Kratos
 /**
  * @class ThicknessIntegratedIsotropicConstitutiveLaw
  * @ingroup StructuralMechanicsApplication
- * @brief This constitutive law is implemented to be used together with the CSDSG3ThickShellElement3D3N element
- * It computes the constitutive matrix and stress vector by integrating over the thickness using a set of
- * sub-properties, each one with its own subproperty, constitutive model (isotropic plane stress).
+ * @brief This constitutive law is implemented to be used together with the CSDSG3ThickShellElement3D3N and MITCThickShellElement3D4N element
+ * It computes the constitutive matrix and stress vector by integrating over the thickness using a
+ * sub-property, and constitutive model (MUST be isotropic and plane stress).
  * Input: the Generalized strain vector of 8 components (3 membrane + 3 bending + 2 shear)
  * Output: the Generalized stress vector of 8 components (3 membrane + 3 bending + 2 shear) and 8x8 generalized
  * constitutive matrix.
@@ -66,6 +67,12 @@ public:
 
     /// The definition of the CL base class
     using BaseType = ConstitutiveLaw;
+
+    /// Unhide the base class SetValue overloads
+    using BaseType::SetValue;
+
+    /// Unhide the base class GetValue overloads
+    using BaseType::GetValue;
 
     /// The definition of the size type
     using SizeType = std::size_t;
@@ -247,7 +254,7 @@ public:
             rValue /= static_cast<double>(number_of_laws);
 
             rParameterValues.SetMaterialProperties(r_material_properties);
-            
+
             return rValue;
 
             KRATOS_CATCH("Generic CalculateValue")
@@ -411,24 +418,18 @@ public:
         mThicknessIntegrationPoints = NumberOfPoints;
     }
 
+    /**
+     * @brief This method computes the maximum edge length of
+     * a shell of 3 and 4 nodes
+     */
     double GetMaxReferenceEdgeLength(const GeometryType& rGeometry) const
     {
-        double max_length = 0.0;
-
-        const auto& r_coord_1 = rGeometry[0].GetInitialPosition();
-        const auto& r_coord_2 = rGeometry[1].GetInitialPosition();
-        const auto& r_coord_3 = rGeometry[2].GetInitialPosition();
-
-        const double length_12 = norm_2(r_coord_2 - r_coord_1);
-        const double length_23 = norm_2(r_coord_3 - r_coord_2);
-        const double length_31 = norm_2(r_coord_1 - r_coord_3);
-
-        max_length = std::max(length_12, length_23);
-        max_length = std::max(max_length, length_31);
-
-        return max_length;
+        return AdvancedConstitutiveLawUtilities<3>::GetMaxReferenceEdgeLengthForShell(rGeometry);
     }
 
+    /**
+     * @brief Computes a lists of z-coordinates and weigths to perform the integration through the thickness
+     */
     void CalculateCoordinatesAndWeights(
         std::vector<double> &rCoordinates,
         std::vector<double> &rWeights,

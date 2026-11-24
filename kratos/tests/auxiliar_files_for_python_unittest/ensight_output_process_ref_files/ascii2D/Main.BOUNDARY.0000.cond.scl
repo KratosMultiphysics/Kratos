@@ -1,0 +1,7 @@
+Per_elem scalar values for the EnSight6 geometry. Conditional variable: BOUNDARY
+part	2
+bar2
+	         1	         1	
+part	3
+bar2
+	        -1	        -1	

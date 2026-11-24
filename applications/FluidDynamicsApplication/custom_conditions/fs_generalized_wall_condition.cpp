@@ -29,7 +29,7 @@ void FSGeneralizedWallCondition<2, 2>::EquationIdVector(
 					VELOCITY_Y).EquationId();
 		}
 	}
-	else if (this->Is(INTERFACE) && rCurrentProcessInfo[FRACTIONAL_STEP] == 5)
+	else if (rCurrentProcessInfo[FRACTIONAL_STEP] == 5)
 	{
 		const SizeType NumNodes = 2;
 		const SizeType LocalSize = 2;
@@ -76,7 +76,7 @@ void FSGeneralizedWallCondition<3, 3>::EquationIdVector(
 					VELOCITY_Z).EquationId();
 		}
 	}
-	else if (this->Is(INTERFACE) && rCurrentProcessInfo[FRACTIONAL_STEP] == 5)
+	else if (rCurrentProcessInfo[FRACTIONAL_STEP] == 5)
 	{
 		const SizeType NumNodes = 3;
 		const SizeType LocalSize = 3;

@@ -294,6 +294,10 @@ private:
         TSparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r);
 // KRATOS_WATCH("ln322");
         BaseType::mBNorm = TSparseSpaceType::TwoNorm(rB);
+        // Seed the residual norm from *this* solve. mResidualNorm is a member carried
+        // over from the previous Solve() call, so without this any early exit from the
+        // loop below would have IsConverged() judge the previous system, not this one.
+        BaseType::mResidualNorm = TSparseSpaceType::TwoNorm(r);
 // KRATOS_WATCH("ln324");
         VectorType p(r);
         VectorType s(size);
@@ -328,7 +332,21 @@ private:
 
             //if(omega == 0.00)
             if(fabs(omega) <= 1.0e-40)
+            {
+                // "Happy" breakdown: s = r - alpha*q has collapsed to (numerically) zero,
+                // which means rX + alpha*p already solves the system. That half step has to
+                // be committed before leaving -- dropping it makes a solve that has in fact
+                // converged return rX completely untouched, which the callers cannot detect
+                // and which silently degrades into a zero correction. It is reached on the
+                // very first iteration whenever the preconditioner is (near) exact, e.g.
+                // ILU0 on a tridiagonal matrix, where q == r and alpha == 1 to rounding.
+                TSparseSpaceType::ScaleAndAdd(alpha, p, 1.00, rX);
+                TSparseSpaceType::Copy(s, r);
+
+                BaseType::mResidualNorm = TSparseSpaceType::TwoNorm(r);
+                BaseType::mIterationsNumber++;
                 break;
+            }
 // KRATOS_WATCH("ln356");
             omega = TSparseSpaceType::Dot(qs,s) / omega;
 
@@ -337,6 +355,12 @@ private:
             TSparseSpaceType::ScaleAndAdd(-omega, qs, 1.00, s, r);
 
             roh1 = TSparseSpaceType::Dot(r,rs);
+
+            // Recorded before the breakdown check below: rX has already been updated at
+            // this point, so an exit that left the norm untouched would report a residual
+            // that does not belong to the returned solution.
+            BaseType::mResidualNorm = TSparseSpaceType::TwoNorm(r);
+            BaseType::mIterationsNumber++;
 
             //if((roh0 == 0.00) || (omega == 0.00))
             if((fabs(roh0) <= 1.0e-40) || (fabs(omega) <= 1.0e-40))
@@ -348,9 +372,6 @@ private:
             TSparseSpaceType::ScaleAndAdd(1.00, r, beta, q, p);
 
             roh0 = roh1;
-
-            BaseType::mResidualNorm =TSparseSpaceType::TwoNorm(r);
-            BaseType::mIterationsNumber++;
 
         }
         while(BaseType::IterationNeeded());

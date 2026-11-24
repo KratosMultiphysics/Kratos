@@ -67,7 +67,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
         with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
             DeleteFileIfExisting("Structure.time")
 
-    def _CheckSensitivity(self, response_function, entities, sensitivity_method, update_method, container_expression_data, delta, rel_tol, abs_tol):
+    def _CheckSensitivity(self, response_function, entities, sensitivity_method, update_method, tensor_adaptor_data, delta, rel_tol, abs_tol):
         list_of_sensitivities = []
         for entity in entities:
             adjoint_sensitivity = sensitivity_method(entity)
@@ -82,7 +82,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             list_of_sensitivities.append(adjoint_sensitivity)
 
         list_of_sensitivities = numpy.array(list_of_sensitivities)
-        self.assertTrue(all(numpy.isclose(list_of_sensitivities, container_expression_data, rtol=rel_tol, atol=abs_tol)))
+        self.assertTrue(all(numpy.isclose(list_of_sensitivities, tensor_adaptor_data, rtol=rel_tol, atol=abs_tol)))
 
     def _UpdateProperties(self, variable, entity, delta):
         entity.Properties[variable] += delta
@@ -102,7 +102,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
         self.assertAlmostEqual(self.ref_value, 71515947.17480606, 6)
 
     def test_CalculateYoungModulusSensitivity(self):
-        sensitivity = KratosOA.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
+        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.YOUNG_MODULUS)])
         self.response_function.CalculateGradient({Kratos.YOUNG_MODULUS: sensitivity})
 
         # calculate element density sensitivity
@@ -111,13 +111,13 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             self.model_part.Elements,
             lambda x: x.Properties[KratosOA.YOUNG_MODULUS_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.YOUNG_MODULUS, x, y),
-            sensitivity.GetContainerExpressions()[0].Evaluate(),
+            sensitivity.GetTensorAdaptors()[0].data,
             1e-7,
             1e-6,
             1e-5)
 
     def test_CalculatePoissonRatioSensitivity(self):
-        sensitivity = KratosOA.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
+        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.POISSON_RATIO)])
         self.response_function.CalculateGradient({Kratos.POISSON_RATIO: sensitivity})
 
         # calculate element density sensitivity
@@ -126,13 +126,13 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             self.model_part.Elements,
             lambda x: x.Properties[KratosOA.POISSON_RATIO_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.POISSON_RATIO, x, y),
-            sensitivity.GetContainerExpressions()[0].Evaluate(),
+            sensitivity.GetTensorAdaptors()[0].data,
             1e-7,
             1e-4,
             1e-5)
 
     def test_CalculateShapeSensitivity(self):
-        sensitivity = KratosOA.CollectiveExpression([Kratos.Expression.NodalExpression(self.model_part)])
+        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, KratosOA.SHAPE)])
         self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
@@ -141,7 +141,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             self.model_part.Nodes,
             lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_X),
             lambda x, y: self._UpdateNodalPositions(0, x, y),
-            sensitivity.GetContainerExpressions()[0].Evaluate()[:, 0],
+            sensitivity.GetTensorAdaptors()[0].data[:, 0],
             1e-6,
             1e-4,
             1e-5)
@@ -151,7 +151,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             self.model_part.Nodes,
             lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_Y),
             lambda x, y: self._UpdateNodalPositions(1, x, y),
-            sensitivity.GetContainerExpressions()[0].Evaluate()[:, 1],
+            sensitivity.GetTensorAdaptors()[0].data[:, 1],
             1e-6,
             1e-4,
             1e-5)
@@ -161,7 +161,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             self.model_part.Nodes,
             lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_Z),
             lambda x, y: self._UpdateNodalPositions(2, x, y),
-            sensitivity.GetContainerExpressions()[0].Evaluate()[:, 2],
+            sensitivity.GetTensorAdaptors()[0].data[:, 2],
             1e-6,
             1e-4,
             1e-5)

@@ -158,13 +158,19 @@ private:
         std::string GeometryType) const;
 
     
-    /// Creates list of rQuadraturePointGeometryList for Sbm 
-    /// using the condition name of the associated projection on the skin boundary layer
+    /// Creates SBM conditions using the NURBS skin projection for each quadrature point.
+    /// Reads CONDITION_NAME from the curve when rConditionName is SbmCondition.
     void CreateQuadraturePointGeometriesSbmByProjectionLayer(
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
         const Parameters rParameters,
-        std::string GeometryType) const;
+        const std::string& rConditionName) const;
+
+    /// Creates SBM conditions using the discretized skin projection and its layers.
+    void CreateQuadraturePointGeometriesSbmByLinealizedProjectionLayer(
+        GeometriesArrayType& rQuadraturePointGeometryList,
+        ModelPart& rModelPart,
+        const Parameters rParameters) const;
 
     /// Creates list of rQuadraturePointGeometryList for Sbm 
     /// using a fixed condition name for the whole surrogate boundary loop
@@ -196,7 +202,8 @@ private:
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
         SizeType& rIdCounter,
-        PropertiesPointerType pProperties) const;
+        PropertiesPointerType pProperties,
+        const Vector KnotSpanSizes) const;
 
     /// Creates conditions from geometries
     void CreateConditions(
@@ -237,6 +244,14 @@ private:
     ///@}
     ///@name Utility
     ///@{
+    
+    /**
+     * @brief Activate all nodes in elements and clean the root model part.
+     *
+     * @param rAnalysisModelPart The model part to modify.
+     */
+    void ActivateNodesInElementsAndCleanRoot(ModelPart& rAnalysisModelPart) const;
+
 
 
     ///@}

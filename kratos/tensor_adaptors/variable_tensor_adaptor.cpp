@@ -204,13 +204,27 @@ void VariableTensorAdaptor::StoreData()
 
 std::string VariableTensorAdaptor::Info() const
 {
+    // the base info goes first: it throws for an unloaded (default-constructed) instance, whose mpVariable is null
+    const auto base_info = BaseType::Info();
     std::stringstream info;
     info << "VariableTensorAdaptor:";
     std::visit([&info](auto pVariable) {
         info << " Variable = " << pVariable->Name();
     }, this->mpVariable);
-    info << ", " << BaseType::Info();
+    info << ", " << base_info;
     return info.str();
+}
+
+void VariableTensorAdaptor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+    TensorAdaptorUtils::SaveVariablePointer(rSerializer, "Variable", mpVariable);
+}
+
+void VariableTensorAdaptor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+    TensorAdaptorUtils::LoadVariablePointer(rSerializer, "Variable", mpVariable);
 }
 
 template KRATOS_API(KRATOS_CORE) VariableTensorAdaptor::VariableTensorAdaptor(ModelPart::NodesContainerType::Pointer, VariablePointerType);
