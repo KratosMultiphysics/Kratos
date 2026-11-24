@@ -4223,7 +4223,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
                             is_exiting = true;
                         } else {
                             // current_value == 0
-                            bool is_inside = IsPointInsideSkinBoundary3D(center_point, rPointsBinOuter, rSkinModelPartOuter, EchoLevel);
                             const bool is_fully_inside = IsKnotSpanFullyInsideSkinBoundary3D(
                                                                 i,
                                                                 j,

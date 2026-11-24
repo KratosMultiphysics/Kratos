@@ -665,6 +665,58 @@ private:
         const IntegrationParameters& rIntegrationParameters,
         ModelPart& rSkinSubModelPart) const;
 
+    /// Checks whether a node or condition belongs to the requested layer.
+    static bool NodeHasRequestedLayer(const Node& rNode, const std::string& rLayer);
+    static bool ConditionMatchesRequestedLayer(const Condition& rCondition, const std::string& rLayer);
+
+    /// Searches for a skin node along one direction.
+    std::pair<IndexType, double> SearchNodeWithDirection(
+        const array_1d<double, 3>& rSearchDirection,
+        const CoordinatesArrayType& rStartPoint,
+        const std::string& rLayer,
+        const KnotSpanSkinBinsCSR& rSkinBinsPerSpan,
+        const double ReferenceSpanSize,
+        const std::size_t BaseIndexX,
+        const std::size_t BaseIndexY,
+        const std::vector<IndexType>* pConsideredNodeIds) const;
+
+    /// Searches for a skin segment along one direction.
+    void SearchPairWithDirection(
+        const array_1d<double, 3>& rSearchDirection,
+        const CoordinatesArrayType& rStartPoint,
+        const std::string& rLayer,
+        const KnotSpanSkinBinsCSR& rSkinBinsPerSpan,
+        const double ReferenceSpanSize,
+        const std::size_t BaseIndexX,
+        const std::size_t BaseIndexY,
+        const bool ReverseNormalFilter,
+        const bool IgnoreNormalFilter,
+        std::pair<IndexType, IndexType>& rBestPair,
+        double& rBestIntersectionDistance,
+        std::vector<IndexType>& rClosestIntersectionCandidateIds) const;
+
+    /// Selects the closest admissible skin node for a surrogate node.
+    IndexType SelectSkinProjectionCandidate2D(
+        const Node::Pointer& pSurrogateNode,
+        const ModelPart& rSkinSubModelPart,
+        const KnotSpanSkinBinsCSR& rSkinBinsPerSpan,
+        const double SpanSizeX,
+        const double SpanSizeY) const;
+
+    /// Recursively projects subdivision points onto the skin.
+    template <bool TIsInnerLoop>
+    void ComputeRecursiveInterpolation(
+        const std::size_t Depth,
+        const std::size_t LeftIndex,
+        const std::size_t RightIndex,
+        const IndexType LeftNodeId,
+        const IndexType RightNodeId,
+        const ModelPart& rSkinSubModelPart,
+        const std::string& rLayerName,
+        const std::string& rConditionName,
+        const IntegrationParameters& rIntegrationParameters,
+        std::vector<IndexType>& rInterpolationProjectionIds) const;
+
     /**
      * @brief Creates gap and skin quadrature point data for the supplied entities.
      * @tparam TIsInnerLoop True when processing inner loop quadrature information.
@@ -884,40 +936,6 @@ private:
         std::size_t Order,
         const NurbsVolumeType& rGapVolume) const;
 
-    /**
-     * @brief Prints diagnostic information about the orientation of a 3D gap Coons volume.
-     * @return True if the determinant scan identifies a locally folded volume.
-     * @param rGapVolume Gap volume to inspect.
-     * @param rNode00 Surrogate face node at (u,v,w) = (0,0,0).
-     * @param rNode01 Surrogate face node at (u,v,w) = (0,1,0).
-     * @param rNode10 Surrogate face node at (u,v,w) = (1,0,0).
-     * @param rNode11 Surrogate face node at (u,v,w) = (1,1,0).
-     * @param rProjectedPoint00 Projected skin point at (u,v,w) = (0,0,1).
-     * @param rProjectedPoint01 Projected skin point at (u,v,w) = (0,1,1).
-     * @param rProjectedPoint10 Projected skin point at (u,v,w) = (1,0,1).
-     * @param rProjectedPoint11 Projected skin point at (u,v,w) = (1,1,1).
-     * @param pProjectionSurface00_01 Lateral projection surface over edge rNode00-rNode01.
-     * @param pProjectionSurface00_10 Lateral projection surface over edge rNode00-rNode10.
-     * @param pProjectionSurface01_11 Lateral projection surface over edge rNode01-rNode11.
-     * @param pProjectionSurface10_11 Lateral projection surface over edge rNode10-rNode11.
-     * @param rIntegrationPoints Integration points used for determinant scanning.
-     */
-    bool CheckGapVolumeOrientation(
-        const NurbsVolumeType& rGapVolume,
-        const NodeType& rNode00,
-        const NodeType& rNode01,
-        const NodeType& rNode10,
-        const NodeType& rNode11,
-        const array_1d<double,3>& rProjectedPoint00,
-        const array_1d<double,3>& rProjectedPoint01,
-        const array_1d<double,3>& rProjectedPoint10,
-        const array_1d<double,3>& rProjectedPoint11,
-        const NurbsSurfaceType::Pointer& pProjectionSurface00_01,
-        const NurbsSurfaceType::Pointer& pProjectionSurface00_10,
-        const NurbsSurfaceType::Pointer& pProjectionSurface01_11,
-        const NurbsSurfaceType::Pointer& pProjectionSurface10_11,
-        const IntegrationPointsArrayType& rIntegrationPoints) const;
-
     // --- static utility helpers ----------------------------------
 
     /**
@@ -960,7 +978,7 @@ private:
      * @brief Computes the derivative of the Coons patch with respect to xi or eta.
      * @param Xi Parametric coordinate along the first direction.
      * @param Eta Parametric coordinate along the second direction.
-     * @param with_respect_to_xi True to differentiate with respect to xi, false for eta.
+     * @param is_xi_derivative True to differentiate with respect to xi, false for eta.
      * @param rB0 Brep curve representing the edge at eta = 0.
      * @param rL0 Brep curve representing the edge at xi = 0.
      * @param rL1 Brep curve representing the edge at xi = 1.
@@ -974,7 +992,7 @@ private:
     static array_1d<double,3> CoonsDerivative(
         const double                 Xi,
         const double                 Eta,
-        const bool                   with_respect_to_xi,
+        const bool                   is_xi_derivative,
         const BrepCurveType&          rB0,
         const BrepCurveType&          rL0,
         const BrepCurveType&          rL1,
@@ -988,7 +1006,7 @@ private:
      * @brief Approximates the Coons patch derivative by finite differences.
      * @param Xi Parametric coordinate along the first direction.
      * @param Eta Parametric coordinate along the second direction.
-     * @param with_respect_to_xi True to differentiate with respect to xi, false for eta.
+     * @param is_xi_derivative True to differentiate with respect to xi, false for eta.
      * @param rB0 Brep curve representing the edge at eta = 0.
      * @param rL0 Brep curve representing the edge at xi = 0.
      * @param rL1 Brep curve representing the edge at xi = 1.
@@ -1003,7 +1021,7 @@ private:
     static array_1d<double,3> CoonsDerivativeFD(
         const double                     Xi,
         const double                     Eta,
-        const bool                       with_respect_to_xi,
+        const bool                       is_xi_derivative,
         const BrepCurveType&       rB0,
         const BrepCurveType&       rL0,
         const BrepCurveType&       rL1,
