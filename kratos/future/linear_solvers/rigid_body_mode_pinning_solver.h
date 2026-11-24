@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-// author: Riccardo Rossi
+//  Main authors:    Riccardo Rossi
+//
 
 #pragma once
 
@@ -16,8 +17,8 @@
 
 // Project includes
 #include "includes/variables.h"
+#include "future/linear_solvers/direct_solver.h"
 #include "future/linear_solvers/eigen_sparse_lu_solver.h"
-#include "future/linear_solvers/linear_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 #include "linear_solvers/rigid_body_mode_pinning_kernel.h"
 
@@ -55,7 +56,7 @@ namespace Kratos::Future
  */
 template<class TLinearAlgebra>
 class RigidBodyModePinningSolver
-    : public LinearSolver<TLinearAlgebra>
+    : public DirectSolver<TLinearAlgebra>
 {
 public:
     ///@name Type Definitions
@@ -65,7 +66,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(RigidBodyModePinningSolver);
 
     /// Definition of the base type
-    using BaseType = LinearSolver<TLinearAlgebra>;
+    using BaseType = DirectSolver<TLinearAlgebra>;
 
     /// The definition of the linear system type
     using LinearSystemType = typename BaseType::LinearSystemType;
@@ -99,10 +100,10 @@ public:
      */
     RigidBodyModePinningSolver(
         typename BaseType::Pointer pLinearSolver,
-        const double RigidBodyTolerance = 1.0e-6
-        ) : BaseType(),
-            mpLinearSolver(pLinearSolver),
-            mKernel(Tolerance)
+        const double RigidBodyTolerance = 1.0e-6)
+        : BaseType()
+        , mpLinearSolver(pLinearSolver)
+        , mKernel(RigidBodyTolerance)
     {
         this->mEchoLevel = 0;
     }
@@ -138,6 +139,7 @@ public:
                 inner_settings.AddValue(r_key, Settings.GetValue(r_key));
             }
         }
+
         const std::string inner_solver_type = inner_settings["solver_type"].GetString();
         if (inner_solver_type == "skyline_lu_factorization") {
             mpLinearSolver = Kratos::make_shared<SkylineLUFactorizationSolver<TLinearAlgebra>>(inner_settings);
@@ -304,6 +306,7 @@ private:
     ///@{
 
     typename BaseType::Pointer mpLinearSolver; /// Pointer to the internal linear solver
+
     KernelType mKernel;                        /// The pinning algorithm (shared with the current interface wrapper)
 
     ///@}
