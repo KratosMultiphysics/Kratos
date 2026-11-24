@@ -124,22 +124,31 @@ public:
 
         // Assign the validated settings
         this->AssignSettings(Settings);
-
         mKernel.SetTolerance(Settings["rigid_body_tolerance"].GetDouble());
+
+        // Get the base solver settings keys from its defaults
+        Parameters base_defaults = BaseType::GetDefaultParameters();
+        std::vector<std::string> base_keys;
+        for (auto it = base_defaults.begin(); it != base_defaults.end(); ++it) {
+            base_keys.push_back(it.name());
+        }
+
+        // Populate the base solver settings keys in the  "inner_solver_settings"
+        // Note that if these are already there, the provided value is kept
+        // This makes possible to define the linear solver tags and solve flags at the
+        // outer settings level (i.e., rigid body solver level) and propagate them to the inner solver
+        Parameters inner_settings = Settings["inner_solver_settings"];
+        for (const std::string& r_base_key : base_keys) {
+            if (!inner_settings.Has(r_base_key)) {
+                inner_settings.AddValue(r_base_key, Settings.GetValue(r_base_key));
+            }
+        }
 
         // Build the wrapped solver from the nested settings, with the same spelling as the
         // current-interface solver: "inner_solver_settings" already carries the inner
         // "solver_type" and any inner-solver parameter, so it is passed to the concrete
-        // solver as is (the future interface has no solver factory yet). The linear system
-        // tags and solve flags of the validated outer settings are propagated to the inner
-        // solver, unless they were explicitly set inside "inner_solver_settings"
-        Parameters inner_settings = Settings["inner_solver_settings"];
-        for (const std::string& r_key : {"dx_tag", "rhs_tag", "lhs_tag", "multiple_solve", "echo_level"}) {
-            if (!inner_settings.Has(r_key)) {
-                inner_settings.AddValue(r_key, Settings.GetValue(r_key));
-            }
-        }
-
+        // solver as is (the future interface has no solver factory yet).
+        //TODO: substitute by a proper factory when this is available
         const std::string inner_solver_type = inner_settings["solver_type"].GetString();
         if (inner_solver_type == "skyline_lu_factorization") {
             mpLinearSolver = Kratos::make_shared<SkylineLUFactorizationSolver<TLinearAlgebra>>(inner_settings);

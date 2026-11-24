@@ -254,7 +254,7 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
                     "solver_type": "skyline_lu_factorization"
                 },
                 "tolerance": 1.0e-6,
-                "echo_level": 1
+                "echo_level": 0
             }"""))
         linear_solver.Initialize(A, x_pinned, b)
         linear_solver.ProvideAdditionalData(A, x_pinned, b, dof_set, mp)
