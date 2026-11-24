@@ -651,18 +651,4 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
                      DrainageType::CONSTANT_WATER_PRESSURE);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrainageType_ThrowsExceptionWhenBothKeywordsUsed,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto properties = Properties{};
-    properties.SetValue(IGNORE_UNDRAINED, true);
-    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
-
-    // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties),
-        "Both IGNORE_UNDRAINED and GEO_DRAINAGE_TYPE are used. Choose the latter only.");
-}
-
 } // namespace Kratos::Testing

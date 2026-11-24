@@ -316,9 +316,6 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
         return;
     }
 
-    KRATOS_ERROR_IF(has_drainage_type)
-        << "Both IGNORE_UNDRAINED and GEO_DRAINAGE_TYPE are used. Choose the latter only." << std::endl;
-
     KRATOS_WARNING("DEPRECATION")
         << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
            "GEO_DRAINAGE_TYPE"
