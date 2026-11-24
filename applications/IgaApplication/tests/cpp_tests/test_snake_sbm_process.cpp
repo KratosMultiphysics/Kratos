@@ -21,6 +21,149 @@
 namespace Kratos::Testing
 {
 
+namespace
+{
+void CreateSquareSkin(ModelPart& rSkin, const double Min, const double Max)
+{
+    auto p_properties = rSkin.CreateNewProperties(0);
+    rSkin.CreateNewNode(1, Min, Min, 0.0);
+    rSkin.CreateNewNode(2, Max, Min, 0.0);
+    rSkin.CreateNewNode(3, Max, Max, 0.0);
+    rSkin.CreateNewNode(4, Min, Max, 0.0);
+    rSkin.CreateNewCondition("LineCondition2D2N", 1, {{1, 2}}, p_properties);
+    rSkin.CreateNewCondition("LineCondition2D2N", 2, {{2, 3}}, p_properties);
+    rSkin.CreateNewCondition("LineCondition2D2N", 3, {{3, 4}}, p_properties);
+    rSkin.CreateNewCondition("LineCondition2D2N", 4, {{4, 1}}, p_properties);
+}
+
+Parameters MakeSurrogateParameters(const bool FromInner, const bool Enabled, const double Offset)
+{
+    Parameters parameters(R"({
+        "model_part_name": "iga_model_part",
+        "skin_model_part_inner_initial_name": "skin_model_part_inner_initial",
+        "skin_model_part_outer_initial_name": "skin_model_part_outer_initial",
+        "skin_model_part_name": "skin_model_part",
+        "number_of_inner_loops": 0,
+        "create_surr_outer_from_surr_inner": false,
+        "create_surr_inner_from_surr_outer": false,
+        "offset_for_refinement_in_physical_coord": 0.0
+    })");
+    parameters["number_of_inner_loops"].SetInt(FromInner ? 1 : 0);
+    parameters["create_surr_outer_from_surr_inner"].SetBool(FromInner && Enabled);
+    parameters["create_surr_inner_from_surr_outer"].SetBool(!FromInner && Enabled);
+    parameters["offset_for_refinement_in_physical_coord"].SetDouble(Offset);
+    return parameters;
+}
+
+void CreateSurrogateTestModel(Model& rModel, const bool FromInner)
+{
+    auto& r_iga = rModel.CreateModelPart("iga_model_part");
+    r_iga.CreateSubModelPart("surrogate_inner");
+    r_iga.CreateSubModelPart("surrogate_outer");
+    Vector knots(21);
+    for (IndexType i = 0; i < knots.size(); ++i) {
+        knots[i] = 0.5 * i;
+    }
+    r_iga.SetValue(KNOT_VECTOR_U, knots);
+    r_iga.SetValue(KNOT_VECTOR_V, knots);
+
+    auto& r_inner = rModel.CreateModelPart("skin_model_part_inner_initial");
+    auto& r_outer = rModel.CreateModelPart("skin_model_part_outer_initial");
+    CreateSquareSkin(FromInner ? r_inner : r_outer, FromInner ? 4.0 : 2.0, FromInner ? 6.0 : 8.0);
+    auto& r_skin = rModel.CreateModelPart("skin_model_part");
+    r_skin.CreateSubModelPart("inner");
+    r_skin.CreateSubModelPart("outer");
+}
+
+void CheckGeneratedSurrogate(const ModelPart& rSurrogate)
+{
+    KRATOS_EXPECT_GT(rSurrogate.NumberOfConditions(), 0);
+    for (const auto& r_condition : rSurrogate.Conditions()) {
+        const auto& r_geometry = r_condition.GetGeometry();
+        KRATOS_EXPECT_EQ(r_geometry.PointsNumber(), 2);
+        KRATOS_EXPECT_NEAR(r_geometry.Length(), 0.5, 1.0e-10);
+        KRATOS_EXPECT_TRUE(r_condition.IsDefined(BOUNDARY));
+    }
+}
+
+double MinimumSurrogateX(const ModelPart& rSurrogate)
+{
+    double min_x = 10.0;
+    for (const auto& r_condition : rSurrogate.Conditions()) {
+        for (const auto& r_node : r_condition.GetGeometry()) {
+            min_x = std::min(min_x, r_node.X());
+        }
+    }
+    return min_x;
+}
+} // namespace
+
+KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessSurrogateOuterFromInner, KratosIgaFastSuite)
+{
+    for (const bool enabled : {false, true}) {
+        Model model;
+        CreateSurrogateTestModel(model, true);
+        SnakeSbmProcess process(model, MakeSurrogateParameters(true, enabled, 0.5));
+        process.Execute();
+        const auto& r_iga = model.GetModelPart("iga_model_part");
+        KRATOS_EXPECT_GT(r_iga.GetSubModelPart("surrogate_inner").NumberOfConditions(), 0);
+        const auto& r_generated = r_iga.GetSubModelPart("surrogate_outer");
+        if (enabled) {
+            CheckGeneratedSurrogate(r_generated);
+            KRATOS_EXPECT_LT(MinimumSurrogateX(r_generated), MinimumSurrogateX(r_iga.GetSubModelPart("surrogate_inner")));
+        } else {
+            KRATOS_EXPECT_EQ(r_generated.NumberOfConditions(), 0);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessSurrogateInnerFromOuter, KratosIgaFastSuite)
+{
+    for (const bool enabled : {false, true}) {
+        Model model;
+        CreateSurrogateTestModel(model, false);
+        SnakeSbmProcess process(model, MakeSurrogateParameters(false, enabled, 0.5));
+        process.Execute();
+        const auto& r_iga = model.GetModelPart("iga_model_part");
+        KRATOS_EXPECT_GT(r_iga.GetSubModelPart("surrogate_outer").NumberOfConditions(), 0);
+        const auto& r_generated = r_iga.GetSubModelPart("surrogate_inner");
+        if (enabled) {
+            CheckGeneratedSurrogate(r_generated);
+            KRATOS_EXPECT_EQ(r_generated.NumberOfElements(), 1);
+            KRATOS_EXPECT_GT(MinimumSurrogateX(r_generated), MinimumSurrogateX(r_iga.GetSubModelPart("surrogate_outer")));
+        } else {
+            KRATOS_EXPECT_EQ(r_generated.NumberOfConditions(), 0);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessSurrogateRefinementOffset, KratosIgaFastSuite)
+{
+    Model small_model;
+    CreateSurrogateTestModel(small_model, true);
+    SnakeSbmProcess small_process(small_model, MakeSurrogateParameters(true, true, 0.5));
+    small_process.Execute();
+    const auto& r_small = small_model.GetModelPart("iga_model_part.surrogate_outer");
+    CheckGeneratedSurrogate(r_small);
+
+    Model large_model;
+    CreateSurrogateTestModel(large_model, true);
+    SnakeSbmProcess large_process(large_model, MakeSurrogateParameters(true, true, 1.0));
+    large_process.Execute();
+    const auto& r_large = large_model.GetModelPart("iga_model_part.surrogate_outer");
+    CheckGeneratedSurrogate(r_large);
+    KRATOS_EXPECT_LT(MinimumSurrogateX(r_large), MinimumSurrogateX(r_small));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessRejectsNegativeRefinementOffset, KratosIgaFastSuite)
+{
+    Model model;
+    CreateSurrogateTestModel(model, true);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        SnakeSbmProcess(model, MakeSurrogateParameters(true, true, -0.5)),
+        "must be non-negative");
+}
+
 // Tests the SnakeSbmUProcess with a square outer geometry
 KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessSquareOuter, KratosIgaFastSuite)
 {
