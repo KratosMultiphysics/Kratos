@@ -128,8 +128,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         Mscalar = xp.zeros(len(self.model_part.Nodes), dtype=cfd_utils.PRECISION)
         Mel = xp.einsum("e,i->ei", self.elemental_volumes, self.N)
         self.cfd_utils.AssembleVector(self.connectivity, Mel, Mscalar)
-        M = xp.tile(Mscalar[:, xp.newaxis], (1, self.dim)) # Broadcast the scalar mass to all velocity components
-        return M.ravel()
+        # Returned in nodal (scalar) form: every consumer multiplies it against a (nnodes, dim)
+        # field, where the per-component tile below broadcasted the same value dim times.
+        # The field-sized (nnodes*dim) form is kept for reference; values are unchanged:
+        # M = xp.tile(Mscalar[:, xp.newaxis], (1, self.dim)) # Broadcast the scalar mass to all velocity components
+        # return M.ravel()
+        return Mscalar
 
     def ApplyVelocityDirichletConditions(self, vold, v_end_of_step, dt_factor, v):
         v.ravel()[self.fix_vel_indices] = (1-dt_factor)*vold.ravel()[self.fix_vel_indices] + dt_factor*v_end_of_step
@@ -217,7 +221,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def ComputeElementalConvectiveOperatorSpectralRadius(self, v, out=None):
         # Get the average velocity at each element
         v_elemental = self.ElemData(v, self.connectivity, out=self.v_el) # shape (num_elements, num_nodes_per_element, dim)
-        v_el_mean = xp.sum(v_elemental, axis=1) / self.n_in_el #TODO: avoid allocation
+        # Sum into a persistent scratch and divide in place (same operations as the old
+        # line below, which allocated an (nelem, dim) temporary per call; TODO now addressed):
+        # v_el_mean = xp.sum(v_elemental, axis=1) / self.n_in_el #TODO: avoid allocation
+        v_el_mean = self.v_el_mean_scratch
+        xp.sum(v_elemental, axis=1, out=v_el_mean)
+        v_el_mean /= self.n_in_el
 
         nelem, nnode = self.DN.shape[0], self.DN.shape[1]
         if out is None:
@@ -386,6 +395,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.tau_1 = xp.empty(self.DN.shape[0], dtype=cfd_utils.PRECISION)
         self.tau_2 = xp.empty(self.DN.shape[0], dtype=cfd_utils.PRECISION)
 
+        # Persistent scratch for the allocation-free spectral radius and pressure-correction lines
+        self.v_el_mean_scratch = xp.empty((self.DN.shape[0], self.dim), dtype=cfd_utils.PRECISION)
+        self.corr_scale_n = xp.empty(self.nnodes, dtype=cfd_utils.PRECISION)
+        self.corr_scratch = xp.empty((self.nnodes, self.dim), dtype=cfd_utils.PRECISION)
+
         ## arrays to store boundary values
         # self.v_el_wall = xp.empty((self.connectivity_wall.shape[0], self.n_in_cond, self.dim), dtype=cfd_utils.PRECISION)
 
@@ -520,8 +534,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.wall_areas = xp.array(wall_areas)
 
         # Compute lumped mass matrix and its inverse
+        # Both are stored in nodal scalar form (nnodes,); all uses broadcast over the dim axis.
         self.M=self.ComputeLumpedMass() #TODO: decide if we need to store M
         self.Minv = 1./self.M
+        # Constant factor used by the RK stage scaling (ComputeVelocityResidualStep). Pre-eliminating
+        # 1/rho here saves a field-sized temporary per stage; values equal the inline product.
+        self.Minv_rho = (1.0/self.rho) * self.Minv
 
         # Allocate the graph of the Laplacian matrix
         self.L, self.L_assembly_indices = self.cfd_utils.AllocateScalarMatrix(self.connectivity)
@@ -672,8 +690,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.pool.Release(convective)
 
         # Solve with the lumped mass matrix to get the nodal values of the projection
-        pi_conv = pi_conv.ravel()
-        pi_conv *= self.Minv
+        # pi_conv = pi_conv.ravel()
+        # pi_conv *= self.Minv          # (old field-sized Minv on the flat view)
+        pi_conv *= self.Minv[:, None]   # broadcast over the dim axis (same values as the tiled Minv)
 
         # Return the projection as a nodal data array (nnodes*dim)
         return pi_conv.reshape((self.nnodes, self.dim))
@@ -696,7 +715,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.pool.Release(aux_scalar)
 
         # Solve with the lumped mass matrix to get the nodal values of the projection
-        pi_div *= self.Minv[::self.dim] # Strided view to take one value every self.dim
+        # pi_div *= self.Minv[::self.dim] # Strided view to take one value every self.dim (old field-sized Minv)
+        pi_div *= self.Minv               # Minv is nodal now, no strided extraction needed
         return pi_div
 
     def ComputePressureProjection(self, p_elemental, out=None):
@@ -717,8 +737,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.pool.Release(pi_press_el)
 
         # Solve with the lumped mass matrix to get the nodal values of the projection
-        pi_press = pi_press.ravel()
-        pi_press *= self.Minv
+        # pi_press = pi_press.ravel()
+        # pi_press *= self.Minv          # (old field-sized Minv on the flat view)
+        pi_press *= self.Minv[:, None]    # broadcast over the dim axis (same values as the tiled Minv)
 
         # Return the projection values as a nodal data array (nnodes*dim)
         return pi_press.reshape((self.nnodes, self.dim))
@@ -878,7 +899,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             #v_stage_el_wall = self.ElemData(self.v_stage, self.connectivity_wall, out=self.v_el_wall)
             self.ComputeVelocityResidual(v_stage_el, pel, b_el, conv_proj_el, div_proj_el, self.DN, gamma=gamma, out=self.k[i])
             #self.ComputeVelocityResidualWall(v_stage_el_wall, out=self.k[i])
-            self.k[i].reshape(-1)[:] *= (1.0/self.rho) * self.Minv
+            # k[i] *= (1/rho) * Minv, with the constant (1/rho)*Minv factor pre-eliminated in
+            # Initialize (Minv_rho is nodal and broadcasts over dim). Values are the same as:
+            # self.k[i].reshape(-1)[:] *= (1.0/self.rho) * self.Minv
+            self.k[i] *= self.Minv_rho[:, None]
 
         # RK final update
         vnew = xp.empty_like(vold)
@@ -1030,7 +1054,22 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Update the fractional velocity with the pressure gradient contribution
         ##v = xp.empty(vfrac.shape, dtype=cfd_utils.PRECISION) #TODO: can we allocate this once and reuse it?
-        v.ravel()[:] = vfrac.ravel() + (p_factor * dt / self.rho) * self.Minv * grad_dp_nodal.ravel()
+        # ORIGINAL (kept for clarity; performed the same arithmetic but materialized three
+        # field-sized temporaries + one full copy on every call:
+        #   T1 = (p_factor*dt/rho) * Minv            (nnodes*dim)
+        #   T2 = T1 * grad_dp_nodal                  (nnodes*dim)
+        #   T3 = vfrac + T2                          (nnodes*dim)
+        #   v.ravel()[:] = T3                        (full copy)
+        # v.ravel()[:] = vfrac.ravel() + (p_factor * dt / self.rho) * self.Minv * grad_dp_nodal.ravel()
+        # )
+        # Same operations and same per-element rounding (coefficient × inverse mass × gradient,
+        # then add vfrac), but written into two persistent scratch buffers (AllocateWorkArrays)
+        # and added directly into v: no per-substep allocation, no copy. Minv is nodal and
+        # broadcasts over dim with the same values the old tiled array stored dim times.
+        coef = p_factor * dt / self.rho
+        xp.multiply(coef, self.Minv, out=self.corr_scale_n)                     # (nnodes,)
+        xp.multiply(self.corr_scale_n[:, None], grad_dp_nodal, out=self.corr_scratch)  # (nnodes, dim)
+        xp.add(vfrac, self.corr_scratch, out=v)
         self.pool.Release(grad_dp_nodal)
 
         self.ApplyVelocitySlipConditions(v)
@@ -1269,13 +1308,22 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # -(rho·a·∇w,tau_1·rho·a·∇u) + (rho·a·∇w,tau_1·rho·Pi_conv)
         convective_stab = self.cfd_utils.ComputeMomentumStabilization(DN, v_elemental, a_grad_elemental, proj_elemental, out=self.pool.Get(1,v_elemental.shape)) #a_grad_elemental is actually still tmp_elem here
         convective_stab *= self.rho * self.rho
-        res -= convective_stab * self.tau_1[:, None, None] #assemble convective stabilization contribution
+        # Same arithmetic, applied in place instead of through one extra elemental-sized
+        # temporary (old line kept for reference):
+        # res -= convective_stab * self.tau_1[:, None, None] #assemble convective stabilization contribution
+        convective_stab *= self.tau_1[:, None, None]
+        res -= convective_stab #assemble convective stabilization contribution
         self.pool.Release(convective_stab)
         self.pool.Release(a_grad_elemental)
 
         #-(∇w,∇u)
         t0 = time.perf_counter()
-        res -= self.dyn_visc * self.cfd_utils.ApplyLaplacian(DN, v_elemental, out=self.pool.Get(1,v_elemental.shape))
+        # Same arithmetic, applied in place on the pool buffer instead of through one extra
+        # elemental-sized temporary (old line kept for reference):
+        # res -= self.dyn_visc * self.cfd_utils.ApplyLaplacian(DN, v_elemental, out=self.pool.Get(1,v_elemental.shape))
+        visc_lap = self.cfd_utils.ApplyLaplacian(DN, v_elemental, out=self.pool.Get(1,v_elemental.shape))
+        visc_lap *= self.dyn_visc
+        res -= visc_lap
         self.pool.ReleaseByIndex(1)
 
         #+(∇·w,gamma·p_gauss)

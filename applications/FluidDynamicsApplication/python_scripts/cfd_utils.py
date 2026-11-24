@@ -102,9 +102,6 @@ class CFDUtils:
     def __init__(self):
         if not _configured:
             raise RuntimeError("Backend not set. Call 'configure()' first.")
-        self._tmp_nelem = 0
-        self._tmp_n_in_el = 0
-        self._tmp_dim = 0
         self._pool = None
 
     # Scratch buffer indices within the internal pool (see allocate_temporaries).
@@ -114,15 +111,6 @@ class CFDUtils:
     TMP_A = 0  # primary product scratch — sized nelem * max(n_in_el * dim, dim * dim)
     TMP_B = 1  # auxiliary scratch       — sized nelem * dim * dim
 
-    def _tmp(self, index, shape):
-        """Acquire a scratch buffer view from the pool (tracked as in use)."""
-        return self._pool.Get(index, shape)
-
-    def _free(self, *indices):
-        """Release pool buffers by index."""
-        for index in indices:
-            self._pool.Release(index)
-
     def allocate_temporaries(self, nelem, n_in_el, dim):
         """
         Pre-allocate the two shared temporary buffers used by compute methods.
@@ -130,10 +118,10 @@ class CFDUtils:
         The buffers live in a BufferPool with exactly two slots; memory cost is
         nelem * (max(n_in_el * dim, dim * dim) + dim * dim) values, versus one
         buffer per scratch shape before. Compute methods acquire their scratch
-        through _tmp() (requesting the shape they need, the pool returns a
-        front-slice view) and release it via _free() before returning, so the
-        pool's in-use tracking makes overlapping or nested use fail loudly
-        instead of silently corrupting data. Results are always written to the
+        through self._pool.Get() (requesting the shape they need, the pool
+        returns a front-slice view) and release it via self._pool.Release()
+        before returning, so the pool's in-use tracking makes overlapping or
+        nested use fail loudly instead of silently corrupting data. Results are always written to the
         caller-provided (or freshly allocated) 'out' arrays and never alias the
         pool storage.
 
@@ -146,10 +134,6 @@ class CFDUtils:
         dim : int
             Spatial dimension.
         """
-        self._tmp_nelem = nelem
-        self._tmp_n_in_el = n_in_el
-        self._tmp_dim = dim
-
         nd = n_in_el * dim
         dim2 = dim * dim
 
@@ -162,8 +146,14 @@ class CFDUtils:
         self._pool = python_pool.BufferPool(sizes, xp, PRECISION)
 
     def _ensure_temporaries(self, nelem, n_in_el, dim):
-        """Lazily allocate temporaries on first use or if dimensions change."""
-        if nelem != self._tmp_nelem or n_in_el != self._tmp_n_in_el or dim != self._tmp_dim:
+        """Lazily allocate temporaries on first use or if dimensions change.
+
+        The pool's own max_sizes are the single source of truth: if they no
+        longer match what (nelem, n_in_el, dim) requires, re-allocate.
+        """
+        dim2 = dim * dim
+        required = [nelem * max(n_in_el * dim, dim2), nelem * dim2]
+        if self._pool is None or self._pool.max_sizes != required:
             self.allocate_temporaries(nelem, n_in_el, dim)
 
     def GetShapeFunctionsOnGaussPoints(self, dim: int, integration_order: int):
@@ -287,12 +277,10 @@ class CFDUtils:
         uel_flat = uel.reshape(nelem, nd)
 
         # Element-wise product into scratch buffer, sum rows into caller-provided output
-        t_end = self._tmp(self.TMP_A, (nelem, nd))
-        try:
-            xp.multiply(DN_flat, uel_flat, out=t_end)
-            xp.sum(t_end, axis=1, out=out)
-        finally:
-            self._free(self.TMP_A)
+        t_end = self._pool.Get(self.TMP_A, (nelem, nd))
+        xp.multiply(DN_flat, uel_flat, out=t_end)
+        xp.sum(t_end, axis=1, out=out)
+        self._pool.Release(self.TMP_A)
 
         return out
 
@@ -333,16 +321,15 @@ class CFDUtils:
         # Step 1: divergence div[e] = sum_{J,k} DN[e,J,k] * uel[e,J,k]
         DN_flat = DN.reshape(nelem, nd)
         uel_flat = uel.reshape(nelem, nd)
-        t_end = self._tmp(self.TMP_A, (nelem, nd))
-        t_e = self._tmp(self.TMP_B, (nelem,))
-        try:
-            xp.multiply(DN_flat, uel_flat, out=t_end)
-            xp.sum(t_end, axis=1, out=t_e)
+        t_end = self._pool.Get(self.TMP_A, (nelem, nd))
+        t_e = self._pool.Get(self.TMP_B, (nelem,))
+        xp.multiply(DN_flat, uel_flat, out=t_end)
+        xp.sum(t_end, axis=1, out=t_e)
 
-            # Step 2: out[e,I] = N[I] * div[e]
-            xp.multiply(t_e[:, None], N[None, :], out=out)
-        finally:
-            self._free(self.TMP_A, self.TMP_B)
+        # Step 2: out[e,I] = N[I] * div[e]
+        xp.multiply(t_e[:, None], N[None, :], out=out)
+        self._pool.Release(self.TMP_A)
+        self._pool.Release(self.TMP_B)
 
         return out
 
@@ -408,14 +395,12 @@ class CFDUtils:
             out = xp.empty((nelem, n_in_el, dim), dtype=DN.dtype)
 
         # Step 1: grad_p[e,k] = sum_J DN[e,J,k] * pel[e,J]
-        t_ed = self._tmp(self.TMP_B, (nelem, dim))
-        try:
-            xp.matmul(DN.swapaxes(1, 2), pel[:, :, None], out=t_ed[:, :, None])
+        t_ed = self._pool.Get(self.TMP_B, (nelem, dim))
+        xp.matmul(DN.swapaxes(1, 2), pel[:, :, None], out=t_ed[:, :, None])
 
-            # Step 2: out[e,I,k] = N[I] * grad_p[e,k]
-            xp.multiply(N[None, :, None], t_ed[:, None, :], out=out)
-        finally:
-            self._free(self.TMP_B)
+        # Step 2: out[e,I,k] = N[I] * grad_p[e,k]
+        xp.multiply(N[None, :, None], t_ed[:, None, :], out=out)
+        self._pool.Release(self.TMP_B)
 
         return out
 
@@ -445,14 +430,12 @@ class CFDUtils:
             out = xp.empty((nelem, n_in_el, dim), dtype=DN.dtype)
 
         # Step 1: s[e] = sum_J pel[e,J] * N[J]  — dot product per element
-        t_e = self._tmp(self.TMP_B, (nelem,))
-        try:
-            xp.dot(pel, N, out=t_e)
+        t_e = self._pool.Get(self.TMP_B, (nelem,))
+        xp.dot(pel, N, out=t_e)
 
-            # Step 2: out[e,I,k] = DN[e,I,k] * s[e]
-            xp.multiply(DN, t_e[:, None, None], out=out)
-        finally:
-            self._free(self.TMP_B)
+        # Step 2: out[e,I,k] = DN[e,I,k] * s[e]
+        xp.multiply(DN, t_e[:, None, None], out=out)
+        self._pool.Release(self.TMP_B)
 
         return out
 
@@ -529,18 +512,17 @@ class CFDUtils:
                 out = xp.empty((nelem, nnode), dtype=field.dtype)
 
             # Scratch: (nelem, nnode, dim) product and its (nelem, dim) gradient
-            t_eik = self._tmp(self.TMP_A, (nelem, nnode, dim))
-            t_ed = self._tmp(self.TMP_B, (nelem, dim))
-            try:
-                # grad[:, m] = sum_node DN[:, :, m] * field
-                xp.multiply(DN, field[:, :, None], out=t_eik)
-                xp.sum(t_eik, axis=1, out=t_ed)  # (nelem, dim)
+            t_eik = self._pool.Get(self.TMP_A, (nelem, nnode, dim))
+            t_ed = self._pool.Get(self.TMP_B, (nelem, dim))
+            # grad[:, m] = sum_node DN[:, :, m] * field
+            xp.multiply(DN, field[:, :, None], out=t_eik)
+            xp.sum(t_eik, axis=1, out=t_ed)  # (nelem, dim)
 
-                # Accumulate: out[e, i] = sum_m DN[e, i, m] * grad[e, m]
-                # This is: out = DN @ grad[:, :, None] → (nelem, nnode, 1)
-                xp.matmul(DN, t_ed[:, :, None], out=out[:, :, None])
-            finally:
-                self._free(self.TMP_A, self.TMP_B)
+            # Accumulate: out[e, i] = sum_m DN[e, i, m] * grad[e, m]
+            # This is: out = DN @ grad[:, :, None] → (nelem, nnode, 1)
+            xp.matmul(DN, t_ed[:, :, None], out=out[:, :, None])
+            self._pool.Release(self.TMP_A)
+            self._pool.Release(self.TMP_B)
 
             return out
 
@@ -551,17 +533,15 @@ class CFDUtils:
                 out = xp.empty((nelem, nnode, ncomp), dtype=field.dtype)
 
             # Scratch (nelem, dim, dim) grad — slice to (nelem, dim, ncomp)
-            t_edd = self._tmp(self.TMP_A, (nelem, dim, dim))
-            try:
-                grad_view = t_edd[:, :, :ncomp]
+            t_edd = self._pool.Get(self.TMP_A, (nelem, dim, dim))
+            grad_view = t_edd[:, :, :ncomp]
 
-                # grad = DN^T @ field → (nelem, dim, ncomp)
-                xp.matmul(DN.swapaxes(1, 2), field, out=grad_view)
+            # grad = DN^T @ field → (nelem, dim, ncomp)
+            xp.matmul(DN.swapaxes(1, 2), field, out=grad_view)
 
-                # out = DN @ grad → (nelem, nnode, ncomp)
-                xp.matmul(DN, grad_view, out=out)
-            finally:
-                self._free(self.TMP_A)
+            # out = DN @ grad → (nelem, nnode, ncomp)
+            xp.matmul(DN, grad_view, out=out)
+            self._pool.Release(self.TMP_A)
 
             return out
 
@@ -918,20 +898,19 @@ class CFDUtils:
         # Step 1: Compute temp[e,j,l] = sum_m M[j,m] * beta[e,m,l]
         # Batched matmul: M @ beta[e] for all elements at once
         # Scratch: (nelem, n_node, n_dim) temp and (nelem, dim, dim) S buffer
-        t_eik = self._tmp(self.TMP_A, (n_elem, n_node, n_dim))
-        t_edd = self._tmp(self.TMP_B, (n_elem, n_dim, n_dim))
-        try:
-            xp.matmul(M_e[None, :, :], beta, out=t_eik)
+        t_eik = self._pool.Get(self.TMP_A, (n_elem, n_node, n_dim))
+        t_edd = self._pool.Get(self.TMP_B, (n_elem, n_dim, n_dim))
+        xp.matmul(M_e[None, :, :], beta, out=t_eik)
 
-            # Step 2: Compute S[e,k,l] = sum_j a[e,j,k] * temp[e,j,l]
-            # Transpose a to (n_elem, n_dim, n_node) then matmul with temp
-            xp.matmul(a_elemental.swapaxes(1, 2), t_eik, out=t_edd)
+        # Step 2: Compute S[e,k,l] = sum_j a[e,j,k] * temp[e,j,l]
+        # Transpose a to (n_elem, n_dim, n_node) then matmul with temp
+        xp.matmul(a_elemental.swapaxes(1, 2), t_eik, out=t_edd)
 
-            # Step 3: Compute out[e,i,l] = sum_k DN[e,i,k] * S[e,k,l]
-            # Use out parameter to avoid implicit temporary from matmul
-            xp.matmul(DN, t_edd, out=out)
-        finally:
-            self._free(self.TMP_A, self.TMP_B)
+        # Step 3: Compute out[e,i,l] = sum_k DN[e,i,k] * S[e,k,l]
+        # Use out parameter to avoid implicit temporary from matmul
+        xp.matmul(DN, t_edd, out=out)
+        self._pool.Release(self.TMP_A)
+        self._pool.Release(self.TMP_B)
 
         return out
 
@@ -968,31 +947,26 @@ class CFDUtils:
 
         # Two-slot layout: TMP_B column 0 holds div(u), column 1 holds div(Π);
         # TMP_A carries the product tensors (released between the two sums).
-        t_b = self._tmp(self.TMP_B, (nelem, dim * dim))
-        try:
-            # Step 1: divergence of u → (E,)
-            t_a = self._tmp(self.TMP_A, (nelem, nnode, dim))
-            try:
-                xp.multiply(DN, u_elemental, out=t_a)
-                xp.sum(t_a, axis=(1, 2), out=t_b[:, 0])
-            finally:
-                self._free(self.TMP_A)
+        t_b = self._pool.Get(self.TMP_B, (nelem, dim * dim))
 
-            # Step 2: projection of Π → (E,)
-            t_a = self._tmp(self.TMP_A, (nelem, nnode))
-            try:
-                xp.multiply(N[None, :], Pi_div_elemental, out=t_a)
-                xp.sum(t_a, axis=1, out=t_b[:, 1])
-            finally:
-                self._free(self.TMP_A)
+        # Step 1: divergence of u → (E,)
+        t_a = self._pool.Get(self.TMP_A, (nelem, nnode, dim))
+        xp.multiply(DN, u_elemental, out=t_a)
+        xp.sum(t_a, axis=(1, 2), out=t_b[:, 0])
+        self._pool.Release(self.TMP_A)
 
-            # Step 3: scalar residual → (E,) — in-place subtraction
-            xp.subtract(t_b[:, 0], t_b[:, 1], out=t_b[:, 0])
+        # Step 2: projection of Π → (E,)
+        t_a = self._pool.Get(self.TMP_A, (nelem, nnode))
+        xp.multiply(N[None, :], Pi_div_elemental, out=t_a)
+        xp.sum(t_a, axis=1, out=t_b[:, 1])
+        self._pool.Release(self.TMP_A)
 
-            # Step 4: apply DN → (E, nnode, dim)
-            xp.multiply(DN, t_b[:, 0][:, None, None], out=out)
-        finally:
-            self._free(self.TMP_B)
+        # Step 3: scalar residual → (E,) — in-place subtraction
+        xp.subtract(t_b[:, 0], t_b[:, 1], out=t_b[:, 0])
+
+        # Step 4: apply DN → (E, nnode, dim)
+        xp.multiply(DN, t_b[:, 0][:, None, None], out=out)
+        self._pool.Release(self.TMP_B)
 
         return out
 
@@ -1029,16 +1003,15 @@ class CFDUtils:
         # Step 1: Compute temp[e,k] = sum_J N[J] * Pi_press_el[e,J,k]
         # Using matmul: Pi_press_el.swapaxes(1,2) @ N gives (nelem, dim, n_node) @ (n_node,) -> (nelem, dim)
         # Scratch: (nelem, dim) temp plus (nelem, n_node, dim) product buffer
-        t_ed = self._tmp(self.TMP_B, (nelem, n_dim))
-        t_eik = self._tmp(self.TMP_A, (nelem, n_node, n_dim))
-        try:
-            xp.matmul(Pi_press_el.swapaxes(1, 2), N, out=t_ed)
+        t_ed = self._pool.Get(self.TMP_B, (nelem, n_dim))
+        t_eik = self._pool.Get(self.TMP_A, (nelem, n_node, n_dim))
+        xp.matmul(Pi_press_el.swapaxes(1, 2), N, out=t_ed)
 
-            # Step 2: Compute out[e,I] = sum_k DN[e,I,k] * temp[e,k]
-            xp.multiply(DN, t_ed[:, None, :], out=t_eik)
-            xp.sum(t_eik, axis=2, out=out)
-        finally:
-            self._free(self.TMP_B, self.TMP_A)
+        # Step 2: Compute out[e,I] = sum_k DN[e,I,k] * temp[e,k]
+        xp.multiply(DN, t_ed[:, None, :], out=t_eik)
+        xp.sum(t_eik, axis=2, out=out)
+        self._pool.Release(self.TMP_B)
+        self._pool.Release(self.TMP_A)
 
         return out
 
@@ -1472,7 +1445,11 @@ class CFDUtils:
                 restart_p = False
             else:
                 beta = rho / rho1
-                p = z + beta * p
+                # In-place update: bit-identical to 'p = z + beta * p' (same elementwise multiply
+                # then add), but avoids one vector allocation + copy per iteration.
+                # p = z + beta * p
+                p *= beta
+                p += z
 
             q = matvec(p)
             denom = dot(xp, p, q)
@@ -1488,8 +1465,13 @@ class CFDUtils:
                 reason = "non-finite alpha"
                 break
 
-            x = x + alpha * p
-            r = r - alpha * q
+            # In-place updates: bit-identical to 'x = x + alpha*p' / 'r = r - alpha*q'
+            # (same elementwise multiply then add/sub), but avoid two vector allocations
+            # + copies per iteration (x/r are owned locally, safe to mutate).
+            # x = x + alpha * p
+            # r = r - alpha * q
+            x += alpha * p
+            r -= alpha * q
 
             iters += 1
 
