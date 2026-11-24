@@ -69,18 +69,20 @@ double StressStrainUtilities::CalculateLodeAngle(const Vector& rStressVector)
     KRATOS_ERROR_IF(rStressVector.size() < 4);
 
     const auto q = CalculateVonMisesStress(rStressVector);
-    if (constexpr auto tolerance = 1.0E-12; q < tolerance) return 0.0;
+    if (q > 0.0) {
+        Matrix sigma_princi;
+        Matrix eigen_vectors;
+        MathUtils<>::GaussSeidelEigenSystem(MathUtils<>::StressVectorToTensor(rStressVector),
+                                            eigen_vectors, sigma_princi, 1.0e-16, 20);
+        const auto p = CalculateMeanStress(rStressVector);
+        const auto numerator =
+            (sigma_princi(0, 0) - p) * (sigma_princi(1, 1) - p) * (sigma_princi(2, 2) - p);
+        // Avoid a domain error when computing the arc sine (which results in a NaN value)
+        const auto arg_to_asin = std::clamp((-27. / 2.) * numerator / std::pow(q, 3), -1.0, 1.0);
 
-    Matrix sigma_princi;
-    Matrix eigen_vectors;
-    MathUtils<>::GaussSeidelEigenSystem(MathUtils<>::StressVectorToTensor(rStressVector),
-                                        eigen_vectors, sigma_princi, 1.0e-16, 20);
-    const auto p = CalculateMeanStress(rStressVector);
-    const auto numerator = (sigma_princi(0, 0) - p) * (sigma_princi(1, 1) - p) * (sigma_princi(2, 2) - p);
-    // Avoid a domain error when computing the arc sine (which results in a NaN value)
-    const auto arg_to_asin = std::clamp((-27. / 2.) * numerator / (q * q * q), -1.0, 1.0);
-
-    return std::asin(arg_to_asin) / 3.0;
+        return std::asin(arg_to_asin) / 3.0;
+    }
+    return 0.0;
 }
 
 double StressStrainUtilities::CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double PhiInRadians)
