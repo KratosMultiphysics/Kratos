@@ -4234,9 +4234,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
                                                                 EchoLevel);
                             if (is_fully_inside) { // ??????
                                 rKnotSpansAvailable[IdMatrix][k][j][i] = 1; // <-- IMPORTANT!! Inside I want to have all 1's
-                                // exit(0);
                             } else {
-                                // exit(0);
                                 is_exiting = true;
                             }
                         }
