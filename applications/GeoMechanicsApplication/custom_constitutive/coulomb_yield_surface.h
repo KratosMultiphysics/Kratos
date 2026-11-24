@@ -26,6 +26,7 @@ namespace Kratos
 {
 
 class CheckProperties;
+class Serializer;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface
 {
@@ -72,7 +73,7 @@ private:
     void CheckHardeningCoefficients(const Variable<Vector>& rCoefficientsVariable,
                                     const CheckProperties&  rChecker) const;
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const;
     void load(Serializer& rSerializer);
 

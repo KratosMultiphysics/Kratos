@@ -26,6 +26,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainFICElement
     : public UPwSmallStrainElement<TDim, TNumNodes>
@@ -199,7 +201,7 @@ private:
 
     /// Serialization
 
-    friend class Serializer;
+    friend Serializer;
 
     void save(Serializer& rSerializer) const override;
 

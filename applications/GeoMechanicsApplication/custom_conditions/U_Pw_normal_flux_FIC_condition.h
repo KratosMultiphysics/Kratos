@@ -26,6 +26,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwNormalFluxFICCondition
     : public UPwNormalFluxCondition<TDim, TNumNodes>
@@ -89,7 +91,7 @@ protected:
                                          const NormalFluxFICVariables& rFICVariables);
 
 private:
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 

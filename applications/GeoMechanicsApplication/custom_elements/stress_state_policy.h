@@ -70,7 +70,7 @@ private:
         return Dimension == N_DIM_3D ? GetStressTensorSize3D() : GetStressTensorSize2D();
     }
 
-    friend class Serializer;
+    friend Serializer;
     virtual void save(Serializer& rSerializer) const = 0;
     virtual void load(Serializer& rSerializer)       = 0;
 };

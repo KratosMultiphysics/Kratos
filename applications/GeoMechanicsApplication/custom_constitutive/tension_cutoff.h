@@ -58,7 +58,7 @@ public:
                                                     const Matrix& rElasticMatrix) const;
 
 private:
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const;
     void load(Serializer& rSerializer);
 
