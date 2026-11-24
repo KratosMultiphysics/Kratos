@@ -121,6 +121,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Call base analysis stage constructor
         # Note that this must be done at the end (indeed, after creating the model part)
         # Otherwise the model part is not created when calling the _AddVariables()
+        # Note that the echo level is taken from problem_data by the base AnalysisStage class
         super().__init__(model,project_parameters)
 
     def ComputeLumpedMass(self):
@@ -133,20 +134,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def ApplyVelocityDirichletConditions(self, vold, v_end_of_step, dt_factor, v):
         v.ravel()[self.fix_vel_indices] = (1-dt_factor)*vold.ravel()[self.fix_vel_indices] + dt_factor*v_end_of_step
 
-    def ApplyVelocitySlipConditions(self, v, normals): #TODO: normalize normals only once
-        # Get velocity and normal view of slip nodes
+    def ApplyVelocitySlipConditions(self, v):
+        # Slip normals are pre-normalized once in GetSlipIndices (boundary node order);
+        # the zero-normal nodes were detected there and are treated as no-slip.
+        n_unit = self.slip_unit_normals
         v_slip = v[self.slip_node_ids]
-        n_unit = normals[self.slip_node_ids]
-
-        # Check for zero normals and print corresponding indices
-        normal_norms = xp.linalg.norm(n_unit, axis=1)
-        if self.slip_zero_normal_indices is None:
-            zero_normal_mask = (normal_norms < 1e-15)
-            self.slip_zero_normal_indices = self.slip_node_ids[xp.where(zero_normal_mask)[0]]
-
-        # Normalize normals (avoid division by zero)
-        normal_norms_clipped = xp.maximum(normal_norms, 1e-15)
-        n_unit /= normal_norms_clipped[:,None]
 
         # Remove normal velocity component
         v_dot_n = xp.sum(v_slip * n_unit, axis=1)
@@ -155,20 +147,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Set velocity to zero at nodes with zero normal (i.e., treat them as no-slip)
         v[self.slip_zero_normal_indices,:] = 0.0
 
-    def ApplyOutletBackflowCorrection(self, v, normals): #TODO: normalize normals only once
-        # Get velocity and normal view of slip nodes
+    def ApplyOutletBackflowCorrection(self, v):
+        # Outlet normals are pre-normalized once in GetOutletIndices (boundary node order);
+        # the zero-normal nodes were detected there and are treated as no-slip.
+        n_unit = self.outlet_unit_normals
         v_outlet = v[self.outlet_node_ids]
-        n_unit = normals[self.outlet_node_ids]
-
-        # Check for zero normals and print corresponding indices
-        normal_norms = xp.linalg.norm(n_unit, axis=1)
-        if self.outlet_zero_normal_indices is None:
-            zero_normal_mask = (normal_norms < 1e-15)
-            self.outlet_zero_normal_indices = self.outlet_node_ids[xp.where(zero_normal_mask)[0]]
-
-        # Normalize normals (avoid division by zero)
-        normal_norms_clipped = xp.maximum(normal_norms, 1e-15)
-        n_unit /= normal_norms_clipped[:,None]
 
         # Remove normal velocity component to prevent inflow
         v_dot_n = xp.sum(v_outlet * n_unit, axis=1)
@@ -178,6 +161,20 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Set velocity to zero at nodes with zero normal (i.e., treat them as no-slip)
         v[self.outlet_zero_normal_indices,:] = 0.0
+
+    def ComputeUnitNormalsFromGlobal(self, global_normals, node_ids):
+        """Restrict a global nodal normals array to 'node_ids' and normalize once.
+
+        Returns (unit_normals, zero_normal_indices), with the normals in boundary
+        node order and the zero-normal node ids in global numbering (for use as
+        no-slip nodes). The clipped division 'raw / max(||raw||, 1e-15)' leaves
+        zero-normal rows untouched, so downstream code may rely on them staying zero.
+        """
+        raw = global_normals[node_ids]
+        norms = xp.linalg.norm(raw, axis=1)
+        zero_normal_indices = node_ids[xp.where(norms < 1e-15)[0]]
+        unit_normals = raw / xp.maximum(norms, 1e-15)[:, None]
+        return unit_normals, zero_normal_indices
 
     def ComputeH(self,DN):
         return xp.mean(1.0 / xp.linalg.norm(DN, axis=2), axis=1)
@@ -208,7 +205,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         denom_max = 1.0e-3*rho/dt
         denom = xp.maximum(denom_max, c_2*rho*rho_conv + c_1*viscosity/h**2) #TODO: check if we can reuse Fourier and CFL numbers here
         xp.reciprocal(denom, out=tau_1)
-        tau_2[:] = h**2/(c_1 * tau_1)
+        # NOTE: tau_2 is intentionally disabled: the div-div subscale term is switched off below
+        # (see ComputeVelocityResidual) and tau_2 is defined as identically zero by the fill() call.
+        # The original definition is kept here, commented, for when the term is re-enabled:
+        #   tau_2 = h**2 / (c_1 * tau_1)   (note: with tau_1 = 1/denom this is h**2 * denom / c_1)
+        # tau_2[:] = h**2/(c_1 * tau_1)
         tau_2.fill(0.0) ##TODO: if we keep this we shall better remove the related parts
 
         return tau_1, tau_2
@@ -573,12 +574,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         n_outlet_int_pts = self.normals_outlet_adaptor.data.shape[1]
         normals_outlet = self.normals_outlet_adaptor.data.reshape((n_outlet_geom, n_outlet_int_pts, 3))
         normals_outlet = xp.asarray(normals_outlet[:,:,:self.dim], dtype=cfd_utils.PRECISION) # Drop third component in 2D
-        if self.normals_outlet_adaptor.data.shape[1]!=0:
-            normals_outlet = xp.squeeze(normals_outlet, axis=1) # Drop integration point dimension (note that we are using a single integration point, so this is safe)
 
         self.unit_normals_outlet = xp.zeros((len(self.model_part.Nodes), self.dim), dtype=cfd_utils.PRECISION) # Assembled in global node indices (same convention as self.connectivity_outlet and self.normals)
-        outlet_elem_normals = xp.repeat(normals_outlet[:, None, :], self.connectivity_outlet.shape[1], axis=1) # Replicate elemental normal to every local node
-        self.cfd_utils.AssembleVector(self.connectivity_outlet, outlet_elem_normals, self.unit_normals_outlet) # Assemble the geometry normals to the nodes
+        # Note that when the model part has no outlet geometries the adaptor data is empty (shape (0,0,0))
+        # and the squeeze of the integration point dimension below would not apply, leading to shape errors.
+        # In that case the outlet normals are simply left at zero and the assembly is skipped.
+        if self.normals_outlet_adaptor.data.shape[0] != 0:
+            if self.normals_outlet_adaptor.data.shape[1] != 0:
+                normals_outlet = xp.squeeze(normals_outlet, axis=1) # Drop integration point dimension (note that we are using a single integration point, so this is safe)
+            outlet_elem_normals = xp.repeat(normals_outlet[:, None, :], self.connectivity_outlet.shape[1], axis=1) # Replicate elemental normal to every local node
+            self.cfd_utils.AssembleVector(self.connectivity_outlet, outlet_elem_normals, self.unit_normals_outlet) # Assemble the geometry normals to the nodes
         self.unit_normals_outlet /= (xp.linalg.norm(self.unit_normals_outlet, axis=1, keepdims=True) + 1.0e-12) # Normalize avoiding division by zero
 
         # Calculate the wall tangential projector (I - n⊗n) to be used in the wall condition
@@ -588,8 +593,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Declare boundary condition arrays
         self.fix_vel_indices = None
         self.slip_node_ids = None
+        self.slip_unit_normals = None            # normalized slip normals (boundary node order)
         self.slip_zero_normal_indices = None
         self.outlet_node_ids = None
+        self.outlet_unit_normals = None          # normalized outlet normals (boundary node order)
         self.outlet_zero_normal_indices = None
         self.fix_pres_indices = None
 
@@ -696,7 +703,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         if out is None:
             raise ValueError("Output array must be provided to store the pressure projection values!")
         if out.shape != (self.nnodes,self.dim):
-            raise ValueError(f"Output array has incompatible shape {pi_press.shape}, expected {(self.nnodes,self.dim)}")
+            raise ValueError(f"Output array has incompatible shape {out.shape}, expected {(self.nnodes,self.dim)}")
         pi_press = out
 
         # Solve (w,pi) = (w,∇p)
@@ -743,12 +750,25 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Note that we only compute this once assuming the slip to not change in time
         if self.slip_node_ids is None:
             self.slip_node_ids = self.GetNodeIndicesFromFlag(KM.SLIP)
+            # Normalize the slip normals once (geometry is constant in time). The values match the
+            # previous per-step renormalization of raw normals copies exactly. The full-size raw
+            # nodal normals are not used anywhere else, so they are released here.
+            self.slip_unit_normals, self.slip_zero_normal_indices = \
+                self.ComputeUnitNormalsFromGlobal(self.normals, self.slip_node_ids)
+            self.normals = None
+            self.normals_adaptor = None
 
     def GetOutletIndices(self):
         # Check if outlet indices have been computed
         # Note that we only compute this once assuming the outlet to not change in time
         if self.outlet_node_ids is None:
             self.outlet_node_ids = self.GetNodeIndicesFromFlag(KM.OUTLET)
+            # Restrict the assembled outlet normals to the boundary nodes and renormalize once
+            # (matching the previous per-step renormalization exactly). The full-size global
+            # array is not used anywhere else, so it is released here.
+            self.outlet_unit_normals, self.outlet_zero_normal_indices = \
+                self.ComputeUnitNormalsFromGlobal(self.unit_normals_outlet, self.outlet_node_ids)
+            self.unit_normals_outlet = None
 
     def GetNodeIndicesFromFlag(self, flag):
         # Get flag nodal data
@@ -849,8 +869,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 if a_ij != 0.0:
                     aux = dt * a_ij
                     self.v_stage += aux * self.k[j]
-            self.ApplyVelocitySlipConditions(self.v_stage, self.normals)
-            self.ApplyOutletBackflowCorrection(self.v_stage, self.unit_normals_outlet)
+            self.ApplyVelocitySlipConditions(self.v_stage)
+            self.ApplyOutletBackflowCorrection(self.v_stage)
             self.ApplyVelocityDirichletConditions(vold, v_dirichlet, c[i], self.v_stage)
 
             # Calculate current stage residual
@@ -866,8 +886,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         for i in range(n_stages):
             aux = dt * b[i]
             vnew += aux * self.k[i]
-        self.ApplyVelocitySlipConditions(vnew, self.normals)
-        self.ApplyOutletBackflowCorrection(self.v_stage, self.unit_normals_outlet)
+        self.ApplyVelocitySlipConditions(vnew)
+        self.ApplyOutletBackflowCorrection(vnew)
         self.ApplyVelocityDirichletConditions(vold, v_dirichlet, 1.0, vnew)
 
         return vnew
@@ -1013,8 +1033,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         v.ravel()[:] = vfrac.ravel() + (p_factor * dt / self.rho) * self.Minv * grad_dp_nodal.ravel()
         self.pool.Release(grad_dp_nodal)
 
-        self.ApplyVelocitySlipConditions(v, self.normals)
-        self.ApplyOutletBackflowCorrection(v, self.unit_normals_outlet)
+        self.ApplyVelocitySlipConditions(v)
+        self.ApplyOutletBackflowCorrection(v)
         self.ApplyVelocityDirichletConditions(vfrac, v_dirichlet, 1.0, v)
 
         return v
@@ -1105,7 +1125,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
                 # Get maximum allowed time step with previous substep velocity
                 max_cfl_el_id, max_dt = self._ComputeDeltaTime(rho_conv)
-                self.pool.Release(rho_conv)
                 if self.echo_level > 1:
                     KM.Logger.PrintInfo(self.__class__.__name__, f"\tMaximum CFL found at element: {max_cfl_el_id}. Maximum dt: {max_dt:.3e}.")
 
@@ -1126,6 +1145,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
                 # Compute stabilization constants
                 self.tau_1, self.tau_2 = self.ComputeTau(self.h, rho_conv, self.dyn_visc, self.rho, substep_dt)
+
+                # rho_conv lives in pool buffer 2 and is fully consumed by _ComputeDeltaTime and
+                # ComputeTau above. Release it here (after its last read) and NOT earlier: the pool
+                # returns aliased memory on Get, so releasing before ComputeTau would let SolveStep1
+                # re-Get buffer 2 and overwrite rho_conv while it is still being read.
+                self.pool.Release(rho_conv)
 
                 # Perform fractional step
                 vfrac = self.SolveStep1(vold, v_dirichlet, pold, b, substep_dt, gamma=gamma)
@@ -1260,10 +1285,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.pool.ReleaseByIndex(1)
 
         #-(∇·w,tau_2·∇·v) + (∇·w,tau_2·Pi_div)
-        t0 = time.perf_counter()
-        div_div_stab = self.cfd_utils.ComputeDivDivStabilization(self.N, DN, v_elemental, proj_div_el, out=self.pool.Get(1,v_elemental.shape))
-        res -= div_div_stab * self.tau_2[:,np.newaxis,np.newaxis]
-        self.pool.Release(div_div_stab)
+        # NOTE: commented out (NOT deleted) because tau_2 is identically zero (see ComputeTau):
+        # the whole div-div stabilization contribution vanishes, so evaluating and assembling
+        # it here only burns a kernel chain plus a pool buffer per residual evaluation. Keep the
+        # pool Get/Release pair commented together with the kernels so the pool protocol and the
+        # exact results are unchanged. To re-enable: uncomment these three lines and the
+        # tau_2 definition in ComputeTau (and re-enable 'div_proj_el' preparation upstream).
+        # t0 = time.perf_counter()
+        # div_div_stab = self.cfd_utils.ComputeDivDivStabilization(self.N, DN, v_elemental, proj_div_el, out=self.pool.Get(1,v_elemental.shape))
+        # res -= div_div_stab * self.tau_2[:,np.newaxis,np.newaxis]
+        # self.pool.Release(div_div_stab)
 
         # Multiply by volume
         t0 = time.perf_counter()
@@ -1398,7 +1429,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         dt_cfl = self.cfl / (rho_conv[max_idx] + eps)
 
         if self.is_startup:
-            st_cfl *= 0.5 #much larger safety factor during the startup phase
+            dt_cfl *= 0.5 #much larger safety factor during the startup phase
 
         # Return the id of the element with maximum CFL and the most restrictive time step from all conditions
         return max_idx + 1, float(min(min(dt_cfl, self.dt_fourier), self.dt))

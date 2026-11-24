@@ -2,6 +2,12 @@ import h5py
 import hdf5plugin  # Required to read the SZIP compressed datasets safely
 import numpy as np
 
+def _decode_attribute(value):
+    """Decode an HDF5 attribute that may be stored either as bytes or as str."""
+    if isinstance(value, bytes):
+        return value.decode("utf-8")
+    return str(value)
+
 def find_dataset_by_step_and_variable(
     file_path: str, 
     target_step: int, 
@@ -13,6 +19,9 @@ def find_dataset_by_step_and_variable(
     - The group's 'Step' attribute matches 'target_step'
     - The group's 'Name' attribute matches 'target_variable'
     Then returns the data inside it.
+
+    Returns (ids, data) on success, None if the file or the 'Results' group is
+    missing (or on any other read error), and raises EOFError if no group matches.
     """
     target_step = str(target_step)
     target_variable = str(target_variable)
@@ -28,9 +37,9 @@ def find_dataset_by_step_and_variable(
             for group_name in results_group.keys():
                 group = results_group[group_name]
 
-                # Decode the attributes safely
-                step_value = group.attrs["Step"].decode("utf-8")
-                var_name = group.attrs["Name"].decode("utf-8")
+                # Decode the attributes safely (h5py may return bytes or str depending on version)
+                step_value = _decode_attribute(group.attrs["Step"])
+                var_name = _decode_attribute(group.attrs["Name"])
 
                 if step_value == target_step and var_name == target_variable:
                     print(f"Found group: Results/{group_name} containing step_value",step_value," and var_name ",var_name)
@@ -45,28 +54,12 @@ def find_dataset_by_step_and_variable(
                         data = np.empty((ids.shape[0],1))
                         data[:,0] = group["2"]
                     return ids, data
-                       
-
-                    # Find the dataset inside this group and read its contents
-                    for child_name in group.keys():
-                        child = group[child_name]
-
-                        if isinstance(child, h5py.Dataset):
-                            print(
-                                f"Reading dataset '{child_name}' from group..."
-                            )
-                            return (
-                                child[:]
-                            )  # [:] reads the data array into memory
-
-                    print(
-                        f"Warning: Match found, but group 'Results/{group_name}' contains no datasets."
-                    )
-                    return None
 
             raise EOFError(f"No match found for Step {target_step} and {target_variable}")
-            return None
 
+    except EOFError:
+        # 'Not found' is an exceptional (but well-defined) outcome: propagate it to the caller
+        raise
     except FileNotFoundError:
         print(f"Error: File not found at {file_path}")
         return None
@@ -94,8 +87,8 @@ def list_by_variable(file_path: str):
         for group_name in results_group.keys():
             group = results_group[group_name]
 
-            step_value = group.attrs["Step"].decode("utf-8")
-            var_name   = group.attrs["Name"].decode("utf-8")
+            step_value = _decode_attribute(group.attrs["Step"])
+            var_name   = _decode_attribute(group.attrs["Name"])
 
             if var_name not in var_output:
                 var_output[var_name] = []
@@ -138,7 +131,11 @@ def ExtractFileFromBack(src_path, dst_path, steps_from_back=0):
         for var in data.keys():
             var_data = data[var]
             print(var_data)
-            group_name = var_data[1][-(steps_from_back)]
+            # Select the group counting from the back: steps_from_back=0 means the most recent
+            # (note that "-0" would silently index the first group, hence the explicit -1).
+            # If a variable has fewer steps than requested, clamp to its oldest available step.
+            steps_back = min(steps_from_back, len(var_data[1]))
+            group_name = var_data[1][-steps_back if steps_back > 0 else -1]
             print(group_name)
 
             # Perform a deep copy of everything under the group

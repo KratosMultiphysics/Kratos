@@ -105,15 +105,37 @@ class CFDUtils:
         self._tmp_nelem = 0
         self._tmp_n_in_el = 0
         self._tmp_dim = 0
+        self._pool = None
+
+    # Scratch buffer indices within the internal pool (see allocate_temporaries).
+    # Only two buffers exist: every kernel needs at most two live temporaries at
+    # once (an element-product tensor plus a small per-element/per-node aux), so
+    # each kernel just Get()s the shape slice it needs from one of the two.
+    TMP_A = 0  # primary product scratch — sized nelem * max(n_in_el * dim, dim * dim)
+    TMP_B = 1  # auxiliary scratch       — sized nelem * dim * dim
+
+    def _tmp(self, index, shape):
+        """Acquire a scratch buffer view from the pool (tracked as in use)."""
+        return self._pool.Get(index, shape)
+
+    def _free(self, *indices):
+        """Release pool buffers by index."""
+        for index in indices:
+            self._pool.Release(index)
 
     def allocate_temporaries(self, nelem, n_in_el, dim):
         """
-        Pre-allocate shared temporary buffers used by compute methods.
+        Pre-allocate the two shared temporary buffers used by compute methods.
 
-        These buffers are reused across calls under the assumption that
-        only one compute method executes at a time.  The returned arrays
-        from compute methods are views into these buffers and remain
-        valid only until the next call.
+        The buffers live in a BufferPool with exactly two slots; memory cost is
+        nelem * (max(n_in_el * dim, dim * dim) + dim * dim) values, versus one
+        buffer per scratch shape before. Compute methods acquire their scratch
+        through _tmp() (requesting the shape they need, the pool returns a
+        front-slice view) and release it via _free() before returning, so the
+        pool's in-use tracking makes overlapping or nested use fail loudly
+        instead of silently corrupting data. Results are always written to the
+        caller-provided (or freshly allocated) 'out' arrays and never alias the
+        pool storage.
 
         Parameters
         ----------
@@ -129,24 +151,15 @@ class CFDUtils:
         self._tmp_dim = dim
 
         nd = n_in_el * dim
+        dim2 = dim * dim
 
-        # Scalar per element — shape (nelem,)
-        self._tmp_e = xp.empty(nelem, dtype=PRECISION)
-
-        # Flat node×dim per element — shape (nelem, n_in_el*dim)
-        self._tmp_e_nd = xp.empty((nelem, nd), dtype=PRECISION)
-
-        # Per-element dim vector — shape (nelem, dim)
-        self._tmp_ed = xp.empty((nelem, dim), dtype=PRECISION)
-
-        # Per-element node×dim — shape (nelem, n_in_el, dim)
-        self._tmp_eik = xp.empty((nelem, n_in_el, dim), dtype=PRECISION)
-
-        # Per-element node scalar — shape (nelem, n_in_el)
-        self._tmp_en = xp.empty((nelem, n_in_el), dtype=PRECISION)
-
-        # Per-element dim×dim — shape (nelem, dim, dim)
-        self._tmp_edd = xp.empty((nelem, dim, dim), dtype=PRECISION)
+        # Only two scratch slots are ever live simultaneously (TMP_A product
+        # tensor + TMP_B auxiliary); every kernel request fits in these two.
+        sizes = [
+            nelem * max(nd, dim2),  # TMP_A
+            nelem * dim2            # TMP_B
+        ]
+        self._pool = python_pool.BufferPool(sizes, xp, PRECISION)
 
     def _ensure_temporaries(self, nelem, n_in_el, dim):
         """Lazily allocate temporaries on first use or if dimensions change."""
@@ -155,7 +168,8 @@ class CFDUtils:
 
     def GetShapeFunctionsOnGaussPoints(self, dim: int, integration_order: int):
         if integration_order == 1:
-            N = xp.array([[xp.ones(dim+1) / (dim+1)]])
+            # Return shape (ngauss, n_in_el) = (1, dim+1), consistent with integration_order == 2
+            N = xp.array([xp.ones(dim+1, dtype=PRECISION) / (dim+1)], dtype=PRECISION)
         elif integration_order == 2:
             if dim == 2:
                 N = xp.array([
@@ -272,11 +286,13 @@ class CFDUtils:
         DN_flat = DN.reshape(nelem, nd)
         uel_flat = uel.reshape(nelem, nd)
 
-        # Element-wise product into pre-allocated buffer
-        xp.multiply(DN_flat, uel_flat, out=self._tmp_e_nd)
-
-        # Sum rows into caller-provided (or freshly allocated) output
-        xp.sum(self._tmp_e_nd, axis=1, out=out)
+        # Element-wise product into scratch buffer, sum rows into caller-provided output
+        t_end = self._tmp(self.TMP_A, (nelem, nd))
+        try:
+            xp.multiply(DN_flat, uel_flat, out=t_end)
+            xp.sum(t_end, axis=1, out=out)
+        finally:
+            self._free(self.TMP_A)
 
         return out
 
@@ -317,11 +333,16 @@ class CFDUtils:
         # Step 1: divergence div[e] = sum_{J,k} DN[e,J,k] * uel[e,J,k]
         DN_flat = DN.reshape(nelem, nd)
         uel_flat = uel.reshape(nelem, nd)
-        xp.multiply(DN_flat, uel_flat, out=self._tmp_e_nd)
-        xp.sum(self._tmp_e_nd, axis=1, out=self._tmp_e)
+        t_end = self._tmp(self.TMP_A, (nelem, nd))
+        t_e = self._tmp(self.TMP_B, (nelem,))
+        try:
+            xp.multiply(DN_flat, uel_flat, out=t_end)
+            xp.sum(t_end, axis=1, out=t_e)
 
-        # Step 2: out[e,I] = N[I] * div[e]
-        xp.multiply(self._tmp_e[:, None], N[None, :], out=out)
+            # Step 2: out[e,I] = N[I] * div[e]
+            xp.multiply(t_e[:, None], N[None, :], out=out)
+        finally:
+            self._free(self.TMP_A, self.TMP_B)
 
         return out
 
@@ -379,7 +400,7 @@ class CFDUtils:
         dim = DN.shape[2]
 
         if pel.shape != (nelem, n_in_el):
-            raise ValueError("pel must have shape (nelem, n_in_el) for scalar case. Current shape is:",field.shape)
+            raise ValueError("pel must have shape (nelem, n_in_el) for scalar case. Current shape is:",pel.shape)
 
         self._ensure_temporaries(nelem, n_in_el, dim)
 
@@ -387,10 +408,14 @@ class CFDUtils:
             out = xp.empty((nelem, n_in_el, dim), dtype=DN.dtype)
 
         # Step 1: grad_p[e,k] = sum_J DN[e,J,k] * pel[e,J]
-        xp.matmul(DN.swapaxes(1, 2), pel[:, :, None], out=self._tmp_ed[:, :, None])
+        t_ed = self._tmp(self.TMP_B, (nelem, dim))
+        try:
+            xp.matmul(DN.swapaxes(1, 2), pel[:, :, None], out=t_ed[:, :, None])
 
-        # Step 2: out[e,I,k] = N[I] * grad_p[e,k]
-        xp.multiply(N[None, :, None], self._tmp_ed[:, None, :], out=out)
+            # Step 2: out[e,I,k] = N[I] * grad_p[e,k]
+            xp.multiply(N[None, :, None], t_ed[:, None, :], out=out)
+        finally:
+            self._free(self.TMP_B)
 
         return out
 
@@ -420,10 +445,14 @@ class CFDUtils:
             out = xp.empty((nelem, n_in_el, dim), dtype=DN.dtype)
 
         # Step 1: s[e] = sum_J pel[e,J] * N[J]  — dot product per element
-        xp.dot(pel, N, out=self._tmp_e)
+        t_e = self._tmp(self.TMP_B, (nelem,))
+        try:
+            xp.dot(pel, N, out=t_e)
 
-        # Step 2: out[e,I,k] = DN[e,I,k] * s[e]
-        xp.multiply(DN, self._tmp_e[:, None, None], out=out)
+            # Step 2: out[e,I,k] = DN[e,I,k] * s[e]
+            xp.multiply(DN, t_e[:, None, None], out=out)
+        finally:
+            self._free(self.TMP_B)
 
         return out
 
@@ -499,14 +528,19 @@ class CFDUtils:
             if out is None:
                 out = xp.empty((nelem, nnode), dtype=field.dtype)
 
-            # Use _tmp_eik for intermediate (shape: nelem, nnode, dim)
-            # grad[:, m] = sum_node DN[:, :, m] * field
-            xp.multiply(DN, field[:, :, None], out=self._tmp_eik)
-            xp.sum(self._tmp_eik, axis=1, out=self._tmp_ed)  # (nelem, dim)
+            # Scratch: (nelem, nnode, dim) product and its (nelem, dim) gradient
+            t_eik = self._tmp(self.TMP_A, (nelem, nnode, dim))
+            t_ed = self._tmp(self.TMP_B, (nelem, dim))
+            try:
+                # grad[:, m] = sum_node DN[:, :, m] * field
+                xp.multiply(DN, field[:, :, None], out=t_eik)
+                xp.sum(t_eik, axis=1, out=t_ed)  # (nelem, dim)
 
-            # Accumulate: out[e, i] = sum_m DN[e, i, m] * grad[e, m]
-            # This is: out = DN @ grad[:, :, None] → (nelem, nnode, 1)
-            xp.matmul(DN, self._tmp_ed[:, :, None], out=out[:, :, None])
+                # Accumulate: out[e, i] = sum_m DN[e, i, m] * grad[e, m]
+                # This is: out = DN @ grad[:, :, None] → (nelem, nnode, 1)
+                xp.matmul(DN, t_ed[:, :, None], out=out[:, :, None])
+            finally:
+                self._free(self.TMP_A, self.TMP_B)
 
             return out
 
@@ -516,14 +550,18 @@ class CFDUtils:
             if out is None:
                 out = xp.empty((nelem, nnode, ncomp), dtype=field.dtype)
 
-            # Use _tmp_edd for grad (shape: nelem, dim, dim) — slice to (nelem, dim, ncomp)
-            grad_view = self._tmp_edd[:, :, :ncomp]
+            # Scratch (nelem, dim, dim) grad — slice to (nelem, dim, ncomp)
+            t_edd = self._tmp(self.TMP_A, (nelem, dim, dim))
+            try:
+                grad_view = t_edd[:, :, :ncomp]
 
-            # grad = DN^T @ field → (nelem, dim, ncomp)
-            xp.matmul(DN.swapaxes(1, 2), field, out=grad_view)
+                # grad = DN^T @ field → (nelem, dim, ncomp)
+                xp.matmul(DN.swapaxes(1, 2), field, out=grad_view)
 
-            # out = DN @ grad → (nelem, nnode, ncomp)
-            xp.matmul(DN, grad_view, out=out)
+                # out = DN @ grad → (nelem, nnode, ncomp)
+                xp.matmul(DN, grad_view, out=out)
+            finally:
+                self._free(self.TMP_A)
 
             return out
 
@@ -879,17 +917,21 @@ class CFDUtils:
 
         # Step 1: Compute temp[e,j,l] = sum_m M[j,m] * beta[e,m,l]
         # Batched matmul: M @ beta[e] for all elements at once
-        # Use _tmp_eik as temp buffer (shape: nelem, n_node, n_dim)
-        xp.matmul(M_e[None, :, :], beta, out=self._tmp_eik)
+        # Scratch: (nelem, n_node, n_dim) temp and (nelem, dim, dim) S buffer
+        t_eik = self._tmp(self.TMP_A, (n_elem, n_node, n_dim))
+        t_edd = self._tmp(self.TMP_B, (n_elem, n_dim, n_dim))
+        try:
+            xp.matmul(M_e[None, :, :], beta, out=t_eik)
 
-        # Step 2: Compute S[e,k,l] = sum_j a[e,j,k] * temp[e,j,l]
-        # Transpose a to (n_elem, n_dim, n_node) then matmul with temp
-        # Use _tmp_edd as S buffer (shape: nelem, dim, dim)
-        xp.matmul(a_elemental.swapaxes(1, 2), self._tmp_eik, out=self._tmp_edd)
+            # Step 2: Compute S[e,k,l] = sum_j a[e,j,k] * temp[e,j,l]
+            # Transpose a to (n_elem, n_dim, n_node) then matmul with temp
+            xp.matmul(a_elemental.swapaxes(1, 2), t_eik, out=t_edd)
 
-        # Step 3: Compute out[e,i,l] = sum_k DN[e,i,k] * S[e,k,l]
-        # Use out parameter to avoid implicit temporary from matmul
-        xp.matmul(DN, self._tmp_edd, out=out)
+            # Step 3: Compute out[e,i,l] = sum_k DN[e,i,k] * S[e,k,l]
+            # Use out parameter to avoid implicit temporary from matmul
+            xp.matmul(DN, t_edd, out=out)
+        finally:
+            self._free(self.TMP_A, self.TMP_B)
 
         return out
 
@@ -924,21 +966,33 @@ class CFDUtils:
         if out is None:
             out = xp.empty((nelem, nnode, dim), dtype=DN.dtype)
 
-        # Step 1: divergence of u → (E,)
-        # Use _tmp_eik as intermediate buffer for DN * u_elemental
-        xp.multiply(DN, u_elemental, out=self._tmp_eik)
-        xp.sum(self._tmp_eik, axis=(1, 2), out=self._tmp_e)
+        # Two-slot layout: TMP_B column 0 holds div(u), column 1 holds div(Π);
+        # TMP_A carries the product tensors (released between the two sums).
+        t_b = self._tmp(self.TMP_B, (nelem, dim * dim))
+        try:
+            # Step 1: divergence of u → (E,)
+            t_a = self._tmp(self.TMP_A, (nelem, nnode, dim))
+            try:
+                xp.multiply(DN, u_elemental, out=t_a)
+                xp.sum(t_a, axis=(1, 2), out=t_b[:, 0])
+            finally:
+                self._free(self.TMP_A)
 
-        # Step 2: projection of Π → (E,)
-        # Use _tmp_en as intermediate buffer for N[None, :] * Pi_div_elemental
-        xp.multiply(N[None, :], Pi_div_elemental, out=self._tmp_en)
-        xp.sum(self._tmp_en, axis=1, out=self._tmp_ed[:, 0])  # reuse _tmp_ed[:, 0] as (E,) view
+            # Step 2: projection of Π → (E,)
+            t_a = self._tmp(self.TMP_A, (nelem, nnode))
+            try:
+                xp.multiply(N[None, :], Pi_div_elemental, out=t_a)
+                xp.sum(t_a, axis=1, out=t_b[:, 1])
+            finally:
+                self._free(self.TMP_A)
 
-        # Step 3: scalar residual → (E,) — in-place subtraction
-        xp.subtract(self._tmp_e, self._tmp_ed[:, 0], out=self._tmp_e)
+            # Step 3: scalar residual → (E,) — in-place subtraction
+            xp.subtract(t_b[:, 0], t_b[:, 1], out=t_b[:, 0])
 
-        # Step 4: apply DN → (E, nnode, dim)
-        xp.multiply(DN, self._tmp_e[:, None, None], out=out)
+            # Step 4: apply DN → (E, nnode, dim)
+            xp.multiply(DN, t_b[:, 0][:, None, None], out=out)
+        finally:
+            self._free(self.TMP_B)
 
         return out
 
@@ -974,12 +1028,17 @@ class CFDUtils:
 
         # Step 1: Compute temp[e,k] = sum_J N[J] * Pi_press_el[e,J,k]
         # Using matmul: Pi_press_el.swapaxes(1,2) @ N gives (nelem, dim, n_node) @ (n_node,) -> (nelem, dim)
-        xp.matmul(Pi_press_el.swapaxes(1, 2), N, out=self._tmp_ed)
+        # Scratch: (nelem, dim) temp plus (nelem, n_node, dim) product buffer
+        t_ed = self._tmp(self.TMP_B, (nelem, n_dim))
+        t_eik = self._tmp(self.TMP_A, (nelem, n_node, n_dim))
+        try:
+            xp.matmul(Pi_press_el.swapaxes(1, 2), N, out=t_ed)
 
-        # Step 2: Compute out[e,I] = sum_k DN[e,I,k] * temp[e,k]
-        # Use _tmp_eik as intermediate buffer for DN * temp, then sum over k
-        xp.multiply(DN, self._tmp_ed[:, None, :], out=self._tmp_eik)
-        xp.sum(self._tmp_eik, axis=2, out=out)
+            # Step 2: Compute out[e,I] = sum_k DN[e,I,k] * temp[e,k]
+            xp.multiply(DN, t_ed[:, None, :], out=t_eik)
+            xp.sum(t_eik, axis=2, out=out)
+        finally:
+            self._free(self.TMP_B, self.TMP_A)
 
         return out
 
@@ -1347,7 +1406,7 @@ class CFDUtils:
         residual_gap_ratios = []
         replacement_iterations = []
 
-        if resid_host <= atol:  #stop_atol:
+        if resid_host <= stop_atol:
             if return_info_dict:
                 return x, {
                     "converged": True,

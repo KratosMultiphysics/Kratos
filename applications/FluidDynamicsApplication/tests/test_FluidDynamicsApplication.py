@@ -69,7 +69,8 @@ from test_navier_stokes_fractional_vectorial_convection import NavierStokesFract
 from test_python_pool import TestBufferPoolNumPy
 if HAS_CUPY:
     from test_python_pool import TestBufferPoolCuPy
-from test_cfd_utils import TestCFDUtils
+from test_cfd_utils import TestCFDUtils, TestCFDUtilsMisc, TestRobustCG
+from test_vectorized_cfd_stage import TestVectorizedCFDStageHelpers
 from vectorized_fluid_dynamics_analysis_test import VectorizedFluidDynamicsAnalysisTestOpenMP
 if HAS_CUPY:
     from vectorized_fluid_dynamics_analysis_test import VectorizedFluidDynamicsAnalysisTestGPU
@@ -114,6 +115,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SlipSpuriousTangentialCorrectionTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyWallLawProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCFDUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCFDUtilsMisc]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRobustCG]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestVectorizedCFDStageHelpers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBufferPoolNumPy]))
     if HAS_CUPY:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBufferPoolCuPy]))
