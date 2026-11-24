@@ -24,7 +24,6 @@
 
 // Project includes
 #include "custom_utilities/snake_gap_sbm_3d_level_set_clipping_utilities.h"
-#include "custom_utilities/snake_gap_sbm_3D_utilities.h"
 #include "custom_processes/snake_gap_sbm_process.h"
 #include "geometries/coupling_geometry.h"
 #include "geometries/pyramid_3d_5.h"
@@ -1114,28 +1113,28 @@ ParameterSpaceBounds ReadParameterSpaceBounds3D(
     return bounds;
 }
 
-std::string GapSpanTypeToString(const SnakeGapSbm3DUtilities::GapSpanType Type)
+std::string GapSpanTypeToString(const SnakeGapSbmProcess::Gap3DData::GapSpanType Type)
 {
     switch (Type) {
-        case SnakeGapSbm3DUtilities::GapSpanType::Type1:
+        case SnakeGapSbmProcess::Gap3DData::GapSpanType::Type1:
             return "TYPE_1";
-        case SnakeGapSbm3DUtilities::GapSpanType::Type2:
+        case SnakeGapSbmProcess::Gap3DData::GapSpanType::Type2:
             return "TYPE_2";
-        case SnakeGapSbm3DUtilities::GapSpanType::Type3:
+        case SnakeGapSbmProcess::Gap3DData::GapSpanType::Type3:
             return "TYPE_3";
         default:
             return "UNDEFINED";
     }
 }
 
-int GapSpanTypePriority(const SnakeGapSbm3DUtilities::GapSpanType Type)
+int GapSpanTypePriority(const SnakeGapSbmProcess::Gap3DData::GapSpanType Type)
 {
     switch (Type) {
-        case SnakeGapSbm3DUtilities::GapSpanType::Type1:
+        case SnakeGapSbmProcess::Gap3DData::GapSpanType::Type1:
             return 1;
-        case SnakeGapSbm3DUtilities::GapSpanType::Type2:
+        case SnakeGapSbmProcess::Gap3DData::GapSpanType::Type2:
             return 2;
-        case SnakeGapSbm3DUtilities::GapSpanType::Type3:
+        case SnakeGapSbmProcess::Gap3DData::GapSpanType::Type3:
             return 3;
         default:
             return 100;
@@ -1223,30 +1222,30 @@ array_1d<double, 3> ClosestPointOnTriangle(
 
 } // unnamed namespace
 
-SnakeGapSbm3DUtilities::SnakeGapSbm3DUtilities(const int EchoLevel)
+SnakeGapSbmProcess::Gap3DData::Gap3DData(const int EchoLevel)
     : mEchoLevel(EchoLevel)
 {
 }
 
-void SnakeGapSbm3DUtilities::SetGapApproximationOrder(
+void SnakeGapSbmProcess::Gap3DData::SetGapApproximationOrder(
     const std::size_t GapApproximationOrder)
 {
     mGapApproximationOrder = GapApproximationOrder == 0 ? 1 : GapApproximationOrder;
 
     KRATOS_ERROR_IF(mGapApproximationOrder > 3)
-        << "[SnakeGapSbm3DUtilities::SetGapApproximationOrder] "
+        << "[SnakeGapSbmProcess::Gap3DData::SetGapApproximationOrder] "
         << "Only gap_approximation_order <= 3 is currently implemented "
         << "for 3D curved gap geometries. Requested order: "
         << mGapApproximationOrder << ".\n";
 }
 
-void SnakeGapSbm3DUtilities::SetStoreGapDebugGeometries(
+void SnakeGapSbmProcess::Gap3DData::SetStoreGapDebugGeometries(
     const bool StoreGapDebugGeometries)
 {
     mStoreGapDebugGeometries = StoreGapDebugGeometries;
 }
 
-void SnakeGapSbm3DUtilities::SetInitialNurbsSkinModelPart(
+void SnakeGapSbmProcess::Gap3DData::SetInitialNurbsSkinModelPart(
     const ModelPart& rInitialSkinModelPart)
 {
     mInitialNurbsSkinSurfaces.clear();
@@ -1285,18 +1284,18 @@ void SnakeGapSbm3DUtilities::SetInitialNurbsSkinModelPart(
         }
     }
 
-    KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 0 && !mInitialNurbsSkinSurfaces.empty())
+    KRATOS_INFO_IF("SnakeGapSbmProcess::Gap3DData", mEchoLevel > 0 && !mInitialNurbsSkinSurfaces.empty())
         << "Using " << mInitialNurbsSkinSurfaces.size()
         << " initial NURBS skin surfaces for exact closest-point projections.\n";
 }
 
-void SnakeGapSbm3DUtilities::SetMaximumNurbsProjectionDistance(
+void SnakeGapSbmProcess::Gap3DData::SetMaximumNurbsProjectionDistance(
     const double MaximumProjectionDistance)
 {
     mMaximumNurbsProjectionDistance = MaximumProjectionDistance;
 }
 
-bool SnakeGapSbm3DUtilities::TryProjectPointToInitialNurbsSkin(
+bool SnakeGapSbmProcess::Gap3DData::TryProjectPointToInitialNurbsSkin(
     const array_1d<double, 3>& rPoint,
     array_1d<double, 3>& rProjectionPoint,
     double& rProjectionDistance,
@@ -1317,38 +1316,38 @@ bool SnakeGapSbm3DUtilities::TryProjectPointToInitialNurbsSkin(
         pInitialGuess);
 }
 
-void SnakeGapSbm3DUtilities::SetUsePyramidQuadratureForType1(
+void SnakeGapSbmProcess::Gap3DData::SetUsePyramidQuadratureForType1(
     const bool UsePyramidQuadratureForType1)
 {
     mUsePyramidQuadratureForType1 = UsePyramidQuadratureForType1;
 }
 
-void SnakeGapSbm3DUtilities::SetUseTetraQuadratureForLinearType2Type3(
+void SnakeGapSbmProcess::Gap3DData::SetUseTetraQuadratureForLinearType2Type3(
     const bool UseTetraQuadratureForLinearType2Type3)
 {
     mUseTetraQuadratureForLinearType2Type3 =
         UseTetraQuadratureForLinearType2Type3;
 }
 
-void SnakeGapSbm3DUtilities::SetUseAnisotropicQuadratureForCurvedType2(
+void SnakeGapSbmProcess::Gap3DData::SetUseAnisotropicQuadratureForCurvedType2(
     const bool UseAnisotropicQuadratureForCurvedType2)
 {
     mUseAnisotropicQuadratureForCurvedType2 =
         UseAnisotropicQuadratureForCurvedType2;
 }
 
-void SnakeGapSbm3DUtilities::SetUseTriangleRadialQuadratureForCurvedType3(
+void SnakeGapSbmProcess::Gap3DData::SetUseTriangleRadialQuadratureForCurvedType3(
     const bool UseTriangleRadialQuadratureForCurvedType3)
 {
     mUseTriangleRadialQuadratureForCurvedType3 =
         UseTriangleRadialQuadratureForCurvedType3;
 }
 
-SnakeGapSbm3DUtilities::KnotSpanGridInfo
-SnakeGapSbm3DUtilities::CreateKnotSpanGridInfo(
+SnakeGapSbmProcess::Gap3DData::KnotSpanGridInfo
+SnakeGapSbmProcess::Gap3DData::CreateKnotSpanGridInfo(
     const ModelPart& rBackgroundModelPart) const
 {
-    const char* p_caller = "SnakeGapSbm3DUtilities::CreateKnotSpanGridInfo";
+    const char* p_caller = "SnakeGapSbmProcess::Gap3DData::CreateKnotSpanGridInfo";
 
     KRATOS_ERROR_IF_NOT(rBackgroundModelPart.Has(KNOT_SPAN_SIZES))
         << "[" << p_caller << "] ModelPart '" << rBackgroundModelPart.Name()
@@ -1391,7 +1390,7 @@ SnakeGapSbm3DUtilities::CreateKnotSpanGridInfo(
     return info;
 }
 
-std::size_t SnakeGapSbm3DUtilities::ComputeSpanCount(
+std::size_t SnakeGapSbmProcess::Gap3DData::ComputeSpanCount(
     const double DomainLength,
     const double SpanSize,
     const char* pDirection,
@@ -1419,7 +1418,7 @@ std::size_t SnakeGapSbm3DUtilities::ComputeSpanCount(
     return static_cast<std::size_t>(rounded_spans);
 }
 
-std::size_t SnakeGapSbm3DUtilities::ComputeSpanIndex(
+std::size_t SnakeGapSbmProcess::Gap3DData::ComputeSpanIndex(
     const double Coordinate,
     const double MinValue,
     const double MaxValue,
@@ -1452,7 +1451,7 @@ std::size_t SnakeGapSbm3DUtilities::ComputeSpanIndex(
     return span_index;
 }
 
-int SnakeGapSbm3DUtilities::ComputeGridLineIndex(
+int SnakeGapSbmProcess::Gap3DData::ComputeGridLineIndex(
     const double Coordinate,
     const double MinValue,
     const double SpanSize,
@@ -1470,7 +1469,7 @@ int SnakeGapSbm3DUtilities::ComputeGridLineIndex(
     return grid_index;
 }
 
-std::vector<std::size_t> SnakeGapSbm3DUtilities::ComputeNodeSpanIndices(
+std::vector<std::size_t> SnakeGapSbmProcess::Gap3DData::ComputeNodeSpanIndices(
     const double Coordinate,
     const double MinValue,
     const double MaxValue,
@@ -1517,7 +1516,7 @@ std::vector<std::size_t> SnakeGapSbm3DUtilities::ComputeNodeSpanIndices(
 }
 
 std::pair<std::size_t, std::size_t>
-SnakeGapSbm3DUtilities::ComputeSpanIndexRange(
+SnakeGapSbmProcess::Gap3DData::ComputeSpanIndexRange(
     const double MinCoordinate,
     const double MaxCoordinate,
     const double MinValue,
@@ -1541,7 +1540,7 @@ SnakeGapSbm3DUtilities::ComputeSpanIndexRange(
 
     if (MaxCoordinate < MinValue - BoundaryTolerance ||
         MinCoordinate > MaxValue + BoundaryTolerance) {
-        KRATOS_WARNING("SnakeGapSbm3DUtilities")
+        KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
             << "[" << rCaller << "] Bounding box range ["
             << MinCoordinate << ", " << MaxCoordinate
             << "] is outside domain ["
@@ -1598,7 +1597,7 @@ SnakeGapSbm3DUtilities::ComputeSpanIndexRange(
     return std::make_pair(first_index, last_index);
 }
 
-std::size_t SnakeGapSbm3DUtilities::FlattenSpanColumnIndex(
+std::size_t SnakeGapSbmProcess::Gap3DData::FlattenSpanColumnIndex(
     const KnotSpanGridInfo& rGridInfo,
     const std::size_t J,
     const std::size_t K) const
@@ -1606,7 +1605,7 @@ std::size_t SnakeGapSbm3DUtilities::FlattenSpanColumnIndex(
     return J * rGridInfo.NumberOfSpansZ + K;
 }
 
-std::size_t SnakeGapSbm3DUtilities::FindSpanNnzIndex(
+std::size_t SnakeGapSbmProcess::Gap3DData::FindSpanNnzIndex(
     const KnotSpanSkinBinsCSR& rSkinBins,
     const SpanKey3D& rSpan) const
 {
@@ -1634,7 +1633,7 @@ std::size_t SnakeGapSbm3DUtilities::FindSpanNnzIndex(
     return static_cast<std::size_t>(-1);
 }
 
-bool SnakeGapSbm3DUtilities::IsSpanInsideDomain(
+bool SnakeGapSbmProcess::Gap3DData::IsSpanInsideDomain(
     const SpanKey3D& rSpan,
     const KnotSpanGridInfo& rGridInfo) const
 {
@@ -1646,7 +1645,7 @@ bool SnakeGapSbm3DUtilities::IsSpanInsideDomain(
            rSpan.K < static_cast<int>(rGridInfo.NumberOfSpansZ);
 }
 
-array_1d<double, 3> SnakeGapSbm3DUtilities::SpanCenter(
+array_1d<double, 3> SnakeGapSbmProcess::Gap3DData::SpanCenter(
     const SpanKey3D& rSpan,
     const KnotSpanGridInfo& rGridInfo) const
 {
@@ -1659,7 +1658,7 @@ array_1d<double, 3> SnakeGapSbm3DUtilities::SpanCenter(
     return center;
 }
 
-void SnakeGapSbm3DUtilities::ConditionBoundingBox(
+void SnakeGapSbmProcess::Gap3DData::ConditionBoundingBox(
     const Geometry<Node>& rGeometry,
     array_1d<double, 3>& rMinPoint,
     array_1d<double, 3>& rMaxPoint) const
@@ -1707,12 +1706,12 @@ std::size_t ComputeSpanCount3D(
     return static_cast<std::size_t>(rounded_spans);
 }
 
-SnakeGapSbm3DUtilities::KnotSpanSkinBinsCSR
-SnakeGapSbm3DUtilities::BuildSkinBinsPerKnotSpan3D(
+SnakeGapSbmProcess::Gap3DData::KnotSpanSkinBinsCSR
+SnakeGapSbmProcess::Gap3DData::BuildSkinBinsPerKnotSpan3D(
     const ModelPart& rSkinSubModelPart,
     const KnotSpanGridInfo& rGridInfo) const
 {
-    const char* p_caller = "SnakeGapSbm3DUtilities::BuildSkinBinsPerKnotSpan3D";
+    const char* p_caller = "SnakeGapSbmProcess::Gap3DData::BuildSkinBinsPerKnotSpan3D";
 
     KnotSpanSkinBinsCSR skin_bins;
     skin_bins.GridInfo = rGridInfo;
@@ -2036,8 +2035,8 @@ SnakeGapSbm3DUtilities::BuildSkinBinsPerKnotSpan3D(
     return skin_bins;
 }
 
-SnakeGapSbm3DUtilities::GridPointKey3D
-SnakeGapSbm3DUtilities::ComputeGridPointKey(
+SnakeGapSbmProcess::Gap3DData::GridPointKey3D
+SnakeGapSbmProcess::Gap3DData::ComputeGridPointKey(
     const array_1d<double, 3>& rPoint,
     const KnotSpanGridInfo& rGridInfo) const
 {
@@ -2064,7 +2063,7 @@ SnakeGapSbm3DUtilities::ComputeGridPointKey(
     return key;
 }
 
-int SnakeGapSbm3DUtilities::ComputeFaceNormalAxis(
+int SnakeGapSbmProcess::Gap3DData::ComputeFaceNormalAxis(
     const array_1d<double, 3>& rNormal) const
 {
     int normal_axis = 0;
@@ -2078,15 +2077,15 @@ int SnakeGapSbm3DUtilities::ComputeFaceNormalAxis(
     return normal_axis;
 }
 
-int SnakeGapSbm3DUtilities::ComputeFaceNormalSign(
+int SnakeGapSbmProcess::Gap3DData::ComputeFaceNormalSign(
     const array_1d<double, 3>& rNormal,
     const int NormalAxis) const
 {
     return rNormal[NormalAxis] >= 0.0 ? 1 : -1;
 }
 
-SnakeGapSbm3DUtilities::SpanKey3D
-SnakeGapSbm3DUtilities::ComputeExternalSpanFromSurrogateFace(
+SnakeGapSbmProcess::Gap3DData::SpanKey3D
+SnakeGapSbmProcess::Gap3DData::ComputeExternalSpanFromSurrogateFace(
     const SurrogateFaceData& rFaceData,
     const KnotSpanGridInfo& rGridInfo) const
 {
@@ -2124,15 +2123,15 @@ SnakeGapSbm3DUtilities::ComputeExternalSpanFromSurrogateFace(
     }
 
     KRATOS_ERROR_IF_NOT(IsSpanInsideDomain(external_span, rGridInfo))
-        << "[SnakeGapSbm3DUtilities::ComputeExternalSpanFromSurrogateFace] External span "
+        << "[SnakeGapSbmProcess::Gap3DData::ComputeExternalSpanFromSurrogateFace] External span "
         << SpanToString(external_span) << " from surrogate condition #"
         << rFaceData.pCondition->Id() << " is outside the knot-span grid.\n";
 
     return external_span;
 }
 
-SnakeGapSbm3DUtilities::SpanKey3D
-SnakeGapSbm3DUtilities::ComputeActiveSpanFromSurrogateFace(
+SnakeGapSbmProcess::Gap3DData::SpanKey3D
+SnakeGapSbmProcess::Gap3DData::ComputeActiveSpanFromSurrogateFace(
     const SurrogateFaceData& rFaceData) const
 {
     SpanKey3D active_span = rFaceData.ExternalSpan;
@@ -2148,12 +2147,12 @@ SnakeGapSbm3DUtilities::ComputeActiveSpanFromSurrogateFace(
     return active_span;
 }
 
-SnakeGapSbm3DUtilities::SurrogateFaceData
-SnakeGapSbm3DUtilities::CreateSurrogateFaceData(
+SnakeGapSbmProcess::Gap3DData::SurrogateFaceData
+SnakeGapSbmProcess::Gap3DData::CreateSurrogateFaceData(
     const Condition& rCondition,
     const KnotSpanGridInfo& rGridInfo) const
 {
-    const char* p_caller = "SnakeGapSbm3DUtilities::CreateSurrogateFaceData";
+    const char* p_caller = "SnakeGapSbmProcess::Gap3DData::CreateSurrogateFaceData";
 
     const auto& r_geometry = rCondition.GetGeometry();
 
@@ -2208,8 +2207,8 @@ SnakeGapSbm3DUtilities::CreateSurrogateFaceData(
     return face_data;
 }
 
-std::vector<SnakeGapSbm3DUtilities::SurrogateFaceData>
-SnakeGapSbm3DUtilities::BuildSurrogateFaceDataVector(
+std::vector<SnakeGapSbmProcess::Gap3DData::SurrogateFaceData>
+SnakeGapSbmProcess::Gap3DData::BuildSurrogateFaceDataVector(
     const ModelPart& rSurrogateSubModelPart,
     const KnotSpanGridInfo& rGridInfo) const
 {
@@ -2224,8 +2223,8 @@ SnakeGapSbm3DUtilities::BuildSurrogateFaceDataVector(
     return surrogate_faces;
 }
 
-std::set<SnakeGapSbm3DUtilities::SpanKey3D>
-SnakeGapSbm3DUtilities::ExtractActiveSpans(
+std::set<SnakeGapSbmProcess::Gap3DData::SpanKey3D>
+SnakeGapSbmProcess::Gap3DData::ExtractActiveSpans(
     const std::vector<SurrogateFaceData>& rSurrogateFaces) const
 {
     std::set<SpanKey3D> active_spans;
@@ -2237,7 +2236,7 @@ SnakeGapSbm3DUtilities::ExtractActiveSpans(
     return active_spans;
 }
 
-void SnakeGapSbm3DUtilities::AddUniqueActiveSpan(
+void SnakeGapSbmProcess::Gap3DData::AddUniqueActiveSpan(
     std::vector<SpanKey3D>& rSpans,
     const SpanKey3D& rSpan) const
 {
@@ -2246,7 +2245,7 @@ void SnakeGapSbm3DUtilities::AddUniqueActiveSpan(
     }
 }
 
-void SnakeGapSbm3DUtilities::AddUniqueConditionId(
+void SnakeGapSbmProcess::Gap3DData::AddUniqueConditionId(
     std::vector<IndexType>& rConditionIds,
     const IndexType ConditionId) const
 {
@@ -2255,7 +2254,7 @@ void SnakeGapSbm3DUtilities::AddUniqueConditionId(
     }
 }
 
-void SnakeGapSbm3DUtilities::RegisterExternalSpanCandidate(
+void SnakeGapSbmProcess::Gap3DData::RegisterExternalSpanCandidate(
     ExternalSpanDataMap& rExternalSpans,
     const SpanKey3D& rExternalSpan,
     const GapSpanType Type,
@@ -2277,8 +2276,8 @@ void SnakeGapSbm3DUtilities::RegisterExternalSpanCandidate(
     }
 }
 
-SnakeGapSbm3DUtilities::ExternalSpanDataMap
-SnakeGapSbm3DUtilities::ClassifyExternalSpans(
+SnakeGapSbmProcess::Gap3DData::ExternalSpanDataMap
+SnakeGapSbmProcess::Gap3DData::ClassifyExternalSpans(
     const std::set<SpanKey3D>& rActiveSpans,
     const std::vector<SurrogateFaceData>& rSurrogateFaces,
     const KnotSpanGridInfo& rGridInfo,
@@ -2346,7 +2345,7 @@ SnakeGapSbm3DUtilities::ClassifyExternalSpans(
                     KRATOS_ERROR_IF(
                         condition_ids_it == active_span_condition_ids.end() ||
                         condition_ids_it->second.empty())
-                        << "[SnakeGapSbm3DUtilities::ClassifyExternalSpans] "
+                        << "[SnakeGapSbmProcess::Gap3DData::ClassifyExternalSpans] "
                         << "Active span " << SpanToString(r_active_span)
                         << " has no incident surrogate condition.\n";
 
@@ -2366,8 +2365,8 @@ SnakeGapSbm3DUtilities::ClassifyExternalSpans(
     return external_spans;
 }
 
-SnakeGapSbm3DUtilities::NodePointerType
-SnakeGapSbm3DUtilities::FindOrCreateProjectionNodeInSpan(
+SnakeGapSbmProcess::Gap3DData::NodePointerType
+SnakeGapSbmProcess::Gap3DData::FindOrCreateProjectionNodeInSpan(
     ModelPart& rSkinSubModelPart,
     const SpanKey3D& rSpan,
     const array_1d<double, 3>& rReferencePoint,
@@ -2672,7 +2671,7 @@ SnakeGapSbm3DUtilities::FindOrCreateProjectionNodeInSpan(
             auto p_auxiliary_node =
                 create_auxiliary_projection_node(intersection_point);
 
-            KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 2)
+            KRATOS_INFO_IF("SnakeGapSbmProcess::Gap3DData", mEchoLevel > 2)
                 << "Created auxiliary skin projection node "
                 << p_auxiliary_node->Id()
                 << " from skin condition "
@@ -2799,7 +2798,7 @@ SnakeGapSbm3DUtilities::FindOrCreateProjectionNodeInSpan(
         p_closest_condition_projection_node =
             create_auxiliary_projection_node(closest_span_point);
 
-        KRATOS_WARNING("SnakeGapSbm3DUtilities")
+        KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
             << "[FindOrCreateProjectionNodeInSpan] No skin condition "
             << "intersects external span " << SpanToString(rSpan)
             << ". Created auxiliary projection node "
@@ -2825,7 +2824,7 @@ SnakeGapSbm3DUtilities::FindOrCreateProjectionNodeInSpan(
     }
 
     KRATOS_ERROR
-        << "[SnakeGapSbm3DUtilities::FindOrCreateProjectionNodeInSpan] "
+        << "[SnakeGapSbmProcess::Gap3DData::FindOrCreateProjectionNodeInSpan] "
         << "No skin node exists in external span "
         << SpanToString(rSpan)
         << " and none of the skin conditions intersects the span box.\n"
@@ -2840,7 +2839,7 @@ SnakeGapSbm3DUtilities::FindOrCreateProjectionNodeInSpan(
     return nullptr;
 }
 
-void SnakeGapSbm3DUtilities::AddInteriorSkinNodesForLargeTriangles(
+void SnakeGapSbmProcess::Gap3DData::AddInteriorSkinNodesForLargeTriangles(
     ModelPart& rSkinSubModelPart,
     const KnotSpanGridInfo& rGridInfo) const
 {
@@ -2998,14 +2997,14 @@ void SnakeGapSbm3DUtilities::AddInteriorSkinNodesForLargeTriangles(
         }
     }
 
-    KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 1)
+    KRATOS_INFO_IF("SnakeGapSbmProcess::Gap3DData", mEchoLevel > 1)
         << "Added " << number_of_added_nodes
         << " interior skin nodes from "
         << number_of_refined_triangles
         << " large skin triangles.\n";
 }
 
-void SnakeGapSbm3DUtilities::AssignProjectionNodesToExternalSpans(
+void SnakeGapSbmProcess::Gap3DData::AssignProjectionNodesToExternalSpans(
     ExternalSpanDataMap& rExternalSpans,
     ModelPart& rSkinSubModelPart,
     const KnotSpanSkinBinsCSR& rSkinBins,
@@ -3034,7 +3033,7 @@ void SnakeGapSbm3DUtilities::AssignProjectionNodesToExternalSpans(
             r_span_data.pProjectionNode = p_projection_node;
         } else {
             KRATOS_ERROR
-                << "[SnakeGapSbm3DUtilities::AssignProjectionNodesToExternalSpans] "
+                << "[SnakeGapSbmProcess::Gap3DData::AssignProjectionNodesToExternalSpans] "
                 << "No skin projection node found in external span "
                 << SpanToString(r_span_data.Key)
                 << " of " << GapSpanTypeToString(r_span_data.Type)
@@ -3043,7 +3042,7 @@ void SnakeGapSbm3DUtilities::AssignProjectionNodesToExternalSpans(
     }
 }
 
-void SnakeGapSbm3DUtilities::EnsureSkinNodesInExternalSpans(
+void SnakeGapSbmProcess::Gap3DData::EnsureSkinNodesInExternalSpans(
     ModelPart& rSkinSubModelPart,
     const ExternalSpanDataMap& rExternalSpans,
     const KnotSpanGridInfo& rGridInfo) const
@@ -3092,7 +3091,7 @@ void SnakeGapSbm3DUtilities::EnsureSkinNodesInExternalSpans(
             KRATOS_WATCH(box_max)
             KRATOS_WATCH(norm_2(box_max - sphere_center))
             KRATOS_WATCH(norm_2(box_min - sphere_center))
-            KRATOS_WARNING("SnakeGapSbm3DUtilities")
+            KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
                 << "External span " << SpanToString(r_span)
                 << " has no skin node and no intersecting skin condition. "
                 << "No auxiliary projection node was created.\n";
@@ -3109,15 +3108,15 @@ void SnakeGapSbm3DUtilities::EnsureSkinNodesInExternalSpans(
             auxiliary_point[1],
             auxiliary_point[2]);
 
-        KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 3)
+        KRATOS_INFO_IF("SnakeGapSbmProcess::Gap3DData", mEchoLevel > 3)
             << "Added auxiliary skin node " << new_node_id
             << " in external span " << SpanToString(r_span)
             << " at " << auxiliary_point << "\n";
     }
 }
 
-SnakeGapSbm3DUtilities::ExternalSpanDataMap
-SnakeGapSbm3DUtilities::InitializeExternalSpanData(
+SnakeGapSbmProcess::Gap3DData::ExternalSpanDataMap
+SnakeGapSbmProcess::Gap3DData::InitializeExternalSpanData(
     ModelPart& rSkinSubModelPart,
     const ModelPart& rSurrogateSubModelPart,
     const ActiveSpanPredicateType& rIsSpanActive) const
@@ -3158,7 +3157,7 @@ SnakeGapSbm3DUtilities::InitializeExternalSpanData(
     return external_spans;
 }
 
-std::string SnakeGapSbm3DUtilities::SpanToString(
+std::string SnakeGapSbmProcess::Gap3DData::SpanToString(
     const SpanKey3D& rSpan) const
 {
     std::ostringstream buffer;
@@ -3166,7 +3165,7 @@ std::string SnakeGapSbm3DUtilities::SpanToString(
     return buffer.str();
 }
 
-void SnakeGapSbm3DUtilities::PrintExternalSpanSummary(
+void SnakeGapSbmProcess::Gap3DData::PrintExternalSpanSummary(
     const ExternalSpanDataMap& rExternalSpans) const
 {
     if (mEchoLevel == 0) {
@@ -3208,7 +3207,7 @@ void SnakeGapSbm3DUtilities::PrintExternalSpanSummary(
         }
     }
 
-    KRATOS_INFO("SnakeGapSbm3DUtilities")
+    KRATOS_INFO("SnakeGapSbmProcess::Gap3DData")
         << "External span initialization summary:\n"
         << "  type 1 spans:                 " << number_type_1 << "\n"
         << "  type 2 spans:                 " << number_type_2 << "\n"
@@ -3262,16 +3261,16 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D()
 }
 
 // type 1 element methods
-Vector SnakeGapSbm3DUtilities::CreateOpenUnitKnotVectorDegree1() const
+Vector SnakeGapSbmProcess::Gap3DData::CreateOpenUnitKnotVectorDegree1() const
 {
     return CreateOpenUnitKnotVector(1);
 }
 
-Vector SnakeGapSbm3DUtilities::CreateOpenUnitKnotVector(
+Vector SnakeGapSbmProcess::Gap3DData::CreateOpenUnitKnotVector(
     const std::size_t PolynomialDegree) const
 {
     KRATOS_ERROR_IF(PolynomialDegree == 0)
-        << "[SnakeGapSbm3DUtilities::CreateOpenUnitKnotVector] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateOpenUnitKnotVector] "
         << "Polynomial degree must be positive.\n";
 
     Vector knot_vector = ZeroVector(2 * (PolynomialDegree + 1));
@@ -3284,8 +3283,8 @@ Vector SnakeGapSbm3DUtilities::CreateOpenUnitKnotVector(
     return knot_vector;
 }
 
-SnakeGapSbm3DUtilities::CanonicalFaceKey3D
-SnakeGapSbm3DUtilities::MakeCanonicalFaceKey3D(
+SnakeGapSbmProcess::Gap3DData::CanonicalFaceKey3D
+SnakeGapSbmProcess::Gap3DData::MakeCanonicalFaceKey3D(
     const IndexType NodeId0,
     const IndexType NodeId1,
     const IndexType NodeId2) const
@@ -3296,18 +3295,18 @@ SnakeGapSbm3DUtilities::MakeCanonicalFaceKey3D(
     return key;
 }
 
-SnakeGapSbm3DUtilities::CanonicalFaceKey3D
-SnakeGapSbm3DUtilities::MakeCanonicalFaceKey3D(
+SnakeGapSbmProcess::Gap3DData::CanonicalFaceKey3D
+SnakeGapSbmProcess::Gap3DData::MakeCanonicalFaceKey3D(
     const NodePointerType& pNode0,
     const NodePointerType& pNode1,
     const NodePointerType& pNode2) const
 {
     KRATOS_ERROR_IF_NOT(pNode0)
-        << "[SnakeGapSbm3DUtilities::MakeCanonicalFaceKey3D] pNode0 is null.\n";
+        << "[SnakeGapSbmProcess::Gap3DData::MakeCanonicalFaceKey3D] pNode0 is null.\n";
     KRATOS_ERROR_IF_NOT(pNode1)
-        << "[SnakeGapSbm3DUtilities::MakeCanonicalFaceKey3D] pNode1 is null.\n";
+        << "[SnakeGapSbmProcess::Gap3DData::MakeCanonicalFaceKey3D] pNode1 is null.\n";
     KRATOS_ERROR_IF_NOT(pNode2)
-        << "[SnakeGapSbm3DUtilities::MakeCanonicalFaceKey3D] pNode2 is null.\n";
+        << "[SnakeGapSbmProcess::Gap3DData::MakeCanonicalFaceKey3D] pNode2 is null.\n";
 
     std::array<const NodeType*, 3> node_pointers = {{
         pNode0.get(),
@@ -3330,7 +3329,7 @@ SnakeGapSbm3DUtilities::MakeCanonicalFaceKey3D(
     return key;
 }
 
-IndexType SnakeGapSbm3DUtilities::GetNextGeometryId(
+IndexType SnakeGapSbmProcess::Gap3DData::GetNextGeometryId(
     const ModelPart& rRootModelPart) const
 {
     IndexType max_id = 0;
@@ -3342,7 +3341,7 @@ IndexType SnakeGapSbm3DUtilities::GetNextGeometryId(
     return max_id + 1;
 }
 
-ModelPart& SnakeGapSbm3DUtilities::GetOrCreateSubModelPart(
+ModelPart& SnakeGapSbmProcess::Gap3DData::GetOrCreateSubModelPart(
     ModelPart& rRootModelPart,
     const std::string& rSubModelPartName) const
 {
@@ -3353,23 +3352,23 @@ ModelPart& SnakeGapSbm3DUtilities::GetOrCreateSubModelPart(
     return rRootModelPart.CreateSubModelPart(rSubModelPartName);
 }
 
-void SnakeGapSbm3DUtilities::ClearLateralFaceRegistry()
+void SnakeGapSbmProcess::Gap3DData::ClearLateralFaceRegistry()
 {
     mLateralFaceRegistry.clear();
     mSkinEdgeAverageNormals.clear();
 }
 
-const SnakeGapSbm3DUtilities::LateralFaceRegistry&
-SnakeGapSbm3DUtilities::GetLateralFaceRegistry() const
+const SnakeGapSbmProcess::Gap3DData::LateralFaceRegistry&
+SnakeGapSbmProcess::Gap3DData::GetLateralFaceRegistry() const
 {
     return mLateralFaceRegistry;
 }
 
-std::size_t SnakeGapSbm3DUtilities::ComputeNumberOfShapeFunctionsDerivatives(
+std::size_t SnakeGapSbmProcess::Gap3DData::ComputeNumberOfShapeFunctionsDerivatives(
     const ModelPart& rIgaModelPart) const
 {
     const char* p_caller =
-        "SnakeGapSbm3DUtilities::ComputeNumberOfShapeFunctionsDerivatives";
+        "SnakeGapSbmProcess::Gap3DData::ComputeNumberOfShapeFunctionsDerivatives";
 
     KRATOS_ERROR_IF_NOT(rIgaModelPart.HasGeometry(1))
         << "[" << p_caller << "] IgaModelPart does not contain geometry #1.\n";
@@ -3389,13 +3388,13 @@ std::size_t SnakeGapSbm3DUtilities::ComputeNumberOfShapeFunctionsDerivatives(
     return 3 * brep_degree + 1;
 }
 
-bool SnakeGapSbm3DUtilities::IsInnerSurrogateLoop(
+bool SnakeGapSbmProcess::Gap3DData::IsInnerSurrogateLoop(
     const ModelPart& rSurrogateSubModelPart) const
 {
     return rSurrogateSubModelPart.Name().find("inner") != std::string::npos;
 }
 
-IndexType SnakeGapSbm3DUtilities::ComputeStartingBrepId(
+IndexType SnakeGapSbmProcess::Gap3DData::ComputeStartingBrepId(
     const ModelPart& rIgaModelPart,
     const ModelPart& rSurrogateSubModelPart) const
 {
@@ -3411,7 +3410,7 @@ IndexType SnakeGapSbm3DUtilities::ComputeStartingBrepId(
     return 8;
 }
 
-std::size_t SnakeGapSbm3DUtilities::ComputeBrepPatchLoopSize(
+std::size_t SnakeGapSbmProcess::Gap3DData::ComputeBrepPatchLoopSize(
     const ModelPart& rSurrogateSubModelPart) const
 {
     if (!IsInnerSurrogateLoop(rSurrogateSubModelPart)) {
@@ -3433,13 +3432,13 @@ std::size_t SnakeGapSbm3DUtilities::ComputeBrepPatchLoopSize(
     return last_condition_id - first_condition_id + 1;
 }
 
-SnakeGapSbm3DUtilities::BrepPatchData
-SnakeGapSbm3DUtilities::ComputeBrepPatchData(
+SnakeGapSbmProcess::Gap3DData::BrepPatchData
+SnakeGapSbmProcess::Gap3DData::ComputeBrepPatchData(
     const ModelPart& rIgaModelPart,
     const IndexType BrepId) const
 {
     const char* p_caller =
-        "SnakeGapSbm3DUtilities::ComputeBrepPatchData";
+        "SnakeGapSbmProcess::Gap3DData::ComputeBrepPatchData";
 
     BrepPatchData brep_patch_data;
 
@@ -3510,8 +3509,8 @@ SnakeGapSbm3DUtilities::ComputeBrepPatchData(
     return brep_patch_data;
 }
 
-std::vector<SnakeGapSbm3DUtilities::BrepPatchData>
-SnakeGapSbm3DUtilities::BuildBrepPatchDataVector(
+std::vector<SnakeGapSbmProcess::Gap3DData::BrepPatchData>
+SnakeGapSbmProcess::Gap3DData::BuildBrepPatchDataVector(
     const ModelPart& rIgaModelPart,
     const ModelPart& rSurrogateSubModelPart) const
 {
@@ -3534,13 +3533,13 @@ SnakeGapSbm3DUtilities::BuildBrepPatchDataVector(
     return brep_patch_data_list;
 }
 
-const SnakeGapSbm3DUtilities::BrepPatchData&
-SnakeGapSbm3DUtilities::FindBrepPatchMatchingCondition(
+const SnakeGapSbmProcess::Gap3DData::BrepPatchData&
+SnakeGapSbmProcess::Gap3DData::FindBrepPatchMatchingCondition(
     const Condition& rCondition,
     const std::vector<BrepPatchData>& rBrepPatchDataList) const
 {
     const char* p_caller =
-        "SnakeGapSbm3DUtilities::FindBrepPatchMatchingCondition";
+        "SnakeGapSbmProcess::Gap3DData::FindBrepPatchMatchingCondition";
 
     KRATOS_ERROR_IF(rBrepPatchDataList.empty())
         << "[" << p_caller << "] Empty BREP patch data list.\n";
@@ -3571,12 +3570,12 @@ SnakeGapSbm3DUtilities::FindBrepPatchMatchingCondition(
 }
 
 Geometry<Node>::Pointer
-SnakeGapSbm3DUtilities::CreateSurrogateFaceNeighbourGeometry(
+SnakeGapSbmProcess::Gap3DData::CreateSurrogateFaceNeighbourGeometry(
     const BrepPatchData& rBrepPatchData,
     const std::size_t NumberOfShapeFunctionsDerivatives) const
 {
     const char* p_caller =
-        "SnakeGapSbm3DUtilities::CreateSurrogateFaceNeighbourGeometry";
+        "SnakeGapSbmProcess::Gap3DData::CreateSurrogateFaceNeighbourGeometry";
 
     KRATOS_ERROR_IF_NOT(rBrepPatchData.pBrepSurface)
         << "[" << p_caller << "] Null BREP surface.\n";
@@ -3608,7 +3607,7 @@ SnakeGapSbm3DUtilities::CreateSurrogateFaceNeighbourGeometry(
 }
 
 std::unordered_map<IndexType, Geometry<Node>::Pointer>
-SnakeGapSbm3DUtilities::CreateSurrogateFaceCentreNeighbourGeometries(
+SnakeGapSbmProcess::Gap3DData::CreateSurrogateFaceCentreNeighbourGeometries(
     const ModelPart& rSurrogateSubModelPart) const
 {
     const ModelPart& r_iga_model_part = rSurrogateSubModelPart.GetRootModelPart();
@@ -3633,14 +3632,14 @@ SnakeGapSbm3DUtilities::CreateSurrogateFaceCentreNeighbourGeometries(
     return result;
 }
 
-SnakeGapSbm3DUtilities::NurbsSurfaceType::Pointer
-SnakeGapSbm3DUtilities::CreateType1CollapsedLateralCoonsSurface(
+SnakeGapSbmProcess::Gap3DData::NurbsSurfaceType::Pointer
+SnakeGapSbmProcess::Gap3DData::CreateType1CollapsedLateralCoonsSurface(
     const NodePointerType& pNode0,
     const NodePointerType& pNode1,
     const NodePointerType& pApexNode) const
 {
     const char* p_caller =
-        "SnakeGapSbm3DUtilities::CreateType1CollapsedLateralCoonsSurface";
+        "SnakeGapSbmProcess::Gap3DData::CreateType1CollapsedLateralCoonsSurface";
 
     KRATOS_ERROR_IF_NOT(pNode0)
         << "[" << p_caller << "] First base node is null.\n";
@@ -3666,13 +3665,13 @@ SnakeGapSbm3DUtilities::CreateType1CollapsedLateralCoonsSurface(
         CreateOpenUnitKnotVectorDegree1());
 }
 
-SnakeGapSbm3DUtilities::NurbsVolumeType::Pointer
-SnakeGapSbm3DUtilities::CreateType1CollapsedPyramidVolume(
+SnakeGapSbmProcess::Gap3DData::NurbsVolumeType::Pointer
+SnakeGapSbmProcess::Gap3DData::CreateType1CollapsedPyramidVolume(
     const SurrogateFaceData& rFaceData,
     const NodePointerType& pApexNode) const
 {
     const char* p_caller =
-        "SnakeGapSbm3DUtilities::CreateType1CollapsedPyramidVolume";
+        "SnakeGapSbmProcess::Gap3DData::CreateType1CollapsedPyramidVolume";
 
     KRATOS_ERROR_IF_NOT(pApexNode)
         << "[" << p_caller << "] Apex node is null.\n";
@@ -3707,8 +3706,8 @@ SnakeGapSbm3DUtilities::CreateType1CollapsedPyramidVolume(
         CreateOpenUnitKnotVectorDegree1());
 }
 
-SnakeGapSbm3DUtilities::NurbsVolumeType::Pointer
-SnakeGapSbm3DUtilities::CreateType2CollapsedEdgeVolume(
+SnakeGapSbmProcess::Gap3DData::NurbsVolumeType::Pointer
+SnakeGapSbmProcess::Gap3DData::CreateType2CollapsedEdgeVolume(
     const NodePointerType& pEdgeNode0,
     const NodePointerType& pEdgeNode1,
     const std::vector<NodePointerType>& rSkinEdgeControlNodes) const
@@ -3750,8 +3749,8 @@ SnakeGapSbm3DUtilities::CreateType2CollapsedEdgeVolume(
         CreateOpenUnitKnotVectorDegree1());
 }
 
-SnakeGapSbm3DUtilities::NurbsVolumeType::Pointer
-SnakeGapSbm3DUtilities::CreateType2LinearCollapsedEdgeVolume(
+SnakeGapSbmProcess::Gap3DData::NurbsVolumeType::Pointer
+SnakeGapSbmProcess::Gap3DData::CreateType2LinearCollapsedEdgeVolume(
     const NodePointerType& pEdgeNode0,
     const NodePointerType& pEdgeNode1,
     const NodePointerType& pSkinNode0,
@@ -3796,8 +3795,8 @@ SnakeGapSbm3DUtilities::CreateType2LinearCollapsedEdgeVolume(
         CreateOpenUnitKnotVectorDegree1());
 }
 
-SnakeGapSbm3DUtilities::Type3CollapsedCornerData
-SnakeGapSbm3DUtilities::CreateType3CollapsedCornerVolume(
+SnakeGapSbmProcess::Gap3DData::Type3CollapsedCornerData
+SnakeGapSbmProcess::Gap3DData::CreateType3CollapsedCornerVolume(
     const ModelPart& rSkinSubModelPart,
     const double MaximumProjectionDistance,
     const NodePointerType& pSurrogateNode,
@@ -4144,7 +4143,7 @@ SnakeGapSbm3DUtilities::CreateType3CollapsedCornerVolume(
         }
 
         if (has_best_finite_candidate) {
-            KRATOS_WARNING("SnakeGapSbm3DUtilities")
+            KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
                 << "[CreateType3CollapsedCornerVolume] Could not find a "
                 << "strictly positive quadratic type3 volume. Using the least "
                 << "inverted finite curved candidate instead. No linear "
@@ -4183,8 +4182,8 @@ SnakeGapSbm3DUtilities::CreateType3CollapsedCornerVolume(
     return curved_volume_data;
 }
 
-SnakeGapSbm3DUtilities::Type3CollapsedCornerData
-SnakeGapSbm3DUtilities::CreateType3LinearCollapsedCornerVolume(
+SnakeGapSbmProcess::Gap3DData::Type3CollapsedCornerData
+SnakeGapSbmProcess::Gap3DData::CreateType3LinearCollapsedCornerVolume(
     const NodePointerType& pSurrogateNode,
     const NodePointerType& pProjectionNode0,
     const NodePointerType& pProjectionNode1,
@@ -4236,8 +4235,8 @@ SnakeGapSbm3DUtilities::CreateType3LinearCollapsedCornerVolume(
     return result;
 }
 
-SnakeGapSbm3DUtilities::Type3CollapsedCornerData
-SnakeGapSbm3DUtilities::CreateType3CollapsedCornerVolumeFromTopControlNodes(
+SnakeGapSbmProcess::Gap3DData::Type3CollapsedCornerData
+SnakeGapSbmProcess::Gap3DData::CreateType3CollapsedCornerVolumeFromTopControlNodes(
     const NodePointerType& pSurrogateNode,
     const std::array<NodePointerType, 3>& rProjectionNodes,
     const std::vector<NodePointerType>& rTopControlNodes,
@@ -4302,23 +4301,23 @@ SnakeGapSbm3DUtilities::CreateType3CollapsedCornerVolumeFromTopControlNodes(
     return result;
 }
 
-void SnakeGapSbm3DUtilities::OrientTriangleFaceAwayFromOppositeNode(
+void SnakeGapSbmProcess::Gap3DData::OrientTriangleFaceAwayFromOppositeNode(
     NodePointerType& rpNode0,
     NodePointerType& rpNode1,
     NodePointerType& rpNode2,
     const NodePointerType& pOppositeNode) const
 {
     KRATOS_ERROR_IF_NOT(rpNode0)
-        << "[SnakeGapSbm3DUtilities::OrientTriangleFaceAwayFromOppositeNode] "
+        << "[SnakeGapSbmProcess::Gap3DData::OrientTriangleFaceAwayFromOppositeNode] "
         << "First face node is null.\n";
     KRATOS_ERROR_IF_NOT(rpNode1)
-        << "[SnakeGapSbm3DUtilities::OrientTriangleFaceAwayFromOppositeNode] "
+        << "[SnakeGapSbmProcess::Gap3DData::OrientTriangleFaceAwayFromOppositeNode] "
         << "Second face node is null.\n";
     KRATOS_ERROR_IF_NOT(rpNode2)
-        << "[SnakeGapSbm3DUtilities::OrientTriangleFaceAwayFromOppositeNode] "
+        << "[SnakeGapSbmProcess::Gap3DData::OrientTriangleFaceAwayFromOppositeNode] "
         << "Third face node is null.\n";
     KRATOS_ERROR_IF_NOT(pOppositeNode)
-        << "[SnakeGapSbm3DUtilities::OrientTriangleFaceAwayFromOppositeNode] "
+        << "[SnakeGapSbmProcess::Gap3DData::OrientTriangleFaceAwayFromOppositeNode] "
         << "Opposite tetrahedron node is null.\n";
 
     auto calculate_inward_measure = [&]() -> double
@@ -4340,7 +4339,7 @@ void SnakeGapSbm3DUtilities::OrientTriangleFaceAwayFromOppositeNode(
     }
 
     KRATOS_ERROR_IF(calculate_inward_measure() > 0.0)
-        << "[SnakeGapSbm3DUtilities::OrientTriangleFaceAwayFromOppositeNode] "
+        << "[SnakeGapSbmProcess::Gap3DData::OrientTriangleFaceAwayFromOppositeNode] "
         << "Could not orient triangular face normal away from opposite node.\n"
         << "  face node ids: "
         << rpNode0->Id() << ", "
@@ -4349,7 +4348,7 @@ void SnakeGapSbm3DUtilities::OrientTriangleFaceAwayFromOppositeNode(
         << "  opposite node id: " << pOppositeNode->Id() << "\n";
 }
 
-void SnakeGapSbm3DUtilities::RegisterType3LateralFace(
+void SnakeGapSbmProcess::Gap3DData::RegisterType3LateralFace(
     ModelPart& rDebugModelPart,
     IndexType& rNextGeometryId,
     const IndexType SurrogateConditionId,
@@ -4392,7 +4391,7 @@ void SnakeGapSbm3DUtilities::RegisterType3LateralFace(
         rNeighbourActiveSpan);
 }
 
-void SnakeGapSbm3DUtilities::CheckType3QuadraturePointGeometries(
+void SnakeGapSbmProcess::Gap3DData::CheckType3QuadraturePointGeometries(
     const GeometriesArrayType& rQuadraturePointGeometries,
     const NodePointerType& pSurrogateNode,
     const NodePointerType& pProjectionNode0,
@@ -4400,7 +4399,7 @@ void SnakeGapSbm3DUtilities::CheckType3QuadraturePointGeometries(
     const NodePointerType& pProjectionNode2) const
 {
     KRATOS_ERROR_IF(rQuadraturePointGeometries.size() == 0)
-        << "[SnakeGapSbm3DUtilities::CheckType3QuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CheckType3QuadraturePointGeometries] "
         << "Type 3 volume has no quadrature point geometries.\n";
 
     constexpr double negative_determinant_tolerance = 1.0e-2;
@@ -4412,7 +4411,7 @@ void SnakeGapSbm3DUtilities::CheckType3QuadraturePointGeometries(
             rQuadraturePointGeometries(point_index);
 
         KRATOS_ERROR_IF_NOT(p_quadrature_geometry)
-            << "[SnakeGapSbm3DUtilities::CheckType3QuadraturePointGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CheckType3QuadraturePointGeometries] "
             << "Null quadrature point geometry at index "
             << point_index << ".\n";
 
@@ -4424,7 +4423,7 @@ void SnakeGapSbm3DUtilities::CheckType3QuadraturePointGeometries(
         KRATOS_ERROR_IF(
             !std::isfinite(determinant_jacobian) ||
             determinant_jacobian < -negative_determinant_tolerance)
-            << "[SnakeGapSbm3DUtilities::CheckType3QuadraturePointGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CheckType3QuadraturePointGeometries] "
             << "Invalid type 3 tetrahedron. Determinant of Jacobian must be finite "
             << "and not smaller than the accepted negative tolerance.\n"
             << "  quadrature point index: " << point_index << "\n"
@@ -4439,8 +4438,8 @@ void SnakeGapSbm3DUtilities::CheckType3QuadraturePointGeometries(
     }
 }
 
-std::array<SnakeGapSbm3DUtilities::SpanKey3D, 4>
-SnakeGapSbm3DUtilities::GetSurroundingSpansOfGridEdge(
+std::array<SnakeGapSbmProcess::Gap3DData::SpanKey3D, 4>
+SnakeGapSbmProcess::Gap3DData::GetSurroundingSpansOfGridEdge(
     const GridPointKey3D& rNode0,
     const GridPointKey3D& rNode1) const
 {
@@ -4462,14 +4461,14 @@ SnakeGapSbm3DUtilities::GetSurroundingSpansOfGridEdge(
         const int k = std::min(rNode0.K, rNode1.K);
         spans = {{{i - 1, j - 1, k}, {i, j - 1, k}, {i - 1, j, k}, {i, j, k}}};
     } else {
-        KRATOS_ERROR << "[SnakeGapSbm3DUtilities::GetSurroundingSpansOfGridEdge] "
+        KRATOS_ERROR << "[SnakeGapSbmProcess::Gap3DData::GetSurroundingSpansOfGridEdge] "
                      << "The grid nodes do not define an axis-aligned grid edge.\n";
     }
 
     return spans;
 }
 
-bool SnakeGapSbm3DUtilities::IsValidSpan(
+bool SnakeGapSbmProcess::Gap3DData::IsValidSpan(
     const SpanKey3D& rSpan,
     const KnotSpanGridInfo& rGridInfo) const
 {
@@ -4479,7 +4478,7 @@ bool SnakeGapSbm3DUtilities::IsValidSpan(
            rSpan.K < static_cast<int>(rGridInfo.NumberOfSpansZ);
 }
 
-bool SnakeGapSbm3DUtilities::AreFaceAdjacentSpans(
+bool SnakeGapSbmProcess::Gap3DData::AreFaceAdjacentSpans(
     const SpanKey3D& rA,
     const SpanKey3D& rB) const
 {
@@ -4488,7 +4487,7 @@ bool SnakeGapSbm3DUtilities::AreFaceAdjacentSpans(
            std::abs(rA.K - rB.K) == 1;
 }
 
-double SnakeGapSbm3DUtilities::MaximumSkinProjectionDistance(
+double SnakeGapSbmProcess::Gap3DData::MaximumSkinProjectionDistance(
     const KnotSpanGridInfo& rGridInfo) const
 {
     return 3.0 * std::max({
@@ -4497,7 +4496,7 @@ double SnakeGapSbm3DUtilities::MaximumSkinProjectionDistance(
         rGridInfo.SpanSizeZ});
 }
 
-bool SnakeGapSbm3DUtilities::ProjectPointToSkinBoundaryAlongDirection(
+bool SnakeGapSbmProcess::Gap3DData::ProjectPointToSkinBoundaryAlongDirection(
     const ModelPart& rSkinSubModelPart,
     const array_1d<double, 3>& rPoint,
     const array_1d<double, 3>& rDirection,
@@ -4526,7 +4525,7 @@ bool SnakeGapSbm3DUtilities::ProjectPointToSkinBoundaryAlongDirection(
 
     const double direction_norm = norm_2(rDirection);
     KRATOS_ERROR_IF(direction_norm <= std::numeric_limits<double>::epsilon())
-        << "[SnakeGapSbm3DUtilities::ProjectPointToSkinBoundaryAlongDirection] "
+        << "[SnakeGapSbmProcess::Gap3DData::ProjectPointToSkinBoundaryAlongDirection] "
         << "Projection direction has zero norm.\n";
 
     array_1d<double, 3> direction = rDirection / direction_norm;
@@ -4666,7 +4665,7 @@ bool SnakeGapSbm3DUtilities::ProjectPointToSkinBoundaryAlongDirection(
     return false;
 }
 
-bool SnakeGapSbm3DUtilities::ProjectPointToClosestSkinBoundary(
+bool SnakeGapSbmProcess::Gap3DData::ProjectPointToClosestSkinBoundary(
     const ModelPart& rSkinSubModelPart,
     const array_1d<double, 3>& rPoint,
     array_1d<double, 3>& rProjectionPoint,
@@ -4733,7 +4732,7 @@ bool SnakeGapSbm3DUtilities::ProjectPointToClosestSkinBoundary(
     return found_projection;
 }
 
-bool SnakeGapSbm3DUtilities::ProjectPointToClosestNurbsSurface(
+bool SnakeGapSbmProcess::Gap3DData::ProjectPointToClosestNurbsSurface(
     const array_1d<double, 3>& rPoint,
     array_1d<double, 3>& rProjectionPoint,
     double& rProjectionDistance,
@@ -5111,7 +5110,7 @@ bool SnakeGapSbm3DUtilities::ProjectPointToClosestNurbsSurface(
     return true;
 }
 
-bool SnakeGapSbm3DUtilities::ProjectPointToInitialNurbsSkinAlongDirection(
+bool SnakeGapSbmProcess::Gap3DData::ProjectPointToInitialNurbsSkinAlongDirection(
     const array_1d<double, 3>& rPoint,
     const array_1d<double, 3>& rDirection,
     const double MaximumDistance,
@@ -5309,8 +5308,8 @@ bool SnakeGapSbm3DUtilities::ProjectPointToInitialNurbsSkinAlongDirection(
     return line_distance <= line_distance_tolerance;
 }
 
-SnakeGapSbm3DUtilities::NodePointerType
-SnakeGapSbm3DUtilities::FindClosestSkinMeshNode(
+SnakeGapSbmProcess::Gap3DData::NodePointerType
+SnakeGapSbmProcess::Gap3DData::FindClosestSkinMeshNode(
     const ModelPart& rSkinSubModelPart,
     const array_1d<double, 3>& rPoint,
     double& rDistance) const
@@ -5336,8 +5335,8 @@ SnakeGapSbm3DUtilities::FindClosestSkinMeshNode(
     return p_closest_node;
 }
 
-SnakeGapSbm3DUtilities::NodePointerType
-SnakeGapSbm3DUtilities::CreateOrReuseAuxiliaryControlNode(
+SnakeGapSbmProcess::Gap3DData::NodePointerType
+SnakeGapSbmProcess::Gap3DData::CreateOrReuseAuxiliaryControlNode(
     ModelPart& rSkinSubModelPart,
     const array_1d<double, 3>& rPoint) const
 {
@@ -5366,8 +5365,8 @@ SnakeGapSbm3DUtilities::CreateOrReuseAuxiliaryControlNode(
         rPoint[2]);
 }
 
-std::vector<SnakeGapSbm3DUtilities::NodePointerType>
-SnakeGapSbm3DUtilities::CreateStraightSkinEdgeControlNodes(
+std::vector<SnakeGapSbmProcess::Gap3DData::NodePointerType>
+SnakeGapSbmProcess::Gap3DData::CreateStraightSkinEdgeControlNodes(
     ModelPart& rSkinSubModelPart,
     const NodePointerType& pSkinNode0,
     const NodePointerType& pSkinNode1) const
@@ -5375,10 +5374,10 @@ SnakeGapSbm3DUtilities::CreateStraightSkinEdgeControlNodes(
     static_cast<void>(rSkinSubModelPart);
 
     KRATOS_ERROR_IF_NOT(pSkinNode0)
-        << "[SnakeGapSbm3DUtilities::CreateStraightSkinEdgeControlNodes] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateStraightSkinEdgeControlNodes] "
         << "First skin node is null.\n";
     KRATOS_ERROR_IF_NOT(pSkinNode1)
-        << "[SnakeGapSbm3DUtilities::CreateStraightSkinEdgeControlNodes] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateStraightSkinEdgeControlNodes] "
         << "Second skin node is null.\n";
 
     std::vector<NodePointerType> control_nodes;
@@ -5400,22 +5399,22 @@ SnakeGapSbm3DUtilities::CreateStraightSkinEdgeControlNodes(
     return control_nodes;
 }
 
-bool SnakeGapSbm3DUtilities::HasGeometricEdgeCurvature(
+bool SnakeGapSbmProcess::Gap3DData::HasGeometricEdgeCurvature(
     const std::vector<NodePointerType>& rLinearControlNodes,
     const std::vector<NodePointerType>& rCurrentControlNodes) const
 {
     KRATOS_ERROR_IF(
         rLinearControlNodes.size() != rCurrentControlNodes.size())
-        << "[SnakeGapSbm3DUtilities::HasGeometricEdgeCurvature] "
+        << "[SnakeGapSbmProcess::Gap3DData::HasGeometricEdgeCurvature] "
         << "Control node vectors have different sizes.\n";
 
     double coordinate_scale = 1.0;
     for (std::size_t i = 0; i < rLinearControlNodes.size(); ++i) {
         KRATOS_ERROR_IF_NOT(rLinearControlNodes[i])
-            << "[SnakeGapSbm3DUtilities::HasGeometricEdgeCurvature] "
+            << "[SnakeGapSbmProcess::Gap3DData::HasGeometricEdgeCurvature] "
             << "Linear control node is null.\n";
         KRATOS_ERROR_IF_NOT(rCurrentControlNodes[i])
-            << "[SnakeGapSbm3DUtilities::HasGeometricEdgeCurvature] "
+            << "[SnakeGapSbmProcess::Gap3DData::HasGeometricEdgeCurvature] "
             << "Current control node is null.\n";
 
         for (std::size_t component = 0; component < 3; ++component) {
@@ -5437,8 +5436,8 @@ bool SnakeGapSbm3DUtilities::HasGeometricEdgeCurvature(
     return false;
 }
 
-std::vector<SnakeGapSbm3DUtilities::NodePointerType>
-SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
+std::vector<SnakeGapSbmProcess::Gap3DData::NodePointerType>
+SnakeGapSbmProcess::Gap3DData::GetOrCreateFinalSkinEdgeControlNodes(
     ModelPart& rSkinSubModelPart,
     const NodePointerType& pSkinNode0,
     const NodePointerType& pSkinNode1,
@@ -5446,10 +5445,10 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
     const std::string& rContext)
 {
     KRATOS_ERROR_IF_NOT(pSkinNode0)
-        << "[SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes] "
+        << "[SnakeGapSbmProcess::Gap3DData::GetOrCreateFinalSkinEdgeControlNodes] "
         << "First skin node is null.\n";
     KRATOS_ERROR_IF_NOT(pSkinNode1)
-        << "[SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes] "
+        << "[SnakeGapSbmProcess::Gap3DData::GetOrCreateFinalSkinEdgeControlNodes] "
         << "Second skin node is null.\n";
 
     const bool reverse_orientation = pSkinNode1->Id() < pSkinNode0->Id();
@@ -5792,7 +5791,7 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
                     p_quadratic_interpolation_skin_node;
             }
         } else {
-            KRATOS_WARNING("SnakeGapSbm3DUtilities")
+            KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
                 << "[GetOrCreateFinalSkinEdgeControlNodes] Falling back to "
                 << "a linear skin edge after high-order projection failed.\n"
                 << "  context: " << rContext << "\n"
@@ -5802,7 +5801,7 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
 
     if (mGapApproximationOrder == 2) {
         KRATOS_ERROR_IF(edge_data.CurrentControlNodes.size() != 3)
-            << "[SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes] "
+            << "[SnakeGapSbmProcess::Gap3DData::GetOrCreateFinalSkinEdgeControlNodes] "
             << "A quadratic edge requires three Bezier control nodes.\n";
 
         if (!edge_data.pQuadraticInterpolationNode) {
@@ -5826,7 +5825,7 @@ SnakeGapSbm3DUtilities::GetOrCreateFinalSkinEdgeControlNodes(
     return control_nodes;
 }
 
-void SnakeGapSbm3DUtilities::RebuildSkinEdgeAverageNormalMap(
+void SnakeGapSbmProcess::Gap3DData::RebuildSkinEdgeAverageNormalMap(
     const ModelPart& rSkinSubModelPart)
 {
     mSkinEdgeAverageNormals.clear();
@@ -5910,8 +5909,8 @@ void SnakeGapSbm3DUtilities::RebuildSkinEdgeAverageNormalMap(
     }
 }
 
-std::vector<SnakeGapSbm3DUtilities::NodePointerType>
-SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes(
+std::vector<SnakeGapSbmProcess::Gap3DData::NodePointerType>
+SnakeGapSbmProcess::Gap3DData::GetOrCreateQuadraticSkinEdgeControlNodes(
     ModelPart& rSkinSubModelPart,
     const NodePointerType& pSkinNode0,
     const NodePointerType& pSkinNode1,
@@ -5919,10 +5918,10 @@ SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes(
     const std::string& rContext)
 {
     KRATOS_ERROR_IF_NOT(pSkinNode0)
-        << "[SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes] "
+        << "[SnakeGapSbmProcess::Gap3DData::GetOrCreateQuadraticSkinEdgeControlNodes] "
         << "First skin node is null.\n";
     KRATOS_ERROR_IF_NOT(pSkinNode1)
-        << "[SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes] "
+        << "[SnakeGapSbmProcess::Gap3DData::GetOrCreateQuadraticSkinEdgeControlNodes] "
         << "Second skin node is null.\n";
 
     if (mGapApproximationOrder == 1) {
@@ -5930,7 +5929,7 @@ SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes(
     }
 
     KRATOS_ERROR_IF(mGapApproximationOrder != 2)
-        << "[SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes] "
+        << "[SnakeGapSbmProcess::Gap3DData::GetOrCreateQuadraticSkinEdgeControlNodes] "
         << "Only quadratic skin edges are implemented. Requested order: "
         << mGapApproximationOrder << ".\n";
 
@@ -5965,7 +5964,7 @@ SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes(
         projected_midpoint = p_closest_skin_node->Coordinates();
     }
 
-    // KRATOS_INFO("SnakeGapSbm3DUtilities")
+    // KRATOS_INFO("SnakeGapSbmProcess::Gap3DData")
     //     << "[GetOrCreateQuadraticSkinEdgeControlNodes] "
     //     << "Closest midpoint skin projection for quadratic skin edge.\n"
     //     << "  context: " << rContext << "\n"
@@ -5980,7 +5979,7 @@ SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes(
     //     << closest_projection_succeeded << "\n";
 
     KRATOS_ERROR_IF_NOT(closest_projection_succeeded)
-        << "[SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes] "
+        << "[SnakeGapSbmProcess::Gap3DData::GetOrCreateQuadraticSkinEdgeControlNodes] "
         << "Could not find closest skin projection for quadratic skin edge "
         << "interpolation point.\n"
         << "  context: " << rContext << "\n"
@@ -5995,7 +5994,7 @@ SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes(
         << closest_projection_succeeded << "\n";
 
     KRATOS_ERROR_IF(projection_distance > MaximumProjectionDistance)
-        << "[SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes] "
+        << "[SnakeGapSbmProcess::Gap3DData::GetOrCreateQuadraticSkinEdgeControlNodes] "
         << "Closest skin projection for quadratic skin edge interpolation "
         << "point is farther than the allowed distance.\n"
         << "  context: " << rContext << "\n"
@@ -6059,8 +6058,8 @@ SnakeGapSbm3DUtilities::GetOrCreateQuadraticSkinEdgeControlNodes(
     return control_nodes;
 }
 
-const std::vector<SnakeGapSbm3DUtilities::NodePointerType>*
-SnakeGapSbm3DUtilities::FindCachedSkinEdgeControlNodes(
+const std::vector<SnakeGapSbmProcess::Gap3DData::NodePointerType>*
+SnakeGapSbmProcess::Gap3DData::FindCachedSkinEdgeControlNodes(
     const NodePointerType& pNode0,
     const NodePointerType& pNode1) const
 {
@@ -6080,7 +6079,7 @@ SnakeGapSbm3DUtilities::FindCachedSkinEdgeControlNodes(
     return &cached_it->second.CurrentControlNodes;
 }
 
-void SnakeGapSbm3DUtilities::RegisterLateralFaceOccurrence(
+void SnakeGapSbmProcess::Gap3DData::RegisterLateralFaceOccurrence(
     const int GapType,
     const IndexType SurrogateConditionId,
     const SpanKey3D& rExternalSpan,
@@ -6126,7 +6125,7 @@ void SnakeGapSbm3DUtilities::RegisterLateralFaceOccurrence(
 
     auto& r_occurrences = mLateralFaceRegistry[key];
     KRATOS_ERROR_IF(r_occurrences.size() >= 2)
-        << "[SnakeGapSbm3DUtilities::RegisterLateralFaceOccurrence] "
+        << "[SnakeGapSbmProcess::Gap3DData::RegisterLateralFaceOccurrence] "
         << "Non-manifold lateral face for node ids "
         << key.NodeIds[0] << ", "
         << key.NodeIds[1] << ", "
@@ -6137,14 +6136,14 @@ void SnakeGapSbm3DUtilities::RegisterLateralFaceOccurrence(
     if (r_occurrences.size() == 2) {
         for (const auto& r_closed_occurrence : r_occurrences) {
             KRATOS_ERROR_IF_NOT(r_closed_occurrence.pGeometry)
-                << "[SnakeGapSbm3DUtilities::RegisterLateralFaceOccurrence] "
+                << "[SnakeGapSbmProcess::Gap3DData::RegisterLateralFaceOccurrence] "
                 << "Closed lateral face occurrence has null surface geometry.\n";
         }
     }
 }
 
-SnakeGapSbm3DUtilities::GeometryType::Pointer
-SnakeGapSbm3DUtilities::GetOrCreateLateralFaceSurface(
+SnakeGapSbmProcess::Gap3DData::GeometryType::Pointer
+SnakeGapSbmProcess::Gap3DData::GetOrCreateLateralFaceSurface(
     ModelPart& rDebugModelPart,
     IndexType& rNextGeometryId,
     const NodePointerType& pNode0,
@@ -6192,8 +6191,8 @@ SnakeGapSbm3DUtilities::GetOrCreateLateralFaceSurface(
     return p_surface;
 }
 
-SnakeGapSbm3DUtilities::Type2CreationResult
-SnakeGapSbm3DUtilities::CreateType2GapGeometries(
+SnakeGapSbmProcess::Gap3DData::Type2CreationResult
+SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries(
     ModelPart& rRootModelPart,
     ModelPart& rSkinSubModelPart,
     Type1CreationResult& rType1CreationResult,
@@ -6277,12 +6276,12 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
     active_edges.reserve(rType1CreationResult.Type1LateralFacesByEdge.size());
     for (const auto& r_edge_entry : rType1CreationResult.Type1LateralFacesByEdge) {
         KRATOS_ERROR_IF(r_edge_entry.second.empty())
-            << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
             << "Active edge has no type1 lateral faces.\n";
 
         const auto reference_face_index = r_edge_entry.second.front();
         KRATOS_ERROR_IF(reference_face_index >= rType1CreationResult.Type1LateralFaces.size())
-            << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
             << "Invalid type1 lateral face index for active edge.\n";
 
         const auto& r_reference_face =
@@ -6299,24 +6298,24 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
         edge_data.ReferenceExternalSpan = r_reference_face.ExternalSpan;
 
         KRATOS_ERROR_IF_NOT(edge_data.pEdgeNode0)
-            << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
             << "Active edge has null first node.\n";
         KRATOS_ERROR_IF_NOT(edge_data.pEdgeNode1)
-            << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
             << "Active edge has null second node.\n";
         KRATOS_ERROR_IF_NOT(edge_data.pNeighbourGeometry)
-            << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
             << "Active edge has null neighbour geometry.\n";
 
         for (const auto type1_face_index : r_edge_entry.second) {
             KRATOS_ERROR_IF(type1_face_index >= rType1CreationResult.Type1LateralFaces.size())
-                << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                 << "Invalid type1 lateral face index for active edge.\n";
 
             const auto& r_type1_face =
                 rType1CreationResult.Type1LateralFaces[type1_face_index];
             KRATOS_ERROR_IF_NOT(r_type1_face.pProjectionNode)
-                << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                 << "Type 1 lateral face has null projection node.\n";
 
             edge_data.Type1FaceIndexBySpan.emplace(
@@ -6397,12 +6396,12 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
             auto p_projection_node_a = r_candidate_a.pProjectionNode;
             auto p_projection_node_b = r_candidate_b.pProjectionNode;
             KRATOS_ERROR_IF_NOT(p_projection_node_a)
-                << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                 << "Projection node #" << r_candidate_a.pData->ProjectionNodeId
                 << " from external span " << SpanToString(r_candidate_a.Span)
                 << " has no stored node pointer.\n";
             KRATOS_ERROR_IF_NOT(p_projection_node_b)
-                << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                 << "Projection node #" << r_candidate_b.pData->ProjectionNodeId
                 << " from external span " << SpanToString(r_candidate_b.Span)
                 << " has no stored node pointer.\n";
@@ -6508,10 +6507,10 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
                 const auto& r_existing_occurrences =
                     face_registry_it->second;
                 KRATOS_ERROR_IF(r_existing_occurrences.empty())
-                    << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                     << "Reused lateral face has no occurrences.\n";
                 KRATOS_ERROR_IF(r_existing_occurrences.size() >= 2)
-                    << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                     << "Type2 volume would reuse an already closed lateral face.\n"
                     << "  face: " << pFaceName << "\n"
                     << "  face node ids: "
@@ -6528,7 +6527,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
                 const auto& r_source_occurrence =
                     r_existing_occurrences.front();
                 KRATOS_ERROR_IF_NOT(r_source_occurrence.pNeighbourGeometry)
-                    << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                     << "Reused lateral face has null neighbour geometry.\n"
                     << "  face: " << pFaceName << "\n";
 
@@ -6594,7 +6593,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
                 p_pb);
 
             KRATOS_ERROR_IF(number_reused_faces_for_volume == 0)
-                << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                 << "Type2 volume has no reused lateral face. "
                 << "All lateral faces would be new.\n"
                 << "  edge nodes: "
@@ -6608,7 +6607,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
                 << " projection node: " << p_projection_node_b->Id() << "\n";
 
             KRATOS_ERROR_IF(number_reused_faces_with_common_active_span_for_volume == 0)
-                << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                 << "Type2 volume has reused lateral faces, but none carries "
                 << "a neighbour active span common to both external spans.\n"
                 << "  reused faces: " << number_reused_faces_for_volume << "\n"
@@ -6623,7 +6622,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
                 << " projection node: " << p_projection_node_b->Id() << "\n";
 
             KRATOS_ERROR_IF_NOT(selected_neighbour_has_type1_path)
-                << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                 << "Selected neighbour geometry for type2 volume does not "
                 << "have a continuous path to a type1 volume.\n"
                 << "  selected source face: " << selected_neighbour_source << "\n"
@@ -6638,7 +6637,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
                 << "  span 1: " << SpanToString(r_candidate_b.Span) << "\n";
 
             KRATOS_ERROR_IF_NOT(selected_neighbour_has_active_span)
-                << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                 << "Selected neighbour geometry for type2 volume has no "
                 << "active span provenance.\n"
                 << "  selected source face: " << selected_neighbour_source << "\n";
@@ -6709,7 +6708,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
                 const Geometry<Node>::Pointer& pFaceNeighbourGeometry)
             {
                 KRATOS_ERROR_IF_NOT(pFaceNeighbourGeometry)
-                    << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                     << "Trying to register a type2 face with null neighbour geometry.\n";
 
                 const auto face_key = MakeCanonicalFaceKey3D(
@@ -6724,7 +6723,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
                     0 : face_registry_it->second.size();
 
                 KRATOS_ERROR_IF(previous_occurrences >= 2)
-                    << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                     << "Trying to add a third occurrence to a type2 face.\n"
                     << "  face node ids: "
                     << face_key.NodeIds[0] << ", "
@@ -6748,7 +6747,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
                 } else {
                     p_surface = face_registry_it->second.front().pGeometry;
                     KRATOS_ERROR_IF_NOT(p_surface)
-                        << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                        << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                         << "Existing type2 face occurrence has null geometry.\n";
                     AddUniqueNeighbourGeometry(
                         *p_surface,
@@ -6958,12 +6957,12 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
 
         for (const auto& r_target_occurrence : r_occurrences) {
             KRATOS_ERROR_IF_NOT(r_target_occurrence.pNeighbourGeometry)
-                << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                 << "Shared lateral face occurrence has null neighbour geometry.\n";
 
             for (const auto& r_surface_occurrence : r_occurrences) {
                 KRATOS_ERROR_IF_NOT(r_surface_occurrence.pGeometry)
-                    << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                     << "Shared lateral face occurrence has null surface geometry.\n";
 
                 AddUniqueNeighbourGeometry(
@@ -6990,7 +6989,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
                 KRATOS_ERROR_IF(
                     r_occurrence.GapType == 2 &&
                     !r_occurrence.HasType1NeighbourPath)
-                    << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                     << "Shared type2 lateral face occurrence has no "
                     << "continuous neighbour path to a type1 volume.\n"
                     << "  face node ids: "
@@ -7001,7 +7000,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
                     << SpanToString(r_occurrence.ExternalSpan) << "\n";
 
                 KRATOS_ERROR_IF_NOT(r_occurrence.pGeometry)
-                    << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                     << "Shared lateral face occurrence has null surface geometry.\n";
 
                 const auto stored_neighbour_geometries =
@@ -7013,7 +7012,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
                     KRATOS_ERROR_IF_NOT(ContainsNeighbourGeometry(
                         stored_neighbour_geometries,
                         r_other_occurrence.pNeighbourGeometry))
-                        << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+                        << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
                         << "Shared lateral face geometry does not contain "
                         << "both occurrence neighbour geometries.\n"
                         << "  face node ids: "
@@ -7048,7 +7047,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
         }
     }
 
-    KRATOS_INFO("SnakeGapSbm3DUtilities")
+    KRATOS_INFO("SnakeGapSbmProcess::Gap3DData")
         << "Type 2 creation summary:\n"
         << "  candidate active edges: " << result.Summary.NumberOfCandidateEdges << "\n"
         << "  created volumes: " << result.Summary.NumberOfCreatedVolumes << "\n"
@@ -7101,7 +7100,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
         << "  GapType2Debug geometries: " << r_gap_type2_debug.NumberOfGeometries() << "\n";
 
     KRATOS_ERROR_IF(number_registry_open_type1 != 0)
-        << "[SnakeGapSbm3DUtilities::CreateType2GapGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateType2GapGeometries] "
         << "Type2 creation left open type1 lateral faces. "
         << "Every type1 lateral face must be closed by a type2 volume.\n"
         << "  registry open type1 faces: " << number_registry_open_type1 << "\n";
@@ -7109,7 +7108,7 @@ SnakeGapSbm3DUtilities::CreateType2GapGeometries(
     return result;
 }
 
-bool SnakeGapSbm3DUtilities::HaveCommonActiveSpan(
+bool SnakeGapSbmProcess::Gap3DData::HaveCommonActiveSpan(
     const std::vector<SpanKey3D>& rFirst,
     const std::vector<SpanKey3D>& rSecond,
     const std::vector<SpanKey3D>& rThird) const
@@ -7127,8 +7126,8 @@ bool SnakeGapSbm3DUtilities::HaveCommonActiveSpan(
 }
 
 #if 1
-SnakeGapSbm3DUtilities::Type3CreationResult
-SnakeGapSbm3DUtilities::CreateType3GapGeometries(
+SnakeGapSbmProcess::Gap3DData::Type3CreationResult
+SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries(
     ModelPart& rRootModelPart,
     ModelPart& rSkinSubModelPart,
     const ExternalSpanDataMap& rExternalSpans,
@@ -7155,7 +7154,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
     for (const auto& r_open_face_data : rType2CreationResult.OpenFaceDataList) {
         KRATOS_ERROR_IF_NOT(r_open_face_data.pSurrogateNode)
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Type 2 open face has null surrogate node.\n";
 
         surrogate_nodes_by_id.emplace(
@@ -7377,7 +7376,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 directional_spans.Spans[direction_index];
 
             KRATOS_ERROR_IF(r_direction_spans.size() > 4)
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "More than four external knot spans found in one "
                 << "surrogate-node direction.\n"
                 << "  surrogate node: " << surrogate_node_id << "\n"
@@ -7398,7 +7397,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
         // if (number_of_full_direction_vectors > 2) continue; //FIXME: useful for debug
 
         KRATOS_ERROR_IF(number_of_full_direction_vectors > 3)
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "More than three surrogate-node direction vectors contain "
             << "four external knot spans.\n"
             << "  surrogate node: " << surrogate_node_id << "\n"
@@ -7410,7 +7409,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
         KRATOS_ERROR_IF(
             reference_occurrence_it ==
             reference_occurrence_by_surrogate_node_id.end())
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Cannot create type3 closure because no reference type2 "
             << "occurrence was found for the surrogate node.\n"
             << "  surrogate node: " << surrogate_node_id << "\n";
@@ -7418,17 +7417,17 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
         const auto& r_reference_occurrence =
             reference_occurrence_it->second;
         KRATOS_ERROR_IF_NOT(r_reference_occurrence.pNeighbourGeometry)
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Reference type2 occurrence for type3 creation has null "
             << "neighbour geometry.\n"
             << "  surrogate node: " << surrogate_node_id << "\n";
         KRATOS_ERROR_IF_NOT(r_reference_occurrence.HasType1NeighbourPath)
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Reference type2 occurrence for type3 creation has no "
             << "continuous neighbour path to a type1 volume.\n"
             << "  surrogate node: " << surrogate_node_id << "\n";
         KRATOS_ERROR_IF_NOT(r_reference_occurrence.HasNeighbourActiveSpan)
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Reference type2 occurrence for type3 creation has no "
             << "active span provenance.\n"
             << "  surrogate node: " << surrogate_node_id << "\n";
@@ -7446,14 +7445,14 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
             for (std::size_t i = 0; i < r_direction_spans.size(); ++i) {
                 const auto span_it = rExternalSpans.find(r_direction_spans[i]);
                 KRATOS_ERROR_IF(span_it == rExternalSpans.end())
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Selected external span missing from external span map "
                     << "while ordering type3 directions.\n"
                     << "  surrogate node: " << surrogate_node_id << "\n"
                     << "  direction: " << direction_names[DirectionIndex] << "\n"
                     << "  span: " << SpanToString(r_direction_spans[i]) << "\n";
                 KRATOS_ERROR_IF_NOT(span_it->second.HasProjectionNode())
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Selected external span has no projection node while "
                     << "ordering type3 directions.\n"
                     << "  surrogate node: " << surrogate_node_id << "\n"
@@ -7506,7 +7505,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
             KRATOS_ERROR_IF(
                 registered_direction_it == remaining_direction_indices.end())
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "No remaining full type3 direction has a registered "
                 << "lateral face. Cannot assign a neighbour geometry to the "
                 << "next type3 volume without inventing one.\n"
@@ -7527,13 +7526,13 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 const auto span_it =
                     rExternalSpans.find(r_selected_direction_spans[i]);
                 KRATOS_ERROR_IF(span_it == rExternalSpans.end())
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Selected external span missing from external span map.\n"
                     << "  surrogate node: " << surrogate_node_id << "\n"
                     << "  direction: " << direction_names[direction_index] << "\n"
                     << "  span: " << SpanToString(r_selected_direction_spans[i]) << "\n";
                 KRATOS_ERROR_IF_NOT(span_it->second.HasProjectionNode())
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Selected external span has no projection node.\n"
                     << "  surrogate node: " << surrogate_node_id << "\n"
                     << "  direction: " << direction_names[direction_index] << "\n"
@@ -7566,7 +7565,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
                     if (face_registry_it != mLateralFaceRegistry.end()) {
                         KRATOS_ERROR_IF(face_registry_it->second.size() > 2)
-                            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                             << "Projection-projection-surrogate face already exists "
                             << "with more than two occurrences.\n"
                             << "  surrogate node: " << surrogate_node_id << "\n"
@@ -7584,7 +7583,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
             }
 
             KRATOS_ERROR_IF(number_of_cycle_edges != 4)
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "The four external knot spans in a direction do not define "
                 << "a simple four-edge cycle.\n"
                 << "  surrogate node: " << surrogate_node_id << "\n"
@@ -7595,7 +7594,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 << "\n";
             for (std::size_t i = 0; i < adjacency.size(); ++i) {
                 KRATOS_ERROR_IF(adjacency[i].size() != 2)
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "The four external knot spans in a direction are not a "
                     << "simple cycle: every span must have two side neighbours.\n"
                     << "  surrogate node: " << surrogate_node_id << "\n"
@@ -7620,7 +7619,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
             KRATOS_ERROR_IF(
                 adjacency[ordered_indices[3]][0] != ordered_indices[0] &&
                 adjacency[ordered_indices[3]][1] != ordered_indices[0])
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "Ordered side-sharing spans do not close into a cycle.\n"
                 << "  surrogate node: " << surrogate_node_id << "\n"
                 << "  direction: " << direction_names[direction_index] << "\n";
@@ -7673,7 +7672,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
                 for (const auto& r_occurrence : face_registry_it->second) {
                     KRATOS_ERROR_IF_NOT(r_occurrence.pOppositeNode)
-                        << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                        << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                         << "Registered lateral face occurrence has no opposite "
                         << "node, so type3 cannot determine the already occupied "
                         << "side of the face.\n"
@@ -7796,7 +7795,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 }
 
                 KRATOS_ERROR_IF(number_of_common_indices != 2)
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Invalid type3 triangulation candidate: the two tetrahedra "
                     << "must share exactly two projection nodes.\n"
                     << "  surrogate node: " << surrogate_node_id << "\n"
@@ -7884,7 +7883,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
             if (!found_valid_triangulation) {
                 ++result.Summary.NumberOfSkippedFaces;
-                KRATOS_WARNING("SnakeGapSbm3DUtilities")
+                KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
                     << "[CreateType3GapGeometries] Skipping a collapsed or "
                     << "topologically incompatible type3 closure; no volume "
                     << "quadrature will be created.\n"
@@ -7923,7 +7922,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
                 if (face_registry_it != mLateralFaceRegistry.end()) {
                     KRATOS_ERROR_IF(face_registry_it->second.size() > 2)
-                        << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                        << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                         << "Non-manifold type3 closure face.\n"
                         << "  surrogate node: " << surrogate_node_id << "\n"
                         << "  direction: " << direction_names[direction_index] << "\n"
@@ -7966,7 +7965,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 const SpanKey3D& rNeighbourActiveSpan)
             {
                 KRATOS_ERROR_IF_NOT(pTopSurface)
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Type3 top face has null curved surface.\n"
                     << "  surrogate node: " << surrogate_node_id << "\n";
 
@@ -7988,7 +7987,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
                 if (face_registry_it != mLateralFaceRegistry.end()) {
                     KRATOS_ERROR_IF(face_registry_it->second.size() > 2)
-                        << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                        << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                         << "Non-manifold type3 top closure face.\n"
                         << "  surrogate node: " << surrogate_node_id << "\n"
                         << "  direction: " << direction_names[direction_index] << "\n"
@@ -8005,7 +8004,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
                     for (const auto& r_occurrence : face_registry_it->second) {
                         KRATOS_ERROR_IF_NOT(r_occurrence.pGeometry)
-                            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                             << "Existing type3 top face occurrence has null "
                             << "surface geometry.\n"
                             << "  surrogate node: " << surrogate_node_id << "\n"
@@ -8094,7 +8093,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 KRATOS_ERROR_IF(
                     created_volume_keys.find(volume_key) !=
                     created_volume_keys.end())
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Duplicated type3 closure tetra.\n"
                     << "  surrogate node: " << surrogate_node_id << "\n"
                     << "  projection nodes: "
@@ -8138,11 +8137,11 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                     const auto& r_existing_occurrences =
                         face_registry_it->second;
                     KRATOS_ERROR_IF(r_existing_occurrences.empty())
-                        << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                        << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                         << "Reused type3 lateral face has no occurrences.\n"
                         << "  face: " << pFaceName << "\n";
                     KRATOS_ERROR_IF(r_existing_occurrences.size() > 2)
-                        << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                        << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                         << "Non-manifold lateral face before type3 neighbour "
                         << "selection.\n"
                         << "  face: " << pFaceName << "\n"
@@ -8163,7 +8162,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                     for (const auto& r_source_occurrence :
                          r_existing_occurrences) {
                         KRATOS_ERROR_IF_NOT(r_source_occurrence.pNeighbourGeometry)
-                            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                             << "Reused type3 lateral face has null neighbour "
                             << "geometry.\n"
                             << "  face: " << pFaceName << "\n";
@@ -8218,7 +8217,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                     p_projection_node_2);
 
                 KRATOS_ERROR_IF(number_reused_faces_for_volume == 0)
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Type3 volume has no reused lateral face. "
                     << "All lateral faces would be new.\n"
                     << "  surrogate node: " << surrogate_node_id << "\n"
@@ -8229,7 +8228,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                     << p_projection_node_2->Id() << "\n";
 
                 KRATOS_ERROR_IF(number_reused_faces_with_type1_path == 0)
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Type3 volume has reused lateral faces, but none has "
                     << "a continuous neighbour path to a type1 volume.\n"
                     << "  reused faces: " << number_reused_faces_for_volume
@@ -8242,7 +8241,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                     << p_projection_node_2->Id() << "\n";
 
                 KRATOS_ERROR_IF_NOT(p_selected_neighbour_geometry)
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Type3 volume did not select a neighbour geometry.\n"
                     << "  surrogate node: " << surrogate_node_id << "\n"
                     << "  direction: " << direction_names[direction_index] << "\n"
@@ -8252,7 +8251,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                     << p_projection_node_2->Id() << "\n";
 
                 KRATOS_ERROR_IF_NOT(selected_neighbour_has_active_span)
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Selected neighbour geometry for type3 volume has no "
                     << "active span provenance.\n"
                     << "  selected source face: "
@@ -8369,7 +8368,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
         for (const auto& r_target_occurrence : r_occurrences) {
             KRATOS_ERROR_IF_NOT(r_target_occurrence.pNeighbourGeometry)
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "Shared type3 lateral face occurrence has null neighbour "
                 << "geometry.\n"
                 << "  face node ids: "
@@ -8379,7 +8378,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
             for (const auto& r_surface_occurrence : r_occurrences) {
                 KRATOS_ERROR_IF_NOT(r_surface_occurrence.pGeometry)
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Shared type3 lateral face occurrence has null surface "
                     << "geometry.\n"
                     << "  face node ids: "
@@ -8417,7 +8416,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 (r_occurrence.GapType == 2 ||
                  r_occurrence.GapType == 3) &&
                 !r_occurrence.HasType1NeighbourPath)
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "Shared type2/type3 lateral face occurrence has no "
                 << "continuous neighbour path to a type1 volume.\n"
                 << "  face node ids: "
@@ -8429,7 +8428,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 << SpanToString(r_occurrence.ExternalSpan) << "\n";
 
             KRATOS_ERROR_IF_NOT(r_occurrence.pGeometry)
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "Shared type3 lateral face occurrence has null surface "
                 << "geometry.\n"
                 << "  face node ids: "
@@ -8446,7 +8445,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 KRATOS_ERROR_IF_NOT(ContainsNeighbourGeometry(
                     stored_neighbour_geometries,
                     r_other_occurrence.pNeighbourGeometry))
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Shared type3 lateral face geometry does not contain "
                     << "both occurrence neighbour geometries.\n"
                     << "  face node ids: "
@@ -8463,7 +8462,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
         ++number_type3_shared_faces_with_complete_neighbours;
     }
 
-    KRATOS_INFO("SnakeGapSbm3DUtilities")
+    KRATOS_INFO("SnakeGapSbmProcess::Gap3DData")
         << "Type 3 creation summary:\n"
         << "  candidate open type2 faces: "
         << result.Summary.NumberOfCandidateOpenFaces << "\n"
@@ -8485,8 +8484,8 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 #endif
 
 #if 0
-SnakeGapSbm3DUtilities::Type3CreationResult
-SnakeGapSbm3DUtilities::CreateType3GapGeometries(
+SnakeGapSbmProcess::Gap3DData::Type3CreationResult
+SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries(
     ModelPart& rRootModelPart,
     ModelPart& rSkinSubModelPart,
     const ExternalSpanDataMap& rExternalSpans,
@@ -8524,13 +8523,13 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
     for (const auto& r_open_face_data : rType2CreationResult.OpenFaceDataList) {
         KRATOS_ERROR_IF_NOT(r_open_face_data.pSurrogateNode)
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Type 2 open face has null surrogate node.\n";
         KRATOS_ERROR_IF_NOT(r_open_face_data.pProjectionNode0)
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Type 2 open face has null first projection node.\n";
         KRATOS_ERROR_IF_NOT(r_open_face_data.pProjectionNode1)
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Type 2 open face has null second projection node.\n";
         KRATOS_ERROR_IF_NOT(AreFaceAdjacentSpans(
             r_open_face_data.ExternalSpan0,
@@ -8550,7 +8549,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
         const auto& r_occurrences = registry_it->second;
         if (r_occurrences.size() > 2) {
-            KRATOS_ERROR << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            KRATOS_ERROR << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                          << "Non-manifold lateral face for node ids "
                          << key.NodeIds[0] << ", "
                          << key.NodeIds[1] << ", "
@@ -8565,10 +8564,10 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
         const auto& r_reference_occurrence = r_occurrences.front();
         KRATOS_ERROR_IF_NOT(r_reference_occurrence.pGeometry)
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Type 2 open face occurrence has null geometry.\n";
         KRATOS_ERROR_IF_NOT(r_reference_occurrence.pNeighbourGeometry)
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Type 2 open face occurrence has null neighbour geometry.\n";
 
         Type3OpenFaceCandidate candidate;
@@ -8961,7 +8960,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
         }
 
         KRATOS_ERROR_IF(type3_spans.size() > 1)
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Found more than one type 3 span incident to surrogate node #"
             << surrogate_node_id << ".\n";
 
@@ -8974,7 +8973,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 pSurrogateNode->Coordinates(),
                 type3_spans.front(),
                 closest_point))
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "Failed to find a skin projection point for surrogate node #"
                 << surrogate_node_id
                 << " in type 3 span " << SpanToString(type3_spans.front()) << ".\n";
@@ -8988,7 +8987,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
             auto normal = pSurrogateNode->GetValue(NORMAL);
             const double normal_norm = norm_2(normal);
             KRATOS_ERROR_IF(normal_norm <= std::numeric_limits<double>::epsilon())
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "Normal is zero for surrogate node #"
                 << surrogate_node_id << ".\n";
 
@@ -9006,7 +9005,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                     pSurrogateNode->Coordinates(),
                     direction,
                     intersection_point))
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Failed to intersect the true boundary from surrogate node #"
                     << surrogate_node_id
                     << " along both mean projection directions.\n";
@@ -9055,7 +9054,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
         KRATOS_ERROR_IF(
             incident_nodes_it ==
             incident_projection_nodes_by_surrogate_node_id.end())
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "No incident type 2 projection nodes found for surrogate node #"
             << surrogate_node_id << ".\n";
 
@@ -9250,7 +9249,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
         ++result.Summary.NumberOfCreatedVolumes;
     }
 
-    KRATOS_INFO("SnakeGapSbm3DUtilities")
+    KRATOS_INFO("SnakeGapSbmProcess::Gap3DData")
         << "Type 3 creation summary:\n"
         << "  candidate open faces: " << result.Summary.NumberOfCandidateOpenFaces << "\n"
         << "  created volumes: " << result.Summary.NumberOfCreatedVolumes << "\n"
@@ -9266,7 +9265,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
 #endif
 
-void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
+void SnakeGapSbmProcess::Gap3DData::UpdateLateralFaceRegistryGeometries(
     ModelPart& rRootModelPart,
     ModelPart& rSkinSubModelPart)
 {
@@ -9703,7 +9702,7 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
             << "  - " << negative_samples
             << "  0 " << indeterminate_samples << "\n";
 
-        KRATOS_WARNING("SnakeGapSbm3DUtilities") << buffer.str();
+        KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData") << buffer.str();
     };
 
     for (auto& r_top_entry : mCurvedTopFaceRegistry) {
@@ -9734,7 +9733,7 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
             *p_surface,
             *p_reference_occurrence);
         if (initial_orientation == 0) {
-            KRATOS_WARNING("SnakeGapSbm3DUtilities")
+            KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
                 << "[UpdateLateralFaceRegistryGeometries] Falling back to a "
                 << "linear type3 top face after detecting locally mixed normal "
                 << "orientation.\n"
@@ -9923,7 +9922,7 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
         }
     }
 
-    KRATOS_INFO("SnakeGapSbm3DUtilities")
+    KRATOS_INFO("SnakeGapSbmProcess::Gap3DData")
         << "Final curved-face orientation audit:\n"
         << "  checked curved faces: "
         << number_of_checked_curved_faces << "\n"
@@ -9943,7 +9942,7 @@ void SnakeGapSbm3DUtilities::UpdateLateralFaceRegistryGeometries(
         << number_of_faces_with_registered_curved_top << "\n";
 }
 
-void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
+void SnakeGapSbmProcess::Gap3DData::FinalizeType2AndType3GapGeometries(
     ModelPart& rRootModelPart,
     ModelPart& rSkinSubModelPart,
     Type2CreationResult& rType2CreationResult,
@@ -11169,7 +11168,7 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
             if (!has_curved_top && std::isfinite(center_determinant) &&
                 std::abs(center_determinant) <= 1.0e-14) {
                 r_type3_data.RequiresQuadrature = false;
-                KRATOS_WARNING("SnakeGapSbm3DUtilities")
+                KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
                     << "[FinalizeType2AndType3GapGeometries] Skipping a "
                     << "degenerate linear type3 volume.\n"
                     << "  surrogate node: "
@@ -11221,7 +11220,7 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
         }
     }
 
-    KRATOS_INFO("SnakeGapSbm3DUtilities")
+    KRATOS_INFO("SnakeGapSbmProcess::Gap3DData")
         << "Curved type2 diagnostic:\n"
         << "  registered skin edges: " << mCurvedEdgeRegistry.size() << "\n"
         << "  accepted curved edges: " << number_of_curved_edges << "\n"
@@ -11236,7 +11235,7 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
 
     const auto final_volume_creation_start_time =
         std::chrono::steady_clock::now();
-    KRATOS_INFO("SnakeGapSbm3DUtilities")
+    KRATOS_INFO("SnakeGapSbmProcess::Gap3DData")
         << "Creating final type2/type3 volume geometries.\n";
 
     ModelPart& r_gap_type2_debug = GetOrCreateSubModelPart(
@@ -11352,7 +11351,7 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
         }
     }
 
-    KRATOS_INFO("SnakeGapSbm3DUtilities")
+    KRATOS_INFO("SnakeGapSbmProcess::Gap3DData")
         << "Final type2/type3 volume geometries created in "
         << std::chrono::duration<double>(
                std::chrono::steady_clock::now() -
@@ -11364,8 +11363,8 @@ void SnakeGapSbm3DUtilities::FinalizeType2AndType3GapGeometries(
 
 
 #if 0
-SnakeGapSbm3DUtilities::Type3CreationResult
-SnakeGapSbm3DUtilities::CreateType3GapGeometries(
+SnakeGapSbmProcess::Gap3DData::Type3CreationResult
+SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries(
     ModelPart& rRootModelPart,
     ModelPart& rSkinSubModelPart,
     const ExternalSpanDataMap& rExternalSpans,
@@ -11435,7 +11434,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
     // Freeze the type 2 open-face graph before type 3 registrations modify it.
     for (const auto& r_open_face_data : rType2CreationResult.OpenFaceDataList) {
         KRATOS_ERROR_IF_NOT(r_open_face_data.pSurrogateNode)
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Type 2 open face has null surrogate node.\n";
 
         const auto span_a_it =
@@ -11443,18 +11442,18 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
         const auto span_b_it =
             rExternalSpans.find(r_open_face_data.ExternalSpan1);
         KRATOS_ERROR_IF(span_a_it == rExternalSpans.end())
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Missing external span A "
             << SpanToString(r_open_face_data.ExternalSpan0) << ".\n";
         KRATOS_ERROR_IF(span_b_it == rExternalSpans.end())
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Missing external span B "
             << SpanToString(r_open_face_data.ExternalSpan1) << ".\n";
         KRATOS_ERROR_IF_NOT(span_a_it->second.HasProjectionNode())
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "External span A has no projection node.\n";
         KRATOS_ERROR_IF_NOT(span_b_it->second.HasProjectionNode())
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "External span B has no projection node.\n";
 
         SpanKey3D span_a = r_open_face_data.ExternalSpan0;
@@ -11480,7 +11479,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
         const LateralFaceOccurrence type2_occurrence =
             open_face_registry_it->second.front();
         KRATOS_ERROR_IF_NOT(type2_occurrence.pNeighbourGeometry)
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Open type 2 face has null neighbour geometry.\n";
 
         LocalSpanEdgeKey local_edge_key;
@@ -11520,7 +11519,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
     for (auto& r_node_open_faces : open_faces_by_surrogate_node_id) {
         auto& r_open_edges = r_node_open_faces.second;
         KRATOS_ERROR_IF(r_open_edges.empty())
-            << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
             << "Empty local type 2 face graph for surrogate node "
             << r_node_open_faces.first << ".\n";
 
@@ -11569,7 +11568,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                     incident_external_spans.end() ||
                 incident_external_spans.find(r_open_face.SpanB) ==
                     incident_external_spans.end())
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "Type 2 open face references external spans that are not "
                 << "incident to surrogate node " << p_surrogate_node->Id()
                 << ": " << SpanToString(r_open_face.SpanA) << " and "
@@ -11642,7 +11641,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                         span_a_it == incident_external_spans.end() ||
                         span_b_it == incident_external_spans.end() ||
                         span_c_it == incident_external_spans.end())
-                        << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                        << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                         << "Internal error while building local type 3 "
                         << "triangulation candidates.\n";
 
@@ -11788,7 +11787,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
             for (const auto& r_edge_key : rCandidate.Edges) {
                 auto usage_it = selected_edge_usage.find(r_edge_key);
                 KRATOS_ERROR_IF(usage_it == selected_edge_usage.end())
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Internal type 3 triangulation usage bookkeeping "
                     << "error.\n";
                 if (--usage_it->second == 0) {
@@ -11857,7 +11856,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
         if (!select_triangles()) {
             std::ostringstream error_message;
             error_message
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "Could not build a local type 3 triangulation that closes "
                 << "all initial type 2 open faces exactly once.\n"
                 << "  surrogate node: " << p_surrogate_node->Id() << "\n"
@@ -11930,7 +11929,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 triangle_candidates[selected_triangle_index];
 
             KRATOS_ERROR_IF(r_candidate.CoveredOpenEdgeIndices.empty())
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "Selected type 3 triangle does not cover an initial "
                 << "type 2 open edge.\n";
 
@@ -11939,14 +11938,14 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
             const auto primary_open_edge_it =
                 r_open_edges.find(primary_open_edge_key);
             KRATOS_ERROR_IF(primary_open_edge_it == r_open_edges.end())
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "Internal error: selected type 3 triangle references a "
                 << "missing open type 2 edge.\n";
 
             const LateralFaceOccurrence primary_occurrence =
                 primary_open_edge_it->second.Type2Occurrence;
             KRATOS_ERROR_IF_NOT(primary_occurrence.pNeighbourGeometry)
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "Type 2 graph edge has null neighbour geometry.\n";
 
             SpanKey3D span_a = r_candidate.SpanA;
@@ -11967,7 +11966,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
             if (std::abs(determinant) <= determinant_tolerance) {
                 ++result.Summary.NumberOfSkippedFaces;
-                KRATOS_WARNING("SnakeGapSbm3DUtilities")
+                KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
                     << "Skipping degenerate type3 tetra at surrogate node "
                     << p_surrogate_node->Id()
                     << " spans "
@@ -12000,7 +11999,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
             KRATOS_ERROR_IF(created_volume_keys.find(volume_key) !=
                             created_volume_keys.end())
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "The local type 3 triangulation selected a duplicated "
                 << "tetrahedron at surrogate node "
                 << p_surrogate_node->Id() << " with projection node ids "
@@ -12024,7 +12023,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
             KRATOS_ERROR_IF(
                 volume_quadrature_point_geometries.size() == 0)
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "A non-degenerate type 3 tetrahedron generated no "
                 << "quadrature point geometries.\n";
 
@@ -12041,7 +12040,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 const auto open_edge_it =
                     r_open_edges.find(open_edge_keys[open_edge_index]);
                 KRATOS_ERROR_IF(open_edge_it == r_open_edges.end())
-                    << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                    << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                     << "Internal error: selected type 3 triangle references "
                     << "a missing open type 2 edge.\n";
                 AddUniqueNeighbourGeometry(
@@ -12171,7 +12170,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
                 number_of_occurrences != 2 ||
                 number_of_type2_occurrences != 1 ||
                 number_of_type3_occurrences != 1)
-                << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+                << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
                 << "Initial type 2 open face was not closed by exactly one "
                 << "type 3 occurrence.\n"
                 << "  surrogate node: "
@@ -12191,7 +12190,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
         }
     }
 
-    KRATOS_INFO("SnakeGapSbm3DUtilities")
+    KRATOS_INFO("SnakeGapSbmProcess::Gap3DData")
         << "Type 3 creation summary:\n"
         << "  candidate open faces: "
         << result.Summary.NumberOfCandidateOpenFaces << "\n"
@@ -12236,7 +12235,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
         if (has_surrogate_node) {
             ++open_type3_lateral_faces;
 
-            KRATOS_WARNING("SnakeGapSbm3DUtilities")
+            KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
                 << "[CreateType3GapGeometries] Open type3 lateral face detected. "
                 << "This face contains a surrogate node and will later receive a "
                 << "Dirichlet condition, but it is probably an internal face left "
@@ -12250,7 +12249,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
     }
 
     KRATOS_ERROR_IF(open_type3_lateral_faces > 0)
-        << "[SnakeGapSbm3DUtilities::CreateType3GapGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries] "
         << "There are open type3 lateral faces containing surrogate nodes. "
         << "This means the type3 triangulation is not closed and Dirichlet BCs "
         << "would be applied on internal faces. Number of bad faces: "
@@ -12262,8 +12261,8 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 #endif
 
 #if 0
-SnakeGapSbm3DUtilities::Type3CreationResult
-SnakeGapSbm3DUtilities::CreateType3GapGeometries(
+SnakeGapSbmProcess::Gap3DData::Type3CreationResult
+SnakeGapSbmProcess::Gap3DData::CreateType3GapGeometries(
     ModelPart& rRootModelPart,
     ModelPart& rSkinSubModelPart,
     const ExternalSpanDataMap& rExternalSpans,
@@ -12571,7 +12570,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
             // type3 span. For now this branch is skipped for debugging.
             result.Summary.NumberOfSkippedFaces += open_faces.size();
 
-            KRATOS_WARNING("SnakeGapSbm3DUtilities")
+            KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
                 << "[CreateType3GapGeometries] Skipping surrogate node with "
                 << "incident type3 span. TODO seed logic.\n"
                 << "  surrogate node: " << surrogate_node_id << "\n"
@@ -13493,7 +13492,7 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
         }
     }
 
-    KRATOS_INFO("SnakeGapSbm3DUtilities")
+    KRATOS_INFO("SnakeGapSbmProcess::Gap3DData")
         << "Type 3 creation summary:\n"
         << "  candidate OpenFaceDataList faces: "
         << result.Summary.NumberOfCandidateOpenFaces << "\n"
@@ -13509,12 +13508,12 @@ SnakeGapSbm3DUtilities::CreateType3GapGeometries(
 
 #endif
 
-void SnakeGapSbm3DUtilities::AddNeighbourGeometry(
+void SnakeGapSbmProcess::Gap3DData::AddNeighbourGeometry(
     Geometry<Node>& rGeometry,
     const Geometry<Node>::Pointer& pNeighbourGeometry) const
 {
     KRATOS_ERROR_IF_NOT(pNeighbourGeometry)
-        << "[SnakeGapSbm3DUtilities::AddNeighbourGeometry] "
+        << "[SnakeGapSbmProcess::Gap3DData::AddNeighbourGeometry] "
         << "Trying to add null neighbour geometry.\n";
 
     NeighbourGeometriesVectorType neighbour_geometries;
@@ -13528,12 +13527,12 @@ void SnakeGapSbm3DUtilities::AddNeighbourGeometry(
     rGeometry.SetValue(NEIGHBOUR_GEOMETRIES, neighbour_geometries);
 }
 
-void SnakeGapSbm3DUtilities::AddUniqueNeighbourGeometry(
+void SnakeGapSbmProcess::Gap3DData::AddUniqueNeighbourGeometry(
     Geometry<Node>& rGeometry,
     const Geometry<Node>::Pointer& pCandidateNeighbourGeometry) const
 {
     KRATOS_ERROR_IF_NOT(pCandidateNeighbourGeometry)
-        << "[SnakeGapSbm3DUtilities::AddUniqueNeighbourGeometry] "
+        << "[SnakeGapSbmProcess::Gap3DData::AddUniqueNeighbourGeometry] "
         << "Trying to add null neighbour geometry.\n";
 
     NeighbourGeometriesVectorType neighbour_geometries;
@@ -13552,14 +13551,14 @@ void SnakeGapSbm3DUtilities::AddUniqueNeighbourGeometry(
     }
 }
 
-void SnakeGapSbm3DUtilities::SetType1GeometryData(
+void SnakeGapSbmProcess::Gap3DData::SetType1GeometryData(
     Geometry<Node>& rGeometry,
     const IndexType ProjectionNodeId,
     const Geometry<Node>::Pointer& pNeighbourGeometry,
     const std::string& rIdentifier) const
 {
     KRATOS_ERROR_IF_NOT(pNeighbourGeometry)
-        << "[SnakeGapSbm3DUtilities::SetType1GeometryData] "
+        << "[SnakeGapSbmProcess::Gap3DData::SetType1GeometryData] "
         << "NEIGHBOUR_GEOMETRY is null.\n";
 
     rGeometry.SetValue(IDENTIFIER, rIdentifier);
@@ -13567,16 +13566,16 @@ void SnakeGapSbm3DUtilities::SetType1GeometryData(
     AddNeighbourGeometry(rGeometry, pNeighbourGeometry);
 }
 
-void SnakeGapSbm3DUtilities::CreateAndTagSurfaceQuadraturePointGeometries(
+void SnakeGapSbmProcess::Gap3DData::CreateAndTagSurfaceQuadraturePointGeometries(
     const NurbsSurfaceType::Pointer& pSurfaceGeometry,
     const Geometry<Node>::Pointer& pNeighbourGeometry) const
 {
     KRATOS_ERROR_IF_NOT(pSurfaceGeometry)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagSurfaceQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagSurfaceQuadraturePointGeometries] "
         << "Surface geometry is null.\n";
 
     KRATOS_ERROR_IF_NOT(pNeighbourGeometry)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagSurfaceQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagSurfaceQuadraturePointGeometries] "
         << "Neighbour geometry is null.\n";
 
     IntegrationPointsArrayType integration_points;
@@ -13601,8 +13600,8 @@ void SnakeGapSbm3DUtilities::CreateAndTagSurfaceQuadraturePointGeometries(
     }
 }
 
-SnakeGapSbm3DUtilities::IntegrationPointsArrayType
-SnakeGapSbm3DUtilities::CreateCoonsVolumeGaussPoints(
+SnakeGapSbmProcess::Gap3DData::IntegrationPointsArrayType
+SnakeGapSbmProcess::Gap3DData::CreateCoonsVolumeGaussPoints(
     const std::size_t IntegrationOrder,
     const NurbsVolumeType& rGapVolume) const
 {
@@ -13613,8 +13612,8 @@ SnakeGapSbm3DUtilities::CreateCoonsVolumeGaussPoints(
         rGapVolume);
 }
 
-SnakeGapSbm3DUtilities::IntegrationPointsArrayType
-SnakeGapSbm3DUtilities::CreateCoonsVolumeGaussPoints(
+SnakeGapSbmProcess::Gap3DData::IntegrationPointsArrayType
+SnakeGapSbmProcess::Gap3DData::CreateCoonsVolumeGaussPoints(
     const std::size_t IntegrationOrderU,
     const std::size_t IntegrationOrderV,
     const std::size_t IntegrationOrderW,
@@ -13623,7 +13622,7 @@ SnakeGapSbm3DUtilities::CreateCoonsVolumeGaussPoints(
     KRATOS_ERROR_IF(IntegrationOrderU == 0 ||
                     IntegrationOrderV == 0 ||
                     IntegrationOrderW == 0)
-        << "[SnakeGapSbm3DUtilities::CreateCoonsVolumeGaussPoints] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateCoonsVolumeGaussPoints] "
         << "Integration order must be positive.\n";
 
     IntegrationPointsArrayType integration_points(
@@ -13696,7 +13695,7 @@ SnakeGapSbm3DUtilities::CreateCoonsVolumeGaussPoints(
             orientation_sign * determinant_values[point_index];
 
         if (oriented_det_jacobian < -1.0e-1) {
-            KRATOS_WARNING("SnakeGapSbm3DUtilities")
+            KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
                 << "[CreateCoonsVolumeGaussPoints] Inconsistent Coons volume orientation "
                 << "at local point " << r_integration_point.Coordinates()
                 << ". Oriented determinant = " << oriented_det_jacobian << ".\n";
@@ -13712,19 +13711,19 @@ SnakeGapSbm3DUtilities::CreateCoonsVolumeGaussPoints(
     return integration_points;
 }
 
-double SnakeGapSbm3DUtilities::CalculateType1CharacteristicLength(
+double SnakeGapSbmProcess::Gap3DData::CalculateType1CharacteristicLength(
     const SurrogateFaceData& rFaceData,
     const NodePointerType& pApexNode) const
 {
     KRATOS_ERROR_IF_NOT(pApexNode)
-        << "[SnakeGapSbm3DUtilities::CalculateType1CharacteristicLength] "
+        << "[SnakeGapSbmProcess::Gap3DData::CalculateType1CharacteristicLength] "
         << "Apex node is null.\n";
 
     std::array<array_1d<double, 3>, 5> points;
 
     for (std::size_t i = 0; i < 4; ++i) {
         KRATOS_ERROR_IF_NOT(rFaceData.Nodes[i])
-            << "[SnakeGapSbm3DUtilities::CalculateType1CharacteristicLength] "
+            << "[SnakeGapSbmProcess::Gap3DData::CalculateType1CharacteristicLength] "
             << "Null base node at local index " << i << ".\n";
 
         points[i] = rFaceData.Nodes[i]->Coordinates();
@@ -13745,8 +13744,8 @@ double SnakeGapSbm3DUtilities::CalculateType1CharacteristicLength(
     return max_distance;
 }
 
-SnakeGapSbm3DUtilities::GeometriesArrayType
-SnakeGapSbm3DUtilities::CreateAndTagVolumeQuadraturePointGeometries(
+SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
+SnakeGapSbmProcess::Gap3DData::CreateAndTagVolumeQuadraturePointGeometries(
     const NurbsVolumeType::Pointer& pVolumeGeometry,
     const Geometry<Node>::Pointer& pNeighbourGeometry,
     const std::size_t IntegrationOrder,
@@ -13761,8 +13760,8 @@ SnakeGapSbm3DUtilities::CreateAndTagVolumeQuadraturePointGeometries(
         NumberOfShapeFunctionsDerivatives);
 }
 
-SnakeGapSbm3DUtilities::GeometriesArrayType
-SnakeGapSbm3DUtilities::CreateAndTagAnisotropicVolumeQuadraturePointGeometries(
+SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
+SnakeGapSbmProcess::Gap3DData::CreateAndTagAnisotropicVolumeQuadraturePointGeometries(
     const NurbsVolumeType::Pointer& pVolumeGeometry,
     const Geometry<Node>::Pointer& pNeighbourGeometry,
     const std::size_t IntegrationOrderU,
@@ -13771,11 +13770,11 @@ SnakeGapSbm3DUtilities::CreateAndTagAnisotropicVolumeQuadraturePointGeometries(
     const std::size_t NumberOfShapeFunctionsDerivatives) const
 {
     KRATOS_ERROR_IF_NOT(pVolumeGeometry)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagAnisotropicVolumeQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagAnisotropicVolumeQuadraturePointGeometries] "
         << "Volume geometry is null.\n";
 
     KRATOS_ERROR_IF_NOT(pNeighbourGeometry)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagAnisotropicVolumeQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagAnisotropicVolumeQuadraturePointGeometries] "
         << "Neighbour geometry is null.\n";
 
     IntegrationPointsArrayType volume_integration_points =
@@ -13793,7 +13792,7 @@ SnakeGapSbm3DUtilities::CreateAndTagAnisotropicVolumeQuadraturePointGeometries(
     GeometriesArrayType volume_quadrature_point_geometries;
 
     if (weight_sum <= 1.0e-16) {
-        KRATOS_WARNING("SnakeGapSbm3DUtilities")
+        KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
             << "[CreateAndTagVolumeQuadraturePointGeometries] "
             << "Skipping volume quadrature point geometries because weight sum is nearly zero.\n";
 
@@ -13813,19 +13812,19 @@ SnakeGapSbm3DUtilities::CreateAndTagAnisotropicVolumeQuadraturePointGeometries(
         volume_integration_info);
 
     KRATOS_ERROR_IF(volume_quadrature_point_geometries.size() == 0)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagAnisotropicVolumeQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagAnisotropicVolumeQuadraturePointGeometries] "
         << "Failed to create volume quadrature point geometries.\n";
 
     return volume_quadrature_point_geometries;
 }
 
-SnakeGapSbm3DUtilities::GeometriesArrayType
-SnakeGapSbm3DUtilities::CreateDirectMappedVolumeQuadraturePointGeometries(
+SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
+SnakeGapSbmProcess::Gap3DData::CreateDirectMappedVolumeQuadraturePointGeometries(
     const Geometry<Node>::Pointer& pVolumeGeometry,
     const IntegrationPointsArrayType& rReferenceIntegrationPoints) const
 {
     KRATOS_ERROR_IF_NOT(pVolumeGeometry)
-        << "[SnakeGapSbm3DUtilities::CreateDirectMappedVolumeQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateDirectMappedVolumeQuadraturePointGeometries] "
         << "Volume geometry is null.\n";
 
     GeometriesArrayType quadrature_point_geometries;
@@ -13903,13 +13902,13 @@ SnakeGapSbm3DUtilities::CreateDirectMappedVolumeQuadraturePointGeometries(
     return quadrature_point_geometries;
 }
 
-SnakeGapSbm3DUtilities::GeometriesArrayType
-SnakeGapSbm3DUtilities::CreateNativeVolumeQuadraturePointGeometries(
+SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
+SnakeGapSbmProcess::Gap3DData::CreateNativeVolumeQuadraturePointGeometries(
     const Geometry<Node>::Pointer& pVolumeGeometry,
     const std::size_t IntegrationOrder) const
 {
     KRATOS_ERROR_IF_NOT(pVolumeGeometry)
-        << "[SnakeGapSbm3DUtilities::CreateNativeVolumeQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateNativeVolumeQuadraturePointGeometries] "
         << "Volume geometry is null.\n";
 
     const auto integration_method = SelectGaussIntegrationMethod(IntegrationOrder);
@@ -13937,7 +13936,7 @@ SnakeGapSbm3DUtilities::CreateNativeVolumeQuadraturePointGeometries(
 
         const double determinant = MathUtils<double>::Det(jacobian);
         KRATOS_ERROR_IF_NOT(std::isfinite(determinant))
-            << "[SnakeGapSbm3DUtilities::CreateNativeVolumeQuadraturePointGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateNativeVolumeQuadraturePointGeometries] "
             << "Non-finite volume Jacobian determinant.\n";
 
         const double weight =
@@ -13956,19 +13955,19 @@ SnakeGapSbm3DUtilities::CreateNativeVolumeQuadraturePointGeometries(
     return quadrature_point_geometries;
 }
 
-SnakeGapSbm3DUtilities::GeometriesArrayType
-SnakeGapSbm3DUtilities::CreateAndTagPyramidVolumeQuadraturePointGeometries(
+SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
+SnakeGapSbmProcess::Gap3DData::CreateAndTagPyramidVolumeQuadraturePointGeometries(
     const std::array<NodePointerType, 4>& rBaseNodes,
     const NodePointerType& pApexNode,
     const std::size_t IntegrationOrder) const
 {
     for (std::size_t i = 0; i < rBaseNodes.size(); ++i) {
         KRATOS_ERROR_IF_NOT(rBaseNodes[i])
-            << "[SnakeGapSbm3DUtilities::CreateAndTagPyramidVolumeQuadraturePointGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagPyramidVolumeQuadraturePointGeometries] "
             << "Null pyramid base node at local index " << i << ".\n";
     }
     KRATOS_ERROR_IF_NOT(pApexNode)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagPyramidVolumeQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagPyramidVolumeQuadraturePointGeometries] "
         << "Apex node is null.\n";
 
     auto p_pyramid = Kratos::make_shared<Pyramid3D5<NodeType>>(
@@ -13983,8 +13982,8 @@ SnakeGapSbm3DUtilities::CreateAndTagPyramidVolumeQuadraturePointGeometries(
         IntegrationOrder);
 }
 
-SnakeGapSbm3DUtilities::GeometriesArrayType
-SnakeGapSbm3DUtilities::CreateAndTagLinearTetraVolumeQuadraturePointGeometries(
+SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
+SnakeGapSbmProcess::Gap3DData::CreateAndTagLinearTetraVolumeQuadraturePointGeometries(
     const NodePointerType& pNode0,
     const NodePointerType& pNode1,
     const NodePointerType& pNode2,
@@ -13992,16 +13991,16 @@ SnakeGapSbm3DUtilities::CreateAndTagLinearTetraVolumeQuadraturePointGeometries(
     const std::size_t IntegrationOrder) const
 {
     KRATOS_ERROR_IF_NOT(pNode0)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagLinearTetraVolumeQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagLinearTetraVolumeQuadraturePointGeometries] "
         << "First tetra node is null.\n";
     KRATOS_ERROR_IF_NOT(pNode1)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagLinearTetraVolumeQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagLinearTetraVolumeQuadraturePointGeometries] "
         << "Second tetra node is null.\n";
     KRATOS_ERROR_IF_NOT(pNode2)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagLinearTetraVolumeQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagLinearTetraVolumeQuadraturePointGeometries] "
         << "Third tetra node is null.\n";
     KRATOS_ERROR_IF_NOT(pNode3)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagLinearTetraVolumeQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagLinearTetraVolumeQuadraturePointGeometries] "
         << "Fourth tetra node is null.\n";
 
     auto p_tetra = Kratos::make_shared<Tetrahedra3D4<NodeType>>(
@@ -14015,13 +14014,13 @@ SnakeGapSbm3DUtilities::CreateAndTagLinearTetraVolumeQuadraturePointGeometries(
         IntegrationOrder);
 }
 
-SnakeGapSbm3DUtilities::GeometriesArrayType
-SnakeGapSbm3DUtilities::CreateAndTagCurvedType2QuadraturePointGeometries(
+SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
+SnakeGapSbmProcess::Gap3DData::CreateAndTagCurvedType2QuadraturePointGeometries(
     const NurbsVolumeType::Pointer& pVolumeGeometry,
     const std::size_t IntegrationOrder) const
 {
     KRATOS_ERROR_IF_NOT(pVolumeGeometry)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagCurvedType2QuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagCurvedType2QuadraturePointGeometries] "
         << "Volume geometry is null.\n";
 
     const std::size_t curved_order = CappedGaussOrder(IntegrationOrder);
@@ -14047,17 +14046,17 @@ SnakeGapSbm3DUtilities::CreateAndTagCurvedType2QuadraturePointGeometries(
         integration_points);
 }
 
-SnakeGapSbm3DUtilities::GeometriesArrayType
-SnakeGapSbm3DUtilities::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries(
+SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
+SnakeGapSbmProcess::Gap3DData::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries(
     const NodePointerType& pSurrogateNode,
     const GeometryType::Pointer& pTopSurfaceGeometry,
     const std::size_t IntegrationOrder) const
 {
     KRATOS_ERROR_IF_NOT(pSurrogateNode)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries] "
         << "Surrogate node is null.\n";
     KRATOS_ERROR_IF_NOT(pTopSurfaceGeometry)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries] "
         << "Top surface geometry is null.\n";
 
     const bool is_quadratic_triangle =
@@ -14067,7 +14066,7 @@ SnakeGapSbm3DUtilities::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeom
         dynamic_cast<const NurbsSurfaceType*>(
             pTopSurfaceGeometry.get()) != nullptr;
     KRATOS_ERROR_IF_NOT(is_quadratic_triangle || is_nurbs_surface)
-        << "[SnakeGapSbm3DUtilities::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries] "
         << "Unsupported top surface geometry type.\n";
 
     const std::size_t order = CappedGaussOrder(IntegrationOrder);
@@ -14129,7 +14128,7 @@ SnakeGapSbm3DUtilities::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeom
             top_local_coordinates);
 
         KRATOS_ERROR_IF(top_jacobian.size1() < 3 || top_jacobian.size2() < 2)
-            << "[SnakeGapSbm3DUtilities::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeometries] "
             << "Invalid top surface Jacobian size: "
             << top_jacobian.size1() << " x "
             << top_jacobian.size2() << ".\n";
@@ -14216,8 +14215,8 @@ SnakeGapSbm3DUtilities::CreateAndTagCurvedType3TriangleRadialQuadraturePointGeom
     return quadrature_point_geometries;
 }
 
-SnakeGapSbm3DUtilities::GeometriesArrayType
-SnakeGapSbm3DUtilities::MaterializePhysicalVolumeQuadrature(
+SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
+SnakeGapSbmProcess::Gap3DData::MaterializePhysicalVolumeQuadrature(
     const std::vector<PhysicalQuadraturePoint>& rPhysicalPoints) const
 {
     GeometriesArrayType quadrature_point_geometries;
@@ -14231,8 +14230,8 @@ SnakeGapSbm3DUtilities::MaterializePhysicalVolumeQuadrature(
     return quadrature_point_geometries;
 }
 
-std::vector<SnakeGapSbm3DUtilities::PhysicalQuadraturePoint>
-SnakeGapSbm3DUtilities::CreateMappedPhysicalVolumeQuadrature(
+std::vector<SnakeGapSbmProcess::Gap3DData::PhysicalQuadraturePoint>
+SnakeGapSbmProcess::Gap3DData::CreateMappedPhysicalVolumeQuadrature(
     const Geometry<Node>::Pointer& pVolumeGeometry,
     const IntegrationPointsArrayType& rReferenceIntegrationPoints) const
 {
@@ -14306,8 +14305,8 @@ SnakeGapSbm3DUtilities::CreateMappedPhysicalVolumeQuadrature(
     return physical_points;
 }
 
-std::vector<SnakeGapSbm3DUtilities::PhysicalQuadraturePoint>
-SnakeGapSbm3DUtilities::CreateNativePhysicalVolumeQuadrature(
+std::vector<SnakeGapSbmProcess::Gap3DData::PhysicalQuadraturePoint>
+SnakeGapSbmProcess::Gap3DData::CreateNativePhysicalVolumeQuadrature(
     const Geometry<Node>::Pointer& pVolumeGeometry,
     const std::size_t IntegrationOrder) const
 {
@@ -14343,8 +14342,8 @@ SnakeGapSbm3DUtilities::CreateNativePhysicalVolumeQuadrature(
     return physical_points;
 }
 
-std::vector<SnakeGapSbm3DUtilities::PhysicalQuadraturePoint>
-SnakeGapSbm3DUtilities::CreateCurvedType3TriangleRadialPhysicalQuadrature(
+std::vector<SnakeGapSbmProcess::Gap3DData::PhysicalQuadraturePoint>
+SnakeGapSbmProcess::Gap3DData::CreateCurvedType3TriangleRadialPhysicalQuadrature(
     const NodePointerType& pSurrogateNode,
     const GeometryType::Pointer& pTopSurfaceGeometry,
     const std::size_t IntegrationOrder) const
@@ -14365,8 +14364,8 @@ SnakeGapSbm3DUtilities::CreateCurvedType3TriangleRadialPhysicalQuadrature(
     return physical_points;
 }
 
-std::vector<SnakeGapSbm3DUtilities::PhysicalQuadraturePoint>
-SnakeGapSbm3DUtilities::CreateOriginalPhysicalVolumeQuadrature(
+std::vector<SnakeGapSbmProcess::Gap3DData::PhysicalQuadraturePoint>
+SnakeGapSbmProcess::Gap3DData::CreateOriginalPhysicalVolumeQuadrature(
     const VolumeGeometryData& rVolumeGeometry) const
 {
     KRATOS_ERROR_IF_NOT(rVolumeGeometry.pVolumeGeometry)
@@ -14451,8 +14450,8 @@ SnakeGapSbm3DUtilities::CreateOriginalPhysicalVolumeQuadrature(
     }
 }
 
-SnakeGapSbm3DUtilities::GeometriesArrayType
-SnakeGapSbm3DUtilities::CreateOriginalVolumeQuadrature(
+SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
+SnakeGapSbmProcess::Gap3DData::CreateOriginalVolumeQuadrature(
     const VolumeGeometryData& rVolumeGeometry) const
 {
     KRATOS_ERROR_IF_NOT(rVolumeGeometry.pVolumeGeometry)
@@ -14465,8 +14464,8 @@ SnakeGapSbm3DUtilities::CreateOriginalVolumeQuadrature(
         CreateOriginalPhysicalVolumeQuadrature(rVolumeGeometry));
 }
 
-SnakeGapSbm3DUtilities::GeometriesArrayType
-SnakeGapSbm3DUtilities::CreateOriginalVolumeQuadrature(
+SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
+SnakeGapSbmProcess::Gap3DData::CreateOriginalVolumeQuadrature(
     const std::vector<const VolumeGeometryData*>& rVolumeGeometries) const
 {
     GeometriesArrayType quadrature_point_geometries;
@@ -14484,8 +14483,8 @@ SnakeGapSbm3DUtilities::CreateOriginalVolumeQuadrature(
     return quadrature_point_geometries;
 }
 
-SnakeGapSbm3DUtilities::MomentFittedVolumeQuadratureResult
-SnakeGapSbm3DUtilities::CreateMomentFittedVolumeQuadrature(
+SnakeGapSbmProcess::Gap3DData::MomentFittedVolumeQuadratureResult
+SnakeGapSbmProcess::Gap3DData::CreateMomentFittedVolumeQuadrature(
     const std::vector<const VolumeGeometryData*>& rVolumeGeometries,
     const MomentFittingSettings& rSettings) const
 {
@@ -14827,7 +14826,7 @@ SnakeGapSbm3DUtilities::CreateMomentFittedVolumeQuadrature(
     return result;
 }
 
-void SnakeGapSbm3DUtilities::RegisterType1LateralFace(
+void SnakeGapSbmProcess::Gap3DData::RegisterType1LateralFace(
     const SurrogateFaceData& rFaceData,
     const IndexType LocalEdgeIndex,
     const NodePointerType& pNode0,
@@ -14837,15 +14836,15 @@ void SnakeGapSbm3DUtilities::RegisterType1LateralFace(
     const Geometry<Node>::Pointer& pNeighbourGeometry)
 {
     KRATOS_ERROR_IF_NOT(pNode0)
-        << "[SnakeGapSbm3DUtilities::RegisterType1LateralFace] First node is null.\n";
+        << "[SnakeGapSbmProcess::Gap3DData::RegisterType1LateralFace] First node is null.\n";
     KRATOS_ERROR_IF_NOT(pNode1)
-        << "[SnakeGapSbm3DUtilities::RegisterType1LateralFace] Second node is null.\n";
+        << "[SnakeGapSbmProcess::Gap3DData::RegisterType1LateralFace] Second node is null.\n";
     KRATOS_ERROR_IF_NOT(pApexNode)
-        << "[SnakeGapSbm3DUtilities::RegisterType1LateralFace] Apex node is null.\n";
+        << "[SnakeGapSbmProcess::Gap3DData::RegisterType1LateralFace] Apex node is null.\n";
     KRATOS_ERROR_IF_NOT(pLateralSurface)
-        << "[SnakeGapSbm3DUtilities::RegisterType1LateralFace] Surface is null.\n";
+        << "[SnakeGapSbmProcess::Gap3DData::RegisterType1LateralFace] Surface is null.\n";
     KRATOS_ERROR_IF_NOT(pNeighbourGeometry)
-        << "[SnakeGapSbm3DUtilities::RegisterType1LateralFace] Neighbour geometry is null.\n";
+        << "[SnakeGapSbmProcess::Gap3DData::RegisterType1LateralFace] Neighbour geometry is null.\n";
 
     const auto key = MakeCanonicalFaceKey3D(
         pNode0,
@@ -14867,8 +14866,8 @@ void SnakeGapSbm3DUtilities::RegisterType1LateralFace(
     mLateralFaceRegistry[key].push_back(occurrence);
 }
 
-SnakeGapSbm3DUtilities::Type1CreationSummary
-SnakeGapSbm3DUtilities::ComputeType1CreationSummary(
+SnakeGapSbmProcess::Gap3DData::Type1CreationSummary
+SnakeGapSbmProcess::Gap3DData::ComputeType1CreationSummary(
     const std::size_t NumberOfPyramids) const
 {
     Type1CreationSummary summary;
@@ -14891,14 +14890,14 @@ SnakeGapSbm3DUtilities::ComputeType1CreationSummary(
     return summary;
 }
 
-void SnakeGapSbm3DUtilities::PrintType1CreationSummary(
+void SnakeGapSbmProcess::Gap3DData::PrintType1CreationSummary(
     const Type1CreationSummary& rSummary) const
 {
     if (mEchoLevel == 0) {
         return;
     }
 
-    KRATOS_INFO("SnakeGapSbm3DUtilities")
+    KRATOS_INFO("SnakeGapSbmProcess::Gap3DData")
         << "Type 1 geometry creation summary:\n"
         << "  type 1 pyramids created:          " << rSummary.NumberOfPyramids << "\n"
         << "  type 1 lateral face occurrences:  " << rSummary.NumberOfLateralFaces << "\n"
@@ -14907,20 +14906,20 @@ void SnakeGapSbm3DUtilities::PrintType1CreationSummary(
         << "  non-manifold lateral faces:       " << rSummary.NumberOfNonManifoldFaces << "\n";
 }
 
-SnakeGapSbm3DUtilities::NurbsSurfaceType::Pointer
-SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurface(
+SnakeGapSbmProcess::Gap3DData::NurbsSurfaceType::Pointer
+SnakeGapSbmProcess::Gap3DData::CreateCollapsedTriangleSurface(
     const NodePointerType& pNode0,
     const NodePointerType& pNode1,
     const NodePointerType& pNode2) const
 {
     KRATOS_ERROR_IF_NOT(pNode0)
-        << "[SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurface] pNode0 is null.\n";
+        << "[SnakeGapSbmProcess::Gap3DData::CreateCollapsedTriangleSurface] pNode0 is null.\n";
 
     KRATOS_ERROR_IF_NOT(pNode1)
-        << "[SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurface] pNode1 is null.\n";
+        << "[SnakeGapSbmProcess::Gap3DData::CreateCollapsedTriangleSurface] pNode1 is null.\n";
 
     KRATOS_ERROR_IF_NOT(pNode2)
-        << "[SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurface] pNode2 is null.\n";
+        << "[SnakeGapSbmProcess::Gap3DData::CreateCollapsedTriangleSurface] pNode2 is null.\n";
 
     if (mGapApproximationOrder > 1) {
         const bool has_edge_01 = FindCachedSkinEdgeControlNodes(pNode0, pNode1);
@@ -14997,16 +14996,16 @@ SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurface(
         knot_vector);
 }
 
-SnakeGapSbm3DUtilities::NurbsSurfaceType::Pointer
-SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurfaceWithCurvedEdge(
+SnakeGapSbmProcess::Gap3DData::NurbsSurfaceType::Pointer
+SnakeGapSbmProcess::Gap3DData::CreateCollapsedTriangleSurfaceWithCurvedEdge(
     const NodePointerType& pApexNode,
     const std::vector<NodePointerType>& rSkinEdgeControlNodes) const
 {
     KRATOS_ERROR_IF_NOT(pApexNode)
-        << "[SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurfaceWithCurvedEdge] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateCollapsedTriangleSurfaceWithCurvedEdge] "
         << "Apex node is null.\n";
     KRATOS_ERROR_IF(rSkinEdgeControlNodes.size() != mGapApproximationOrder + 1)
-        << "[SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurfaceWithCurvedEdge] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateCollapsedTriangleSurfaceWithCurvedEdge] "
         << "Unexpected number of skin edge control nodes: "
         << rSkinEdgeControlNodes.size() << ". Expected "
         << mGapApproximationOrder + 1 << ".\n";
@@ -15015,7 +15014,7 @@ SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurfaceWithCurvedEdge(
 
     for (const auto& p_control_node : rSkinEdgeControlNodes) {
         KRATOS_ERROR_IF_NOT(p_control_node)
-            << "[SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurfaceWithCurvedEdge] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateCollapsedTriangleSurfaceWithCurvedEdge] "
             << "Null skin edge control node.\n";
         control_points.push_back(p_control_node);
     }
@@ -15032,8 +15031,8 @@ SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurfaceWithCurvedEdge(
         CreateOpenUnitKnotVectorDegree1());
 }
 
-SnakeGapSbm3DUtilities::NurbsSurfaceType::Pointer
-SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurfaceWithCurvedTop(
+SnakeGapSbmProcess::Gap3DData::NurbsSurfaceType::Pointer
+SnakeGapSbmProcess::Gap3DData::CreateCollapsedTriangleSurfaceWithCurvedTop(
     const NodePointerType& pNode0,
     const NodePointerType& pNode1,
     const NodePointerType& pNode2) const
@@ -15046,12 +15045,12 @@ SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurfaceWithCurvedTop(
             const auto p_cached_control_nodes =
                 FindCachedSkinEdgeControlNodes(pFirst, pSecond);
             KRATOS_ERROR_IF_NOT(p_cached_control_nodes)
-                << "[SnakeGapSbm3DUtilities::"
+                << "[SnakeGapSbmProcess::Gap3DData::"
                 << "CreateCollapsedTriangleSurfaceWithCurvedTop] Missing "
                 << "cubic edge controls.\n";
             auto control_nodes = *p_cached_control_nodes;
             KRATOS_ERROR_IF(control_nodes.size() != 4)
-                << "[SnakeGapSbm3DUtilities::"
+                << "[SnakeGapSbmProcess::Gap3DData::"
                 << "CreateCollapsedTriangleSurfaceWithCurvedTop] A cubic "
                 << "edge requires four control nodes.\n";
             if (control_nodes.front()->Id() != pFirst->Id()) {
@@ -15110,7 +15109,7 @@ SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurfaceWithCurvedTop(
     }
 
     KRATOS_ERROR_IF(mGapApproximationOrder != 2)
-        << "[SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurfaceWithCurvedTop] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateCollapsedTriangleSurfaceWithCurvedTop] "
         << "Only quadratic collapsed top faces are implemented. Requested order: "
         << mGapApproximationOrder << ".\n";
 
@@ -15160,8 +15159,8 @@ SnakeGapSbm3DUtilities::CreateCollapsedTriangleSurfaceWithCurvedTop(
         CreateOpenUnitKnotVector(2));
 }
 
-SnakeGapSbm3DUtilities::Type1CreationResult
-SnakeGapSbm3DUtilities::CreateType1GapGeometries(
+SnakeGapSbmProcess::Gap3DData::Type1CreationResult
+SnakeGapSbmProcess::Gap3DData::CreateType1GapGeometries(
     ModelPart& rRootModelPart,
     const ModelPart& rSkinSubModelPart,
     const ModelPart& rSurrogateSubModelPart,
@@ -15169,7 +15168,7 @@ SnakeGapSbm3DUtilities::CreateType1GapGeometries(
     const std::size_t GapVolumeIntegrationOrder)
 {
     const char* p_caller =
-        "SnakeGapSbm3DUtilities::CreateType1GapGeometries";
+        "SnakeGapSbmProcess::Gap3DData::CreateType1GapGeometries";
 
     ClearLateralFaceRegistry();
 
@@ -15397,13 +15396,13 @@ SnakeGapSbm3DUtilities::CreateType1GapGeometries(
 }
 
 // create quadrature point for surfaces
-SnakeGapSbm3DUtilities::IntegrationPointsArrayType
-SnakeGapSbm3DUtilities::CreateCoonsSurfaceGaussPoints(
+SnakeGapSbmProcess::Gap3DData::IntegrationPointsArrayType
+SnakeGapSbmProcess::Gap3DData::CreateCoonsSurfaceGaussPoints(
     const std::size_t IntegrationOrder,
     const NurbsSurfaceType& rGapSurface) const
 {
     KRATOS_ERROR_IF(IntegrationOrder == 0)
-        << "[SnakeGapSbm3DUtilities::CreateCoonsSurfaceGaussPoints] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateCoonsSurfaceGaussPoints] "
         << "Integration order must be positive.\n";
 
     IntegrationPointsArrayType integration_points(
@@ -15431,7 +15430,7 @@ SnakeGapSbm3DUtilities::CreateCoonsSurfaceGaussPoints(
         rGapSurface.Jacobian(jacobian, local_coordinates);
 
         KRATOS_ERROR_IF(jacobian.size1() < 3 || jacobian.size2() < 2)
-            << "[SnakeGapSbm3DUtilities::CreateCoonsSurfaceGaussPoints] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateCoonsSurfaceGaussPoints] "
             << "Invalid surface Jacobian size: "
             << jacobian.size1() << " x " << jacobian.size2() << ".\n";
 
@@ -15457,14 +15456,14 @@ SnakeGapSbm3DUtilities::CreateCoonsSurfaceGaussPoints(
     return integration_points;
 }
 
-SnakeGapSbm3DUtilities::GeometriesArrayType
-SnakeGapSbm3DUtilities::CreateSurfaceQuadraturePointGeometries(
+SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
+SnakeGapSbmProcess::Gap3DData::CreateSurfaceQuadraturePointGeometries(
     const GeometryType::Pointer& pSurfaceGeometry,
     const std::size_t IntegrationOrder,
     const std::size_t NumberOfShapeFunctionsDerivatives) const
 {
     KRATOS_ERROR_IF_NOT(pSurfaceGeometry)
-        << "[SnakeGapSbm3DUtilities::CreateSurfaceQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateSurfaceQuadraturePointGeometries] "
         << "Surface geometry is null.\n";
 
     GeometriesArrayType surface_quadrature_point_geometries;
@@ -15482,7 +15481,7 @@ SnakeGapSbm3DUtilities::CreateSurfaceQuadraturePointGeometries(
         }
 
         if (weight_sum <= 1.0e-16) {
-            KRATOS_WARNING("SnakeGapSbm3DUtilities")
+            KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
                 << "[CreateSurfaceQuadraturePointGeometries] "
                 << "Skipping surface quadrature point geometries because "
                 << "weight sum is nearly zero.\n";
@@ -15501,7 +15500,7 @@ SnakeGapSbm3DUtilities::CreateSurfaceQuadraturePointGeometries(
             surface_integration_info);
 
         KRATOS_ERROR_IF(surface_quadrature_point_geometries.size() == 0)
-            << "[SnakeGapSbm3DUtilities::CreateSurfaceQuadraturePointGeometries] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateSurfaceQuadraturePointGeometries] "
             << "Failed to create NURBS surface quadrature point geometries.\n";
 
         return surface_quadrature_point_geometries;
@@ -15510,7 +15509,7 @@ SnakeGapSbm3DUtilities::CreateSurfaceQuadraturePointGeometries(
     const auto p_quadratic_triangle =
         std::dynamic_pointer_cast<Triangle3D6<NodeType>>(pSurfaceGeometry);
     KRATOS_ERROR_IF_NOT(p_quadratic_triangle)
-        << "[SnakeGapSbm3DUtilities::CreateSurfaceQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateSurfaceQuadraturePointGeometries] "
         << "Unsupported surface geometry type.\n";
 
     static_cast<void>(NumberOfShapeFunctionsDerivatives);
@@ -15576,14 +15575,14 @@ SnakeGapSbm3DUtilities::CreateSurfaceQuadraturePointGeometries(
     KRATOS_ERROR_IF(
         surface_quadrature_point_geometries.size() == 0 ||
         weight_sum <= 1.0e-16)
-        << "[SnakeGapSbm3DUtilities::CreateSurfaceQuadraturePointGeometries] "
+        << "[SnakeGapSbmProcess::Gap3DData::CreateSurfaceQuadraturePointGeometries] "
         << "Failed to create quadratic triangle quadrature point geometries.\n";
 
     return surface_quadrature_point_geometries;
 }
 
-SnakeGapSbm3DUtilities::GeometriesArrayType
-SnakeGapSbm3DUtilities::CreateAdaptiveInterfaceSurfaceQuadrature(
+SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
+SnakeGapSbmProcess::Gap3DData::CreateAdaptiveInterfaceSurfaceQuadrature(
     const GeometryType::Pointer& pSurfaceGeometry,
     const std::size_t IntegrationOrder,
     const std::size_t NumberOfShapeFunctionsDerivatives) const
@@ -15594,7 +15593,7 @@ SnakeGapSbm3DUtilities::CreateAdaptiveInterfaceSurfaceQuadrature(
         NumberOfShapeFunctionsDerivatives);
 }
 
-bool SnakeGapSbm3DUtilities::ContainsNeighbourGeometry(
+bool SnakeGapSbmProcess::Gap3DData::ContainsNeighbourGeometry(
     const std::vector<Geometry<Node>::Pointer>& rNeighbourGeometries,
     const Geometry<Node>::Pointer& pCandidateNeighbourGeometry) const
 {
@@ -15611,12 +15610,12 @@ bool SnakeGapSbm3DUtilities::ContainsNeighbourGeometry(
     return false;
 }
 
-void SnakeGapSbm3DUtilities::AddUniqueNeighbourGeometry(
+void SnakeGapSbmProcess::Gap3DData::AddUniqueNeighbourGeometry(
     std::vector<Geometry<Node>::Pointer>& rNeighbourGeometries,
     const Geometry<Node>::Pointer& pCandidateNeighbourGeometry) const
 {
     KRATOS_ERROR_IF_NOT(pCandidateNeighbourGeometry)
-        << "[SnakeGapSbm3DUtilities::AddUniqueNeighbourGeometry] "
+        << "[SnakeGapSbmProcess::Gap3DData::AddUniqueNeighbourGeometry] "
         << "Trying to add null neighbour geometry.\n";
 
     if (!ContainsNeighbourGeometry(rNeighbourGeometries, pCandidateNeighbourGeometry)) {
@@ -15625,7 +15624,7 @@ void SnakeGapSbm3DUtilities::AddUniqueNeighbourGeometry(
 }
 
 std::vector<Geometry<Node>::Pointer>
-SnakeGapSbm3DUtilities::CollectUniqueNeighbourGeometries(
+SnakeGapSbmProcess::Gap3DData::CollectUniqueNeighbourGeometries(
     const std::vector<LateralFaceOccurrence>& rOccurrences) const
 {
     std::vector<Geometry<Node>::Pointer> neighbour_geometries;
@@ -15640,7 +15639,7 @@ SnakeGapSbm3DUtilities::CollectUniqueNeighbourGeometries(
     return neighbour_geometries;
 }
 
-double SnakeGapSbm3DUtilities::CalculateSurfaceCharacteristicLength(
+double SnakeGapSbmProcess::Gap3DData::CalculateSurfaceCharacteristicLength(
     const Geometry<Node>& rGeometry) const
 {
     double characteristic_length = 0.0;
@@ -15656,8 +15655,8 @@ double SnakeGapSbm3DUtilities::CalculateSurfaceCharacteristicLength(
     return characteristic_length;
 }
 
-std::vector<SnakeGapSbm3DUtilities::LateralSurfaceQuadratureData>
-SnakeGapSbm3DUtilities::CreateOpenLateralSurfaceQuadratureData(
+std::vector<SnakeGapSbmProcess::Gap3DData::LateralSurfaceQuadratureData>
+SnakeGapSbmProcess::Gap3DData::CreateOpenLateralSurfaceQuadratureData(
     const std::size_t IntegrationOrder,
     const std::size_t NumberOfShapeFunctionsDerivatives) const
 {
@@ -15667,7 +15666,7 @@ SnakeGapSbm3DUtilities::CreateOpenLateralSurfaceQuadratureData(
         const auto& r_occurrences = r_entry.second;
 
         KRATOS_ERROR_IF(r_occurrences.size() > 2)
-            << "[SnakeGapSbm3DUtilities::CreateOpenLateralSurfaceQuadratureData] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateOpenLateralSurfaceQuadratureData] "
             << "Non-manifold lateral face with "
             << r_occurrences.size() << " occurrences.\n";
 
@@ -15678,7 +15677,7 @@ SnakeGapSbm3DUtilities::CreateOpenLateralSurfaceQuadratureData(
         const auto& r_occurrence = r_occurrences.front();
 
         KRATOS_ERROR_IF_NOT(r_occurrence.pGeometry)
-            << "[SnakeGapSbm3DUtilities::CreateOpenLateralSurfaceQuadratureData] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateOpenLateralSurfaceQuadratureData] "
             << "Null lateral surface geometry.\n";
 
         LateralSurfaceQuadratureData data;
@@ -15722,8 +15721,8 @@ SnakeGapSbm3DUtilities::CreateOpenLateralSurfaceQuadratureData(
     return data_list;
 }
 
-std::vector<SnakeGapSbm3DUtilities::LateralSurfaceQuadratureData>
-SnakeGapSbm3DUtilities::CreateInterfaceLateralSurfaceQuadratureData(
+std::vector<SnakeGapSbmProcess::Gap3DData::LateralSurfaceQuadratureData>
+SnakeGapSbmProcess::Gap3DData::CreateInterfaceLateralSurfaceQuadratureData(
     const std::size_t IntegrationOrder,
     const std::size_t NumberOfShapeFunctionsDerivatives) const
 {
@@ -15733,7 +15732,7 @@ SnakeGapSbm3DUtilities::CreateInterfaceLateralSurfaceQuadratureData(
         const auto& r_occurrences = r_entry.second;
 
         KRATOS_ERROR_IF(r_occurrences.size() > 2)
-            << "[SnakeGapSbm3DUtilities::CreateInterfaceLateralSurfaceQuadratureData] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateInterfaceLateralSurfaceQuadratureData] "
             << "Non-manifold lateral face with "
             << r_occurrences.size() << " occurrences.\n";
 
@@ -15745,7 +15744,7 @@ SnakeGapSbm3DUtilities::CreateInterfaceLateralSurfaceQuadratureData(
             CollectUniqueNeighbourGeometries(r_occurrences);
 
         KRATOS_ERROR_IF(neighbour_geometries.size() == 0)
-            << "[SnakeGapSbm3DUtilities::CreateInterfaceLateralSurfaceQuadratureData] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateInterfaceLateralSurfaceQuadratureData] "
             << "No neighbour geometries found for lateral face with "
             << r_occurrences.size() << " occurrences.\n";
 
@@ -15754,24 +15753,24 @@ SnakeGapSbm3DUtilities::CreateInterfaceLateralSurfaceQuadratureData(
         }
 
         KRATOS_ERROR_IF(neighbour_geometries.size() != 2)
-            << "[SnakeGapSbm3DUtilities::CreateInterfaceLateralSurfaceQuadratureData] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateInterfaceLateralSurfaceQuadratureData] "
             << "An interface condition requires exactly two distinct neighbour "
             << "geometries. Got " << neighbour_geometries.size() << ".\n";
         KRATOS_ERROR_IF(
             neighbour_geometries[0].get() !=
             r_occurrences[0].pNeighbourGeometry.get())
-            << "[SnakeGapSbm3DUtilities::CreateInterfaceLateralSurfaceQuadratureData] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateInterfaceLateralSurfaceQuadratureData] "
             << "The plus-side neighbour is not the first face occurrence.\n";
         KRATOS_ERROR_IF(
             neighbour_geometries[1].get() !=
             r_occurrences[1].pNeighbourGeometry.get())
-            << "[SnakeGapSbm3DUtilities::CreateInterfaceLateralSurfaceQuadratureData] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateInterfaceLateralSurfaceQuadratureData] "
             << "The minus-side neighbour is not the second face occurrence.\n";
 
         const auto& r_reference_occurrence = r_occurrences.front();
 
         KRATOS_ERROR_IF_NOT(r_reference_occurrence.pGeometry)
-            << "[SnakeGapSbm3DUtilities::CreateInterfaceLateralSurfaceQuadratureData] "
+            << "[SnakeGapSbmProcess::Gap3DData::CreateInterfaceLateralSurfaceQuadratureData] "
             << "Null lateral surface geometry.\n";
 
         LateralSurfaceQuadratureData data;
@@ -15809,7 +15808,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     const ModelPart& rSurrogateSubModelPart)
 {
     const auto workflow_start_time = std::chrono::steady_clock::now();
-    SnakeGapSbm3DUtilities utilities(mEchoLevel);
+    SnakeGapSbmProcess::Gap3DData utilities(mEchoLevel);
     utilities.SetGapApproximationOrder(mGapApproximationOrder);
     const ModelPart& r_initial_skin_model_part = TIsInnerLoop
         ? *mpSkinModelPartInnerInitial
@@ -15868,7 +15867,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         interface_moment_fitting_residual_tolerance <= 0.0)
         << "Interface moment-fitting tolerances must be positive.\n";
 
-    SnakeGapSbm3DUtilities::MomentFittingSettings moment_fitting_settings;
+    SnakeGapSbmProcess::Gap3DData::MomentFittingSettings moment_fitting_settings;
     moment_fitting_settings.PolynomialDegree = mGapInterpolationOrder;
     moment_fitting_settings.TotalDegree =
         mThisParameters["moment_fitting_total_degree"].GetInt();
@@ -15922,7 +15921,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     utilities.SetUseTriangleRadialQuadratureForCurvedType3(
         use_triangle_radial_quadrature_for_curved_type3);
 
-    KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 1)
+    KRATOS_INFO_IF("SnakeGapSbmProcess::Gap3DData", mEchoLevel > 1)
         << "Gap quadrature configuration:\n"
         << "  store debug geometries: "
         << store_gap_debug_geometries << "\n"
@@ -16092,7 +16091,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     // Use the same fake-Gauss-point criterion as SnakeSbmProcess::MarkKnotSpansAvailable3D.
     const double lambda = TIsInnerLoop ? mLambdaInner : mLambdaOuter;
     auto is_span_active_from_skin_center =
-    [&](const SnakeGapSbm3DUtilities::SpanKey3D& rSpan) -> bool
+    [&](const SnakeGapSbmProcess::Gap3DData::SpanKey3D& rSpan) -> bool
     {
         const int num_fake_gauss_points = 2;
         const int total_fake_gauss_points =
@@ -16224,15 +16223,15 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
 
     auto p_properties = mpIgaModelPart->pGetProperties(1);
 
-    std::map<SnakeGapSbm3DUtilities::SpanKey3D, std::size_t> type1_lateral_faces_per_span;
+    std::map<SnakeGapSbmProcess::Gap3DData::SpanKey3D, std::size_t> type1_lateral_faces_per_span;
     for (const auto& r_type1_lateral_face : type1_creation_result.Type1LateralFaces) {
         ++type1_lateral_faces_per_span[r_type1_lateral_face.ExternalSpan];
     }
 
-    std::vector<SnakeGapSbm3DUtilities::SpanKey3D> missing_type1_pyramid_spans;
+    std::vector<SnakeGapSbmProcess::Gap3DData::SpanKey3D> missing_type1_pyramid_spans;
     for (const auto& r_external_span_entry : external_spans) {
         const auto& r_external_span_data = r_external_span_entry.second;
-        if (r_external_span_data.Type != SnakeGapSbm3DUtilities::GapSpanType::Type1) {
+        if (r_external_span_data.Type != SnakeGapSbmProcess::Gap3DData::GapSpanType::Type1) {
             continue;
         }
 
@@ -16267,9 +16266,9 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         gap_volume_integration_order,
         number_of_shape_functions_derivatives);
 
-    SnakeGapSbm3DUtilities::Type1LateralFaceContainer()
+    SnakeGapSbmProcess::Gap3DData::Type1LateralFaceContainer()
         .swap(type1_creation_result.Type1LateralFaces);
-    SnakeGapSbm3DUtilities::Type1LateralFacesByEdgeMap()
+    SnakeGapSbmProcess::Gap3DData::Type1LateralFacesByEdgeMap()
         .swap(type1_creation_result.Type1LateralFacesByEdge);
 
     auto type3_creation_result = utilities.CreateType3GapGeometries(
@@ -16281,7 +16280,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         gap_volume_integration_order,
         number_of_shape_functions_derivatives);
 
-    SnakeGapSbm3DUtilities::ExternalSpanDataMap()
+    SnakeGapSbmProcess::Gap3DData::ExternalSpanDataMap()
         .swap(external_spans);
 
     utilities.FinalizeType2AndType3GapGeometries(
@@ -16295,13 +16294,13 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
 
     struct VolumetricGeometryBatch
     {
-        std::vector<const SnakeGapSbm3DUtilities::VolumeGeometryData*>
+        std::vector<const SnakeGapSbmProcess::Gap3DData::VolumeGeometryData*>
             VolumeGeometries;
         std::vector<Geometry<Node>::Pointer> NeighbourGeometries;
         double CharacteristicLength = 0.0;
     };
 
-    std::vector<const SnakeGapSbm3DUtilities::VolumeGeometryData*>
+    std::vector<const SnakeGapSbmProcess::Gap3DData::VolumeGeometryData*>
         all_volume_geometries;
     all_volume_geometries.reserve(
         type1_creation_result.VolumeQuadratureDataList.size() +
@@ -16369,7 +16368,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
          group_index < volumetric_geometry_batches.size();
          ++group_index) {
         auto& r_batch = volumetric_geometry_batches[group_index];
-        SnakeGapSbm3DUtilities::MomentFittedVolumeQuadratureResult
+        SnakeGapSbmProcess::Gap3DData::MomentFittedVolumeQuadratureResult
             fitting_result;
 
         if (use_moment_fitted_volume_quadrature) {
@@ -16442,13 +16441,13 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
             final_quadrature_geometries.push_back(*geometry_it);
         }
         fitting_result.QuadraturePointGeometries =
-            SnakeGapSbm3DUtilities::GeometriesArrayType();
+            SnakeGapSbmProcess::Gap3DData::GeometriesArrayType();
 
         auto p_batched_geometry =
             Kratos::make_shared<CouplingGeometry<Node>>(
                 std::move(final_quadrature_geometries));
 
-        SnakeGapSbm3DUtilities::GeometriesArrayType batched_geometries;
+        SnakeGapSbmProcess::Gap3DData::GeometriesArrayType batched_geometries;
         batched_geometries.push_back(p_batched_geometry);
 
         this->CreateElements(
@@ -16487,11 +16486,11 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
 
     KRATOS_WATCH("POST VOLUME MOMENT FITTING")
 
-    std::vector<SnakeGapSbm3DUtilities::Type1VolumeQuadratureData>()
+    std::vector<SnakeGapSbmProcess::Gap3DData::Type1VolumeQuadratureData>()
         .swap(type1_creation_result.VolumeQuadratureDataList);
-    std::vector<SnakeGapSbm3DUtilities::Type2VolumeQuadratureData>()
+    std::vector<SnakeGapSbmProcess::Gap3DData::Type2VolumeQuadratureData>()
         .swap(type2_creation_result.VolumeQuadratureDataList);
-    std::vector<SnakeGapSbm3DUtilities::Type3VolumeQuadratureData>()
+    std::vector<SnakeGapSbmProcess::Gap3DData::Type3VolumeQuadratureData>()
         .swap(type3_creation_result.VolumeQuadratureDataList);
 
     std::size_t number_of_unclosed_type2_faces = 0;
@@ -16500,9 +16499,9 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     std::size_t number_of_non_manifold_faces = 0;
 
     auto make_process_canonical_face_key = [](
-        const SnakeGapSbm3DUtilities::NodePointerType& pNode0,
-        const SnakeGapSbm3DUtilities::NodePointerType& pNode1,
-        const SnakeGapSbm3DUtilities::NodePointerType& pNode2)
+        const SnakeGapSbmProcess::Gap3DData::NodePointerType& pNode0,
+        const SnakeGapSbmProcess::Gap3DData::NodePointerType& pNode1,
+        const SnakeGapSbmProcess::Gap3DData::NodePointerType& pNode2)
     {
         KRATOS_ERROR_IF_NOT(pNode0)
             << "[SnakeGapSbmProcess::CreateSbmExtendedGeometries3D] "
@@ -16522,7 +16521,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
                 return std::less<const NodeType*>{}(pNodeA, pNodeB);
             });
 
-        SnakeGapSbm3DUtilities::CanonicalFaceKey3D key;
+        SnakeGapSbmProcess::Gap3DData::CanonicalFaceKey3D key;
         key.NodePointers = node_pointers;
         key.NodeIds = {{node_pointers[0]->Id(), node_pointers[1]->Id(), node_pointers[2]->Id()}};
 
@@ -16576,7 +16575,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         } else {
             ++number_of_non_manifold_faces;
 
-            KRATOS_WARNING("SnakeGapSbm3DUtilities")
+            KRATOS_WARNING("SnakeGapSbmProcess::Gap3DData")
                 << "Non-manifold type2 face at surrogate node "
                 << r_open_face_data.pSurrogateNode->Id()
                 << " spans "
@@ -16590,7 +16589,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         }
     }
 
-    KRATOS_INFO("SnakeGapSbm3DUtilities")
+    KRATOS_INFO("SnakeGapSbmProcess::Gap3DData")
         << "Type2 open-face closure audit:\n"
         << "  type2-type3 closed faces: "
         << number_of_type2_type3_closed_faces << "\n"
@@ -16722,7 +16721,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         << "No skin triangles available for open lateral projection.\n";
 
     KRATOS_INFO_IF(
-        "SnakeGapSbm3DUtilities",
+        "SnakeGapSbmProcess::Gap3DData",
         mEchoLevel > 0 &&
             number_of_skipped_degenerate_skin_triangles > 0)
         << "Skipped "
@@ -17187,7 +17186,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
     int worst_open_lateral_gap_type = 0;
     bool worst_open_lateral_is_type3_top_face = false;
     IndexType worst_open_lateral_surrogate_condition_id = 0;
-    SnakeGapSbm3DUtilities::SpanKey3D worst_open_lateral_external_span;
+    SnakeGapSbmProcess::Gap3DData::SpanKey3D worst_open_lateral_external_span;
     double worst_open_lateral_characteristic_length = 0.0;
 
     const std::string& gap_condition_name = mGapConditionName;
@@ -17357,7 +17356,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         }
 
         r_lateral_data.SurfaceQuadraturePointGeometries =
-            SnakeGapSbm3DUtilities::GeometriesArrayType();
+            SnakeGapSbmProcess::Gap3DData::GeometriesArrayType();
     }
 
     std::size_t number_of_batched_open_lateral_points = 0;
@@ -17367,7 +17366,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         auto p_batched_geometry =
             Kratos::make_shared<CouplingGeometry<Node>>(
                 std::move(r_batch.QuadratureGeometries));
-        SnakeGapSbm3DUtilities::GeometriesArrayType batched_geometries;
+        SnakeGapSbmProcess::Gap3DData::GeometriesArrayType batched_geometries;
         batched_geometries.push_back(p_batched_geometry);
         this->CreateConditions(
             batched_geometries.ptr_begin(),
@@ -17388,11 +17387,11 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         << open_lateral_batches.size()
         << " compact conditions.\n";
 
-    KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 2)
+    KRATOS_INFO_IF("SnakeGapSbmProcess::Gap3DData", mEchoLevel > 2)
         << "Set " << number_of_open_lateral_projection_nodes
         << " PROJECTION_NODE values on open lateral quadrature geometries.\n";
 
-    KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel >= 0)
+    KRATOS_INFO_IF("SnakeGapSbmProcess::Gap3DData", mEchoLevel >= 0)
         << "Maximum open lateral quadrature-to-skin projection distance: "
         << max_open_lateral_projection_distance << "\n"
         << "  maximum type3 top-face projection distance: "
@@ -17400,14 +17399,14 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         << "  maximum non-type3-top projection distance: "
         << max_open_non_type3_top_projection_distance << "\n";
 
-    KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 0)
+    KRATOS_INFO_IF("SnakeGapSbmProcess::Gap3DData", mEchoLevel > 0)
         << "Open lateral projection method:\n"
         << "  exact NURBS projections: "
         << number_of_exact_open_lateral_nurbs_projections << "\n"
         << "  triangulated-skin fallbacks: "
         << number_of_open_lateral_triangle_fallbacks << "\n";
 
-    KRATOS_INFO_IF("SnakeGapSbm3DUtilities", mEchoLevel > 1)
+    KRATOS_INFO_IF("SnakeGapSbmProcess::Gap3DData", mEchoLevel > 1)
         << "Worst open lateral projection diagnostic:\n"
         << "  quadrature center: "
         << worst_open_lateral_quadrature_center << "\n"
@@ -17424,7 +17423,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
         << "  lateral characteristic length: "
         << worst_open_lateral_characteristic_length << "\n";
 
-    std::vector<SnakeGapSbm3DUtilities::LateralSurfaceQuadratureData>()
+    std::vector<SnakeGapSbmProcess::Gap3DData::LateralSurfaceQuadratureData>()
         .swap(open_lateral_surface_data_list);
 
     const double final_projection_time = std::chrono::duration<double>(
@@ -17457,7 +17456,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
                 ? interface_candidate_integration_order
                 : gap_surface_integration_order,
             number_of_shape_functions_derivatives);
-    std::vector<SnakeGapSbm3DUtilities::LateralSurfaceQuadratureData>
+    std::vector<SnakeGapSbmProcess::Gap3DData::LateralSurfaceQuadratureData>
         interface_reference_surface_data_list;
     if (use_moment_fitted_interface_quadrature) {
         interface_reference_surface_data_list =
@@ -17660,7 +17659,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
                     << fitting_result.MinimumWeight << " / "
                     << fitting_result.MaximumWeight << ".\n";
 
-                SnakeGapSbm3DUtilities::GeometriesArrayType
+                SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
                     fitted_geometries;
                 for (const auto& p_geometry :
                      fitting_result.QuadraturePointGeometries) {
@@ -17669,7 +17668,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
                 r_candidate_data.SurfaceQuadraturePointGeometries =
                     std::move(fitted_geometries);
                 r_reference_data.SurfaceQuadraturePointGeometries =
-                    SnakeGapSbm3DUtilities::GeometriesArrayType();
+                    SnakeGapSbmProcess::Gap3DData::GeometriesArrayType();
             }
         }
 
@@ -17735,7 +17734,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
                 ++number_of_interface_quadrature_points;
             }
             r_interface_data.SurfaceQuadraturePointGeometries =
-                SnakeGapSbm3DUtilities::GeometriesArrayType();
+                SnakeGapSbmProcess::Gap3DData::GeometriesArrayType();
         }
 
         for (auto& r_batch : interface_batches) {
@@ -17752,7 +17751,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries3D(
                 Kratos::make_shared<CouplingGeometry<Node>>(
                     std::move(
                         r_batch.QuadraturePointGeometries));
-            SnakeGapSbm3DUtilities::GeometriesArrayType
+            SnakeGapSbmProcess::Gap3DData::GeometriesArrayType
                 batched_geometries;
             batched_geometries.push_back(p_batched_geometry);
 

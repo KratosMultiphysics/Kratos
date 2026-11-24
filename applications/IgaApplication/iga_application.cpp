@@ -64,6 +64,10 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLaplacianCouplingCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSolidCouplingCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGapSbmSolidCouplingCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPenaltyCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPenalty6pCondition(0, Condition::GeometryType::Pointer(
@@ -162,6 +166,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("CouplingLagrangeCondition", mCouplingLagrangeCondition)
     KRATOS_REGISTER_CONDITION("CouplingNitscheCondition", mCouplingNitscheCondition)
     KRATOS_REGISTER_CONDITION("LaplacianCouplingCondition", mLaplacianCouplingCondition)
+    KRATOS_REGISTER_CONDITION("SolidCouplingCondition", mSolidCouplingCondition)
+    KRATOS_REGISTER_CONDITION("GapSbmSolidCouplingCondition", mGapSbmSolidCouplingCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)
     KRATOS_REGISTER_CONDITION("SupportLagrangeCondition", mSupportLagrangeCondition)
     KRATOS_REGISTER_CONDITION("SupportNitscheCondition", mSupportNitscheCondition)
@@ -306,6 +312,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(BREP_ID)
     KRATOS_REGISTER_VARIABLE(BREP_MODEL_PART_FULL_NAME)
     KRATOS_REGISTER_VARIABLE(ORIGINAL_SKIN_MODEL_PART_FULL_NAME)
+    KRATOS_REGISTER_VARIABLE(IS_LOCAL_REFINEMENT_FAKE_COUPLING)
 
     KRATOS_REGISTER_VARIABLE(RESULTS_ON_TRUE_BOUNDARY)
     KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_COORDINATES)

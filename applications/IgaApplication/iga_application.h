@@ -45,6 +45,8 @@
 #include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/coupling_nitsche_condition.h"
 #include "custom_conditions/laplacian_coupling_condition.h"
+#include "custom_conditions/solid_coupling_condition.h"
+#include "custom_conditions/gap_sbm_solid_coupling_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_penalty_6p_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
@@ -184,6 +186,8 @@ private:
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const CouplingNitscheCondition mCouplingNitscheCondition;
     const LaplacianCouplingCondition mLaplacianCouplingCondition;
+    const SolidCouplingCondition mSolidCouplingCondition;
+    const GapSbmSolidCouplingCondition mGapSbmSolidCouplingCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportPenalty6pCondition mSupportPenalty6pCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;

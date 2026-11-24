@@ -9,17 +9,6 @@
 //
 
 // System includes
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <iomanip>
-#include <iterator>
-#include <limits>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
-#include <vector>
 
 // Project includes
 #include "custom_processes/snake_gap_sbm_process.h"
@@ -2549,10 +2538,6 @@ void SnakeGapSbmProcess::CreateConditions(
             start_pos = end_pos + and_token.size();
         }
     }
-    else {
-        condition_names.push_back(rConditionName);
-    }
-
     if (has_and_token) {
         for (const auto& condition_name : condition_names) {
             CreateConditions(
@@ -2588,35 +2573,33 @@ void SnakeGapSbmProcess::CreateConditions(
         << "Creating conditions of type " << effective_condition_name
         << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
-    IndexType geometry_count = 0;
     array_1d<double, 3> characteristic_length_vector = ZeroVector(3);
     characteristic_length_vector[0] = CharacteristicLength;
 
     for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
-        new_condition_list.push_back(
-            reference_condition.Create(rIdCounter, (*it), pProperties));
+        auto p_condition = reference_condition.Create(rIdCounter, *it, pProperties);
+        new_condition_list.push_back(p_condition);
 
         if ((*it)->Has(BREP_ID)) {
-            new_condition_list.GetContainer()[geometry_count]->SetValue(BREP_ID, (*it)->GetValue(BREP_ID));
+            p_condition->SetValue(BREP_ID, (*it)->GetValue(BREP_ID));
         }
         if ((*it)->Has(BREP_MODEL_PART_FULL_NAME)) {
-            new_condition_list.GetContainer()[geometry_count]->SetValue(
+            p_condition->SetValue(
                 BREP_MODEL_PART_FULL_NAME,
                 (*it)->GetValue(BREP_MODEL_PART_FULL_NAME));
         }
 
         // Set knot span sizes to the condition
-        new_condition_list.GetContainer()[geometry_count]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
+        p_condition->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
 
-        new_condition_list.GetContainer()[geometry_count]->SetValue(NEIGHBOUR_GEOMETRIES, pSurrogateReferenceGeometries);
-        new_condition_list.GetContainer()[geometry_count]->SetValue(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length_vector);
+        p_condition->SetValue(NEIGHBOUR_GEOMETRIES, pSurrogateReferenceGeometries);
+        p_condition->SetValue(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length_vector);
         if (rConditionName == "GapSbmContactCondition" ||
             rConditionName == "GapSbmALMContactCondition") {
-            new_condition_list.GetContainer()[geometry_count]->SetValue(IDENTIFIER, "INACTIVE");
+            p_condition->SetValue(IDENTIFIER, "INACTIVE");
         }
 
         rIdCounter++;
-        geometry_count++;
     }
 
     rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
@@ -2645,19 +2628,17 @@ void SnakeGapSbmProcess::CreateElements(
 
     std::size_t num_elements = std::distance(rGeometriesBegin, rGeometriesEnd);
     new_element_list.reserve(num_elements);
-    IndexType geometry_count = 0;
 
     array_1d<double, 3> characteristic_length_vector = ZeroVector(3);
     characteristic_length_vector[0] = CharacteristicLength;
 
     for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
-        new_element_list.push_back(
-            rReferenceElement.Create(rIdCounter, (*it), pProperties));
+        auto p_element = rReferenceElement.Create(rIdCounter, *it, pProperties);
+        new_element_list.push_back(p_element);
 
-        new_element_list.GetContainer()[geometry_count]->SetValue(NEIGHBOUR_GEOMETRIES, pSurrogateReferenceGeometries);
-        new_element_list.GetContainer()[geometry_count]->SetValue(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length_vector);
+        p_element->SetValue(NEIGHBOUR_GEOMETRIES, pSurrogateReferenceGeometries);
+        p_element->SetValue(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length_vector);
         rIdCounter++;
-        geometry_count++;
     }
 
     rModelPart.AddElements(new_element_list.begin(), new_element_list.end());
@@ -3630,43 +3611,43 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections2D(
         }
     }
 
-    // correct the projections
-    std::size_t count_intersections = 1;
-    IndexType iter_check = 0;
-    const std::size_t max_iter_check = 5;
-    while (count_intersections > 0 && iter_check < max_iter_check) {
-        iter_check +=1;
-        count_intersections = 0;
-        for (auto& r_surrogate_condition : rSurrogateSubModelPart.Conditions()) {
-            Node::Pointer p_surrogate_node_1 = r_surrogate_condition.pGetGeometry()->pGetPoint(0);
-            Node::Pointer p_surrogate_node_2 = r_surrogate_condition.pGetGeometry()->pGetPoint(1);
+    // // correct the projections
+    // std::size_t count_intersections = 1;
+    // IndexType iter_check = 0;
+    // const std::size_t max_iter_check = 5;
+    // while (count_intersections > 0 && iter_check < max_iter_check) {
+    //     iter_check +=1;
+    //     count_intersections = 0;
+    //     for (auto& r_surrogate_condition : rSurrogateSubModelPart.Conditions()) {
+    //         Node::Pointer p_surrogate_node_1 = r_surrogate_condition.pGetGeometry()->pGetPoint(0);
+    //         Node::Pointer p_surrogate_node_2 = r_surrogate_condition.pGetGeometry()->pGetPoint(1);
 
-            IndexType projection_node_id_1 = p_surrogate_node_1->GetValue(PROJECTION_NODE_ID);
-            IndexType projection_node_id_2 = p_surrogate_node_2->GetValue(PROJECTION_NODE_ID);
+    //         IndexType projection_node_id_1 = p_surrogate_node_1->GetValue(PROJECTION_NODE_ID);
+    //         IndexType projection_node_id_2 = p_surrogate_node_2->GetValue(PROJECTION_NODE_ID);
 
-            Node::Pointer p_projection_node_1 = rSkinSubModelPart.pGetNode(projection_node_id_1);
-            Node::Pointer p_projection_node_2 = rSkinSubModelPart.pGetNode(projection_node_id_2);
+    //         Node::Pointer p_projection_node_1 = rSkinSubModelPart.pGetNode(projection_node_id_1);
+    //         Node::Pointer p_projection_node_2 = rSkinSubModelPart.pGetNode(projection_node_id_2);
 
-            if (projection_node_id_1 == projection_node_id_2) continue;
+    //         if (projection_node_id_1 == projection_node_id_2) continue;
 
-            if (SegmentsIntersect(p_surrogate_node_1, p_projection_node_1,
-                p_surrogate_node_2, p_projection_node_2))
-            {
-                KRATOS_ERROR_IF_NOT(is_admissible_coupling_projection(*p_surrogate_node_1, *p_projection_node_2) &&
-                                    is_admissible_coupling_projection(*p_surrogate_node_2, *p_projection_node_1))
-                    << "::[SnakeGapSbmProcess]:: Cannot swap intersecting projections for surrogate nodes "
-                    << p_surrogate_node_1->Id() << " and " << p_surrogate_node_2->Id()
-                    << ": a COUPLING_SIDE projection would exceed tolerance "
-                    << coupling_projection_tolerance << std::endl;
-                p_surrogate_node_1->SetValue(PROJECTION_NODE_ID, projection_node_id_2);
-                p_surrogate_node_2->SetValue(PROJECTION_NODE_ID, projection_node_id_1);
+    //         if (SegmentsIntersect(p_surrogate_node_1, p_projection_node_1,
+    //             p_surrogate_node_2, p_projection_node_2))
+    //         {
+    //             KRATOS_ERROR_IF_NOT(is_admissible_coupling_projection(*p_surrogate_node_1, *p_projection_node_2) &&
+    //                                 is_admissible_coupling_projection(*p_surrogate_node_2, *p_projection_node_1))
+    //                 << "::[SnakeGapSbmProcess]:: Cannot swap intersecting projections for surrogate nodes "
+    //                 << p_surrogate_node_1->Id() << " and " << p_surrogate_node_2->Id()
+    //                 << ": a COUPLING_SIDE projection would exceed tolerance "
+    //                 << coupling_projection_tolerance << std::endl;
+    //             p_surrogate_node_1->SetValue(PROJECTION_NODE_ID, projection_node_id_2);
+    //             p_surrogate_node_2->SetValue(PROJECTION_NODE_ID, projection_node_id_1);
 
-                count_intersections += 1;
-            }
-        }
-    }
+    //             count_intersections += 1;
+    //         }
+    //     }
+    // }
 
-    KRATOS_ERROR_IF(iter_check == max_iter_check) << "::[SnakeGapSbmProcess]:: Maximum iteration reached when checking intersections between projections. Please check the input data." << std::endl;
+    // KRATOS_ERROR_IF(iter_check == max_iter_check) << "::[SnakeGapSbmProcess]:: Maximum iteration reached when checking intersections between projections. Please check the input data." << std::endl;
 
 
 }
