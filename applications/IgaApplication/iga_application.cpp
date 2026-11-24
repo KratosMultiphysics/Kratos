@@ -40,6 +40,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mSolidElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mSolidGreenLagrangeElement(0, Kratos::make_shared<Geometry<Node>>(
+        Element::GeometryType::PointsArrayType(1)))
     , mStokesElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mNavierStokesElement(0, Element::GeometryType::Pointer(
@@ -151,11 +153,10 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("LaplacianElement", mLaplacianElement)
     KRATOS_REGISTER_ELEMENT("GapSbmLaplacianElement", mGapSbmLaplacianElement)
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
+    KRATOS_REGISTER_ELEMENT("SolidGreenLagrangeElement", mSolidGreenLagrangeElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
     KRATOS_REGISTER_ELEMENT("GapSbmSolidElement", mGapSbmSolidElement)
-    KRATOS_REGISTER_ELEMENT(
-        "GapSbmSolidElementVolumetric",
-        mGapSbmSolidElementVolumetric)
+    KRATOS_REGISTER_ELEMENT("GapSbmSolidElementVolumetric",mGapSbmSolidElementVolumetric)
     KRATOS_REGISTER_ELEMENT("NavierStokesElement", mNavierStokesElement)
 
     // CONDITIONS
@@ -182,23 +183,18 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SbmSolidCondition", mSbmSolidCondition)
     KRATOS_REGISTER_CONDITION("SbmLoadSolidCondition", mSbmLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("GapSbmLoadSolidCondition", mGapSbmLoadSolidCondition)
-    KRATOS_REGISTER_CONDITION(
-        "GapSbmLoadSolidConditionBatched",
-        mGapSbmLoadSolidConditionBatched)
+    KRATOS_REGISTER_CONDITION("GapSbmLoadSolidConditionBatched",mGapSbmLoadSolidConditionBatched)
     KRATOS_REGISTER_CONDITION("GapSbmSolidCondition", mGapSbmSolidCondition)
     KRATOS_REGISTER_CONDITION("GapSbmEnhancedSolidCondition", mGapSbmEnhancedSolidCondition)
     KRATOS_REGISTER_CONDITION("GapSbmEnhancedLoadSolidCondition", mGapSbmEnhancedLoadSolidCondition)
-    KRATOS_REGISTER_CONDITION(
-        "GapSbmEnhancedSolidConditionBatched",
-        mGapSbmEnhancedSolidConditionBatched)
-    KRATOS_REGISTER_CONDITION(
-        "GapSbmEnhancedLoadSolidConditionBatched",
-        mGapSbmEnhancedLoadSolidConditionBatched)
+    KRATOS_REGISTER_CONDITION("GapSbmEnhancedSolidConditionBatched",mGapSbmEnhancedSolidConditionBatched)
+    KRATOS_REGISTER_CONDITION("GapSbmEnhancedLoadSolidConditionBatched",mGapSbmEnhancedLoadSolidConditionBatched)
     KRATOS_REGISTER_CONDITION("GapSbmSolidInterfaceCondition", mGapSbmSolidInterfaceCondition)
     KRATOS_REGISTER_CONDITION("GapSbmLaplacianInterfaceCondition", mGapSbmLaplacianInterfaceCondition)
     KRATOS_REGISTER_CONDITION(
         "GapSbmSolidInterfaceConditionBatched",
         mGapSbmSolidInterfaceConditionBatched)
+    KRATOS_REGISTER_CONDITION("GapSbmSolidInterfaceConditionBatched",mGapSbmSolidInterfaceConditionBatched)
 
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);

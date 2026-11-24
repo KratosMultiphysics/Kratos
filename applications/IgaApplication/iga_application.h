@@ -29,6 +29,7 @@
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/gap_sbm_laplacian_element.h"
 #include "custom_elements/solid_element.h"
+#include "custom_elements/solid_green_lagrange_element.h"
 #include "custom_elements/stokes_element.h"
 #include "custom_elements/navier_stokes_element.h"
 
@@ -172,6 +173,7 @@ private:
     const LaplacianElement mLaplacianElement;
     const GapSbmLaplacianElement mGapSbmLaplacianElement;
     const SolidElement mSolidElement;
+    const SolidGreenLagrangeElement mSolidGreenLagrangeElement;
     const StokesElement mStokesElement;
     const NavierStokesElement mNavierStokesElement;
     const GapSbmSolidElement mGapSbmSolidElement;
