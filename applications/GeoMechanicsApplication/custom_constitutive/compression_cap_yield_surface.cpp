@@ -122,7 +122,8 @@ double CompressionCapYieldSurface::YieldFunctionValue(const Geo::PQTheta& rPQThe
 
 Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Geo::PQTheta& rPQTheta) const
 {
-    return UblasUtilities::CreateVector({2.0 * rPQTheta.P(), 2.0 * rPQTheta.Q() / std::pow(GetCapSize(), 2)});
+    return UblasUtilities::CreateVector(
+        {2.0 * rPQTheta.P(), 2.0 * rPQTheta.Q() / std::pow(GetCapSize(), 2), 0.0});
 }
 
 void CompressionCapYieldSurface::InitializeKappaDependentFunctions()

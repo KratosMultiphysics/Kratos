@@ -35,7 +35,8 @@ class TestPQThetaFixture : public ::testing::Test
 {
 };
 
-using VectorTypesForTypedPQThetaTest = ::testing::Types<Vector, BoundedVector<double, 3>, std::vector<double>>;
+using VectorTypesForTypedPQThetaTest =
+    ::testing::Types<Vector, BoundedVector<double, 3>, std::vector<double>>;
 TYPED_TEST_SUITE(TestPQThetaFixture, VectorTypesForTypedPQThetaTest);
 
 TYPED_TEST(TestPQThetaFixture, PQTheta_CanBeConstructedFromAnyVectorWithSizeOf3)

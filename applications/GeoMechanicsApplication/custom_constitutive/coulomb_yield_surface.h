@@ -29,7 +29,7 @@ class CheckProperties;
 
 namespace Geo
 {
-    class PQTheta;
+class PQTheta;
 } // namespace Geo
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface
