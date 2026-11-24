@@ -400,6 +400,13 @@ private:
      */
     template <bool TIsInnerLoop>
     static void KeepLargestZeroIsland(std::vector<std::vector<int>>& rGrid);
+    
+    /**
+     * @brief Set the normals to the surrogate nodes in the 2D model part
+     * 
+     * @param rSurrogateModelPart 
+     */
+    static void SetSurrogateNormals2D(ModelPart& rSurrogateModelPart);
 
     /**
      * @brief Create a The Snake Coordinates 3 D object

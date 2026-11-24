@@ -1456,6 +1456,8 @@ void SnakeSbmProcess::RetrieveOrCreateNodeInModelPart(
     ensure_dummy_node(id_surrogate_last_condition, 1.0, 0.0, 0.0);
     std::vector<ModelPart::IndexType> elem_nodes{id_surrogate_first_condition, id_surrogate_last_condition};
     rSurrogateModelPartInner.CreateNewElement("Element2D2N", elem_id, elem_nodes, p_cond_prop);
+
+    SetSurrogateNormals2D(rSurrogateModelPartInner);
 }
 
 
@@ -1692,6 +1694,53 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
                 p_condition->Set(BOUNDARY, false);
                 id_surrogate_condition++;
                 check_next_point = false;
+            }
+        }
+    }
+
+    SetSurrogateNormals2D(rSurrogateModelPartOuter);
+}
+
+void SnakeSbmProcess::SetSurrogateNormals2D(
+    ModelPart& rSurrogateModelPart)
+{
+    for (auto& r_node : rSurrogateModelPart.Nodes()) {
+        r_node.SetValue(NORMAL, ZeroVector(3));
+    }
+
+    std::unordered_set<IndexType> initialized_node_ids;
+    initialized_node_ids.reserve(rSurrogateModelPart.NumberOfNodes());
+
+    for (auto& r_condition : rSurrogateModelPart.Conditions()) {
+        auto& r_geometry = r_condition.GetGeometry();
+        if (r_geometry.PointsNumber() != 2) {
+            continue;
+        }
+
+        array_1d<double, 3> normal = ZeroVector(3);
+        normal[0] = r_geometry[1].Y() - r_geometry[0].Y();
+        normal[1] = r_geometry[0].X() - r_geometry[1].X();
+
+        const double normal_norm = norm_2(normal);
+        if (normal_norm <= std::numeric_limits<double>::epsilon()) {
+            continue;
+        }
+
+        normal /= normal_norm;
+
+        if (r_condition.Is(BOUNDARY)) {
+            normal *= -1.0;
+        }
+
+        for (IndexType i_node = 0; i_node < 2; ++i_node) {
+            auto& r_node = r_geometry[i_node];
+            if (initialized_node_ids.insert(r_node.Id()).second) {
+                r_node.SetValue(NORMAL, normal);
+            } else {
+                array_1d<double, 3> averaged_normal = r_node.GetValue(NORMAL);
+                averaged_normal += normal;
+                averaged_normal /= 2.0;
+                r_node.SetValue(NORMAL, averaged_normal);
             }
         }
     }

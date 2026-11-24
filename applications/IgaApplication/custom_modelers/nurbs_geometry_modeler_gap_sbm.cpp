@@ -152,6 +152,10 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     }
 
     // Create the surrogate sub model parts inner and outer
+    KRATOS_ERROR_IF(r_iga_model_part.HasSubModelPart("surrogate_inner") ||
+                    r_iga_model_part.HasSubModelPart("surrogate_outer"))
+        << "NurbsGeometryModelerGapSbm: surrogate submodelpart already exists in "
+        << r_iga_model_part.FullName() << std::endl;
     ModelPart& r_surrogate_sub_model_part_inner = r_iga_model_part.CreateSubModelPart("surrogate_inner");
     ModelPart& r_surrogate_sub_model_part_outer = r_iga_model_part.CreateSubModelPart("surrogate_outer");
     
@@ -170,6 +174,9 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         : mpModel->CreateModelPart(skin_model_part_outer_initial_name);
     
     // Skin model part refined after Snake Process
+    KRATOS_ERROR_IF(mpModel->HasModelPart(skin_model_part_name))
+        << "NurbsGeometryModelerGapSbm: model part '" << skin_model_part_name
+        << "' already exists." << std::endl;
     ModelPart& r_skin_model_part = mpModel->CreateModelPart(skin_model_part_name);
     r_skin_model_part.CreateSubModelPart("inner");
     r_skin_model_part.CreateSubModelPart("outer");
