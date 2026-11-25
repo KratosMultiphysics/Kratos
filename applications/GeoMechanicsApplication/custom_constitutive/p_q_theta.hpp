@@ -15,6 +15,7 @@
 
 #include "includes/default_interface.h"
 #include "includes/exception.h"
+#include "includes/global_variables.h"
 #include "includes/kratos_export_api.h"
 
 #include <algorithm>
@@ -42,17 +43,15 @@ public:
         KRATOS_DEBUG_ERROR_IF(std::distance(first, last) != msVectorSize)
             << "Cannot construct a PQTheta instance: expected " << msVectorSize
             << " values, but got " << std::distance(first, last) << " value(s)\n";
-
+        CheckQ(*(first + 1));
+        CheckTheta(*(first + 2));
         std::copy(first, last, mValues.begin());
     }
 
     [[nodiscard]] const InternalVectorType& Values() const noexcept;
     [[nodiscard]] double                    P() const noexcept;
-    double&                                 P() noexcept;
     [[nodiscard]] double                    Q() const noexcept;
-    double&                                 Q() noexcept;
     [[nodiscard]] double                    Theta() const noexcept;
-    double&                                 Theta() noexcept;
 
     template <typename VectorType>
     VectorType CopyTo() const
@@ -68,6 +67,19 @@ public:
 
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};
+
+    static void CheckQ(double Q)
+    {
+        KRATOS_ERROR_IF(Q < 0.0) << "Invalid Q value: " << Q << ". Q must be non-negative." << std::endl;
+    }
+
+    static void CheckTheta(double Theta)
+    {
+        constexpr double max_abs_theta = Globals::Pi / 6.0;
+        KRATOS_ERROR_IF(std::abs(Theta) > max_abs_theta)
+            << "Invalid Theta value: " << Theta
+            << ". Theta must be in the range [-pi/6, pi/6] (radians)." << std::endl;
+    }
 };
 
 } // namespace Kratos::Geo

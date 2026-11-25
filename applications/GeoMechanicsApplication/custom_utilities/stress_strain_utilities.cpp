@@ -249,10 +249,14 @@ Geo::PQTheta StressStrainUtilities::TransformPrincipalStressesToPQTheta(const Ge
 
 Geo::PrincipalStresses StressStrainUtilities::TransformPQThetaToPrincipalStresses(const Geo::PQTheta& rPQTheta)
 {
-    return Geo::PrincipalStresses{
+    auto principal_stresses = Geo::PrincipalStresses{
         rPQTheta.P() + (2.0 / 3.0) * rPQTheta.Q() * std::sin(rPQTheta.Theta() + (2.0 / 3.0) * Globals::Pi),
         rPQTheta.P() + (2.0 / 3.0) * rPQTheta.Q() * std::sin(rPQTheta.Theta()),
         rPQTheta.P() + (2.0 / 3.0) * rPQTheta.Q() * std::sin(rPQTheta.Theta() - (2.0 / 3.0) * Globals::Pi)};
+    auto& principal_stress_values = principal_stresses.Values();
+    std::sort(principal_stress_values.begin(), principal_stress_values.end(),
+              [](auto lhs, auto rhs) { return rhs < lhs; });
+    return principal_stresses;
 }
 
 std::vector<Vector> StressStrainUtilities::CalculateStressVectorsFromStrainVectors(

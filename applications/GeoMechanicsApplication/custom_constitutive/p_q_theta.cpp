@@ -18,6 +18,8 @@ namespace Kratos::Geo
 
 PQTheta::PQTheta(double P, double Q, double Theta)
 {
+    CheckQ(Q);
+    CheckTheta(Theta);
     mValues[0] = P;
     mValues[1] = Q;
     mValues[2] = Theta;
@@ -27,15 +29,9 @@ const PQTheta::InternalVectorType& PQTheta::Values() const noexcept { return mVa
 
 double PQTheta::P() const noexcept { return mValues[0]; }
 
-double& PQTheta::P() noexcept { return mValues[0]; }
-
 double PQTheta::Q() const noexcept { return mValues[1]; }
 
-double& PQTheta::Q() noexcept { return mValues[1]; }
-
 double PQTheta::Theta() const noexcept { return mValues[2]; }
-
-double& PQTheta::Theta() noexcept { return mValues[2]; }
 
 PQTheta& PQTheta::operator+=(const PQTheta& rRhs)
 {

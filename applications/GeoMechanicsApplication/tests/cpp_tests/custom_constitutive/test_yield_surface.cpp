@@ -234,7 +234,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestCompressionCapYieldSurface, KratosGeoMechanicsFast
     material_properties[GEO_PRECONSOLIDATION_STRESS] = 20.0;
 
     auto principal_stress = Geo::PrincipalStresses{30.0, 20.0, 10.0};
-    auto p_q_theta = StressStrainUtilities::TransformPrincipalStressesToPQTheta(principal_stress);;
+    auto p_q_theta = StressStrainUtilities::TransformPrincipalStressesToPQTheta(principal_stress);
     KRATOS_EXPECT_NEAR(CompressionCapYieldSurface{material_properties}.YieldFunctionValue(p_q_theta),
                        18.75, Defaults::absolute_tolerance);
 
