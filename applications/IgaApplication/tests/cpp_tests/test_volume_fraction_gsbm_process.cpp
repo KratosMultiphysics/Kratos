@@ -488,6 +488,17 @@ KRATOS_TEST_CASE_IN_SUITE(VolumeFractionGsbmProcessNurbsEllipse, KratosIgaFastSu
             r_facet.GetGeometry().GetGeometryPart(0).Center().Coordinates();
         KRATOS_EXPECT_NEAR(inner_prod(point - r_node.Coordinates(), r_tangent), 0.0, tolerance);
 
+        // The skin at the stored t, its own parameter on [0, 1], is the node
+        const auto& r_curve =
+            model.GetModelPart(is_inner ? "InnerSkin" : "OuterSkin").GetGeometry(0);
+        const double t = r_node.GetValue(INTEGRATION_COORDINATES)[0];
+        KRATOS_EXPECT_TRUE(0.0 <= t && t <= 1.0);
+        array_1d<double, 3> local_coordinates = ZeroVector(3);
+        local_coordinates[0] = t;
+        array_1d<double, 3> curve_point;
+        r_curve.GlobalCoordinates(curve_point, local_coordinates);
+        KRATOS_EXPECT_VECTOR_NEAR(curve_point, r_node.Coordinates(), tolerance);
+
         // Counterclockwise: \kappa = ab / D^(3/2), D = a^2 sin^2 + b^2 cos^2,
         // d/ds = D^(-1/2) d/d\theta; clockwise, \kappa and \kappa'' flip
         const double d = a * a * sin_theta * sin_theta + b * b * cos_theta * cos_theta;

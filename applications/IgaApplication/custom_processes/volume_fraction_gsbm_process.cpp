@@ -170,7 +170,8 @@ NurbsProjectionResult FindClosestSkinPoint(
  * @brief Stores the boundary curve's geometry at the closest point on rNode:
  * the outward NORMAL \nu, the LOCAL_TANGENT \tau with the domain on its left,
  * the CURVATURE \kappa and CURVATURE_DERIVATIVES [\kappa', \kappa''] in arc
- * length, with \tau' = -\kappa \nu.
+ * length, with \tau' = -\kappa \nu. On a NURBS curve, also the parameter of
+ * the closest point normalized to [0, 1], as INTEGRATION_COORDINATES[0].
  *
  * @param rNode The node at the closest point.
  * @param rProjection The closest point, with its curve or segment.
@@ -215,6 +216,11 @@ void AssignBoundaryCurveGeometry(
         curvature = Sign * kappa;
         curvature_derivatives[0] = kappa_u / std::sqrt(s);
         curvature_derivatives[1] = Sign * (kappa_uu - 0.5 * kappa_u * s_u / s) / s;
+
+        // t = (u - u_0) / (u_1 - u_0), for fields on the curve's parameter
+        array_1d<double, 3> parameter = ZeroVector(3);
+        parameter[0] = p_curve->DomainInterval().GetNormalizedAt(rProjection.LocalCoordinates[0]);
+        rNode.SetValue(INTEGRATION_COORDINATES, parameter);
     }
 
     // \nu = (\tau_y, -\tau_x): the right of \tau, out of the domain
