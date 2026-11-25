@@ -73,10 +73,12 @@ KRATOS_TEST_CASE_IN_SUITE(FutureProcessFromRegistryIsNotProcess, KratosCoreFastS
     #ifdef KRATOS_USE_FUTURE
         KRATOS_EXPECT_TRUE(Registry::HasItem("Processes.KratosMultiphysics.Future.Process"))
 
+        // Originally this check was done agains a fixed cast message "Error: Bad any_cast", but this message is not guaranteed to be the same across compilers and implementations
+        // ej: "Error: bad any_cast", "Error: boost::bad_any_cast", so we check for the generic "any_cast".
         if (Registry::HasItem("Processes.KratosMultiphysics.Future")) {
             KRATOS_EXPECT_EXCEPTION_IS_THROWN(
                 auto process = Registry::GetValue<Process>("Processes.KratosMultiphysics.Future.Process.Prototype");,
-                "Error: bad any_cast"
+                "any_cast"
             );
         }
     #else
