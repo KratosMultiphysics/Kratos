@@ -1,16 +1,12 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Nicolo' Antonelli
-//                   Andrea Gorgi
-//
-
 #pragma once
 
 // Project includes
@@ -64,20 +60,25 @@ public:
     ///@name Operations
     ///@{
 
+//-------------------------------
     void Execute() override
     {
         CreateTheSnakeCoordinates();
     };
     
+//-------------------------------
     void ExecuteInitialize() override
     {};
 
+//-------------------------------
     void ExecuteInitializeSolutionStep() override
     {};
 
+//-------------------------------
     void ExecuteBeforeSolutionLoop() override
     {};
 
+//-------------------------------
     const Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters = Parameters(R"(
@@ -158,74 +159,6 @@ protected:
      * 
      */
    void CreateTheSnakeCoordinates2D(bool RemoveIslands);
-
-    /**
-     * @brief 
-     * 
-     * @param rPointP 
-     * @param rPointQ 
-     * @param rPointR 
-     * @return double 
-     */
-    static double Orientation(
-        const Node& rPointP,
-        const Node& rPointQ,
-        const Node& rPointR)
-    {
-        return (rPointQ.X() - rPointP.X()) * (rPointR.Y() - rPointP.Y()) -
-               (rPointQ.Y() - rPointP.Y()) * (rPointR.X() - rPointP.X());
-    }
-
-    /**
-     * @brief 
-     * 
-     * @param rPointP 
-     * @param rPointQ 
-     * @param rPointR 
-     * @return true 
-     * @return false 
-     */
-    static bool OnSegment(
-        const Node& rPointP,
-        const Node& rPointQ,
-        const Node& rPointR)
-    {
-        return (std::min(rPointP.X(), rPointR.X()) <= rPointQ.X() && rPointQ.X() <= std::max(rPointP.X(), rPointR.X()) &&
-                std::min(rPointP.Y(), rPointR.Y()) <= rPointQ.Y() && rPointQ.Y() <= std::max(rPointP.Y(), rPointR.Y()));
-    }
-
-    /**
-     * @brief 
-     * 
-     * @param rPointA 
-     * @param rPointB 
-     * @param rPointC 
-     * @param rPointD 
-     * @return true 
-     * @return false 
-     */
-    static bool SegmentsIntersect(
-        const Node& rPointA,
-        const Node& rPointB,
-        const Node& rPointC,
-        const Node& rPointD)
-    {
-        const double orientation_1 = Orientation(rPointA, rPointB, rPointC);
-        const double orientation_2 = Orientation(rPointA, rPointB, rPointD);
-        const double orientation_3 = Orientation(rPointC, rPointD, rPointA);
-        const double orientation_4 = Orientation(rPointC, rPointD, rPointB);
-
-        if (orientation_1 * orientation_2 < 0.0 && orientation_3 * orientation_4 < 0.0) {
-            return true;
-        }
-
-        if (std::abs(orientation_1) < 1e-14 && OnSegment(rPointA, rPointC, rPointB)) return true;
-        if (std::abs(orientation_2) < 1e-14 && OnSegment(rPointA, rPointD, rPointB)) return true;
-        if (std::abs(orientation_3) < 1e-14 && OnSegment(rPointC, rPointA, rPointD)) return true;
-        if (std::abs(orientation_4) < 1e-14 && OnSegment(rPointC, rPointB, rPointD)) return true;
-
-        return false;
-    }
 
     /**
      * @brief Retrieves or creates a node in the specified model part.

@@ -1,13 +1,12 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-
 // System includes
 
 // External includes
@@ -15,9 +14,12 @@
 // Project includes
 #include "snake_sbm_process.h"
 #include "iga_application_variables.h"
+#include "custom_utilities/snake_sbm_utilities.h"
 
 namespace Kratos
 {
+//-------------------------------
+
 SnakeSbmProcess::SnakeSbmProcess(
     Model& rModel, Parameters ThisParameters) : 
     Process(),
@@ -55,6 +57,8 @@ SnakeSbmProcess::SnakeSbmProcess(
 }
 
     
+//-------------------------------
+
 void SnakeSbmProcess::CreateTheSnakeCoordinates(bool RemoveIslands)
 {   
     // Vector know_w = mpIgaModelPart->GetValue(KNOT_VECTOR_W);
@@ -67,6 +71,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(bool RemoveIslands)
     }
 }   
 
+
+//-------------------------------
 
 void SnakeSbmProcess::CreateTheSnakeCoordinates2D(bool RemoveIslands)
 {   
@@ -95,6 +101,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates2D(bool RemoveIslands)
 }    
 
 
+
+//-------------------------------
 
 void SnakeSbmProcess::GenerateOuterInitialFromSurrogateInner()
 {
@@ -296,7 +304,9 @@ void SnakeSbmProcess::GenerateOuterInitialFromSurrogateInner()
     }
 }
 
+//-------------------------------
 template <bool TIsInnerLoop>
+
 void SnakeSbmProcess::CreateTheSnakeCoordinates(
     const ModelPart& rSkinModelPartInitial,
     const std::size_t NumberOfLoops,
@@ -784,6 +794,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
 }
 
 
+//-------------------------------
+
 void SnakeSbmProcess::SnakeStep(
     const int IdMatrix, 
     const std::vector<std::vector<int>>& rKnotSpansUV, 
@@ -881,6 +893,8 @@ void SnakeSbmProcess::SnakeStep(
     }
 }
 
+
+//-------------------------------
 
 void SnakeSbmProcess::SnakeStepNurbs(
             const int IdMatrix, 
@@ -1060,6 +1074,8 @@ void SnakeSbmProcess::SnakeStepNurbs(
 }
 
 
+//-------------------------------
+
 bool SnakeSbmProcess::IsPointInsideSkinBoundary(
     const Point& rPoint1, 
     DynamicBins& rPointsBin, 
@@ -1128,7 +1144,7 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary(
         }
         const Node prev_extended_node(0, prev_extended_coordinates[0], prev_extended_coordinates[1], prev_extended_coordinates[2]);
         
-        if (SegmentsIntersect(temp_point, main_extended_node, prev_extended_node, r_prev_second_node)) {
+        if (SnakeSbmUtilities::SegmentsIntersect(temp_point, main_extended_node, prev_extended_node, r_prev_second_node)) {
             return cross_product_previous_z > 0.0;
         }
     }
@@ -1143,6 +1159,8 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary(
     *   2) We check the 8 neighbor knot spans and set them to 1|0  if inside|outside
     *   3) We check all the cut knot spans and set them    to 1|-1 if inside|outside 
     */
+//-------------------------------
+
 void SnakeSbmProcess::MarkKnotSpansAvailable(
     const int IdMatrix,
     DynamicBins& rPointsBin, 
@@ -1244,6 +1262,8 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
     }
 }
 
+//-------------------------------
+
 void SnakeSbmProcess::RetrieveOrCreateNodeInModelPart(
     ModelPart& rModelPart,
     const IndexType NodeId,
@@ -1280,6 +1300,8 @@ void SnakeSbmProcess::RetrieveOrCreateNodeInModelPart(
         " 0"  -> exterior knot spans OR very interior knot spans (more 
                     than one ks away from surrogate boundary)
     */
+//-------------------------------
+
    void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
     const int IdMatrix, 
     const ModelPart& rSkinModelPartInner, 
@@ -1461,6 +1483,8 @@ void SnakeSbmProcess::RetrieveOrCreateNodeInModelPart(
 }
 
 
+
+//-------------------------------
 
 void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
     const int IdMatrix, 
@@ -1701,6 +1725,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
     SetSurrogateNormals2D(rSurrogateModelPartOuter);
 }
 
+//-------------------------------
+
 void SnakeSbmProcess::SetSurrogateNormals2D(
     ModelPart& rSurrogateModelPart)
 {
@@ -1746,6 +1772,8 @@ void SnakeSbmProcess::SetSurrogateNormals2D(
     }
 }
 
+//-------------------------------
+
 bool SnakeSbmProcess::IsInside(
     const std::vector<std::vector<int>>& rKnotSpanUV,
     const std::vector<int>& rNumberKnotSpansUV) 
@@ -1756,7 +1784,9 @@ bool SnakeSbmProcess::IsInside(
             rKnotSpanUV[1][1] < 0 || rKnotSpanUV[1][1] >= rNumberKnotSpansUV[1]); 
 }
 
+//-------------------------------
 template <bool TIsInnerLoop>
+
 void SnakeSbmProcess::KeepLargestZeroIsland(std::vector<std::vector<int>>& rGrid) 
 {
     const int row_count = static_cast<int>(rGrid.size());
@@ -1876,6 +1906,8 @@ void SnakeSbmProcess::KeepLargestZeroIsland(std::vector<std::vector<int>>& rGrid
     }
 }
 
+//-------------------------------
+
 void SnakeSbmProcess::CreateTheSnakeCoordinates3D()
 {   
     // Initilize the property of skin_model_part_in and out
@@ -1895,7 +1927,9 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D()
 }
 
 
+//-------------------------------
 template <bool TIsInnerLoop>
+
 void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
     const ModelPart& rSkinModelPartInitial,
     const std::size_t NumberOfLoops,
@@ -2145,6 +2179,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
 }
 
 
+//-------------------------------
+
 bool SnakeSbmProcess::IsInside3D(
     const std::vector<std::vector<int>>& rKnotSpanUVW,
     const std::vector<int>& NumberKnotSpansUVW)
@@ -2160,6 +2196,8 @@ bool SnakeSbmProcess::IsInside3D(
 
     return false;  // All nodes are inside
 }
+
+//-------------------------------
 
 void SnakeSbmProcess::RemoveIslands3D(
     std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable)
@@ -2210,6 +2248,8 @@ void SnakeSbmProcess::RemoveIslands3D(
     rKnotSpansAvailable = std::move(cleaned_knot_spans);
 }
 
+
+//-------------------------------
 
 void SnakeSbmProcess::SnakeStep3D(
     const int IdMatrix, 
@@ -2423,6 +2463,8 @@ void SnakeSbmProcess::SnakeStep3D(
 *   2) We check the 26 neighbor knot spans and set them to 1|0  if inside|outside
 *   3) We check all the cut knot spans and set them     to 1|-1 if inside|outside 
 */
+//-------------------------------
+
 void SnakeSbmProcess::MarkKnotSpansAvailable3D(
     const int IdMatrix,
     DynamicBins& rPointsBin, 
@@ -2515,6 +2557,8 @@ void SnakeSbmProcess::MarkKnotSpansAvailable3D(
 }
 
 
+//-------------------------------
+
 bool SnakeSbmProcess::IsPointInsideSkinBoundary3D(
     const Point& rPoint1, 
     DynamicBins& rPointsBin, 
@@ -2560,6 +2604,8 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary3D(
     " 0"  -> exterior knot spans OR very interior knot spans (more 
                 than one ks away from surrogate boundary)
 */
+//-------------------------------
+
 void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
     const int IdMatrix, 
     const ModelPart& rSkinModelPartInner, 
@@ -2775,6 +2821,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
     " 0"  -> exterior knot spans OR very interior knot spans (more 
                 than one ks away from surrogate boundary)
 */
+//-------------------------------
+
 void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
     const int IdMatrix, 
     const ModelPart& rSkinModelPartOuter, 
