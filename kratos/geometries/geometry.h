@@ -1950,7 +1950,7 @@ public:
             const double norm2DXi = norm_2(DeltaXi);
 
             if(norm2DXi > MaxNormPointLocalCoordinates) {
-                //KRATOS_WARNING("Geometry") << "Computation of local coordinates failed at iteration " << k << std::endl;
+                KRATOS_WARNING("Geometry") << "Computation of local coordinates failed at iteration " << k << std::endl;
                 break;
             }
 
