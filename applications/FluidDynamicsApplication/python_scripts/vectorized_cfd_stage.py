@@ -229,8 +229,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # line below, which allocated an (nelem, dim) temporary per call; TODO now addressed):
         # v_el_mean = xp.sum(v_elemental, axis=1) / self.n_in_el #TODO: avoid allocation
         v_el_mean = self.v_el_mean_scratch
-        xp.sum(v_elemental, axis=1, out=v_el_mean)
-        v_el_mean /= self.n_in_el
+        # Original implementation (kept for reference):
+        # xp.sum(v_elemental, axis=1, out=v_el_mean)
+        # v_el_mean /= self.n_in_el
+        self.cfd_utils.ComputeElementalMean(v_elemental, out=v_el_mean)
 
         nelem, nnode = self.DN.shape[0], self.DN.shape[1]
         if out is None:
