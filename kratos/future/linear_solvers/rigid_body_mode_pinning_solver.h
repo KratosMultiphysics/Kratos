@@ -88,6 +88,9 @@ public:
     /// The pinning algorithm (shared with the current interface wrapper)
     using KernelType = Kratos::RigidBodyModePinningKernel<MatrixType, VectorType>;
 
+    /// String literals for the inner_settings
+    using namespace std::string_literals;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -133,7 +136,7 @@ public:
         // tags and solve flags of the validated outer settings are propagated to the inner
         // solver, unless they were explicitly set inside "inner_solver_settings"
         Parameters inner_settings = Settings["inner_solver_settings"];
-        for (const std::string& r_key : {"dx_tag", "rhs_tag", "lhs_tag", "multiple_solve", "echo_level"}) {
+        for (const std::string& r_key : {"dx_tag"s, "rhs_tag"s, "lhs_tag"s, "multiple_solve"s, "echo_level"s}) {
             if (!inner_settings.Has(r_key)) {
                 inner_settings.AddValue(r_key, Settings.GetValue(r_key));
             }
