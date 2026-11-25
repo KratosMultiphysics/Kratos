@@ -24,6 +24,7 @@
 // Project includes
 #include "custom_modelers/iga_modeler_gsbm.h"
 #include "geometries/coupling_geometry.h"
+#include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "iga_application_variables.h"
 #include "integration/integration_point_utilities.h"
@@ -640,6 +641,11 @@ void IgaModelerGsbm::CreateQuadraturePointGeometriesGsbm(
         {{0.0, -1.0}, {1.0, 0.0}}
     };
 
+    // Multiplier curve, shared by every facet
+    const GeometryType::Pointer p_multipliers = rParameters.Has("multiplier_parameters")
+        ? CreateMultiplierCurve(rModelPart, rParameters["multiplier_parameters"])
+        : nullptr;
+
     GeometriesArrayType quadrature_geometries;
     for (IndexType dir = 0; dir < 2; ++dir) {
         // Facets on the knot lines normal to direction dir,
@@ -676,9 +682,11 @@ void IgaModelerGsbm::CreateQuadraturePointGeometriesGsbm(
                     );
                 }
 
-                quadrature_geometries.push_back(
-                    Kratos::make_shared<CouplingGeometry<Node>>(sides[0], sides[1])
-                );
+                auto p_facet = Kratos::make_shared<CouplingGeometry<Node>>(sides[0], sides[1]);
+                if (p_multipliers) {
+                    p_facet->AddGeometryPart(p_multipliers);
+                }
+                quadrature_geometries.push_back(p_facet);
             }
         }
     }
@@ -698,6 +706,48 @@ void IgaModelerGsbm::CreateQuadraturePointGeometriesGsbm(
         << "Created " << quadrature_geometries.size() << " facet conditions of type "
         << name << " on " << surfaces.size() << " patches in " << rModelPart.FullName()
         << "." << std::endl;
+}
+
+IgaModelerGsbm::GeometryType::Pointer IgaModelerGsbm::CreateMultiplierCurve(
+    ModelPart& rModelPart,
+    const Parameters rParameters) const
+{
+    KRATOS_ERROR_IF_NOT(rParameters.Has("number_of_knot_spans"))
+        << "IgaModelerGsbm: \"multiplier_parameters\" needs \"number_of_knot_spans\"."
+        << std::endl;
+    const int number_of_spans = rParameters["number_of_knot_spans"].GetInt();
+    const int degree = rParameters.Has("degree") ? rParameters["degree"].GetInt() : 2;
+    KRATOS_ERROR_IF(degree < 1 || number_of_spans <= degree)
+        << "IgaModelerGsbm: the multipliers need a degree of at least 1 and more "
+        << "knot spans than the degree, not " << number_of_spans << " spans of degree "
+        << degree << "." << std::endl;
+
+    // One node per span, the coefficients of the periodic basis
+    const ModelPart& r_root_model_part = rModelPart.GetRootModelPart();
+    IndexType node_id = r_root_model_part.NumberOfNodes() > 0
+        ? r_root_model_part.Nodes().back().Id() + 1
+        : 1;
+    PointerVector<Node> points;
+    for (int i = 0; i < number_of_spans; ++i) {
+        points.push_back(rModelPart.CreateNewNode(node_id++, 0.0, 0.0, 0.0));
+    }
+
+    // Periodic: the last p control points wrap around to the first ones
+    for (int i = 0; i < degree; ++i) {
+        points.push_back(points(i));
+    }
+
+    // Unclamped uniform knots k_i = (i - p + 1) / n, so the domain is [0, 1]
+    Vector knots(number_of_spans + 2 * degree - 1);
+    for (IndexType i = 0; i < knots.size(); ++i) {
+        knots[i] = (static_cast<double>(i) - degree + 1) / number_of_spans;
+    }
+
+    KRATOS_INFO_IF("IgaModelerGsbm", mEchoLevel > 0)
+        << "Created " << number_of_spans << " multipliers of degree " << degree
+        << " in " << rModelPart.FullName() << "." << std::endl;
+
+    return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Node>>>(points, degree, knots);
 }
 
 void IgaModelerGsbm::CreateQuadraturePointGeometriesOnSides(

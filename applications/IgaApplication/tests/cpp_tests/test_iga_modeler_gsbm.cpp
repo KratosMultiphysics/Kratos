@@ -13,6 +13,8 @@
 // System includes
 #include <array>
 #include <cmath>
+#include <map>
+#include <set>
 #include <string>
 #include <utility>
 
@@ -21,6 +23,7 @@
 #include "testing/testing.h"
 #include "custom_modelers/nurbs_geometry_modeler.h"
 #include "custom_processes/volume_fraction_gsbm_process.h"
+#include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "iga_application_variables.h"
 #include "includes/global_pointer_variables.h"
@@ -456,6 +459,118 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerGsbmFacetsMixedSpaces, KratosIgaFastSuite)
         }
     }
     KRATOS_EXPECT_GT(number_of_cut_facets, 0);
+}
+
+// Facets with "multiplier_parameters" on a background patch with 4 x 3 spans:
+// every facet has the same multiplier curve as a third part, which a skeleton
+// entry shares. The curve is the periodic quadratic basis of 6 new nodes on
+// [0, 1]: its last 2 control points are the first ones, its values add up to
+// one, t = 0 and t = 1 give the same functions, and every node is active
+// somewhere. A degree as large as the number of spans is rejected.
+KRATOS_TEST_CASE_IN_SUITE(IgaModelerGsbmMultipliers, KratosIgaFastSuite)
+{
+    using IndexType = std::size_t;
+
+    const auto create_model_part = [](Model& rModel, const int NumberOfSpans) {
+        rModel.CreateModelPart("IgaModelPart");
+        NurbsGeometryModeler(rModel, Parameters(R"({
+            "model_part_name"     : "IgaModelPart",
+            "geometry_name"       : "background",
+            "lower_point_xyz"     : [0.0, 0.0, 0.0],
+            "upper_point_xyz"     : [1.0, 0.75, 0.0],
+            "lower_point_uvw"     : [0.0, 0.0, 0.0],
+            "upper_point_uvw"     : [1.0, 0.75, 0.0],
+            "polynomial_order"    : [2, 2],
+            "number_of_knot_spans": [4, 3]
+        })")).SetupGeometryModel();
+
+        Parameters parameters(R"({
+            "analysis_model_part_name": "IgaModelPart",
+            "geometry_name"           : "background",
+            "element_condition_list"  : [{
+                "type"                            : "condition",
+                "name"                            : "GenericCondition",
+                "iga_model_part"                  : "Facets",
+                "shape_function_derivatives_order": 3,
+                "gsbm_parameters"                 : {},
+                "multiplier_parameters"           : {"number_of_knot_spans": 0, "degree": 2}
+            }, {
+                "type"                            : "condition",
+                "name"                            : "GenericCondition",
+                "iga_model_part"                  : "SharedFacets",
+                "gsbm_parameters"                 : {"skeleton_model_part": "Facets"}
+            }]
+        })");
+        parameters["element_condition_list"][0]["multiplier_parameters"]["number_of_knot_spans"]
+            .SetInt(NumberOfSpans);
+        KratosComponents<Modeler>::Get("IgaModelerGsbm").Create(rModel, parameters)
+            ->SetupModelPart();
+    };
+
+    Model model;
+    create_model_part(model, 6);
+
+    // The same curve in every facet of both entries
+    const ModelPart& r_facets = model.GetModelPart("IgaModelPart.Facets");
+    const auto p_multipliers = r_facets.ConditionsBegin()->GetGeometry().pGetGeometryPart(2);
+    const ModelPart& r_shared_facets = model.GetModelPart("IgaModelPart.SharedFacets");
+    for (const ModelPart* p_entry : {&r_facets, &r_shared_facets}) {
+        for (const auto& r_facet : p_entry->Conditions()) {
+            KRATOS_EXPECT_EQ(r_facet.GetGeometry().NumberOfGeometryParts(), 3);
+            KRATOS_EXPECT_EQ(r_facet.GetGeometry().pGetGeometryPart(2), p_multipliers);
+        }
+    }
+
+    // 6 new nodes, after the 30 control points, and 2 points wrapping around
+    const auto& r_multipliers =
+        dynamic_cast<const NurbsCurveGeometry<2, PointerVector<Node>>&>(*p_multipliers);
+    KRATOS_EXPECT_EQ(r_multipliers.size(), 8);
+    for (IndexType i = 0; i < 6; ++i) {
+        KRATOS_EXPECT_TRUE(r_facets.HasNode(r_multipliers[i].Id()));
+        KRATOS_EXPECT_GT(r_multipliers[i].Id(), 30);
+    }
+    for (IndexType i = 0; i < 2; ++i) {
+        KRATOS_EXPECT_EQ(r_multipliers.pGetPoint(6 + i), r_multipliers.pGetPoint(i));
+    }
+
+    // Partition of unity on [0, 1], every node active, and t = 0 equal to t = 1
+    const auto basis_at = [&](const double T) {
+        array_1d<double, 3> local_coordinates = ZeroVector(3);
+        local_coordinates[0] = T;
+        std::vector<IndexType> ids;
+        Vector values;
+        r_multipliers.ShapeFunctionsValuesAndCPIndices(local_coordinates, ids, values);
+        std::map<IndexType, double> basis;
+        for (IndexType i = 0; i < ids.size(); ++i) {
+            basis[ids[i]] += values[i];
+        }
+        return basis;
+    };
+    std::set<IndexType> active_ids;
+    for (IndexType k = 0; k <= 60; ++k) {
+        double sum = 0.0;
+        for (const auto& [id, value] : basis_at(k / 60.0)) {
+            sum += value;
+            active_ids.insert(id);
+        }
+        KRATOS_EXPECT_NEAR(sum, 1.0, 1.0e-12);
+    }
+    KRATOS_EXPECT_EQ(active_ids.size(), 6);
+
+    // The ends of a span report a zero function too, a different one at each
+    const auto start = basis_at(0.0);
+    const auto end = basis_at(1.0);
+    const auto value_of = [](const std::map<IndexType, double>& rBasis, const IndexType Id) {
+        return rBasis.count(Id) == 1 ? rBasis.at(Id) : 0.0;
+    };
+    for (const IndexType id : active_ids) {
+        KRATOS_EXPECT_NEAR(value_of(start, id), value_of(end, id), 1.0e-12);
+    }
+
+    // A quadratic basis needs more than 2 spans
+    Model other_model;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(create_model_part(other_model, 2),
+        "more knot spans than the degree");
 }
 
 // The patches of the tests above, now with conditions on their four sides:

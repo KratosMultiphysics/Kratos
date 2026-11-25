@@ -125,9 +125,17 @@ private:
 
     /// Creates the GSBM facets on the background patch or, from
     /// "geometry_names", on one patch per field: then each facet side is a
-    /// coupling of one point per patch
+    /// coupling of one point per patch. With "multiplier_parameters", every
+    /// facet also gets the multiplier curve as a third part
     void CreateQuadraturePointGeometriesGsbm(
         GeometriesArrayType& rBackgrounds,
+        ModelPart& rModelPart,
+        const Parameters rParameters) const;
+
+    /// Creates the multiplier field of "multiplier_parameters": one node per
+    /// knot span in rModelPart, and a periodic uniform B-spline on [0, 1]
+    /// over them, whose last "degree" control points are the first ones
+    GeometryType::Pointer CreateMultiplierCurve(
         ModelPart& rModelPart,
         const Parameters rParameters) const;
 
