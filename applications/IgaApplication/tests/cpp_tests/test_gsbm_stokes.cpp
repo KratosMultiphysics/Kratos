@@ -16,6 +16,7 @@
 #include <cmath>
 #include <map>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -25,6 +26,7 @@
 #include "custom_modelers/nurbs_geometry_modeler.h"
 #include "custom_processes/volume_fraction_gsbm_process.h"
 #include "custom_utilities/shifted_boundary_utilities.h"
+#include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "iga_application_variables.h"
 #include "includes/cfd_variables.h"
@@ -205,18 +207,58 @@ BoundedMatrix<double, 2, 2> ComputeStokesCutTestStress(const array_1d<double, 3>
     return stress;
 }
 
+/// Number of the periodic quadratic multipliers of the cut patch tests
+constexpr IndexType StokesCutTestMultipliers = 6;
+
+/// Adds the counterclockwise circle of radius 0.3 at (0.5, 0.5) to the skin,
+/// as one rational quadratic curve with 9 control points, on layer "circle"
+void AddStokesCutTestCircle(ModelPart& rSkin)
+{
+    const std::array<std::array<double, 2>, 9> directions{{
+        {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}, {1, 0}
+    }};
+    PointerVector<Node> control_points;
+    for (const auto& r_direction : directions) {
+        control_points.push_back(Kratos::make_intrusive<Node>(
+            0, 0.5 + 0.3 * r_direction[0], 0.5 + 0.3 * r_direction[1], 0.0
+        ));
+    }
+
+    const double w = std::sqrt(2.0) / 2.0;
+    const std::array<double, 10> knot_values{0, 0, 0.25, 0.25, 0.5, 0.5, 0.75, 0.75, 1, 1};
+    const std::array<double, 9> weight_values{1, w, 1, w, 1, w, 1, w, 1};
+    Vector knots(knot_values.size());
+    std::copy(knot_values.begin(), knot_values.end(), knots.begin());
+    Vector weights(weight_values.size());
+    std::copy(weight_values.begin(), weight_values.end(), weights.begin());
+
+    auto p_curve = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Node>>>(
+        control_points, 2, knots, weights
+    );
+    p_curve->SetId(0);
+    p_curve->SetValue(IDENTIFIER, "circle");
+    rSkin.AddGeometry(p_curve);
+}
+
 /// The divergence-conforming patches (2, 1), (1, 2) and (1, 1) on [0, 1]^2
 /// with 6 x 6 knot spans, with GsbmStokesElement, the given condition on the
 /// skeleton and GsbmStokesConditionGhostPenalty sharing it, for the fluid
 /// inside a 64-gon of radius 0.3 at (0.5, 0.5), so the spans along the patch
 /// border are void. The test law, the full Taylor series SHIFT_ORDER = 3, and
 /// the exact fields u_x = 2 (x - 0.4)^2 (y - 0.6),
-/// u_y = -2 (x - 0.4)(y - 0.6)^2 and p = (x - 0.3)(y - 0.7)
-ModelPart& CreateStokesCutModelPart(Model& rModel, const std::string& rConditionName)
+/// u_y = -2 (x - 0.4)(y - 0.6)^2 and p = (x - 0.3)(y - 0.7). With
+/// WithMultipliers, the skin is the exact circle instead, and the skeleton
+/// gets StokesCutTestMultipliers periodic quadratic multipliers, with zero
+/// coefficients
+ModelPart& CreateStokesCutModelPart(
+    Model& rModel,
+    const std::string& rConditionName,
+    const bool WithMultipliers = false)
 {
     ModelPart& r_iga_model_part = rModel.CreateModelPart("IgaModelPart");
     r_iga_model_part.AddNodalSolutionStepVariable(VELOCITY);
     r_iga_model_part.AddNodalSolutionStepVariable(PRESSURE);
+    r_iga_model_part.AddNodalSolutionStepVariable(SCALAR_LAGRANGE_MULTIPLIER);
 
     const std::array<std::pair<std::string, std::array<int, 2>>, 3> patches{{
         {"VelocityX", {2, 1}}, {"VelocityY", {1, 2}}, {"Pressure", {1, 1}}
@@ -263,21 +305,32 @@ ModelPart& CreateStokesCutModelPart(Model& rModel, const std::string& rCondition
         }]
     })");
     modeler_parameters["element_condition_list"][1]["name"].SetString(rConditionName);
-    r_registered_modeler.Create(rModel, modeler_parameters)->SetupModelPart();
-
-    // 64-gon counterclockwise around the fluid, turned off the knot lines
-    ModelPart& r_skin = rModel.CreateModelPart("Skin");
-    auto p_skin_properties = r_skin.CreateNewProperties(0);
-    const IndexType number_of_vertices = 64;
-    for (IndexType i = 0; i < number_of_vertices; ++i) {
-        const double angle = 2.0 * Globals::Pi * i / number_of_vertices + 0.1;
-        r_skin.CreateNewNode(
-            i + 1, 0.5 + 0.3 * std::cos(angle), 0.5 + 0.3 * std::sin(angle), 0.0
+    if (WithMultipliers) {
+        Parameters multiplier_parameters(R"({"number_of_knot_spans": 0, "degree": 2})");
+        multiplier_parameters["number_of_knot_spans"].SetInt(StokesCutTestMultipliers);
+        modeler_parameters["element_condition_list"][1].AddValue(
+            "multiplier_parameters", multiplier_parameters
         );
     }
-    for (IndexType i = 0; i < number_of_vertices; ++i) {
-        const std::vector<IndexType> node_ids{i + 1, (i + 1) % number_of_vertices + 1};
-        r_skin.CreateNewCondition("LineCondition2D2N", i + 1, node_ids, p_skin_properties);
+    r_registered_modeler.Create(rModel, modeler_parameters)->SetupModelPart();
+
+    ModelPart& r_skin = rModel.CreateModelPart("Skin");
+    if (WithMultipliers) {
+        AddStokesCutTestCircle(r_skin);
+    } else {
+        // 64-gon counterclockwise around the fluid, turned off the knot lines
+        auto p_skin_properties = r_skin.CreateNewProperties(0);
+        const IndexType number_of_vertices = 64;
+        for (IndexType i = 0; i < number_of_vertices; ++i) {
+            const double angle = 2.0 * Globals::Pi * i / number_of_vertices + 0.1;
+            r_skin.CreateNewNode(
+                i + 1, 0.5 + 0.3 * std::cos(angle), 0.5 + 0.3 * std::sin(angle), 0.0
+            );
+        }
+        for (IndexType i = 0; i < number_of_vertices; ++i) {
+            const std::vector<IndexType> node_ids{i + 1, (i + 1) % number_of_vertices + 1};
+            r_skin.CreateNewCondition("LineCondition2D2N", i + 1, node_ids, p_skin_properties);
+        }
     }
     VolumeFractionGsbmProcess(rModel, Parameters(R"({
         "model_part_name"                   : "IgaModelPart",
@@ -291,6 +344,9 @@ ModelPart& CreateStokesCutModelPart(Model& rModel, const std::string& rCondition
         r_node.AddDof(VELOCITY_X);
         r_node.AddDof(VELOCITY_Y);
         r_node.AddDof(PRESSURE);
+        if (WithMultipliers) {
+            r_node.AddDof(SCALAR_LAGRANGE_MULTIPLIER);
+        }
     }
 
     auto p_properties = r_iga_model_part.CreateNewProperties(1);
@@ -1433,6 +1489,275 @@ KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionSideDirichletSolve, KratosIgaFastSu
             );
         }
         KRATOS_EXPECT_NEAR(largest_error, 0.0, 1.0e-8);
+    }
+}
+
+namespace
+{
+
+/// Imposed velocity g = u + Perturbation of the exact fields at the closest
+/// point of every cut facet, and the multipliers \lambda_k = rMultipliers[k]
+void SetStokesCutTestMultiplierData(
+    Model& rModel,
+    const array_1d<double, 3>& rPerturbation,
+    const std::array<double, StokesCutTestMultipliers>& rMultipliers)
+{
+    ModelPart& r_facets = rModel.GetModelPart("IgaModelPart.Boundary");
+    for (auto& r_facet : r_facets.Conditions()) {
+        if (r_facet.Has(NEIGHBOUR_NODES)) {
+            Node& r_node = r_facet.GetValue(NEIGHBOUR_NODES)[0];
+            r_node.SetValue(
+                VELOCITY, ComputeStokesCutTestVelocity(r_node.Coordinates()) + rPerturbation
+            );
+        }
+    }
+    auto& r_curve = r_facets.ConditionsBegin()->GetGeometry().GetGeometryPart(2);
+    for (IndexType k = 0; k < StokesCutTestMultipliers; ++k) {
+        r_curve[k].FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = rMultipliers[k];
+    }
+}
+
+/// The periodic quadratic multipliers \mu_k at the skin parameter t: on span
+/// m, with u = n t - m, the cardinal B-spline pieces (1 - u)^2 / 2,
+/// (1 + 2u - 2u^2) / 2 and u^2 / 2 of \mu_m, \mu_(m+1) and \mu_(m+2), mod n
+std::array<double, StokesCutTestMultipliers> ComputeStokesCutTestMultipliers(const double T)
+{
+    const IndexType n = StokesCutTestMultipliers;
+    const double scaled = T * static_cast<double>(n);
+    const double u = scaled - std::floor(scaled);
+    const IndexType m = static_cast<IndexType>(std::floor(scaled)) % n;
+
+    std::array<double, StokesCutTestMultipliers> values{};
+    values[m] += 0.5 * (1.0 - u) * (1.0 - u);
+    values[(m + 1) % n] += 0.5 * (1.0 + 2.0 * u - 2.0 * u * u);
+    values[(m + 2) % n] += 0.5 * u * u;
+    return values;
+}
+
+} // namespace
+
+// Terms of GsbmStokesConditionDirichletMultiplier on each cut facet of
+// CreateStokesCutModelPart with the exact circle, with g = u + \delta at the
+// closest point and multipliers \lambda_k = 0.3 + 0.1 k. The full Taylor
+// series is exact for the exact fields, so S(u) - g = -\delta and
+// S(p) = p(y) at the closest point y, and each term of the right hand side is
+// known: on the velocity rows the consistency and pressure
+// w j N_i ((\sigma n-)_c - n-_c (\lambda(t) - p(y))), with j = \alpha- on the
+// - side and -\alpha+ on the + side, the tangential adjoint
+// -\theta w [[\alpha]] (V_i . \tau)(\delta . \tau) and penalty
+// pen {{S N_i}} \tau_c (\delta . \tau), plus pen {{S N_i}} n-_c (n- . \delta)
+// with PENALTY_ON_NORMAL; nothing on the pressure rows;
+// w [[\alpha]] (\mu_k(t) - c_k) (n- . \delta) on the multiplier rows but the
+// last, with c_k = 1/n for the uniform knots, and -w |[[\alpha]]| (\lambda(t)
+// - p(y)) on the last. V_i, the viscous traction of the test function, and
+// \mu_k(t) are written out by hand. The mean-free rows but the last and the
+// last one they imply, w [[\alpha]] (\mu_(n-1)(t) - c_(n-1)) n- . {{S(N)}},
+// add up to zero. With PIN_MULTIPLIERS false, every multiplier row is
+// w [[\alpha]] \mu_k(t) (n- . \delta), without the pin.
+KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionDirichletMultiplierFacetTerms, KratosIgaFastSuite)
+{
+    const double mu = StokesCutTestViscosity;
+    const double h = 1.0 / 6.0;
+    array_1d<double, 3> delta = ZeroVector(3);
+    delta[0] = 0.3;
+    delta[1] = -0.2;
+    std::array<double, StokesCutTestMultipliers> lambda;
+    for (IndexType k = 0; k < StokesCutTestMultipliers; ++k) {
+        lambda[k] = 0.3 + 0.1 * k;
+    }
+
+    // \theta, \chi, PENALTY_ON_NORMAL and PIN_MULTIPLIERS, absent unless not
+    // the default
+    const std::array<std::tuple<double, double, bool, bool>, 5> variants{{
+        {-1.0, 0.0, false, true}, {1.0, 10.0, false, true}, {-1.0, 10.0, false, true},
+        {-1.0, 10.0, true, true}, {-1.0, 10.0, false, false}
+    }};
+    for (const auto& [theta, chi, on_normal, pinned] : variants) {
+        Model model;
+        ModelPart& r_iga_model_part =
+            CreateStokesCutModelPart(model, "GsbmStokesConditionDirichletMultiplier", true);
+        const ProcessInfo& r_process_info = r_iga_model_part.GetProcessInfo();
+        Properties& r_properties = r_iga_model_part.GetProperties(1);
+        r_properties.SetValue(ADJOINT_FACTOR, theta);
+        r_properties.SetValue(PENALTY_FACTOR, chi);
+        if (on_normal) {
+            r_properties.SetValue(PENALTY_ON_NORMAL, true);
+        }
+        if (!pinned) {
+            r_properties.SetValue(PIN_MULTIPLIERS, false);
+        }
+        SetStokesCutTestMultiplierData(model, delta, lambda);
+
+        IndexType number_of_cut_facets = 0;
+        for (auto& r_facet : model.GetModelPart("IgaModelPart.Boundary").Conditions()) {
+            const auto& r_geometry = r_facet.GetGeometry();
+            const std::array<double, 2> alpha{
+                r_geometry.GetGeometryPart(0).GetValue(VOLUME_FRACTION),
+                r_geometry.GetGeometryPart(1).GetValue(VOLUME_FRACTION)
+            };
+            if (alpha[0] == alpha[1]) {
+                continue;
+            }
+            ++number_of_cut_facets;
+            KRATOS_EXPECT_EQ(r_facet.Check(r_process_info), 0);
+
+            Matrix left_hand_side;
+            Vector right_hand_side;
+            r_facet.CalculateLocalSystem(left_hand_side, right_hand_side, r_process_info);
+
+            const auto& r_reference = r_geometry.GetGeometryPart(0).GetGeometryPart(0);
+            const double weight =
+                r_reference.IntegrationPoints()[0].Weight() * r_reference.DeterminantOfJacobian(0);
+            const array_1d<double, 3> normal = r_reference.UnitNormal(0);
+            const array_1d<double, 3> center = r_reference.Center().Coordinates();
+            const Node& r_projection_node = r_facet.GetValue(NEIGHBOUR_NODES)[0];
+            const array_1d<double, 3> distance = r_projection_node.Coordinates() - center;
+            const BoundedMatrix<double, 2, 2> stress = ComputeStokesCutTestStress(center);
+            const double closest_pressure =
+                (r_projection_node.X() - 0.3) * (r_projection_node.Y() - 0.7);
+            const array_1d<double, 3>& r_skin_tangent = r_projection_node.GetValue(LOCAL_TANGENT);
+            const array_1d<double, 3> tangent = r_skin_tangent / norm_2(r_skin_tangent);
+
+            // \mu_k and \lambda at the closest point's skin parameter
+            const auto multipliers = ComputeStokesCutTestMultipliers(
+                r_projection_node.GetValue(INTEGRATION_COORDINATES)[0]
+            );
+            double closest_lambda = 0.0;
+            for (IndexType k = 0; k < StokesCutTestMultipliers; ++k) {
+                closest_lambda += multipliers[k] * lambda[k];
+            }
+
+            const double gamma = alpha[1] / (alpha[0] + alpha[1]);
+            const double alpha_jump = alpha[0] - alpha[1];
+            const double penalty = weight * chi * 9.0 * mu / h * std::abs(alpha_jump);
+            const double normal_delta = normal[0] * delta[0] + normal[1] * delta[1];
+            const double tangent_delta = tangent[0] * delta[0] + tangent[1] * delta[1];
+            const double share = pinned ? 1.0 / static_cast<double>(StokesCutTestMultipliers) : 0.0;
+            const double last_mean_free = multipliers[StokesCutTestMultipliers - 1] - share;
+
+            // u_x, u_y and p of the - side, then of the + side, then \lambda
+            Vector expected = ZeroVector(right_hand_side.size());
+            Vector implied_last_row = ZeroVector(right_hand_side.size());
+            IndexType dof = 0;
+            for (IndexType side = 0; side < 2; ++side) {
+                const auto& r_side = r_geometry.GetGeometryPart(side);
+                const double jump_factor = side == 0 ? alpha[0] : -alpha[1];
+                const double average_factor = side == 0 ? 1.0 - gamma : gamma;
+
+                for (IndexType part = 0; part < 3; ++part) {
+                    const auto& r_part = r_side.GetGeometryPart(part);
+                    if (part == 2) {
+                        dof += r_part.size();
+                        continue;
+                    }
+
+                    const Matrix& r_N = r_part.ShapeFunctionsValues();
+                    const Matrix& r_DN = r_part.ShapeFunctionsLocalGradients()[0];
+                    const Vector shifted = ShiftedBoundaryUtilities::ComputeShiftedShapeFunctions(
+                        r_part, r_side.GetValue(KNOT_SPAN_INDICES), distance, 3
+                    );
+                    for (IndexType i = 0; i < r_part.size(); ++i, ++dof) {
+                        // V_i . \tau = \mu (\tau_c dN/dn + n-_c dN/d\tau)
+                        const double normal_derivative =
+                            r_DN(i, 0) * normal[0] + r_DN(i, 1) * normal[1];
+                        const double tangent_derivative =
+                            r_DN(i, 0) * tangent[0] + r_DN(i, 1) * tangent[1];
+                        const double viscous_tangent = average_factor * mu
+                            * (tangent[part] * normal_derivative
+                                + normal[part] * tangent_derivative);
+
+                        expected[dof] = weight * jump_factor * r_N(0, i)
+                                * (stress(part, 0) * normal[0] + stress(part, 1) * normal[1]
+                                    - normal[part] * (closest_lambda - closest_pressure))
+                            - theta * weight * alpha_jump * viscous_tangent * tangent_delta
+                            + penalty * average_factor * shifted[i] * tangent[part] * tangent_delta;
+                        if (on_normal) {
+                            expected[dof] +=
+                                penalty * average_factor * shifted[i] * normal[part] * normal_delta;
+                        }
+                        implied_last_row[dof] = weight * alpha_jump * last_mean_free
+                            * average_factor * shifted[i] * normal[part];
+                    }
+                }
+            }
+            KRATOS_EXPECT_EQ(right_hand_side.size(), dof + StokesCutTestMultipliers);
+            for (IndexType k = 0; k < StokesCutTestMultipliers; ++k) {
+                expected[dof + k] = weight * alpha_jump * (multipliers[k] - share) * normal_delta;
+            }
+            if (pinned) {
+                expected[dof + StokesCutTestMultipliers - 1] =
+                    -weight * std::abs(alpha_jump) * (closest_lambda - closest_pressure);
+            }
+            KRATOS_EXPECT_VECTOR_NEAR(right_hand_side, expected, 1.0e-10);
+
+            // The mean-free rows but the last and the one they imply
+            if (pinned) {
+                Vector row_sum = implied_last_row;
+                for (IndexType k = 0; k + 1 < StokesCutTestMultipliers; ++k) {
+                    row_sum += row(left_hand_side, dof + k);
+                }
+                KRATOS_EXPECT_VECTOR_NEAR(row_sum, ZeroVector(row_sum.size()), 1.0e-12);
+            }
+        }
+        KRATOS_EXPECT_GT(number_of_cut_facets, 0);
+    }
+}
+
+// Discrete integration by parts with the multipliers: with the exact
+// velocity, the constant pressure c and multipliers \lambda_k = c, which the
+// periodic basis represents exactly, g = u and the body force -\mu \Delta u,
+// the residuals of the elements and the conditions add up to zero in every
+// row, the multiplier rows included, for both adjoint signs, with and without
+// penalty, with it on the normal too, which also vanishes for g = u, and
+// unpinned. The elements alone leave a residual.
+KRATOS_TEST_CASE_IN_SUITE(GsbmStokesConditionDirichletMultiplierConsistency, KratosIgaFastSuite)
+{
+    const double mu = StokesCutTestViscosity;
+    const double pressure = 0.4;
+
+    // \theta, \chi, PENALTY_ON_NORMAL and PIN_MULTIPLIERS
+    const std::array<std::tuple<double, double, bool, bool>, 4> variants{{
+        {-1.0, 0.0, false, true}, {1.0, 10.0, false, true}, {-1.0, 10.0, true, true},
+        {-1.0, 10.0, false, false}
+    }};
+    for (const auto& [theta, chi, on_normal, pinned] : variants) {
+        Model model;
+        ModelPart& r_iga_model_part =
+            CreateStokesCutModelPart(model, "GsbmStokesConditionDirichletMultiplier", true);
+        const ProcessInfo& r_process_info = r_iga_model_part.GetProcessInfo();
+        Properties& r_properties = r_iga_model_part.GetProperties(1);
+        r_properties.SetValue(ADJOINT_FACTOR, theta);
+        r_properties.SetValue(PENALTY_FACTOR, chi);
+        r_properties.SetValue(PENALTY_ON_NORMAL, on_normal);
+        r_properties.SetValue(PIN_MULTIPLIERS, pinned);
+
+        for (auto& r_node : r_iga_model_part.GetGeometry("Pressure")) {
+            r_node.FastGetSolutionStepValue(PRESSURE) = pressure;
+        }
+        std::array<double, StokesCutTestMultipliers> lambda;
+        lambda.fill(pressure);
+        SetStokesCutTestMultiplierData(model, ZeroVector(3), lambda);
+
+        // f = -\mu \Delta u: (-4 \mu (y - 0.6), 4 \mu (x - 0.4))
+        for (auto& r_element : model.GetModelPart("IgaModelPart.Domain").Elements()) {
+            const array_1d<double, 3> point =
+                r_element.GetGeometry().GetGeometryPart(0).Center().Coordinates();
+            array_1d<double, 3> body_force = ZeroVector(3);
+            body_force[0] = -4.0 * mu * (point[1] - 0.6);
+            body_force[1] = 4.0 * mu * (point[0] - 0.4);
+            r_element.SetValue(BODY_FORCE, body_force);
+        }
+
+        std::map<const Dof<double>*, double> residual;
+        for (auto& r_element : model.GetModelPart("IgaModelPart.Domain").Elements()) {
+            AddStokesCutTestResidual(residual, r_element, r_process_info);
+        }
+        KRATOS_EXPECT_GT(GetLargestStokesCutTestResidual(residual), 1.0e-4);
+
+        for (auto& r_facet : model.GetModelPart("IgaModelPart.Boundary").Conditions()) {
+            AddStokesCutTestResidual(residual, r_facet, r_process_info);
+        }
+        KRATOS_EXPECT_NEAR(GetLargestStokesCutTestResidual(residual), 0.0, 1.0e-11);
     }
 }
 
