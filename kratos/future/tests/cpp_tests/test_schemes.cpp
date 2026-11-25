@@ -127,7 +127,8 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
     auto& r_lhs = *(p_linear_system->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS));
     auto& r_rhs = *(p_linear_system->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS));
 
-    sleep(30);
+    // Sleep should only be enabled when benchmarking on a local machine, This is intentionaly left commented unless benchmarking is being performed on a local machine
+    // sleep(30);
 
     BuiltinTimer timer_build;
     for(unsigned int i=0; i<20; ++i)
@@ -137,7 +138,8 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
     r_lhs.SetValue(0.0);
     r_rhs.SetValue(0.0);
 
-    sleep(30);
+    // Sleep should only be enabled when benchmarking on a local machine, This is intentionaly left commented unless benchmarking is being performed on a local machine
+    // sleep(30);
 
     BuiltinTimer timer_build_safe;
     for(unsigned int i=0; i<20; ++i)
@@ -148,7 +150,8 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
     r_lhs.SetValue(0.0);
     r_rhs.SetValue(0.0);
 
-    sleep(30);
+    // Sleep should only be enabled when benchmarking on a local machine, This is intentionaly left commented unless benchmarking is being performed on a local machine
+    // sleep(30);
 
     BuiltinTimer timer_build_thread_local;
     for(unsigned int i=0; i<20; ++i)
@@ -158,7 +161,8 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
     r_lhs.SetValue(0.0);
     r_rhs.SetValue(0.0);
 
-    sleep(30);
+    // Sleep should only be enabled when benchmarking on a local machine, This is intentionaly left commented unless benchmarking is being performed on a local machine
+    // sleep(30);
 
     BuiltinTimer timer_build_local_allocation;
     for(unsigned int i=0; i<20; ++i)
