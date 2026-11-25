@@ -128,19 +128,25 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateOnIntegrationPoints(
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
     }
 
-    if constexpr (is_corotational) {
-        // TO DO
-    } else {
-        if (rVariable == SHELL_FORCE || rVariable == SHELL_MOMENT || rVariable == SHELL_SHEAR ||
-            rVariable == SHELL_STRESS_TOP_SURFACE || rVariable == SHELL_STRESS_BOTTOM_SURFACE ||
-            rVariable == SHELL_STRESS_MIDDLE_SURFACE) {
-                bounded_3_matrix rotation_matrix;
-                CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
-                for (IndexType i = 0; i < number_of_integration_points; ++i) {
-                    // Transform the local stresses to the global coordinate system
-                    noalias(rOutput[i]) = prod(trans(rotation_matrix), Matrix(prod(rOutput[i], rotation_matrix)));
-                }
+    
+    if (rVariable == SHELL_FORCE || rVariable == SHELL_MOMENT || rVariable == SHELL_SHEAR ||
+        rVariable == SHELL_STRESS_TOP_SURFACE || rVariable == SHELL_STRESS_BOTTOM_SURFACE ||
+        rVariable == SHELL_STRESS_MIDDLE_SURFACE) {
+            
+        bounded_3_matrix rotation_matrix;
+
+        if constexpr (is_corotational) {
+            const auto LCS = mpCoordinateTransformation->CreateLocalCoordinateSystem();
+            LCS.ComputeTotalRotationMatrix(rotation_matrix);
+        } else {
+            CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
         }
+
+        for (IndexType i = 0; i < number_of_integration_points; ++i) {
+            // Transform the local stresses to the global coordinate system
+            noalias(rOutput[i]) = prod(trans(rotation_matrix), Matrix(prod(rOutput[i], rotation_matrix)));
+        }
+
     }
 
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateOnIntegrationPoints")
@@ -1465,17 +1471,17 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetValuesVector(Vector& rValu
     }
 
     for (IndexType i = 0; i < r_geometry.size(); ++i) {
-        const array_3& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-        const array_3& rot  = r_geometry[i].FastGetSolutionStepValue(ROTATION, Step);
+        const array_3& r_disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+        const array_3& r_rot  = r_geometry[i].FastGetSolutionStepValue(ROTATION, Step);
 
         const IndexType index = i * GetDoFsPerNode();
-        rValues[index]     = disp[0];
-        rValues[index + 1] = disp[1];
-        rValues[index + 2] = disp[2];
+        rValues[index]     = r_disp[0];
+        rValues[index + 1] = r_disp[1];
+        rValues[index + 2] = r_disp[2];
 
-        rValues[index + 3] = rot[0];
-        rValues[index + 4] = rot[1];
-        rValues[index + 5] = rot[2];
+        rValues[index + 3] = r_rot[0];
+        rValues[index + 4] = r_rot[1];
+        rValues[index + 5] = r_rot[2];
     }
 }
 
