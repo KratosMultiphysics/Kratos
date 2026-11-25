@@ -376,7 +376,7 @@ public:
 
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < n_elems; ++k) {
+            for (int k = 0; k < std::static_cast<int>(n_elems); ++k) {
                 // Calculate local LHS and RHS contributions
                 auto it_elem = elems_begin + k;
                 const bool assemble = CalculateLocalSystemContribution(*it_elem, aux_tls, r_process_info);
@@ -390,7 +390,7 @@ public:
 
             // Assemble conditions
             # pragma omp for schedule(guided, 512)
-            for (int k = 0; k < n_conds; ++k) {
+            for (int k = 0; k < std::static_cast<int>(n_conds); ++k) {
                 // Calculate local LHS and RHS contributions
                 auto it_cond = conds_begin + k;
                 const bool assemble = CalculateLocalSystemContribution(*it_cond, aux_tls, r_process_info);
@@ -443,7 +443,7 @@ public:
 
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < n_elems; ++k) {
+            for (int k = 0; k < std::static_cast<int>(n_elems); ++k) {
                 // Calculate local LHS and RHS contributions
                 auto it_elem = elems_begin + k;
                 const bool assemble = CalculateLocalSystemContribution(*it_elem, aux_tls, r_process_info);
@@ -457,7 +457,7 @@ public:
 
             // Assemble conditions
             # pragma omp for schedule(guided, 512)
-            for (int k = 0; k < n_conds; ++k) {
+            for (int k = 0; k < std::static_cast<int>(n_conds); ++k) {
                 // Calculate local LHS and RHS contributions
                 auto it_cond = conds_begin + k;
                 const bool assemble = CalculateLocalSystemContribution(*it_cond, aux_tls, r_process_info);
@@ -674,7 +674,7 @@ public:
 
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < n_elems; ++k) {
+            for (int k = 0; k < std::static_cast<int>(n_elems); ++k) {
                 // Calculate local RHS contribution
                 auto it_elem = elems_begin + k;
                 const bool assemble = CalculateRightHandSideContribution(*it_elem, aux_tls, r_process_info);
@@ -687,7 +687,7 @@ public:
 
             // Assemble conditions
             # pragma omp for schedule(guided, 512)
-            for (int k = 0; k < n_conds; ++k) {
+            for (int k = 0; k < std::static_cast<int>(n_conds); ++k) {
                 // Calculate local RHS contribution
                 auto it_cond = conds_begin + k;
                 const bool assemble = CalculateRightHandSideContribution(*it_cond, aux_tls, r_process_info);
