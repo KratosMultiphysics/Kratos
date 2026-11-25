@@ -64,7 +64,7 @@ Here you can find the basic documentation of the project:
 
 ## Getting Started
 * Getting Kratos (Last compiled Release)
-    * [Kratos from `pip`](https://pypi.org/project/KratosMultiphysics/): Just simply type on terminal `pip install KratosMultiphysics-all`
+    * [Kratos from `pip`](https://pypi.org/project/KratosMultiphysics/): Just simply type on terminal `pip install KratosMultiphysics[all]`
     * [Kratos for GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-binaries-(via-GiD))
 <!---
 Rewrite this in the Documentation page

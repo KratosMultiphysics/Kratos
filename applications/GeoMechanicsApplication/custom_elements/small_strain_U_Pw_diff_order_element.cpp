@@ -1429,15 +1429,16 @@ void SmallStrainUPwDiffOrderElement::SetUpPressureGeometryPointer()
         if (dimension == 3) // 3D T10P4
             mpPressureGeometry = make_shared<Tetrahedra3D4<Node>>(r_geometry(0), r_geometry(1),
                                                                   r_geometry(2), r_geometry(3));
-        else if (dimension == 2) // 2D T10P6
-            mpPressureGeometry = make_shared<Triangle2D6<Node>>(
-                r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5));
+        // For 10-noded triangles, the lower order pressure geometry is found to be constructed incorrectly.
+        // Therefore, this possibility is temporarily disabled, to prevent a user from accessing it.
+        KRATOS_ERROR_IF_NOT(dimension == 3)
+            << "U-Pw diff order surface elements with an order greater than 2 don't have "
+               "support for proper pressure geometry yet.";
         break;
-    case 15: // 2D T15P10
-        mpPressureGeometry = make_shared<Triangle2D10<Node>>(
-            r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4),
-            r_geometry(5), r_geometry(6), r_geometry(7), r_geometry(8), r_geometry(9));
-        break;
+
+    // For 15-noded triangles, the lower order pressure geometry is found to be constructed
+    // incorrectly. Therefore, this possibility is temporarily disabled, to prevent a user from
+    // accessing it.
     case 20: // 3D H20P8
         mpPressureGeometry =
             make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3),

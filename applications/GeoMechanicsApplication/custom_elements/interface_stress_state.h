@@ -18,6 +18,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) Line2DInterfaceStressState final : public StressStatePolicy
 {
 public:
@@ -32,7 +34,7 @@ private:
     static const Vector VoigtVectorInterface2D;
     static Vector       DefineInterfaceVoigtVector();
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer&) const override;
     void load(Serializer&) override;
 };
@@ -51,7 +53,7 @@ private:
     static const Vector VoigtVectorInterface3D;
     static Vector       DefineInterfaceVoigtVector();
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer&) const override;
     void load(Serializer&) override;
 };

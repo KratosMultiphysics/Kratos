@@ -23,6 +23,9 @@
 
 namespace Kratos
 {
+
+class Serializer;
+
 ///@name Kratos Globals
 ///@{
 ///@}
@@ -236,7 +239,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-    friend class Serializer;
+    friend Serializer;
 
     // A private default constructor necessary for serialization
 

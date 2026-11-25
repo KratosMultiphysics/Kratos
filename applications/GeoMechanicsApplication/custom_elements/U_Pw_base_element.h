@@ -28,6 +28,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwBaseElement : public Element
 {
 public:
@@ -167,7 +169,7 @@ protected:
 private:
     [[nodiscard]] virtual DofsVectorType GetDofs() const;
 
-    friend class Serializer;
+    friend Serializer;
 
     void save(Serializer& rSerializer) const override;
 

@@ -20,6 +20,7 @@ namespace Kratos
 {
 
 class Element;
+class Serializer;
 
 class IntegrationCoefficientModifier
 {
@@ -64,7 +65,7 @@ public:
 private:
     std::unique_ptr<IntegrationCoefficientModifier> mCoefficientModifier;
 
-    friend class Serializer;
+    friend Serializer;
     void save(const Serializer& rSerializer) const;
     void load(const Serializer& rSerializer);
 };
