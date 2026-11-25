@@ -1,5 +1,6 @@
 #import cupy
 #import pyamg
+import math
 import numpy as np
 import scipy.sparse as sp
 import KratosMultiphysics as KM
@@ -96,6 +97,15 @@ def reset():
     USE_CUPY = None
     PRECISION = None
     _configured = False # Auxiliary flag to ensure that backend is configured once
+
+def _host_scalars(xp, *scalars):
+    """
+    Read several 0-d device (or host) scalars back to Python floats with ONE blocking
+    device->host transfer. Each value is converted to float64 first; float32 -> float64
+    is exact, so the values (and their finiteness) are unchanged.
+    """
+    stacked = xp.stack([xp.asarray(s, dtype=np.float64).reshape(()) for s in scalars])
+    return [float(v) for v in asnumpy(stacked)]
 
 class CFDUtils:
 
@@ -1415,39 +1425,69 @@ class CFDUtils:
             rho1 = rho
             rho = dot(xp, r, z)
 
-            rho_host = float(rho)
-            # if not bool(xp.isfinite(rho)) or rho_host <= 0.0:
+            # ORIGINAL per-scalar blocking reads and checks (kept for reference):
+            # rho_host = float(rho)
+            # # if not bool(xp.isfinite(rho)) or rho_host <= 0.0:
+            # #     print("norm of r = ",norm(xp,r))
+            # #     print("norm of z=M@r= ",norm(xp,z))
+            # #     print("bool(xp.isfinite(rho))= ",bool(xp.isfinite(rho)))
+            # #     print("rho_host= ",rho_host)
+            # #     reason = "non-positive or non-finite r^T M r"
+            # #     break
+            #
+            # if not bool(xp.isfinite(rho)):
             #     print("norm of r = ",norm(xp,r))
             #     print("norm of z=M@r= ",norm(xp,z))
             #     print("bool(xp.isfinite(rho))= ",bool(xp.isfinite(rho)))
             #     print("rho_host= ",rho_host)
-            #     reason = "non-positive or non-finite r^T M r"
+            #     reason = "non-finite r^T M r"
             #     break
-
-            if not bool(xp.isfinite(rho)):
-                print("norm of r = ",norm(xp,r))
-                print("norm of z=M@r= ",norm(xp,z))
-                print("bool(xp.isfinite(rho))= ",bool(xp.isfinite(rho)))
-                print("rho_host= ",rho_host)
-                reason = "non-finite r^T M r"
-                break
-
-
-            if rho_host < 0.0: 
-                print("norm of r = ",norm(xp,r))
-                print("norm of z=M@r= ",norm(xp,z))
-                print("bool(xp.isfinite(rho))= ",bool(xp.isfinite(rho)))
-                print("rho_host= ",rho_host)
-                print("rho_host < 0 - going on as without preconditioner")
-                reason = " r^T M r < 0"
-                break
-
-            #just proceed as nothing in the case it is exactly 0
-            if rho_host == 0.0:
-                print("rho_host == 0 - simply proceeding even though this should not happen")
-                pass
-            
-
+            #
+            #
+            # if rho_host < 0.0: 
+            #     print("norm of r = ",norm(xp,r))
+            #     print("norm of z=M@r= ",norm(xp,z))
+            #     print("bool(xp.isfinite(rho))= ",bool(xp.isfinite(rho)))
+            #     print("rho_host= ",rho_host)
+            #     print("rho_host < 0 - going on as without preconditioner")
+            #     reason = " r^T M r < 0"
+            #     break
+            #
+            # #just proceed as nothing in the case it is exactly 0
+            # if rho_host == 0.0:
+            #     print("rho_host == 0 - simply proceeding even though this should not happen")
+            #     pass
+            #
+            #
+            # if restart_p:
+            #     p = z.copy() if hasattr(z, "copy") else z
+            #     restart_p = False
+            # else:
+            #     beta = rho / rho1
+            #     # In-place update: bit-identical to 'p = z + beta * p' (same elementwise multiply
+            #     # then add), but avoids one vector allocation + copy per iteration.
+            #     # p = z + beta * p
+            #     p *= beta
+            #     p += z
+            #
+            # q = matvec(p)
+            # denom = dot(xp, p, q)
+            # denom_host = float(denom)
+            #
+            # if not bool(xp.isfinite(denom)) or denom_host <= 0.0:
+            #     reason = "non-positive or nstop_atolon-finite p^T A p"
+            #     break
+            #
+            # alpha = rho / denom
+            #
+            # if not bool(xp.isfinite(alpha)):
+            #     reason = "non-finite alpha"
+            #     break
+            # Note on the blocking reads: the per-scalar reads and checks that used to be here are kept
+            # below as comments. They required ~6 separate device->host transfers per iteration. Now
+            # rho, denom and alpha are read back together with ONE transfer, and all decisions use those
+            # host values in the same order. Nothing is written to x or r before these decisions, so the
+            # breakdown exits return exactly the same x as before.
             if restart_p:
                 p = z.copy() if hasattr(z, "copy") else z
                 restart_p = False
@@ -1461,15 +1501,34 @@ class CFDUtils:
 
             q = matvec(p)
             denom = dot(xp, p, q)
-            denom_host = float(denom)
+            alpha = rho / denom # device scalar, as before (keeps the dtype promotion of alpha * p unchanged)
 
-            if not bool(xp.isfinite(denom)) or denom_host <= 0.0:
-                reason = "non-positive or nstop_atolon-finite p^T A p"
+            rho_host, denom_host, alpha_host = _host_scalars(xp, rho, denom, alpha)
+
+            if not math.isfinite(rho_host):
+                print("norm of r = ",norm(xp,r))
+                print("norm of z=M@r= ",norm(xp,z))
+                print("rho_host= ",rho_host)
+                reason = "non-finite r^T M r"
                 break
 
-            alpha = rho / denom
+            if rho_host < 0.0:
+                print("norm of r = ",norm(xp,r))
+                print("norm of z=M@r= ",norm(xp,z))
+                print("rho_host= ",rho_host)
+                print("rho_host < 0 - going on as without preconditioner")
+                reason = " r^T M r < 0"
+                break
 
-            if not bool(xp.isfinite(alpha)):
+            #just proceed as nothing in the case it is exactly 0
+            if rho_host == 0.0:
+                print("rho_host == 0 - simply proceeding even though this should not happen")
+
+            if not math.isfinite(denom_host) or denom_host <= 0.0:
+                reason = "non-positive or nonfinite p^T A p"
+                break
+
+            if not math.isfinite(alpha_host):
                 reason = "non-finite alpha"
                 break
 
@@ -1491,7 +1550,8 @@ class CFDUtils:
             resid_host = float(resid)
             recursive_residual_norms.append(resid_host)
 
-            if not bool(xp.isfinite(resid)):
+            # Original (kept for reference): if not bool(xp.isfinite(resid)):
+            if not math.isfinite(resid_host): # same value as isfinite(resid), read back above
                 reason = "non-finite recursive residual"
                 break
 
@@ -1508,7 +1568,8 @@ class CFDUtils:
                 resid_exact_host = float(resid_exact)
                 true_residual_norms.append(resid_exact_host)
 
-                if not bool(xp.isfinite(resid_exact)):
+                # Original (kept for reference): if not bool(xp.isfinite(resid_exact)):
+                if not math.isfinite(resid_exact_host): # same value as isfinite(resid_exact), read back above
                     reason = "non-finite true residual"
                     break
 

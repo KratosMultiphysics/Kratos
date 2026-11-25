@@ -762,6 +762,16 @@ class TestRobustCG(UnitTest.TestCase):
         self.assertFalse(np.shares_memory(np.asarray(x), b))
         np.testing.assert_array_equal(np.asarray(x), np.zeros(5))
 
+    def test_host_scalars_matches_individual_reads(self):
+        # The batched readback must return exactly the values of individual float() reads,
+        # including float32 inputs and non-finite values (the finiteness decisions rely on them).
+        vals = [np.float64(1.2345678901234567), np.float32(3.1415927), np.float64(np.nan), np.float64(-np.inf)]
+        dev = [self.xp.asarray(v) for v in vals] if hasattr(self.xp, "asarray") else vals
+        out = cfd_utils_module._host_scalars(self.xp, *dev)
+        expected = [float(v) for v in vals]
+        for got, exp in zip(out, expected):
+            self.assertTrue((np.isnan(got) and np.isnan(exp)) or got == exp)
+
     def test_robust_cg_empty_system(self):
         A = self._make_spd(0, seed=3)
         b = np.zeros(0)

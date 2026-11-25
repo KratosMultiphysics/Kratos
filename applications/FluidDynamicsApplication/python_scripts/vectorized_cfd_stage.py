@@ -411,6 +411,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Note that their size may depend on the time scheme, which might change among time steps
         self.k = None
         self.v_stage = xp.empty((len(self.model_part.Nodes), self.dim), dtype=cfd_utils.PRECISION)
+        # Fractional velocity returned by SolveStep1. It must persist beyond the call (SolveStep2 and SolveStep3
+        # use it while they hold pool slots), so it cannot live in the pool; it is reused across substeps instead.
+        self.vfrac_buf = xp.empty((len(self.model_part.Nodes), self.dim), dtype=cfd_utils.PRECISION)
+        # Output of SolveStep3 inside SolveSolutionStep (the substep's new velocity), reused across substeps and steps.
+        self.vnew_buf = xp.empty((len(self.model_part.Nodes), self.dim), dtype=cfd_utils.PRECISION)
 
         #work arrays for intermediate computations
         self.pool = python_pool.BufferPool(
@@ -893,7 +898,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             for j, a_ij in enumerate(A[i]):
                 if a_ij != 0.0:
                     aux = dt * a_ij
-                    self.v_stage += aux * self.k[j]
+                    # Original (kept for reference): self.v_stage += aux * self.k[j]
+                    # The product goes into a pool scratch buffer (pool is free at this point) instead of a new temporary.
+                    stage_scratch = self.pool.Get(1, self.v_stage.shape)
+                    xp.multiply(aux, self.k[j], out=stage_scratch)
+                    self.v_stage += stage_scratch
+                    self.pool.Release(stage_scratch)
             self.ApplyVelocitySlipConditions(self.v_stage)
             self.ApplyOutletBackflowCorrection(self.v_stage)
             self.ApplyVelocityDirichletConditions(vold, v_dirichlet, c[i], self.v_stage)
@@ -909,11 +919,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.k[i] *= self.Minv_rho[:, None]
 
         # RK final update
-        vnew = xp.empty_like(vold)
+        # Original (kept for reference): vnew = xp.empty_like(vold), i.e. a new allocation at every substep
+        vnew = self.vfrac_buf
         vnew[:] = vold
         for i in range(n_stages):
             aux = dt * b[i]
-            vnew += aux * self.k[i]
+            # Original (kept for reference): vnew += aux * self.k[i]
+            stage_scratch = self.pool.Get(1, vnew.shape)
+            xp.multiply(aux, self.k[i], out=stage_scratch)
+            vnew += stage_scratch
+            self.pool.Release(stage_scratch)
         self.ApplyVelocitySlipConditions(vnew)
         self.ApplyOutletBackflowCorrection(vnew)
         self.ApplyVelocityDirichletConditions(vold, v_dirichlet, 1.0, vnew)
@@ -1123,8 +1138,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         v_new_dirichlet = (v.ravel()[self.fix_vel_indices]).copy()
         v_old_dirichlet = (vold.ravel()[self.fix_vel_indices]).copy()
 
-        #TODO: allocate this once and reuse it
-        vnew = xp.empty_like(vold)
+        # Original (kept for reference): TODO allocate this once and reuse it; vnew = xp.empty_like(vold)
+        # Now allocated once in AllocateWorkArrays (self.vnew_buf) and reused by every call of this method.
+        vnew = self.vnew_buf
 
         # Perform substepping
         current_time = self.time - self.dt
