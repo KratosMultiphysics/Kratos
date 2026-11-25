@@ -21,6 +21,9 @@
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 #include "linear_solvers/rigid_body_mode_pinning_kernel.h"
 
+/// String literals for the inner_settings
+using namespace std::string_literals;
+
 namespace Kratos::Future
 {
 ///@name Kratos Classes
@@ -87,9 +90,6 @@ public:
 
     /// The pinning algorithm (shared with the current interface wrapper)
     using KernelType = Kratos::RigidBodyModePinningKernel<MatrixType, VectorType>;
-
-    /// String literals for the inner_settings
-    using namespace std::string_literals;
 
     ///@}
     ///@name Life Cycle
