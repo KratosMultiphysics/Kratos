@@ -153,6 +153,12 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
     def test_EigenSparseLU_MatrixRHS(self):
         self.__ExecuteEigenDirectSolverMatrixRHSTest('sparse_lu')
 
+    def test_EigenSparseLDLT(self):
+        self.__ExecuteEigenDirectSolverTest('SparseLDLTSolver', 'sparse_ldlt')
+
+    def test_EigenSparseLDLT_MatrixRHS(self):
+        self.__ExecuteEigenDirectSolverMatrixRHSTest('sparse_ldlt')
+
     def test_EigenSparseCG(self):
         self.__ExecuteEigenDirectSolverTest('SparseCGSolver', 'sparse_cg')
 
@@ -191,6 +197,9 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
     def test_EigenComplexSparseLU(self):
         self.__ExecuteEigenDirectComplexSolverTest('ComplexSparseLUSolver', 'sparse_lu_complex')
+
+    def test_EigenComplexSparseLDLT(self):
+        self.__ExecuteEigenDirectComplexSolverTest('ComplexSparseLDLTSolver', 'sparse_ldlt_complex')
 
     @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
     def test_EigenComplexPardisoLU(self):

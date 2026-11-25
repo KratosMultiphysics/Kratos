@@ -18,6 +18,7 @@
 
 #include "custom_solvers/eigen_sparse_cg_solver.h"
 #include "custom_solvers/eigen_sparse_lu_solver.h"
+#include "custom_solvers/eigen_sparse_ldlt_solver.h"
 #include "custom_solvers/eigen_sparse_qr_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
 #include "custom_solvers/eigen_cholmod_solver.hpp" // EigenCholmodSolver
@@ -67,6 +68,16 @@ void KratosLinearSolversApplication::Register()
     using ComplexSparseLUType = EigenDirectSolver<EigenSparseLUSolver<complex>>;
     static auto ComplexSparseLUFactory = ComplexSparseLUType::Factory();
     KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("sparse_lu_complex", ComplexSparseLUFactory);
+
+    // Sparse LDLT Solver
+    using SparseLDLTType = EigenDirectSolver<EigenSparseLDLTSolver<double>>;
+    static auto SparseLDLTFactory = SparseLDLTType::Factory();
+    KRATOS_REGISTER_LINEAR_SOLVER("sparse_ldlt", SparseLDLTFactory);
+
+    // Complex Sparse LDLT Solver
+    using ComplexSparseLDLTType = EigenDirectSolver<EigenSparseLDLTSolver<complex>>;
+    static auto ComplexSparseLDLTFactory = ComplexSparseLDLTType::Factory();
+    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("sparse_ldlt_complex", ComplexSparseLDLTFactory);
 
     // Sparse QR Solver
     using SparseQRType = EigenDirectSolver<EigenSparseQRSolver<double>>;
