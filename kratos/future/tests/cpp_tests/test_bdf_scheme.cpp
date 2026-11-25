@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "constraints/linear_master_slave_constraint.h"
 #include "containers/model.h"
 #include "includes/define.h"
 #include "includes/element.h"
@@ -191,7 +192,7 @@ public:
  */
 void SetUpDynamicTestModelPart1D(ModelPart& rModelPart)
 {
-    const int domain_size = 2;
+    const int domain_size = 1;
     const std::size_t buffer_size = 3;
     rModelPart.SetBufferSize(buffer_size);
     rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, domain_size);
@@ -362,6 +363,172 @@ KRATOS_TEST_CASE_IN_SUITE(BDFSchemeBuildWithDynamicsOrder2, KratosCoreFastSuite)
     KRATOS_CHECK_NEAR(r_lhs(1, 0), -1.0, tol);
     KRATOS_CHECK_NEAR(r_lhs(1, 1), 12.5, tol);
     std::vector<double> expected_rhs = {0.16875, -0.225};
+    KRATOS_CHECK_VECTOR_NEAR(r_rhs, expected_rhs, tol);
+#else
+    true;
+#endif
+}
+
+KRATOS_TEST_CASE_IN_SUITE(BDFSchemePredictWithMasterSlaveConstraint, KratosCoreFastSuite)
+{
+#ifdef KRATOS_USE_FUTURE
+    // Set up the test model part
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+    SetUpDynamicTestModelPart1D(r_test_model_part);
+
+    // Set the previous step values such that the master-slave constraint is already satisfied
+    Node& r_master_node = r_test_model_part.GetNode(1);
+    Node& r_slave_node = r_test_model_part.GetNode(2);
+    r_master_node.FastGetSolutionStepValue(DISPLACEMENT, 1)[0] = 0.1;
+    r_master_node.FastGetSolutionStepValue(VELOCITY, 1)[0] = 0.3;
+    r_master_node.FastGetSolutionStepValue(ACCELERATION, 1)[0] = 0.5;
+    r_slave_node.FastGetSolutionStepValue(DISPLACEMENT, 1)[0] = 0.6;
+    r_slave_node.FastGetSolutionStepValue(VELOCITY, 1)[0] = 0.3;
+    r_slave_node.FastGetSolutionStepValue(ACCELERATION, 1)[0] = 0.5;
+
+    // Impose u_slave = u_master + 0.5
+    const double jump = 0.5;
+    const double weight = 1.0;
+    r_test_model_part.CreateNewMasterSlaveConstraint(
+        "LinearMasterSlaveConstraint", 1, r_master_node, DISPLACEMENT_X, r_slave_node, DISPLACEMENT_X, weight, jump);
+
+    // Create the scheme (order 1)
+    Parameters scheme_settings = Parameters(R"({
+        "integration_order" : 1,
+        "echo_level" : 0
+    })");
+    using SchemeType = Future::BDFScheme<Future::SerialLinearAlgebraTraits>;
+    auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
+
+    Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
+    p_scheme->Initialize(strategy_data_container);
+    p_scheme->InitializeSolutionStep(strategy_data_container);
+    p_scheme->Predict(strategy_data_container);
+
+    // Expected values for order 1 with dt = 0.5 (c0 = 2, c1 = -2):
+    // Free extrapolation: u_master = 0.3125, u_slave = 0.8125
+    // The constraint is then applied: u_slave = u_master + 0.5 = 0.8125
+    // Derivatives are recomputed from the constrained displacement history:
+    // v0 = 2*u0 - 2*u1 = 0.425, a0 = 2*v0 - 2*v1 = 0.25
+    const double tol = 1.0e-12;
+    const double u_master = r_master_node.FastGetSolutionStepValue(DISPLACEMENT_X);
+    const double u_slave = r_slave_node.FastGetSolutionStepValue(DISPLACEMENT_X);
+    KRATOS_CHECK_NEAR(u_master, 0.3125, tol);
+    KRATOS_CHECK_NEAR(u_slave, 0.8125, tol);
+    KRATOS_CHECK_NEAR(u_slave - u_master, jump, tol);
+
+    KRATOS_CHECK_NEAR(r_master_node.FastGetSolutionStepValue(VELOCITY_X), 0.425, tol);
+    KRATOS_CHECK_NEAR(r_slave_node.FastGetSolutionStepValue(VELOCITY_X), 0.425, tol);
+    KRATOS_CHECK_NEAR(r_master_node.FastGetSolutionStepValue(ACCELERATION_X), 0.25, tol);
+    KRATOS_CHECK_NEAR(r_slave_node.FastGetSolutionStepValue(ACCELERATION_X), 0.25, tol);
+#else
+    true;
+#endif
+}
+
+KRATOS_TEST_CASE_IN_SUITE(BDFSchemeConfiguredVariablesOrder1, KratosCoreFastSuite)
+{
+#ifdef KRATOS_USE_FUTURE
+    // Set up the test model part
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+    SetUpDynamicTestModelPart1D(r_test_model_part);
+
+    // Set the previous step values from which the current step will be extrapolated
+    Node& r_node_1 = r_test_model_part.GetNode(1);
+    Node& r_node_2 = r_test_model_part.GetNode(2);
+    r_node_1.FastGetSolutionStepValue(DISPLACEMENT, 1)[0] = 0.1;
+    r_node_1.FastGetSolutionStepValue(VELOCITY, 1)[0] = 0.3;
+    r_node_1.FastGetSolutionStepValue(ACCELERATION, 1)[0] = 0.5;
+    r_node_2.FastGetSolutionStepValue(DISPLACEMENT, 1)[0] = 0.2;
+    r_node_2.FastGetSolutionStepValue(VELOCITY, 1)[0] = 0.4;
+    r_node_2.FastGetSolutionStepValue(ACCELERATION, 1)[0] = 0.6;
+
+    // Configure the solution variable explicitly (the time derivatives are derived from it)
+    Parameters scheme_settings = Parameters(R"({
+        "integration_order" : 1,
+        "echo_level" : 0,
+        "solution_variables" : ["DISPLACEMENT_X"]
+    })");
+    using SchemeType = Future::BDFScheme<Future::SerialLinearAlgebraTraits>;
+    auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
+
+    Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
+    p_scheme->Initialize(strategy_data_container);
+    p_scheme->InitializeSolutionStep(strategy_data_container);
+    p_scheme->Predict(strategy_data_container);
+
+    // Build the system
+    const auto p_linear_system = strategy_data_container.pGetLinearSystem();
+    auto& r_lhs = *(p_linear_system->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS));
+    auto& r_rhs = *(p_linear_system->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS));
+    p_scheme->Build(r_lhs, r_rhs);
+
+    const double tol = 1.0e-12;
+    KRATOS_CHECK_EQUAL(r_lhs.size1(), 2);
+    KRATOS_CHECK_NEAR(r_lhs(0, 0), 7.0, tol);
+    KRATOS_CHECK_NEAR(r_lhs(0, 1), -1.0, tol);
+    KRATOS_CHECK_NEAR(r_lhs(1, 0), -1.0, tol);
+    KRATOS_CHECK_NEAR(r_lhs(1, 1), 7.0, tol);
+    std::vector<double> expected_rhs = {0.3875, -0.2125};
+    KRATOS_CHECK_VECTOR_NEAR(r_rhs, expected_rhs, tol);
+#else
+    true;
+#endif
+}
+
+KRATOS_TEST_CASE_IN_SUITE(BDFSchemePredictWithZeroAccelerationHistoryOrder1, KratosCoreFastSuite)
+{
+#ifdef KRATOS_USE_FUTURE
+    // Set up the test model part
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+    SetUpDynamicTestModelPart1D(r_test_model_part);
+
+    // Set the previous step values from which the current step will be extrapolated
+    // Note that the acceleration history is left to zero
+    Node& r_node_1 = r_test_model_part.GetNode(1);
+    Node& r_node_2 = r_test_model_part.GetNode(2);
+    r_node_1.FastGetSolutionStepValue(DISPLACEMENT, 1)[0] = 0.1;
+    r_node_1.FastGetSolutionStepValue(VELOCITY, 1)[0] = 0.3;
+    r_node_2.FastGetSolutionStepValue(DISPLACEMENT, 1)[0] = 0.2;
+    r_node_2.FastGetSolutionStepValue(VELOCITY, 1)[0] = 0.4;
+
+    Parameters scheme_settings = Parameters(R"({
+        "integration_order" : 1,
+        "echo_level" : 0
+    })");
+    using SchemeType = Future::BDFScheme<Future::SerialLinearAlgebraTraits>;
+    auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
+
+    Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
+    p_scheme->Initialize(strategy_data_container);
+    p_scheme->InitializeSolutionStep(strategy_data_container);
+    p_scheme->Predict(strategy_data_container);
+
+    // Build the system
+    const auto p_linear_system = strategy_data_container.pGetLinearSystem();
+    auto& r_lhs = *(p_linear_system->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS));
+    auto& r_rhs = *(p_linear_system->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS));
+    p_scheme->Build(r_lhs, r_rhs);
+
+    // With a zero acceleration history the quadratic prediction reduces to u0 = u1 + dt*v1
+    // u0 = [0.25, 0.4], v0 = [0.3, 0.4]
+    // LHS = K + c0^2*M + c0*D = [[7, -1], [-1, 7]]
+    // RHS = (f - K*u0) - D*v0 = [0.75, 0.25]
+    const double tol = 1.0e-12;
+    KRATOS_CHECK_NEAR(r_node_1.FastGetSolutionStepValue(DISPLACEMENT_X), 0.25, tol);
+    KRATOS_CHECK_NEAR(r_node_2.FastGetSolutionStepValue(DISPLACEMENT_X), 0.4, tol);
+    KRATOS_CHECK_NEAR(r_node_1.FastGetSolutionStepValue(VELOCITY_X), 0.3, tol);
+    KRATOS_CHECK_NEAR(r_node_2.FastGetSolutionStepValue(VELOCITY_X), 0.4, tol);
+
+    KRATOS_CHECK_EQUAL(r_lhs.size1(), 2);
+    KRATOS_CHECK_NEAR(r_lhs(0, 0), 7.0, tol);
+    KRATOS_CHECK_NEAR(r_lhs(0, 1), -1.0, tol);
+    KRATOS_CHECK_NEAR(r_lhs(1, 0), -1.0, tol);
+    KRATOS_CHECK_NEAR(r_lhs(1, 1), 7.0, tol);
+    std::vector<double> expected_rhs = {0.75, 0.25};
     KRATOS_CHECK_VECTOR_NEAR(r_rhs, expected_rhs, tol);
 #else
     true;

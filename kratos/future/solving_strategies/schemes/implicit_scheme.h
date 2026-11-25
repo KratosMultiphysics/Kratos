@@ -224,12 +224,26 @@ public:
 
     /**
      * @brief Performing the prediction of the solution.
-     * @warning Must be defined in derived classes
+     * @details Prepares the linear systems and the master-slave constraints, then delegates the
+     * scheme-specific prediction logic to the derived classes through PredictImpl.
      * @param rImplicitStrategyData Auxiliary container with the linear system arrays
      */
     virtual void Predict(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData)
     {
-        KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Predict\' method. Call derived class one." << std::endl;
+        KRATOS_TRY
+
+        // Prepare the linear systems and master-slave constraints
+        this->PrepareLinearSystemAndConstraints(rImplicitStrategyData);
+
+        // Perform the scheme-specific prediction
+        this->PredictImpl(rImplicitStrategyData);
+
+        // If the prediction involves updating the mesh (i.e., modifying DISPLACEMENT), call the MoveMesh() method
+        if (this->GetMoveMesh()) {
+            this->MoveMesh();
+        }
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -1065,23 +1079,23 @@ public:
         DofsArrayType& rEffectiveDofSet)
     {
         if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
-            // Create a temporary std::unordered_set to make the search efficient
-            std::unordered_set<typename DofType::Pointer> aux_dof_set(rDofSet.GetContainer().begin(), rDofSet.GetContainer().end());
+            // // Create a temporary std::unordered_set to make the search efficient
+            // std::unordered_set<typename DofType::Pointer> aux_dof_set(rDofSet.GetContainer().begin(), rDofSet.GetContainer().end());
 
-            // Find the constraints only DOFs by comparing the standard DOF set to the effective one
-            // Those nodes appearing in the effective DOFs set but not in the standard one are constraints only DOFs
-            std::vector<typename DofType::Pointer> constr_only_dofs;
-            constr_only_dofs.reserve(rEffectiveDofSet.size());
-            for (unsigned int i = 0; i < rEffectiveDofSet.size(); ++i) {
-                auto p_eff_dof = rEffectiveDofSet.ptr_begin() + i;
-                if (aux_dof_set.find(*p_eff_dof) == aux_dof_set.end()) {
-                    constr_only_dofs.push_back(*p_eff_dof);
-                }
-            }
-
+            // // Find the constraints only DOFs by comparing the standard DOF set to the effective one
+            // // Those nodes appearing in the effective DOFs set but not in the standard one are constraints only DOFs
+            // std::vector<typename DofType::Pointer> constr_only_dofs;
+            // constr_only_dofs.reserve(rEffectiveDofSet.size());
+            // for (unsigned int i = 0; i < rEffectiveDofSet.size(); ++i) {
+            //     auto p_eff_dof = rEffectiveDofSet.ptr_begin() + i;
+            //     if (aux_dof_set.find(*p_eff_dof) == aux_dof_set.end()) {
+            //         constr_only_dofs.push_back(*p_eff_dof);
+            //     }
+            // }
+            
             // Update the constraints only DOFs with the effective solution increment values
-            IndexPartition<IndexType>(constr_only_dofs.size()).for_each([&](IndexType Index){
-                auto p_constr_only_dof = constr_only_dofs[Index];
+            IndexPartition<IndexType>(mConstraintsOnlyDofs.size()).for_each([&](IndexType Index){
+                auto p_constr_only_dof = mConstraintsOnlyDofs[Index];
                 if (p_constr_only_dof->IsFree()) {
                     p_constr_only_dof->GetSolutionStepValue() += rEffectiveDx[p_constr_only_dof->EffectiveEquationId()];
                 }
@@ -1308,6 +1322,8 @@ protected:
 
     bool mEffectiveLinearSystemIsInitialized = false;  /// Flag to indicate if the effective linear system has been initialized
 
+    std::vector<typename DofType::Pointer> mConstraintsOnlyDofs; // Create a vector to store the constraints only DOFs (i.e., those that are not associated to elements/conditions)
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -1315,6 +1331,92 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief Scheme-specific prediction logic.
+     * @details Derived schemes must implement this method. The generic linear-system setup and
+     * master-slave constraint preparation are handled by Predict through PrepareLinearSystemAndConstraints.
+     * @param rImplicitStrategyData Auxiliary container with the linear system arrays
+     */
+    virtual void PredictImpl(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
+    {
+        KRATOS_ERROR << "'ImplicitScheme' does not implement 'PredictImpl'. Call a derived class one." << std::endl;
+    }
+
+    /**
+     * @brief Auxiliary function to prepare the linear system and constraints for the prediction
+     * @details This performs only the reusable setup operations shared by the schemes:
+     * 1) Initialize the primary linear system if needed
+     * 2) Initialize the effective linear system if needed
+     * 3) Build the master-slave constraints if any exist
+     * The scheme-specific prediction logic remains in the derived classes.
+     * @param rImplicitStrategyData Auxiliary container with the linear system arrays
+     * @return Whether master-slave constraints exist
+     */
+    bool PrepareLinearSystemAndConstraints(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
+    {
+        KRATOS_TRY
+
+        if (this->GetReformDofsAtEachStep() || !this->mLinearSystemIsInitialized) {
+            this->InitializeLinearSystem(rImplicitStrategyData);
+        }
+
+        if (this->GetReformEffectiveDofsAtEachStep() || !this->mEffectiveLinearSystemIsInitialized) {
+            this->InitializeEffectiveLinearSystem(rImplicitStrategyData);
+        }
+
+        const auto& r_model_part = this->GetModelPart();
+        const auto& r_comm = r_model_part.GetCommunicator().GetDataCommunicator();
+        const unsigned int n_constraints_loc = r_model_part.MasterSlaveConstraints().size();
+        const unsigned int n_constraints_glob = r_comm.SumAll(n_constraints_loc);
+
+        if (n_constraints_glob != 0) {
+            this->BuildMasterSlaveConstraints(rImplicitStrategyData);
+        }
+
+        return n_constraints_glob != 0;
+
+        KRATOS_CATCH("")
+    }
+
+    // /**
+    //  * @brief Applies the master-slave constraints to the current solution step
+    //  * @details It calculates the complete solution vector x = T*y + q from the effective DOFs
+    //  * and writes the resulting values back to the nodal DOFs. The constraints arrays may be
+    //  * unallocated for a local model part without constraints, so the method checks them before
+    //  * applying the constraints.
+    //  * @param rImplicitStrategyData Auxiliary container with the linear system arrays
+    //  * @return Whether the constraints were applied
+    //  */
+    // bool ApplyConstraintsToSolutionStep(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData)
+    // {
+    //     KRATOS_TRY
+
+    //     const auto& r_model_part = this->GetModelPart();
+    //     if (r_model_part.MasterSlaveConstraints().size() == 0) {
+    //         return false;
+    //     }
+
+    //     auto& r_dof_set = *(rImplicitStrategyData.pGetDofSet());
+    //     auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
+    //     auto p_constraints_T = rImplicitStrategyData.pGetConstraintsT();
+    //     auto p_constraints_Q = rImplicitStrategyData.pGetConstraintsQ();
+
+    //     if (p_constraints_T == nullptr || p_constraints_Q == nullptr) {
+    //         return false;
+    //     }
+
+    //     VectorType x(r_dof_set.size());
+    //     (this->GetBuilder()).CalculateSolutionVector(r_eff_dof_set, *p_constraints_T, *p_constraints_Q, x);
+
+    //     block_for_each(r_dof_set, [&x](DofType& rDof){
+    //         rDof.GetSolutionStepValue() = x[rDof.EquationId()];
+    //     });
+
+    //     return true;
+
+    //     KRATOS_CATCH("")
+    // }
 
     /**
      * @brief Auxiliary function to set up the implicit linear system of equations
@@ -1375,6 +1477,20 @@ protected:
         DofArrayUtilities::SetUpEffectiveDofArray(*mpModelPart, *p_dof_set, *p_eff_dof_set, mEchoLevel); // Call the external utility to set up the effective DOFs array
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished effective DOFs array set up." << std::endl;
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Set up effective DOFs time: " << setup_eff_dofs_time << std::endl;
+
+        // Create a temporary std::unordered_set to make the search efficient
+        std::unordered_set<typename DofType::Pointer> aux_dof_set((*p_dof_set).GetContainer().begin(), (*p_dof_set).GetContainer().end());
+
+        // Find the constraints only DOFs by comparing the standard DOF set to the effective one
+        // Those nodes appearing in the effective DOFs set but not in the standard one are constraints only DOFs
+        mConstraintsOnlyDofs.clear();
+        mConstraintsOnlyDofs.reserve((*p_eff_dof_set).size());
+        for (unsigned int i = 0; i < (*p_eff_dof_set).size(); ++i) {
+            auto p_eff_dof = (*p_eff_dof_set).ptr_begin() + i;
+            if (aux_dof_set.find(*p_eff_dof) == aux_dof_set.end()) {
+                mConstraintsOnlyDofs.push_back(*p_eff_dof);
+            }
+        }
 
         // Set up the effective equation ids
         BuiltinTimer setup_eff_system_ids_time;

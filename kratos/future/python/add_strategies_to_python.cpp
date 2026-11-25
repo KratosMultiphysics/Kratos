@@ -61,6 +61,9 @@ void AddStrategiesToPython(py::module& m)
     ;
 
     using BuilderType = Future::Builder<Future::SerialLinearAlgebraTraits>;
+    using VectorType = typename BuilderType::VectorType;
+    using MatrixType = typename BuilderType::MatrixType;
+    using DofsArrayType = typename BuilderType::DofsArrayType;
     py::class_<BuilderType, typename BuilderType::Pointer>(m, "Builder")
         .def(py::init<ModelPart &, Parameters>())
         .def("AllocateLinearSystem", py::overload_cast<ImplicitStrategyDataType&>(&BuilderType::AllocateLinearSystem))
@@ -72,7 +75,8 @@ void AddStrategiesToPython(py::module& m)
         .def("SetUpSparseMatrixGraph", &BuilderType::SetUpSparseMatrixGraph)
         .def("SetUpMasterSlaveConstraintsGraph", &BuilderType::SetUpMasterSlaveConstraintsGraph)
         .def("ApplyLinearSystemConstraints", &BuilderType::ApplyLinearSystemConstraints)
-        .def("CalculateSolutionVector", &BuilderType::CalculateSolutionVector)
+        .def("CalculateSolutionVector", py::overload_cast<const VectorType&, const MatrixType&, const VectorType&, VectorType&>(&BuilderType::CalculateSolutionVector, py::const_))
+        .def("CalculateSolutionVector", py::overload_cast<const DofsArrayType&, const MatrixType&, const VectorType&, VectorType&>(&BuilderType::CalculateSolutionVector, py::const_))
         .def("Clear", &BuilderType::Clear)
         .def("GetModelPart", [&](const BuilderType &rThis) -> const ModelPart& { return rThis.GetModelPart(); }, py::return_value_policy::reference_internal)
         .def("GetEchoLevel", &BuilderType::GetEchoLevel)
@@ -81,8 +85,8 @@ void AddStrategiesToPython(py::module& m)
 
     using BlockBuilderType = Future::BlockBuilder<Future::SerialLinearAlgebraTraits>;
     py::class_<BlockBuilderType, typename BlockBuilderType::Pointer>(m, "BlockBuilder")
-    .def(py::init<ModelPart &, Parameters>())
-    ;
+        .def(py::init<ModelPart &, Parameters>())
+        ;
 
     using EliminationBuilderType = Future::EliminationBuilder<Future::SerialLinearAlgebraTraits>;
     py::class_<EliminationBuilderType, typename EliminationBuilderType::Pointer>(m, "EliminationBuilder")

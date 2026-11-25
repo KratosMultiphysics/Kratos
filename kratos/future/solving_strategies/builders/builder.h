@@ -316,6 +316,41 @@ public:
 
     /**
      * @brief Set the solution values vector
+     * This method calculates the complete solution vector (x) from the effective solution vector
+     * For doing so the effective solution values are retrieved to then apply the constraints
+     * by doing x = T * y + q, being T and q the constraints relation matrix and constant
+     * vector respectively and y the auxliary vector containing the effective solution values
+     * Note that the vector y already includes the Dirichlet constraints as values are
+     * retrieved from the DOF (i.e., nodal) database.
+     * @param rEffectiveSolutionVector The effective solution vector
+     * @param rConstraintsRelationMatrix The constraints relation matrix
+     * @param rConstraintsConstantVector The constraints constant vector
+     * @param rSolutionVector The solution vector
+     */
+    void CalculateSolutionVector(
+        const VectorType& rEffectiveSolutionVector,
+        const MatrixType& rConstraintsRelationMatrix,
+        const VectorType& rConstraintsConstantVector,
+        VectorType& rSolutionVector) const
+    {
+        // Check solution vector size
+        const std::size_t aux_size = rConstraintsConstantVector.size();
+        if (rSolutionVector.size() != aux_size) {
+            rSolutionVector = VectorType(aux_size);
+        }
+
+        // Initialize solution vector with the constaints constant vector values
+        // Note that we deliberately avoid using the copy constructor as we dont want to overwrite the constraints constant vector
+        IndexPartition<IndexType>(rSolutionVector.size()).for_each([&](IndexType i){
+            rSolutionVector[i] = rConstraintsConstantVector[i];
+        });
+
+        // Compute the solution vector as x = T * y + q
+        rConstraintsRelationMatrix.SpMV(1.0, rEffectiveSolutionVector, 1.0, rSolutionVector); // Note that this performs the operation x = A*y + q
+    }
+
+    /**
+     * @brief Set the solution values vector
      * This method calculates the complete solution vector (x) from the effective DOF set
      * For doing so the effective DOF values are retrieved to then apply the constraints
      * by doing x = T * y + q, being T and q the constraints relation matrix and constant
@@ -344,20 +379,8 @@ public:
             y[p_dof->EffectiveEquationId()] = p_dof->GetSolutionStepValue();
         });
 
-        // Check solution vector size
-        const std::size_t aux_size = rConstraintsConstantVector.size();
-        if (rSolutionVector.size() != aux_size) {
-            rSolutionVector = VectorType(aux_size);
-        }
-
-        // Initialize solution vector with the constaints constant vector values
-        // Note that we deliberately avoid using the copy constructor as we dont want to overwrite the constraints constant vector
-        IndexPartition<IndexType>(rSolutionVector.size()).for_each([&](IndexType i){
-            rSolutionVector[i] = rConstraintsConstantVector[i];
-        });
-
-        // Compute the solution vector as x = T * y + q
-        rConstraintsRelationMatrix.SpMV(1.0, y, 1.0, rSolutionVector); // Note that this performs the operation x = A*y + q
+        // Calculate the complete solution vector from the effective one
+        this->CalculateSolutionVector(y, rConstraintsRelationMatrix, rConstraintsConstantVector, rSolutionVector);
     }
 
     /**

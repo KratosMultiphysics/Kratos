@@ -173,50 +173,60 @@ public:
         return Kratos::make_shared<StaticScheme<TLinearAlgebra>>(*this) ;
     }
 
-    void Predict(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
+    //TODO: I think that this implementation can be empty, as the CloneTimeStep already does the job. For the moment, leave it here as a placeholder for future dynamic implementations
+    void PredictImpl(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
     {
         KRATOS_TRY
 
-        // If needed (e.g., connectivity changes), reset the DOF sets before applying the constraints and the prediction
-        if (this->GetReformDofsAtEachStep() || !this->mLinearSystemIsInitialized) {
-            this->InitializeLinearSystem(rImplicitStrategyData);
-        }
-
-        // If needed (e.g., constraints or BCs in elimination build change), reset the effective DOF sets before applying the constraints and the prediction
-        if (this->GetReformEffectiveDofsAtEachStep() || !this->mEffectiveLinearSystemIsInitialized) {
-            this->InitializeEffectiveLinearSystem(rImplicitStrategyData);
-        }
-
-        // Applying constraints if needed
         const auto& r_model_part = this->GetModelPart();
         const auto& r_comm = r_model_part.GetCommunicator().GetDataCommunicator();
-        auto& r_constraints = r_model_part.MasterSlaveConstraints();
-        const unsigned int n_constraints_loc = r_constraints.size();
+        const unsigned int n_constraints_loc = r_model_part.MasterSlaveConstraints().size();
         const unsigned int n_constraints_glob = r_comm.SumAll(n_constraints_loc);
 
+        auto& r_dof_set = *(rImplicitStrategyData.pGetDofSet());
+        auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
+
         if (n_constraints_glob != 0) {
-            // Assemble constraints constant vector and apply it to the DOF set
-            // Note that the constraints constant vector is applied only once in here as we then solve for the solution increment
+            // Check that constraints have been built
             auto p_constraints_T = rImplicitStrategyData.pGetConstraintsT();
             auto p_constraints_Q = rImplicitStrategyData.pGetConstraintsQ();
-            this->BuildMasterSlaveConstraints(rImplicitStrategyData); //FIXME: I think this call must happen at the strategy level and in here we check if the constraints have been already built
+            KRATOS_ERROR_IF(p_constraints_T == nullptr || p_constraints_Q == nullptr) << "The master-slave constraints have not been built yet." << std::endl;
 
-            // Fill the current values vector considering the master-slave constraints
-            // Note that this already accounts for the Dirichlet BCs affecting the effective DOF set
-            auto& r_dof_set = *(rImplicitStrategyData.pGetDofSet());
-            auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
-            VectorType x(r_dof_set.size());
-            (this->GetBuilder()).CalculateSolutionVector(r_eff_dof_set, *p_constraints_T, *p_constraints_Q, x);
-
-            // Update DOFs with solution values
-            block_for_each(r_dof_set, [&x](DofType& rDof){
-                rDof.GetSolutionStepValue() = x[rDof.EquationId()];
+            // Set the prediction effective vector from the effective DOFs values
+            VectorType y_p(r_eff_dof_set.size());
+            block_for_each(r_eff_dof_set, [&y_p](DofType& rEffDof){
+                if (rEffDof.IsFree()) {
+                    y_p[rEffDof.EffectiveEquationId()] = rEffDof.GetSolutionStepValue(1); //  If free, get the previous step value
+                } else {
+                    y_p[rEffDof.EffectiveEquationId()] = rEffDof.GetSolutionStepValue(); // If fixed, get the BC value
+                }
             });
 
-            // If the mesh is to be updated, call the MoveMesh() method
-            if (this->GetMoveMesh()) {
-                this->MoveMesh();
-            }
+            // Apply the prediction to the constraints only DOFs
+            IndexPartition<IndexType>(this->mConstraintsOnlyDofs.size()).for_each([&](IndexType Index){
+                auto p_constr_only_dof = this->mConstraintsOnlyDofs[Index];
+                if (p_constr_only_dof->IsFree()) {
+                    p_constr_only_dof->GetSolutionStepValue() = y_p[p_constr_only_dof->EffectiveEquationId()];
+                }
+            });
+
+            // Apply the master-slave constraints to the prediction effective vector
+            VectorType x_p(r_dof_set.size());
+            (this->GetBuilder()).CalculateSolutionVector(y_p, *p_constraints_T, *p_constraints_Q, x_p); // x_p = T*y_p + q
+
+            // Update the nodal DOFs with the prediction
+            block_for_each(r_dof_set, [&x_p](DofType& rDof){
+                if (rDof.IsFree()) {
+                    rDof.GetSolutionStepValue() = x_p[rDof.EquationId()];
+                }
+            });
+        } else {
+            // No constraints, just copy the effective solution values to the nodal DOFs
+            block_for_each(r_eff_dof_set, [](DofType& rEffDof){
+                if (rEffDof.IsFree()) {
+                    rEffDof.GetSolutionStepValue() = rEffDof.GetSolutionStepValue(1);
+                }
+            });
         }
 
         KRATOS_CATCH("")

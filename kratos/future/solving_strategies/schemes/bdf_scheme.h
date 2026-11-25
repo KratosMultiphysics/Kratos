@@ -14,10 +14,13 @@
 
 // System includes
 #include <array>
+#include <vector>
 
 // External includes
 
 // Project includes
+#include "includes/checks.h"
+#include "includes/process_info.h"
 #include "includes/variables.h"
 #include "utilities/time_discretization.h"
 
@@ -159,6 +162,9 @@ public:
         , mOrder(rOther.mOrder)
         , mBDFCoefficients(rOther.mBDFCoefficients)
         , mpBDF(Kratos::make_unique<TimeDiscretization::BDF>(rOther.mOrder))
+        , mSolutionVariables(rOther.mSolutionVariables)
+        , mFirstDerivativeVariables(rOther.mFirstDerivativeVariables)
+        , mSecondDerivativeVariables(rOther.mSecondDerivativeVariables)
     {
     }
 
@@ -188,7 +194,8 @@ public:
     /**
      * @brief Function called once at the beginning of each solution step
      * @details In addition to the base class operations (initializing the entities), it computes and stores the
-     * BDF coefficients for the current time step.
+     * BDF coefficients for the current time step. It also fixes the solution DOFs whose first or second time
+     * derivative DOF is fixed.
      * @param rImplicitStrategyData Auxiliary container with the linear system arrays
      */
     void InitializeSolutionStep(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
@@ -222,51 +229,19 @@ public:
         // Update the internal copy of the BDF coefficients
         mBDFCoefficients = r_process_info[BDF_COEFFICIENTS];
 
-        KRATOS_CATCH("")
-    }
+        // If a first or second time derivative DOF is fixed, the corresponding solution DOF is fixed too
+        block_for_each(r_model_part.Nodes(), [this](Node& rNode){
+            for (std::size_t i_var = 0; i_var < mSolutionVariables.size(); ++i_var) {
+                const auto& r_solution_variable = *mSolutionVariables[i_var];
+                const auto& r_first_derivative_variable = *mFirstDerivativeVariables[i_var];
+                const auto& r_second_derivative_variable = *mSecondDerivativeVariables[i_var];
 
-    /**
-     * @brief Performing the prediction of the solution
-     * @details On top of the generic implicit-scheme prediction (carried out by the base class, i.e., initializing
-     * the linear system and applying the constraints), it performs the BDF time extrapolation:
-     *  - The displacement (primary variable) is extrapolated to the current step with a quadratic formula.
-     *  - The velocity and acceleration are then computed from the displacement history with the BDF formula.
-     * @param rImplicitStrategyData Auxiliary container with the linear system arrays
-     */
-    void Predict(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
-    {
-        KRATOS_TRY
-
-        // Generic implicit-scheme prediction (system setup and constraints)
-        BaseType::Predict(rImplicitStrategyData); //FIXME: Base class is doing nothing, so we need to do the stuff that we do in the static scheme here. Possible we can implement a function in base class to do the constraints stuff.
-
-        // Get the model part process info
-        const auto& r_model_part = this->GetModelPart();
-        const auto& r_process_info = r_model_part.GetProcessInfo();
-        const double delta_time = r_process_info[DELTA_TIME];
-
-        // Auxiliary arrays with the displacement, velocity and acceleration component variables
-        const std::array<const Variable<double>*, 3> displacement_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
-
-        // Extrapolate the solution to the current step and update the time derivatives (nodally for efficiency)
-        block_for_each(r_model_part.Nodes(), [this, delta_time, &displacement_components](Node& rNode){
-            // Get the current (to be extrapolated) and previous step values
-            array_1d<double, 3>& un0 = rNode.FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double, 3>& un1 = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-            const array_1d<double, 3>& dotun1 = rNode.FastGetSolutionStepValue(VELOCITY, 1);
-            const array_1d<double, 3>& dot2un1 = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
-
-            // Extrapolate the free displacement DOFs with a quadratic formula: u0 = u1 + dt*v1 + 0.5*dt^2*a1
-            for (std::size_t i_dim = 0; i_dim < 3; ++i_dim) {
-                const auto& r_component_variable = *displacement_components[i_dim];
-                if (rNode.HasDofFor(r_component_variable) && !rNode.GetDof(r_component_variable).IsFixed()) {
-                    un0[i_dim] = un1[i_dim] + delta_time * dotun1[i_dim] + 0.5 * delta_time * delta_time * dot2un1[i_dim];
+                if (rNode.HasDofFor(r_second_derivative_variable) && rNode.IsFixed(r_second_derivative_variable)) {
+                    rNode.Fix(r_solution_variable);
+                } else if (rNode.HasDofFor(r_first_derivative_variable) && rNode.IsFixed(r_first_derivative_variable)) {
+                    rNode.Fix(r_solution_variable);
                 }
             }
-
-            // Update the time derivatives from the displacement history with the BDF formula
-            this->UpdateFirstDerivative(rNode);
-            this->UpdateSecondDerivative(rNode);
         });
 
         KRATOS_CATCH("")
@@ -473,6 +448,33 @@ public:
             << "The buffer size should be greater than " << (mOrder + 1) << ". Current size is "
             << this->GetModelPart().GetBufferSize() << std::endl;
 
+        // Check that the configured variable lists are consistent
+        KRATOS_ERROR_IF(mSolutionVariables.empty())
+            << "The BDF scheme requires at least one solution variable." << std::endl;
+        KRATOS_ERROR_IF(mFirstDerivativeVariables.empty())
+            << "The BDF scheme requires at least one first derivative variable." << std::endl;
+        KRATOS_ERROR_IF(mSecondDerivativeVariables.empty())
+            << "The BDF scheme requires at least one second derivative variable." << std::endl;
+        KRATOS_ERROR_IF(mSolutionVariables.size() != mFirstDerivativeVariables.size())
+            << "The number of solution variables and first derivative variables must be equal." << std::endl;
+        KRATOS_ERROR_IF(mSolutionVariables.size() != mSecondDerivativeVariables.size())
+            << "The number of solution variables and second derivative variables must be equal." << std::endl;
+
+        // Check that the configured variables are allocated in the nodal solution step data
+        // and that the solution variables have a DOF in every node
+        for (const auto& r_node : this->GetModelPart().Nodes()) {
+            for (const auto p_variable : mSolutionVariables) {
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*p_variable), r_node);
+                KRATOS_CHECK_DOF_IN_NODE((*p_variable), r_node);
+            }
+            for (const auto p_variable : mFirstDerivativeVariables) {
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*p_variable), r_node);
+            }
+            for (const auto p_variable : mSecondDerivativeVariables) {
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA((*p_variable), r_node);
+            }
+        }
+
         return check;
 
         KRATOS_CATCH("");
@@ -487,7 +489,8 @@ public:
         // Current class default parameters
         Parameters default_parameters = Parameters(R"({
             "name" : "bdf_scheme",
-            "integration_order" : 2
+            "integration_order" : 2,
+            "solution_variables" : ["DISPLACEMENT"]
         })");
 
         // Add base class default parameters
@@ -592,6 +595,9 @@ protected:
         // Set up the BDF coefficients utility and reserve the coefficients
         mpBDF = Kratos::make_unique<TimeDiscretization::BDF>(mOrder);
         mBDFCoefficients = Vector(mOrder + 1, 0.0);
+
+        // Create the solution and derivative variable lists from the settings
+        this->CreateVariablesList(ThisParameters);
     }
 
     ///@}
@@ -616,19 +622,117 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::size_t mOrder = 1; /// The BDF integration order
+    std::size_t mOrder = 2; /// The BDF integration order
 
     BdfCoefficientsType mBDFCoefficients; /// The BDF coefficients of the current time step
 
     TimeDiscretization::BDF::UniquePointer mpBDF = nullptr; /// Utility to compute the BDF coefficients
+
+    std::vector<const Variable<double>*> mSolutionVariables; /// The solution variables
+
+    std::vector<const Variable<double>*> mFirstDerivativeVariables; /// The first derivative variables
+
+    std::vector<const Variable<double>*> mSecondDerivativeVariables; /// The second derivative variables
 
     ///@}
     ///@name Private Operators
     ///@{
 
     ///@}
-    ///@name Private Operations
-    ///@{
+    /**
+     * @brief Creates the lists of solution and derivative variables from the scheme settings
+     * @param ThisParameters Parameters containing the variable names
+     */
+    void CreateVariablesList(const Parameters ThisParameters)
+    {
+        KRATOS_TRY
+
+        mSolutionVariables.clear();
+        mFirstDerivativeVariables.clear();
+        mSecondDerivativeVariables.clear();
+
+        // Get the domain size from the model part process info
+        const auto& r_process_info = this->GetModelPart().GetProcessInfo();
+        KRATOS_ERROR_IF_NOT(r_process_info.Has(DOMAIN_SIZE))
+            << "DOMAIN_SIZE is not set in the ProcessInfo. The BDF scheme cannot expand the vector variable components." << std::endl;
+        const std::size_t domain_size = static_cast<std::size_t>(r_process_info.GetValue(DOMAIN_SIZE));
+        KRATOS_ERROR_IF_NOT(domain_size == 2 || domain_size == 3)
+            << "DOMAIN_SIZE must be 2 or 3. Current value: " << domain_size << std::endl;
+
+        // Read the solution variable names from the settings
+        const auto solution_variable_names = ThisParameters["solution_variables"].GetStringArray();
+
+        // Expand each variable name into its components and add the corresponding time derivatives
+        for (const auto& r_var_name : solution_variable_names) {
+            if (!r_var_name.empty()) {
+                AddVariableWithDerivatives(
+                    r_var_name,
+                    domain_size);
+            }
+        }
+
+        // Validate the variable lists
+        KRATOS_ERROR_IF(mSolutionVariables.empty())
+            << "The BDF scheme requires at least one solution variable." << std::endl;
+        KRATOS_ERROR_IF(mFirstDerivativeVariables.empty())
+            << "The BDF scheme requires at least one first derivative variable." << std::endl;
+        KRATOS_ERROR_IF(mSecondDerivativeVariables.empty())
+            << "The BDF scheme requires at least one second derivative variable." << std::endl;
+        KRATOS_ERROR_IF(mSolutionVariables.size() != mFirstDerivativeVariables.size())
+            << "The number of solution variables and first derivative variables must be equal. "
+            << "Solution variables: " << mSolutionVariables.size()
+            << ", first derivative variables: " << mFirstDerivativeVariables.size() << std::endl;
+        KRATOS_ERROR_IF(mSolutionVariables.size() != mSecondDerivativeVariables.size())
+            << "The number of solution variables and second derivative variables must be equal. "
+            << "Solution variables: " << mSolutionVariables.size()
+            << ", second derivative variables: " << mSecondDerivativeVariables.size() << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Adds the component variables of a scalar or vector variable to the lists
+     * @details For each component the first and second time derivatives are also added to
+     * the corresponding lists. Note that the solution variables are assumed to be second
+     * order, that is, both time derivatives must be defined.
+     * @param rName Name of the variable to expand
+     * @param DomainSize Number of components to use
+     */
+    void AddVariableWithDerivatives(
+        const std::string& rName,
+        const std::size_t DomainSize)
+    {
+        // A scalar variable (including a component such as DISPLACEMENT_X)
+        if (KratosComponents<Variable<double>>::Has(rName)) {
+            AddScalarVariableWithDerivatives(KratosComponents<Variable<double>>::Get(rName));
+            return;
+        }
+
+        // A vector variable whose components are expanded according to the domain size
+        if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rName)) {
+            const std::array<std::string, 3> component_suffixes = {"_X", "_Y", "_Z"};
+            for (std::size_t i_component = 0; i_component < DomainSize; ++i_component) {
+                const std::string component_name = rName + component_suffixes[i_component];
+                AddScalarVariableWithDerivatives(KratosComponents<Variable<double>>::Get(component_name));
+            }
+            return;
+        }
+
+        KRATOS_ERROR << "The variable " << rName << " is not registered." << std::endl;
+    }
+
+    /**
+     * @brief Adds a variable and its first and second time derivatives to the lists
+     * @param rVariable The solution variable
+     */
+    void AddScalarVariableWithDerivatives(const Variable<double>& rVariable)
+    {
+        const auto& r_first_derivative_var = rVariable.GetTimeDerivative();
+        const auto& r_second_derivative_var = r_first_derivative_var.GetTimeDerivative();
+        mSolutionVariables.push_back(&rVariable);
+        mFirstDerivativeVariables.push_back(&r_first_derivative_var);
+        mSecondDerivativeVariables.push_back(&r_second_derivative_var);
+    }
 
     /**
      * @brief Calculates the local LHS and RHS contributions of an entity including the dynamic (BDF) terms
@@ -737,6 +841,122 @@ private:
     }
 
     /**
+     * @brief Performing the prediction of the solution
+     * @details The generic implicit-scheme setup (initializing the linear systems and building the
+     * master-slave constraints) is carried out by the base Predict through
+     * PrepareLinearSystemAndConstraints. This method performs the scheme-specific BDF time
+     * extrapolation:
+     *  - The solution variables are extrapolated to the current step with a quadratic formula.
+     *  - The master-slave constraints are then applied to the extrapolated solution.
+     *  - Finally, the velocity and acceleration are recomputed from the constrained solution history.
+     * @param rImplicitStrategyData Auxiliary container with the linear system arrays
+     */
+    void PredictImpl(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
+    {
+        KRATOS_TRY
+
+        // Get the model part and the current time step size
+        const auto& r_model_part = this->GetModelPart();
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+        const double delta_time = r_process_info[DELTA_TIME];
+
+        // Extrapolate the solution variables to the current step (nodally for efficiency)
+        // Note that the solution variables are assumed to be second order, so both the first and
+        // second derivative variables are always available for each solution variable
+        block_for_each(r_model_part.Nodes(), [this, delta_time](Node& rNode){
+            for (std::size_t i_var = 0; i_var < mSolutionVariables.size(); ++i_var) {
+                const auto& r_solution_variable = *mSolutionVariables[i_var];
+                const auto& r_first_derivative_variable = *mFirstDerivativeVariables[i_var];
+                const auto& r_second_derivative_variable = *mSecondDerivativeVariables[i_var];
+
+                double& u0 = rNode.FastGetSolutionStepValue(r_solution_variable);
+                double& v0 = rNode.FastGetSolutionStepValue(r_first_derivative_variable);
+
+                if (rNode.HasDofFor(r_second_derivative_variable) &&
+                    rNode.IsFixed(r_second_derivative_variable)) {
+                    // The acceleration is fixed: compute the velocity and the solution from the
+                    // fixed acceleration value using the BDF formula
+                    const double a0 = rNode.FastGetSolutionStepValue(r_second_derivative_variable);
+                    v0 = a0;
+                    for (std::size_t i_order = 1; i_order < mOrder + 1; ++i_order) {
+                        v0 -= mBDFCoefficients[i_order] *
+                              rNode.FastGetSolutionStepValue(r_first_derivative_variable, i_order);
+                    }
+                    v0 /= mBDFCoefficients[0];
+
+                    u0 = v0;
+                    for (std::size_t i_order = 1; i_order < mOrder + 1; ++i_order) {
+                        u0 -= mBDFCoefficients[i_order] *
+                              rNode.FastGetSolutionStepValue(r_solution_variable, i_order);
+                    }
+                    u0 /= mBDFCoefficients[0];
+                } else if (rNode.HasDofFor(r_first_derivative_variable) &&
+                           rNode.IsFixed(r_first_derivative_variable)) {
+                    // The velocity is fixed: compute the solution from the fixed velocity
+                    // value using the BDF formula
+                    u0 = v0;
+                    for (std::size_t i_order = 1; i_order < mOrder + 1; ++i_order) {
+                        u0 -= mBDFCoefficients[i_order] *
+                              rNode.FastGetSolutionStepValue(r_solution_variable, i_order);
+                    }
+                    u0 /= mBDFCoefficients[0];
+                } else if (!rNode.IsFixed(r_solution_variable)) {
+                    // Free DOF: quadratic extrapolation from the previous step values
+                    const double u1 = rNode.FastGetSolutionStepValue(r_solution_variable, 1);
+                    const double v1 = rNode.FastGetSolutionStepValue(r_first_derivative_variable, 1);
+                    const double a1 = rNode.FastGetSolutionStepValue(r_second_derivative_variable, 1);
+                    u0 = u1 + delta_time * v1 + 0.5 * delta_time * delta_time * a1;
+                }
+            }
+        });
+
+        // Apply the master-slave constraints to the prediction
+        const auto& r_comm = r_model_part.GetCommunicator().GetDataCommunicator();
+        const unsigned int n_constraints_loc = r_model_part.MasterSlaveConstraints().size();
+        const unsigned int n_constraints_glob = r_comm.SumAll(n_constraints_loc);
+
+        auto& r_dof_set = *(rImplicitStrategyData.pGetDofSet());
+        auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
+
+        if (n_constraints_glob != 0) {
+            // Check that constraints have been built
+            auto p_constraints_T = rImplicitStrategyData.pGetConstraintsT();
+            auto p_constraints_Q = rImplicitStrategyData.pGetConstraintsQ();
+            KRATOS_ERROR_IF(p_constraints_T == nullptr || p_constraints_Q == nullptr) << "The master-slave constraints have not been built yet." << std::endl;
+
+            // Set the prediction effective vector from the effective DOFs values
+            VectorType y_p(r_eff_dof_set.size());
+            block_for_each(r_eff_dof_set, [&y_p](DofType& rEffDof){
+                y_p[rEffDof.EffectiveEquationId()] = rEffDof.GetSolutionStepValue();
+            });
+
+            // Apply the prediction to the constraints only DOFs
+            IndexPartition<IndexType>(this->mConstraintsOnlyDofs.size()).for_each([&](IndexType Index){
+                auto p_constr_only_dof = this->mConstraintsOnlyDofs[Index];
+                if (p_constr_only_dof->IsFree()) {
+                    p_constr_only_dof->GetSolutionStepValue() = y_p[p_constr_only_dof->EffectiveEquationId()];
+                }
+            });
+
+            // Apply the master-slave constraints to the prediction effective vector
+            VectorType x_p(r_dof_set.size());
+            (this->GetBuilder()).CalculateSolutionVector(y_p, *p_constraints_T, *p_constraints_Q, x_p); // x_p = T*y_p + q
+
+            // Update the nodal DOFs with the prediction
+            block_for_each(r_dof_set, [&x_p](DofType& rDof){
+                if (rDof.IsFree()) {
+                    rDof.GetSolutionStepValue() = x_p[rDof.EquationId()];
+                }
+            });
+        }
+
+        // Update the time derivatives (velocity and acceleration) from the predicted solution
+        this->UpdateDerivatives();
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Updates the time derivatives (velocity and acceleration) of all the nodes
      * @details It recomputes the velocity and the acceleration from the (updated) displacement history with the BDF formula.
      */
@@ -744,35 +964,28 @@ private:
     {
         const auto& r_model_part = this->GetModelPart();
         block_for_each(r_model_part.Nodes(), [this](Node& rNode){
-            this->UpdateFirstDerivative(rNode);
-            this->UpdateSecondDerivative(rNode);
+
+            for (std::size_t i_var = 0; i_var < mSolutionVariables.size(); ++i_var) {
+                const auto& r_solution_variable = *mSolutionVariables[i_var];
+                const auto& r_first_derivative_variable = *mFirstDerivativeVariables[i_var];
+
+                // Update the first derivative (velocity)
+                double first_derivative = mBDFCoefficients[0] * rNode.FastGetSolutionStepValue(r_solution_variable);
+                for (std::size_t i_order = 1; i_order < mOrder + 1; ++i_order) {
+                    first_derivative += mBDFCoefficients[i_order] * rNode.FastGetSolutionStepValue(r_solution_variable, i_order);
+                }
+                rNode.FastGetSolutionStepValue(r_first_derivative_variable) = first_derivative;
+
+                // Update the second derivative (acceleration)
+                const auto& r_second_derivative_variable = *mSecondDerivativeVariables[i_var];
+
+                double second_derivative = mBDFCoefficients[0] * rNode.FastGetSolutionStepValue(r_first_derivative_variable);
+                for (std::size_t i_order = 1; i_order < mOrder + 1; ++i_order) {
+                    second_derivative += mBDFCoefficients[i_order] * rNode.FastGetSolutionStepValue(r_first_derivative_variable, i_order);
+                }
+                rNode.FastGetSolutionStepValue(r_second_derivative_variable) = second_derivative;
+            }
         });
-    }
-
-    /**
-     * @brief Updates the first time derivative (velocity) of a node with the BDF formula
-     * @param rNode The node to update
-     */
-    void UpdateFirstDerivative(Node& rNode)
-    {
-        array_1d<double, 3>& dotun0 = rNode.FastGetSolutionStepValue(VELOCITY);
-        noalias(dotun0) = mBDFCoefficients[0] * rNode.FastGetSolutionStepValue(DISPLACEMENT);
-        for (std::size_t i_order = 1; i_order < mOrder + 1; ++i_order) {
-            noalias(dotun0) += mBDFCoefficients[i_order] * rNode.FastGetSolutionStepValue(DISPLACEMENT, i_order);
-        }
-    }
-
-    /**
-     * @brief Updates the second time derivative (acceleration) of a node with the BDF formula
-     * @param rNode The node to update
-     */
-    void UpdateSecondDerivative(Node& rNode)
-    {
-        array_1d<double, 3>& dot2un0 = rNode.FastGetSolutionStepValue(ACCELERATION);
-        noalias(dot2un0) = mBDFCoefficients[0] * rNode.FastGetSolutionStepValue(VELOCITY);
-        for (std::size_t i_order = 1; i_order < mOrder + 1; ++i_order) {
-            noalias(dot2un0) += mBDFCoefficients[i_order] * rNode.FastGetSolutionStepValue(VELOCITY, i_order);
-        }
     }
 
     ///@}
