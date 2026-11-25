@@ -752,6 +752,16 @@ class TestRobustCG(UnitTest.TestCase):
         self.assertEqual(info, 0)
         np.testing.assert_array_equal(np.asarray(x), np.zeros(5))
 
+    def test_robust_cg_zero_rhs_does_not_alias_rhs(self):
+        # Regression: returning 'b' for a zero rhs aliased the caller's buffer (a pool slot
+        # that is released and re-acquired right after the solve). The result must be a fresh array.
+        A = self._make_spd(5, seed=2)
+        b = np.zeros(5)
+        x, info = self.cfd_utils.robust_cg(A, b, xp=self.xp, rtol=1e-8, atol=0.0, return_info_dict=True)
+        self.assertTrue(info["converged"])
+        self.assertFalse(np.shares_memory(np.asarray(x), b))
+        np.testing.assert_array_equal(np.asarray(x), np.zeros(5))
+
     def test_robust_cg_empty_system(self):
         A = self._make_spd(0, seed=3)
         b = np.zeros(0)

@@ -88,6 +88,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.cfl = self.max_cfl
         self.cfl_number_increase_factor = settings["time_stepping"]["cfl_number_increase_factor"].GetDouble()
         self.cfl_number_decrease_factor = settings["time_stepping"]["cfl_number_decrease_factor"].GetDouble()
+        # Maximum number of consecutive rejected attempts (step 1, step 2 or step 3) of a single
+        # substep before giving up. Each rejection reduces the CFL, so without a limit a persistently
+        # failing solution would shrink the time step indefinitely.
+        self.max_consecutive_rejections = 50
         self.max_fourier = settings["time_stepping"]["max_fourier_number"].GetDouble()
 
         self.time_scheme = settings["time_scheme"].GetString()
@@ -1078,6 +1082,14 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         return v
 
+    def _CheckRejectionLimit(self, n_rejections, where):
+        """Raise if the current substep has been rejected more than max_consecutive_rejections times in a row."""
+        if n_rejections > self.max_consecutive_rejections:
+            raise RuntimeError(
+                f"{self.__class__.__name__}: substep rejected {n_rejections} consecutive times ({where}). "
+                f"Current CFL: {self.cfl:.3e}. The solution does not recover by reducing the time step; aborting."
+            )
+
     def SolveSolutionStep(self):
 
         # Get boundary condition data
@@ -1116,6 +1128,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Perform substepping
         current_time = self.time - self.dt
+        n_rejections = 0 # consecutive rejected attempts of the current substep (reset on acceptance)
         while (self.time - current_time > 1.0e-12):
             # Check if current step is within the startup phase
             self.is_startup = current_time < self.startup_time
@@ -1212,6 +1225,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
                 # Prepare step 1 repetition
                 if repeat_step1:
+                    n_rejections += 1
+                    self._CheckRejectionLimit(n_rejections, "step 1")
                     KM.Logger.PrintInfo(self.__class__.__name__,f"Current CFL: {self.cfl:.3e}. Repeating step 1 with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
                     self.cfl *= self.cfl_number_decrease_factor # Calculate reduced CFL for step repetition
                     current_time = backup_current_time # Reset current time to that before step 1 to repeat it with the new CFL
@@ -1233,6 +1248,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 delta_p = p - pold if not self.first_order_splitting else p.copy()
             else:
                 KM.Logger.PrintWarning(self.__class__.__name__,f"Pressure solve failed to converge. Current CFL: {self.cfl:.3e}. Repeating full step with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
+                n_rejections += 1
+                self._CheckRejectionLimit(n_rejections, "step 2")
                 current_time = backup_current_time # reset current time to before step 3 to repeat it with the new CFL
                 self.cfl *= self.cfl_number_decrease_factor # reduce CFL and redo the step
                 continue
@@ -1262,9 +1279,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             # Perform the current substep solution update
             if repeat: # Solution is not valid, reset current status and skip update
                 KM.Logger.PrintInfo(self.__class__.__name__,f"Current CFL: {self.cfl:.3e}. Repeating substep with reduced CFL: {self.cfl * self.cfl_number_decrease_factor:.3e}.")
+                n_rejections += 1
+                self._CheckRejectionLimit(n_rejections, "step 3")
                 current_time = backup_current_time
                 self.cfl *= self.cfl_number_decrease_factor
             else: # Solution is valid, update the state for the next substep
+                n_rejections = 0
                 pold[:] = p
                 vold[:] = vnew
                 self.is_startup_old = self.is_startup
@@ -1516,6 +1536,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 KM.Logger.PrintWarning(self.__class__.__name__, f"CG failed to converge in {info['iterations']} iterations. Residual norm: {info['residual_norm']}. Reason: {info['reason']}.")
                 KM.Logger.PrintWarning("**** reconstructing graph of preconditioner and solving again with different settings and starting with a value of 0***")
                 KM.Logger.PrintWarning("******************************************************")
+                KM.Logger.PrintWarning(self.__class__.__name__, "Pressure matrix is being symmetrized, L <- (L + L^T)/2, for the fallback solve. This modifies the system used in this substep.")
                 self.L = (self.L + self.L.T)/2 #enforce the symmetry harder to see if there is anything wrong
                 #self.preconditioner = self.cfd_utils.ConstructPreconditioner(self.L)
                 self.preconditioner.update_matrix_values(self.L,lambda_estima_safety_factor=1.5, lambda_estimate_iterations=10)
@@ -1529,8 +1550,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 KM.Logger.PrintWarning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     
                 sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, M=precond,maxiter=self.pressure_max_iteration)
-                if status==0:
-                    info["converged"] = True #FIXME: all the rest of the content of info is rubbish...
+                # Original (kept for reference): trusted the solver status alone, and the rest of 'info' was not updated:
+                # if status==0:
+                #     info["converged"] = True #FIXME: all the rest of the content of info is rubbish...
+                # Now the solution is accepted only if its TRUE residual, on the matrix actually used
+                # (possibly symmetrized above), meets the same relative tolerance.
+                true_residual_norm = float(xp.linalg.norm(rhs - self.L @ sol))
+                info["residual_norm"] = true_residual_norm
+                if status == 0 and true_residual_norm <= self.pressure_tolerance * float(xp.linalg.norm(rhs)):
+                    info["converged"] = True
 
             if info["converged"] == False:
                 KM.Logger.PrintWarning(self.__class__.__name__, f"CG failed to converge in {info['iterations']} iterations. Residual norm: {info['residual_norm']}. Reason: {info['reason']}.")

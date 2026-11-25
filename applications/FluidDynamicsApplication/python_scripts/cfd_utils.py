@@ -1363,9 +1363,17 @@ class CFDUtils:
         b_norm_host = float(b_norm)
 
         if b_norm_host == 0.0:
+            # Returning 'b' itself would alias the caller's buffer (e.g., a pool slot that is
+            # released right after the solve and then re-acquired). The exact solution of
+            # A x = 0 is x = 0, so return a fresh zero vector instead.
+            # Original (kept for reference):
+            # if return_info_dict:
+            #     return b, {"converged": True, "iterations": 0, "reason": "zero rhs"}
+            # return b, 0
+            x_zero = xp.zeros_like(b)
             if return_info_dict:
-                return b, {"converged": True, "iterations": 0, "reason": "zero rhs"}
-            return b, 0
+                return x_zero, {"converged": True, "iterations": 0, "reason": "zero rhs"}
+            return x_zero, 0
 
         stop_atol = max(float(atol), float(rtol) * b_norm_host)
 
