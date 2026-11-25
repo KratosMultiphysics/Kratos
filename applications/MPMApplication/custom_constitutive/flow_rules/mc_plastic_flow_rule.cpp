@@ -19,6 +19,7 @@
 #include "includes/default_interface.h"
 
 // Project includes
+#include "containers/array_1d.h"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 
 #include "mpm_application_variables.h"
@@ -216,14 +217,14 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
 
     // Use finite points (0,0,-C) and (0,-C,-C) on the edges, with C = cohesion_coefficient.
     // This also applies to the Tresca prism, which has no apex.
-    BoundedVector<double,3> sigma_P_line1 = ZeroVector(3);
-    sigma_P_line1[0] = rPrincipalStress[0];
-    sigma_P_line1[1] = rPrincipalStress[1];
-    sigma_P_line1[2] = rPrincipalStress[2] + cohesion_coefficient;
-    BoundedVector<double,3> sigma_P_line2 = ZeroVector(3);
-    sigma_P_line2[0] = rPrincipalStress[0];
-    sigma_P_line2[1] = rPrincipalStress[1] + cohesion_coefficient;
-    sigma_P_line2[2] = rPrincipalStress[2] + cohesion_coefficient;
+    const array_1d<double, 3> sigma_P_line1{
+        rPrincipalStress[0],
+        rPrincipalStress[1],
+        rPrincipalStress[2] + cohesion_coefficient};
+    const array_1d<double, 3> sigma_P_line2{
+        rPrincipalStress[0],
+        rPrincipalStress[1] + cohesion_coefficient,
+        rPrincipalStress[2] + cohesion_coefficient};
 
     // Boundary plane between region I and II: evaluated as the cross product between R_p and R1, the direction of line 1
     BoundedVector<double,3> NI_II = ZeroVector(3);
