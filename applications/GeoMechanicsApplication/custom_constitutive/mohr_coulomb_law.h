@@ -22,6 +22,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class ConstitutiveLawDimension;
 class CoulombImpl;
 
@@ -90,7 +92,7 @@ private:
     std::size_t CalculateAdaptiveNumberOfSubSteps(const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                                   const Matrix& rElasticMatrix) const;
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 }; // Class MohrCoulombLaw

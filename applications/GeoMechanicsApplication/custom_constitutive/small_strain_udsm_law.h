@@ -23,6 +23,8 @@
 
 namespace Kratos
 {
+
+class Serializer;
 /*
    - structure of the functions in PLAXIS UDSM:
    - Function to get stress, stiffness matrix, attribute, number of state variables, ...
@@ -224,7 +226,7 @@ private:
     SizeType          GetNumberOfMaterialParametersFromUDSM(const Properties& rMaterialProperties);
     [[nodiscard]] int GetStateVariableIndex(const Variable<double>& rVariable) const;
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 };

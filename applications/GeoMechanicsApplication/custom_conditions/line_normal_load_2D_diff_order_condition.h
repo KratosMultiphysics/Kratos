@@ -23,6 +23,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) LineNormalLoad2DDiffOrderCondition : public LineLoad2DDiffOrderCondition
 {
 public:
@@ -55,7 +57,7 @@ protected:
     void CalculateAndAddConditionForce(Vector& rRightHandSideVector, ConditionVariables& rVariables) override;
 
 private:
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 

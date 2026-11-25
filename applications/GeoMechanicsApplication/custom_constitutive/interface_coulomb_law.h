@@ -23,6 +23,7 @@ namespace Kratos
 
 class ConstitutiveLawDimension;
 class CoulombImpl;
+class Serializer;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceCoulombLaw : public ConstitutiveLaw
 {
@@ -85,7 +86,7 @@ private:
     int         mMaxNumberOfSubSteps        = 1;
     std::size_t mCalculatedNumberOfSubSteps = 0;
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 }; // Class InterfaceMohrCoulomb

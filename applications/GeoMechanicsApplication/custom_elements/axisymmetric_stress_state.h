@@ -18,6 +18,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) AxisymmetricStressState final : public StressStatePolicy
 {
 public:
@@ -31,7 +33,7 @@ public:
     [[nodiscard]] SizeType                           GetStressTensorSize() const override;
 
 private:
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer&) const override;
     void load(Serializer&) override;
 };

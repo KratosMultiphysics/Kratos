@@ -20,6 +20,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 /**
  * @class GeoIncrementalLinearElasticLaw
  * @ingroup GeoMechanicsApplication
@@ -119,7 +121,7 @@ private:
     bool                                               mIsModelInitialized = false;
     GeoYoungsModulusFormulations::YoungsModulusVariant mYoungsModulusFormulation;
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 }; // Class GeoIncrementalLinearElasticLaw

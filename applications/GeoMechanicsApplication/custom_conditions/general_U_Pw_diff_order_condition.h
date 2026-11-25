@@ -97,7 +97,7 @@ protected:
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 }; // class GeneralUPwDiffOrderCondition.
