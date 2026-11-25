@@ -39,6 +39,7 @@ from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
 from test_transient_thermal_validation import KratosGeoMechanicsTransientThermalValidationTests
 from test_rotation_with_moving_load import KratosGeoMechanicsRotationWithMovingLoadTests
 from test_avoid_small_end_step import KratosGeoMechanicsAvoidSmallEndStepPythonRoute, KratosGeoMechanicsAvoidSmallEndStepCppRoute
+from test_reset_positions_on_non_convergence import KratosGeoMechanicsResetPositionsOnNonConvergencePyRoute, KratosGeoMechanicsResetPositionsOnNonConvergenceCppRoute
 from c_phi_reduction_process import KratosGeoMechanicsCPhiReductionProcess
 from test_partial_saturation import KratosGeoMechanicsPartialSaturation
 
@@ -131,6 +132,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsSurfaceInterfaceElementTests,
                         KratosGeoMechanicsAvoidSmallEndStepPythonRoute,
                         KratosGeoMechanicsAvoidSmallEndStepCppRoute,
+                        KratosGeoMechanicsResetPositionsOnNonConvergencePyRoute,
+                        KratosGeoMechanicsResetPositionsOnNonConvergenceCppRoute,
                         KratosGeoMechanicsDirichletUConstantTests,
                         KratosGeoMechanicsInterfacePreStressTests,
                         KratosGeoMechanicsUPwInterfaceTests,
