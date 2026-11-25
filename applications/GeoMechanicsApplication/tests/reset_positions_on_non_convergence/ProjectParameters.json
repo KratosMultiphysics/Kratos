@@ -37,8 +37,8 @@
         "residual_relative_tolerance":        1.0E-20,
         "residual_absolute_tolerance":        1.0E-6,
         "min_iterations":                     1,
-        "max_iterations":                     17,
-        "number_cycles":                      10,
+        "max_iterations":                     5,
+        "number_cycles":                      2,
         "reduction_factor":                   0.5,
         "increase_factor":                    1.0,
         "linear_solver_settings":             {
@@ -70,11 +70,9 @@
                         "body_output":         true,
                         "node_output":         false,
                         "skin_output":         false,
-                        "plane_output":        [],
                         "nodal_results":       ["DISPLACEMENT"],
                         "gauss_point_results": ["ENGINEERING_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR"]
-                    },
-                    "point_data_configuration":  []
+                    }
                 }
             }
         }]

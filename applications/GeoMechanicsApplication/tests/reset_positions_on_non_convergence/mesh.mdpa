@@ -6,9 +6,8 @@ End Properties
 
 Begin Table 1 TIME DISPLACEMENT_X
     0.0  0.0
-    1.0  0.2
-    1.5  0.398
-    2.0  1.0
+    1.0  -0.01
+    2.0  -0.02
 End Table
 
 Begin Nodes
