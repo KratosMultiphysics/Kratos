@@ -10,6 +10,8 @@
 //  Main authors:    Andrea Gorgi
 //                   Nicoló Antonelli
 //
+#pragma once
+
 // System includes
 
 // Project includes
