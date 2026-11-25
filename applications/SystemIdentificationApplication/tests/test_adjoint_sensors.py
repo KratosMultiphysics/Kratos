@@ -601,6 +601,8 @@ class TestStrainSensorThreadSafety(UnitTest.TestCase):
         for node in mesh.Nodes:
             model_part.CreateNewNode(node.Id, node.X, node.Y, node.Z)
         properties = model_part.CreateNewProperties(1)
+        # the mesher numbers elements spatially, so guided-512 chunks would be compact blocks; shuffling puts
+        # neighbours into different chunks (more concurrently perturbed shared nodes, matters on few-core CI)
         new_ids = list(range(1, mesh.NumberOfElements() + 1))
         Random(0).shuffle(new_ids)
         for new_id, element in zip(new_ids, mesh.Elements):
