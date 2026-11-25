@@ -100,7 +100,7 @@ private:
                                                           const Matrix&,
                                                           Geo::PrincipalStresses::AveragingType AveragingType) const;
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const;
     void load(Serializer& rSerializer);
 };

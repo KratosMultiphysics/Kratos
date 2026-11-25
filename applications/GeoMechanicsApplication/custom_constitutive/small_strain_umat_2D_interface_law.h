@@ -20,6 +20,9 @@
 
 namespace Kratos
 {
+
+class Serializer;
+
 ///@addtogroup ConstitutiveModelsApplication
 ///@{
 
@@ -188,7 +191,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-    friend class Serializer;
+    friend Serializer;
 
     void save(Serializer& rSerializer) const override;
 

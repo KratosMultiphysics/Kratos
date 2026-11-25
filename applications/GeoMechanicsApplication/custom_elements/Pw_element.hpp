@@ -30,6 +30,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) PwElement : public Element
 {
@@ -204,7 +206,7 @@ private:
 
     [[nodiscard]] DofsVectorType GetDofs() const;
 
-    friend class Serializer;
+    friend Serializer;
 
     void save(Serializer& rSerializer) const override;
 

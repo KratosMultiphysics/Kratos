@@ -25,6 +25,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwNormalFaceLoadCondition : public UPwCondition<TDim, TNumNodes>
 {
@@ -68,7 +70,7 @@ protected:
                                                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const;
 
 private:
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
