@@ -20,6 +20,7 @@
 #include "includes/properties.h"
 #include "includes/variables.h"
 
+#include <limits>
 #include <optional>
 #include <string>
 
@@ -168,8 +169,9 @@ private:
                 UpperBound && ((mRangeBoundsType == AllInclusive) ||
                                (mRangeBoundsType == ExclusiveLowerAndInclusiveUpper));
             std::ostringstream print_range;
-            print_range << (include_lower_bound ? "[" : "(") << LowerBound << ", "
-                        << (UpperBound ? double_to_string(*UpperBound) : "-")
+            print_range << (include_lower_bound ? "[" : "(")
+                        << (LowerBound == -std::numeric_limits<double>::infinity() ? "-" : double_to_string(LowerBound))
+                        << ", " << (UpperBound ? double_to_string(*UpperBound) : "-")
                         << (include_upper_bound ? "]" : ")");
             KRATOS_ERROR << rVariable.Name() << print_property_id() << print_element_id()
                          << " has an invalid value: " << value << " is out of the range "

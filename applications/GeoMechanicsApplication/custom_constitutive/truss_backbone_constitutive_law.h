@@ -24,6 +24,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 /**
  * @namespace TrussBackboneConstitutiveLaw
  * @brief This constitutive law represents a 1D backbone law with linear elastic un- and reloading
@@ -85,7 +87,7 @@ private:
                                                                 const Vector& rStresses,
                                                                 double        YoungsModulus);
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 }; // Class TrussBackboneConstitutiveLaw

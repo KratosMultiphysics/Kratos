@@ -70,7 +70,7 @@ void LinearNodalExtrapolator::AddRowsForMidsideNodes(const GeometryType& rGeomet
 {
     const auto global_to_local_mapping = NodeUtilities::CreateGlobalToLocalNodeIndexMap(rGeometry.Points());
 
-    rExtrapolationMatrix.resize(rGeometry.PointsNumber(), rExtrapolationMatrix.size2());
+    rExtrapolationMatrix.resize(rGeometry.PointsNumber(), rExtrapolationMatrix.size2(), true);
     for (const auto& edge : rGeometry.GenerateEdges()) {
         row(rExtrapolationMatrix, global_to_local_mapping.at(edge[2].GetId())) =
             0.5 * (row(rExtrapolationMatrix, global_to_local_mapping.at(edge[0].GetId())) +

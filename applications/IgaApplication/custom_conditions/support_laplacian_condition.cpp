@@ -34,11 +34,11 @@ const ProcessInfo& rCurrentProcessInfo)
     const SizeType mat_size = GetGeometry().size() * 1;
 
     if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
+        rRightHandSideVector.resize(mat_size, false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
-        rLeftHandSideMatrix.resize(mat_size, mat_size);
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
@@ -54,7 +54,7 @@ void SupportLaplacianCondition::CalculateLeftHandSide(
     const SizeType mat_size = GetGeometry().size() * 1;
 
     if (rLeftHandSideMatrix.size1() != mat_size)
-        rLeftHandSideMatrix.resize(mat_size, mat_size);
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
@@ -127,7 +127,7 @@ void SupportLaplacianCondition::CalculateRightHandSide(
     const SizeType mat_size = GetGeometry().size() * 1;
 
     if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
+        rRightHandSideVector.resize(mat_size, false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];

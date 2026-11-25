@@ -65,6 +65,8 @@ class OptimizationProblemFieldOutputProcess(Kratos.OutputProcess):
         for component_name in self.list_of_component_names:
             list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
 
+        list_of_control_names: 'list[str]' = ComponentDataView("algorithm", self.optimization_problem).GetUnBufferedData().GetValue("controls").split(",")
+
         global_values_map = self.optimization_problem.GetProblemDataContainer().GetMap()
         for global_k, global_v in global_values_map.items():
              # first check whether this is part of requested list of components
@@ -76,10 +78,11 @@ class OptimizationProblemFieldOutputProcess(Kratos.OutputProcess):
                      break
 
             # if a valid component is found, add the tensor adaptor
+
             if found_valid_component:
                 if isinstance(global_v, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor):
                     for i, _ in enumerate(global_v.GetTensorAdaptors()):
-                        self.__AddTensorAdaptor(CombinedTensorAdaptorData(global_k, global_v, i))
+                        self.__AddTensorAdaptor(CombinedTensorAdaptorData(list_of_control_names[i], global_k, global_v, i))
                 elif isinstance(global_v, Kratos.TensorAdaptors.DoubleTensorAdaptor) or  \
                      isinstance(global_v, Kratos.TensorAdaptors.IntTensorAdaptor) or \
                      isinstance(global_v, Kratos.TensorAdaptors.BoolTensorAdaptor):

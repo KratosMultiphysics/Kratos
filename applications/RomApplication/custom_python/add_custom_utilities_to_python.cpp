@@ -57,6 +57,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
                 return RomAuxiliaryUtilities::GetHRomConditionParentsIds(rModelPart, rConditionIds);})
         .def_static("GetHRomConditionParentsIds", [](const ModelPart& rModelPart, const std::map<std::string, std::map<IndexType, double>>& rHRomWeights) {
                 return RomAuxiliaryUtilities::GetHRomConditionParentsIds(rModelPart, rHRomWeights);})
+        .def_static("GetHRomElementChildrenIds", &RomAuxiliaryUtilities::GetHRomElementChildrenIds)
         .def_static("GetNodalNeighbouringElementIdsNotInHRom", &RomAuxiliaryUtilities::GetNodalNeighbouringElementIdsNotInHRom)
         .def_static("GetNodalNeighbouringElementIds", [](Kratos::ModelPart& rModelPart, Kratos::ModelPart& rGivenModelPart) {
                 return Kratos::RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(rModelPart, rGivenModelPart);})
@@ -69,6 +70,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("ProjectRomSolutionIncrementToNodes", &RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes)
         .def_static("GetElementIdsInModelPart", &RomAuxiliaryUtilities::GetElementIdsInModelPart)
         .def_static("GetConditionIdsInModelPart", &RomAuxiliaryUtilities::GetConditionIdsInModelPart)
+        .def_static("AddGeometries", &RomAuxiliaryUtilities::AddGeometries)
+        .def_static("AddHRomVisualizationGeometries", &RomAuxiliaryUtilities::AddHRomVisualizationGeometries)
+        .def_static("AssignPropertiesToEntitiesIfMissing", &RomAuxiliaryUtilities::AssignPropertiesToEntitiesIfMissing)
         ;
 }
 

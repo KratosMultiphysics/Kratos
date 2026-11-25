@@ -26,6 +26,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderElement : public UPwBaseElement
 {
 public:
@@ -244,7 +246,7 @@ private:
 
     // Serialization
 
-    friend class Serializer;
+    friend Serializer;
 
     void save(Serializer& rSerializer) const override;
 
