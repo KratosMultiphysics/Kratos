@@ -19,7 +19,7 @@
 //elements
 #include "custom_elements/truss_element.h"
 #include "custom_elements/truss_embedded_edge_element.h"
-#include "custom_elements/beam_base_element_3D.h"
+#include "custom_elements/bernoulli_beam_base_element_3D.h"
 #include "custom_elements/non_linear_bernoulli_beam_element_3D.h"
 #include "custom_elements/beam_thin_element_2D.h"
 #include "custom_elements/beam_thick_element_2D.h"

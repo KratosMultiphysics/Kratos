@@ -30,14 +30,19 @@ namespace Kratos
 {
 
 /**
- * @class BeamBaseElement3D
- * @brief Base class for three-dimensional IGA beam elements.
+ * @class BernoulliBeamBaseElement3D
+ * @brief Base class for three-dimensional IGA Bernoulli beam elements.
  *
- * This class provides functionality shared by three-dimensional beam
- * formulations, including degree-of-freedom handling, constitutive-law
+ * This class provides functionality shared by three-dimensional Bernoulli
+ * beam formulations, including degree-of-freedom handling, constitutive-law
  * initialization, beam kinematics, and rotation-related operations.
+ *
+ * The kinematics are rotation-free: the cross-section orientation follows from
+ * the tangent of the displaced centreline plus a twist angle, giving 4 DOFs per
+ * node (DISPLACEMENT_X/Y/Z and ROTATION_X). Formulations with independent
+ * rotations, such as Timoshenko beams, are not covered and need their own base.
  */
-class KRATOS_API(IGA_APPLICATION) BeamBaseElement3D
+class KRATOS_API(IGA_APPLICATION) BernoulliBeamBaseElement3D
     : public Element
 {
 public:
@@ -53,20 +58,20 @@ public:
     using IndexType = typename BaseType::IndexType;
     using Matrix3d = BoundedMatrix<double, 3, 3>;
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BeamBaseElement3D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BernoulliBeamBaseElement3D);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    BeamBaseElement3D(
+    BernoulliBeamBaseElement3D(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {
     }
 
-    BeamBaseElement3D(
+    BernoulliBeamBaseElement3D(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -74,12 +79,12 @@ public:
     {
     }
 
-    BeamBaseElement3D()
+    BernoulliBeamBaseElement3D()
         : Element()
     {
     }
 
-    ~BeamBaseElement3D() override = default;
+    ~BernoulliBeamBaseElement3D() override = default;
 
     ///@}
     ///@name Element Creation
@@ -481,6 +486,6 @@ private:
 
     ///@}
 
-}; // Class BeamBaseElement3D
+}; // Class BernoulliBeamBaseElement3D
 
 } // namespace Kratos

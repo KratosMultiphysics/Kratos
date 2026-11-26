@@ -24,7 +24,7 @@
 
 // Application includes
 #include "iga_application_variables.h"
-#include "custom_elements/beam_base_element_3D.h"
+#include "custom_elements/bernoulli_beam_base_element_3D.h"
 
 namespace Kratos
 {
@@ -53,7 +53,7 @@ namespace Kratos
  * Equation numbers in the comments of this element refer to this paper.
  */
 class KRATOS_API(IGA_APPLICATION) NonLinearBernoulliBeamElement3D
-    : public BeamBaseElement3D
+    : public BernoulliBeamBaseElement3D
 {
 protected:
 
@@ -157,7 +157,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(
         NonLinearBernoulliBeamElement3D);
 
-    using BaseType = BeamBaseElement3D;
+    using BaseType = BernoulliBeamBaseElement3D;
     using SizeType = typename BaseType::SizeType;
     using IndexType = typename BaseType::IndexType;
     using GeometryType = typename BaseType::GeometryType;
@@ -169,7 +169,7 @@ public:
     NonLinearBernoulliBeamElement3D(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
-        : BeamBaseElement3D(
+        : BernoulliBeamBaseElement3D(
             NewId,
             pGeometry)
     {
@@ -179,7 +179,7 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
-        : BeamBaseElement3D(
+        : BernoulliBeamBaseElement3D(
             NewId,
             pGeometry,
             pProperties)
@@ -187,7 +187,7 @@ public:
     }
 
     NonLinearBernoulliBeamElement3D()
-        : BeamBaseElement3D()
+        : BernoulliBeamBaseElement3D()
     {
     }
 
@@ -428,7 +428,7 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(
             rSerializer,
-            BeamBaseElement3D);
+            BernoulliBeamBaseElement3D);
     }
 
     void load(
@@ -436,7 +436,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(
             rSerializer,
-            BeamBaseElement3D);
+            BernoulliBeamBaseElement3D);
     }
 };
 

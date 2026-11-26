@@ -21,12 +21,12 @@
 #include "utilities/math_utils.h"
 
 // Application includes
-#include "custom_elements/beam_base_element_3D.h"
+#include "custom_elements/bernoulli_beam_base_element_3D.h"
 
 namespace Kratos
 {
 
-    void BeamBaseElement3D::EquationIdVector(
+    void BernoulliBeamBaseElement3D::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -70,7 +70,7 @@ namespace Kratos
     }
 
 
-    void BeamBaseElement3D::GetDofList(
+    void BernoulliBeamBaseElement3D::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -100,7 +100,7 @@ namespace Kratos
     }
 
 
-    void BeamBaseElement3D::InitializeMaterial()
+    void BernoulliBeamBaseElement3D::InitializeMaterial()
     {
         KRATOS_TRY
 
@@ -134,7 +134,7 @@ namespace Kratos
     }
 
 
-    void BeamBaseElement3D::GetValuesVector(
+    void BernoulliBeamBaseElement3D::GetValuesVector(
         Vector& rValues,
         const int Step) const
     {
@@ -165,7 +165,7 @@ namespace Kratos
         }
     }
 
-    void BeamBaseElement3D::CalculateDampingMatrix(
+    void BernoulliBeamBaseElement3D::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
         const ProcessInfo& rCurrentProcessInfo)
     {
@@ -208,7 +208,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    int BeamBaseElement3D::Check(
+    int BernoulliBeamBaseElement3D::Check(
         const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
@@ -286,7 +286,7 @@ namespace Kratos
     // Beam kinematics
     // ---------------------------------------------------------------------
 
-    void BeamBaseElement3D::ComputeTangentVariation(
+    void BernoulliBeamBaseElement3D::ComputeTangentVariation(
             const Vector& rShapeFunctionDerivatives,
         const array_1d<double, 3>& rFirstBaseVector,
         Vector& rTangentVariation) const
@@ -371,7 +371,7 @@ namespace Kratos
         }
 
 
-    void BeamBaseElement3D::ComputeTangentSecondVariation(
+    void BernoulliBeamBaseElement3D::ComputeTangentSecondVariation(
             const Vector& rShapeFunctionDerivatives,
         const array_1d<double, 3>& rFirstBaseVector,
         Matrix& rTangentSecondVariation) const
@@ -550,7 +550,7 @@ namespace Kratos
         }
 
 
-    void BeamBaseElement3D::ComputeTangentDerivativeVariation(
+    void BernoulliBeamBaseElement3D::ComputeTangentDerivativeVariation(
             const Vector& rShapeFunctionDerivatives,
             const Vector& rShapeFunctionSecondDerivatives,
             const array_1d<double, 3>& rFirstBaseVector,
@@ -689,7 +689,7 @@ namespace Kratos
         }
 
 
-    void BeamBaseElement3D::ComputeTangentDerivativeSecondVariation(
+    void BernoulliBeamBaseElement3D::ComputeTangentDerivativeSecondVariation(
             const Vector& rShapeFunctionDerivatives,
             const Vector& rShapeFunctionSecondDerivatives,
             const array_1d<double, 3>& rFirstBaseVector,
@@ -1000,7 +1000,7 @@ namespace Kratos
         }
 
 
-    void BeamBaseElement3D::ComputeTangentSecondDerivativeVariation(
+    void BernoulliBeamBaseElement3D::ComputeTangentSecondDerivativeVariation(
             const Vector& rShapeFunctionDerivatives,
             const Vector& rShapeFunctionSecondDerivatives,
             const Vector& rShapeFunctionThirdDerivatives,
@@ -1234,7 +1234,7 @@ namespace Kratos
     // Beam rotation helpers
     // ---------------------------------------------------------------------
     // These helpers are local to this translation unit and are not part of
-    // the BeamBaseElement3D interface.
+    // the BernoulliBeamBaseElement3D interface.
 
     namespace
     {
@@ -1286,7 +1286,7 @@ namespace Kratos
         }
 
 
-    void BeamBaseElement3D::ComputeRodriguesMatrix(const array_1d<double, 3>& rAxis,
+    void BernoulliBeamBaseElement3D::ComputeRodriguesMatrix(const array_1d<double, 3>& rAxis,
             const double Phi, Matrix3d& rRodriguesMatrix)
         {
             rRodriguesMatrix.clear();
@@ -1310,7 +1310,7 @@ namespace Kratos
                 std::sin(Phi);
         }
 
-    void BeamBaseElement3D::ComputeRodriguesMatrixDerivative(
+    void BernoulliBeamBaseElement3D::ComputeRodriguesMatrixDerivative(
             const array_1d<double, 3>& rAxis,
             const array_1d<double, 3>& rAxisDerivative,
             const double Phi,
@@ -1346,7 +1346,7 @@ namespace Kratos
                 std::sin(Phi);
         }
 
-    void BeamBaseElement3D::ComputeRodriguesMatrixVariation(
+    void BernoulliBeamBaseElement3D::ComputeRodriguesMatrixVariation(
             const array_1d<double, 3>& rAxis,
             const Vector& rAxisVariation,
             const Vector& rShapeFunctions,
@@ -1411,7 +1411,7 @@ namespace Kratos
         }
 
 
-    void BeamBaseElement3D::ComputeRodriguesMatrixSecondVariation(
+    void BernoulliBeamBaseElement3D::ComputeRodriguesMatrixSecondVariation(
             const array_1d<double, 3>& rAxis,
             const Vector& rAxisVariation,
             const Matrix& rAxisSecondVariation,
@@ -1526,7 +1526,7 @@ namespace Kratos
         }
 
 
-    void BeamBaseElement3D::ComputeRodriguesMatrixDerivativeVariation(
+    void BernoulliBeamBaseElement3D::ComputeRodriguesMatrixDerivativeVariation(
             const array_1d<double, 3>& rAxis,
             const Vector& rAxisVariation,
             const array_1d<double, 3>& rAxisDerivative,
@@ -1643,7 +1643,7 @@ namespace Kratos
         }
 
 
-    void BeamBaseElement3D::ComputeRodriguesMatrixDerivativeSecondVariation(
+    void BernoulliBeamBaseElement3D::ComputeRodriguesMatrixDerivativeSecondVariation(
             const array_1d<double, 3>& rAxis,
             const Vector& rAxisVariation,
             const array_1d<double, 3>& rAxisDerivative,
@@ -1742,7 +1742,7 @@ namespace Kratos
                 }
             }
 
-        void BeamBaseElement3D::ComputeRodriguesMatrixSecondDerivativeVariation(
+        void BernoulliBeamBaseElement3D::ComputeRodriguesMatrixSecondDerivativeVariation(
             const array_1d<double, 3>& rAxis,
             const Vector& rAxisVariation,
             const array_1d<double, 3>& rAxisDerivative,
@@ -1814,7 +1814,7 @@ namespace Kratos
 
             }
 
-    void BeamBaseElement3D::ComputeRodriguesMatrixVariations(
+    void BernoulliBeamBaseElement3D::ComputeRodriguesMatrixVariations(
         const array_1d<double, 3>& rAxis,
         const array_1d<double, 3>& rAxisVariation,
         const array_1d<double, 3>& rAxisDerivative,
@@ -1951,7 +1951,7 @@ namespace Kratos
 
 
 
-    void BeamBaseElement3D::ComputeRodriguesMatrixSecondDerivative(
+    void BernoulliBeamBaseElement3D::ComputeRodriguesMatrixSecondDerivative(
             const array_1d<double, 3>& rAxis,
             const array_1d<double, 3>& rAxisDerivative,
             const array_1d<double, 3>& rAxisSecondDerivative,
@@ -1972,7 +1972,7 @@ namespace Kratos
             rRodriguesMatrixSecondDerivative += CrossProductVectorMatrix(rAxisSecondDerivative, identity_matrix) * std::sin(Phi);
         }
 
-    void BeamBaseElement3D::ComputeLambdaMatrix(const array_1d<double, 3>& rReferenceTangent, const array_1d<double, 3>& rCurrentTangent, Matrix3d& rLambdaMatrix)
+    void BernoulliBeamBaseElement3D::ComputeLambdaMatrix(const array_1d<double, 3>& rReferenceTangent, const array_1d<double, 3>& rCurrentTangent, Matrix3d& rLambdaMatrix)
         {
             rLambdaMatrix.clear();
             Matrix3d lambda_matrix_auxiliary;
@@ -2015,7 +2015,7 @@ namespace Kratos
         }
 
 
-    void BeamBaseElement3D::ComputeLambdaMatrixDerivative(
+    void BernoulliBeamBaseElement3D::ComputeLambdaMatrixDerivative(
             const array_1d<double, 3>& rReferenceTangent,
             const array_1d<double, 3>& rCurrentTangent,
             const array_1d<double, 3>& rReferenceTangentDerivative,
@@ -2049,7 +2049,7 @@ namespace Kratos
         }
 
 
-    void BeamBaseElement3D::ComputeLambdaMatrixSecondDerivative(
+    void BernoulliBeamBaseElement3D::ComputeLambdaMatrixSecondDerivative(
             const array_1d<double, 3>& rReferenceTangent,
             const array_1d<double, 3>& rCurrentTangent,
             const array_1d<double, 3>& rReferenceTangentDerivative,
@@ -2099,7 +2099,7 @@ namespace Kratos
         }
 
 
-    void BeamBaseElement3D::ComputeLambdaMatrixVariation(
+    void BernoulliBeamBaseElement3D::ComputeLambdaMatrixVariation(
         const array_1d<double, 3>& rReferenceTangent,
         const array_1d<double, 3>& rCurrentTangent,
         const Vector& rCurrentTangentVariation,
@@ -2210,7 +2210,7 @@ namespace Kratos
             }
         }
 
-    void BeamBaseElement3D::ComputeLambdaMatrixSecondVariation(
+    void BernoulliBeamBaseElement3D::ComputeLambdaMatrixSecondVariation(
             const array_1d<double, 3>& rReferenceTangent,
             const array_1d<double, 3>& rCurrentTangent,
             const Vector& rCurrentTangentVariation,
@@ -2371,7 +2371,7 @@ namespace Kratos
             }
         }
 
-    void BeamBaseElement3D::ComputeLambdaMatrixDerivativeVariation(
+    void BernoulliBeamBaseElement3D::ComputeLambdaMatrixDerivativeVariation(
             const array_1d<double, 3>& rReferenceTangent,
             const array_1d<double, 3>& rCurrentTangent,
             const array_1d<double, 3>& rReferenceTangentDerivative,
@@ -2530,7 +2530,7 @@ namespace Kratos
         }
 
 
-        void BeamBaseElement3D::ComputeLambdaMatrixSecondDerivativeVariation(
+        void BernoulliBeamBaseElement3D::ComputeLambdaMatrixSecondDerivativeVariation(
             const array_1d<double, 3>& rReferenceTangent,
             const array_1d<double, 3>& rCurrentTangent,
             const array_1d<double, 3>& rReferenceTangentDerivative,
@@ -2768,7 +2768,7 @@ namespace Kratos
 
                 }
 
-void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
+void BernoulliBeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
         const array_1d<double, 3>& rReferenceTangent,
         const array_1d<double, 3>& rCurrentTangent,
         const array_1d<double, 3>& rReferenceTangentDerivative,
@@ -3021,7 +3021,7 @@ void BeamBaseElement3D::ComputeLambdaMatrixDerivativeSecondVariation(
             }
         }
 
-    void BeamBaseElement3D::ComputeLambdaMatrixVariations(
+    void BernoulliBeamBaseElement3D::ComputeLambdaMatrixVariations(
             const array_1d<double, 3>& rReferenceTangent,
             const array_1d<double, 3>& rCurrentTangent,
             const array_1d<double, 3>& rReferenceTangentDerivative,

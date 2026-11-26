@@ -603,7 +603,7 @@ void NonLinearBernoulliBeamElement3D::CalculateAll(
     {
         KRATOS_TRY
 
-        BeamBaseElement3D::Check(rCurrentProcessInfo);
+        BernoulliBeamBaseElement3D::Check(rCurrentProcessInfo);
 
         const double numerical_limit =
             std::numeric_limits<double>::epsilon();

@@ -22,7 +22,7 @@
 #include "includes/define.h"
 #include "iga_application_variables.h"
 #include "custom_elements/non_linear_bernoulli_beam_element_3D.h"
-#include "custom_elements/beam_base_element_3D.h"
+#include "custom_elements/bernoulli_beam_base_element_3D.h"
 
 namespace Kratos
 {
