@@ -127,6 +127,7 @@
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
+#include "custom_constitutive/thermal_truss_constitutive_law.h"
 
 // Constitutive laws for the Timoshenko beams and Reissner-Mindlin shells
 #include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
@@ -561,6 +562,7 @@ private:
     const TimoshenkoBeamElasticConstitutiveLaw3D mTimoshenkoBeamElasticConstitutiveLaw3D;
     const TimoshenkoBeamPlaneStrainElasticConstitutiveLaw mTimoshenkoBeamPlaneStrainElasticConstitutiveLaw;
     const ReissnerMindlinShellElasticConstitutiveLaw mReissnerMindlinShellElasticConstitutiveLaw;
+    const ThermalTrussConstitutiveLaw mThermalTrussConstitutiveLaw;
 
     ///@}
     ///@name Private Operators
