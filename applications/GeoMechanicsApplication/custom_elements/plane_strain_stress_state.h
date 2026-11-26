@@ -17,6 +17,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) PlaneStrainStressState final : public StressStatePolicy
 {
 public:
@@ -32,7 +34,7 @@ public:
 private:
     [[nodiscard]] static Vector ConvertStrainTensorToVector(const Matrix& rStrainTensor);
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer&) const override;
     void load(Serializer&) override;
 };

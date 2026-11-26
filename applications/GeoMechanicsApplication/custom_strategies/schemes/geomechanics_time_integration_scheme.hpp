@@ -18,6 +18,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 struct FirstOrderScalarVariable {
     Variable<double> instance;
     Variable<double> first_time_derivative;
@@ -351,7 +353,7 @@ private:
     std::vector<FirstOrderScalarVariable>  mFirstOrderScalarVariables;
     std::vector<SecondOrderVectorVariable> mSecondOrderVectorVariables;
 
-    friend class Serializer;
+    friend Serializer;
 
     void save(Serializer& rSerializer) const { rSerializer.save("DeltaTime", mDeltaTime); }
 

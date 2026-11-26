@@ -18,6 +18,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalFilterLaw : public GeoThermalLaw
 {
 public:
@@ -26,7 +28,7 @@ public:
     [[nodiscard]] Matrix CalculateThermalDispersionMatrix(const Properties& rProp) const override;
 
 private:
-    friend class Serializer;
+    friend Serializer;
 
     void save(Serializer&) const override;
 

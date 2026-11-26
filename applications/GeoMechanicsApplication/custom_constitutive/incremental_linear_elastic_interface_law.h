@@ -18,7 +18,9 @@
 
 namespace Kratos
 {
+
 class ConstitutiveLawDimension;
+class Serializer;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterfaceLaw : public ConstitutiveLaw
 {
@@ -53,7 +55,7 @@ public:
 private:
     GeoIncrementalLinearElasticInterfaceLaw() = default;
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 

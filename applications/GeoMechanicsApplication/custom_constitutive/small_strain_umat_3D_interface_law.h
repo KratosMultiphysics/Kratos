@@ -20,6 +20,9 @@
 
 namespace Kratos
 {
+
+class Serializer;
+
 ///@addtogroup ConstitutiveModelsApplication
 ///@{
 
@@ -190,7 +193,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-    friend class Serializer;
+    friend Serializer;
 
     SmallStrainUMAT3DInterfaceLaw() = default;
 

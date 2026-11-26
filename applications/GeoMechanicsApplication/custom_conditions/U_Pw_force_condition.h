@@ -20,6 +20,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwForceCondition : public UPwCondition<TDim, TNumNodes>
 {
@@ -47,7 +49,7 @@ protected:
     void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
-    friend class Serializer;
+    friend Serializer;
 
     void save(Serializer& rSerializer) const override;
 
