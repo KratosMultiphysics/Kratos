@@ -23,7 +23,7 @@
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "GEO_COHESION": 0.3,
+                    "GEO_COHESION": 6,
                     "GEO_FRICTION_ANGLE": 30.0,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
