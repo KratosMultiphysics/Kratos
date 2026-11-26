@@ -115,22 +115,8 @@ class IgaVTKOutputProcess(KM.OutputProcess):
             # Create or retrieve root group
             if "VTKHDF" not in file:
                 root = file.create_group("VTKHDF")
-
-                root.attrs["Version"] = np.array(
-                    VERSION,
-                    dtype=np.int64
-                )
-
-                ascii_type = h5.string_dtype(
-                    encoding="ascii",
-                    length=len(GLOBAL_TYPE)
-                )
-
-                root.attrs.create(
-                    "Type",
-                    GLOBAL_TYPE.encode("ascii"),
-                    dtype=ascii_type
-                )
+                root.attrs["Version"] = VERSION
+                root.attrs["Type"] = GLOBAL_TYPE
             else:
                 root = file["VTKHDF"]
 
