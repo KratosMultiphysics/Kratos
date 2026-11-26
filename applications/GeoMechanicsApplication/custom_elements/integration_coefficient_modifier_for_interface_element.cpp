@@ -21,7 +21,7 @@ double IntegrationCoefficientModifierForInterfaceElement::operator()(double Inte
                                                                      const Geo::IntegrationPointType&,
                                                                      const Element& rElement) const
 {
-    if (auto& r_properties = rElement.GetProperties(); r_properties.Has(GEO_CONTACT_SURFACE_PERIMETER)) {
+    if (const auto& r_properties = rElement.GetProperties(); r_properties.Has(GEO_CONTACT_SURFACE_PERIMETER)) {
         return IntegrationCoefficient * r_properties[GEO_CONTACT_SURFACE_PERIMETER];
     }
 
