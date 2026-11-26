@@ -57,13 +57,10 @@ class KratosGeoMechanicsResetPositionsOnNonConvergence(KratosUnittest.TestCase):
             [1.0, 1.5, 2.0],
         )
 
-        # Both elements carry the tensile strength of the weak element (20 Pa). The elastic element then
-        # has a strain of 20 / 100 = 0.2, so the middle nodes (2 and 5) are displaced by 0.2 * 1.0 m.
-        # The right nodes (3 and 4) have a prescribed displacement of 1.0 m.
         displacements = GiDOutputFileReader.nodal_values_at_time(
-            "DISPLACEMENT", 2.0, output_data, [2]
+            "DISPLACEMENT", 2.0, output_data, [2, 3, 4, 5]
         )
-        for displacement, expected_x in zip(displacements, [-0.01]):
+        for displacement, expected_x in zip(displacements, [-0.2, -0.4, -0.4, -0.2]):
             self.assertAlmostEqual(displacement[0], expected_x, places=6)
 
         strains = GiDOutputFileReader.element_integration_point_values_at_time(
@@ -72,12 +69,12 @@ class KratosGeoMechanicsResetPositionsOnNonConvergence(KratosUnittest.TestCase):
         stresses = GiDOutputFileReader.element_integration_point_values_at_time(
             "CAUCHY_STRESS_TENSOR", 2.0, output_data, [1, 2]
         )
-        # for element_strains, element_stresses, expected_strain_xx in zip(
-        #     strains, stresses, [0.2, 0.8]
-        # ):
-        #     for strain, stress in zip(element_strains, element_stresses):
-        #         self.assertAlmostEqual(strain[0], expected_strain_xx, places=6)
-        #         self.assertAlmostEqual(stress[0], 20.0, places=4)
+        for element_strains, element_stresses, expected_strain_xx in zip(
+            strains, stresses, [-0.2, -0.2]
+        ):
+            for strain, stress in zip(element_strains, element_stresses):
+                self.assertAlmostEqual(strain[0], expected_strain_xx, places=6)
+                self.assertAlmostEqual(stress[0], -20.0, places=4)
 
 
 class KratosGeoMechanicsResetPositionsOnNonConvergencePyRoute(
