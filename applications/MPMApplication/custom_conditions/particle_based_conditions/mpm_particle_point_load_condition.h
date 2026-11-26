@@ -186,7 +186,7 @@ protected:
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Called at the end of eahc solution step
+     * Called at the end of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;

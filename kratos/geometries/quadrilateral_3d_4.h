@@ -26,7 +26,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
-#include "integration/quadrilateral_collocation_integration_points.h"
+#include "integration/quadrilateral_gauss_lobatto_integration_points.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/geometry_utilities.h"
 
@@ -522,6 +522,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
+        // If the point is inside one of the triangles we compute the local coordinates of the point in the quadrilateral
         PointLocalCoordinatesImplementation( rResult, rPoint, true );
 
         if ( std::abs(rResult[0]) <= (1.0+Tolerance) ) {
@@ -1585,14 +1586,15 @@ private:
         Matrix invJ = ZeroMatrix( 2, 2 );
 
         // Starting with xi = 0
-        rResult = ZeroVector( 3 );
-        array_1d<double, 2> DeltaXi = ZeroVector( 2 );
-        const array_1d<double, 3> zero_array = ZeroVector(3);
+        rResult.clear();
+        array_1d<double, 2> DeltaXi;
+        DeltaXi.clear();
         array_1d<double, 3> CurrentGlobalCoords;
+        array_1d<double, 2> res;
 
         //Newton iteration:
         for ( IndexType k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++ ) {
-            noalias(CurrentGlobalCoords) = zero_array;
+            CurrentGlobalCoords.clear();
             this->GlobalCoordinates( CurrentGlobalCoords, rResult );
 
             noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
@@ -1603,19 +1605,20 @@ private:
             noalias(DN) = prod(X,shape_functions_gradients);
 
             noalias(J) = prod(trans(DN),DN);
-            const array_1d<double, 2> res = prod(trans(DN), CurrentGlobalCoords);
+            noalias(res) = prod(trans(DN), CurrentGlobalCoords);
 
             // Deteminant of Jacobian
-            const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
+            const double det_j = J(0, 0) * J(1, 1) - J(0, 1) * J(1, 0);
+            const double inv_det_j = 1.0 / det_j;
 
             // Filling matrix
-            invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
-            invJ( 1, 0 ) = -( J( 1, 0 ) ) / ( det_j );
-            invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
-            invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
+            invJ(0, 0) = (J(1, 1)) * inv_det_j;
+            invJ(1, 0) = -(J(1, 0)) * inv_det_j;
+            invJ(0, 1) = -(J(0, 1)) * inv_det_j;
+            invJ(1, 1) = (J(0, 0)) * inv_det_j;
 
-            DeltaXi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
-            DeltaXi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
+            DeltaXi[0] = invJ(0, 0) * res[0] + invJ(0, 1) * res[1];
+            DeltaXi[1] = invJ(1, 0) * res[0] + invJ(1, 1) * res[1];
 
             rResult[0] += DeltaXi[0];
             rResult[1] += DeltaXi[1];
@@ -1727,15 +1730,7 @@ private:
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints5,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < QuadrilateralCollocationIntegrationPoints1,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < QuadrilateralCollocationIntegrationPoints2,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < QuadrilateralCollocationIntegrationPoints3,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < QuadrilateralCollocationIntegrationPoints4,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < QuadrilateralCollocationIntegrationPoints5,
+                Quadrature < QuadrilateralGaussLobattoIntegrationPoints1,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -1761,15 +1756,7 @@ private:
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_GAUSS_5 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_values;
@@ -1789,11 +1776,7 @@ private:
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_local_gradients;

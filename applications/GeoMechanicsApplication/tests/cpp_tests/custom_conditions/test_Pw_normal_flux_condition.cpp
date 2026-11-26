@@ -14,7 +14,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "custom_conditions/Pw_normal_flux_condition.hpp"
+#include "custom_conditions/Pw_normal_flux_condition.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 

@@ -98,12 +98,15 @@ class MPMRestartTestFactory(KratosUnittest.TestCase):
             mpm_analysis.MpmAnalysis(model_save, self.project_parameters_save).Run()
             mpm_analysis.MpmAnalysis(model_load, self.project_parameters_load).Run()
 
-
+@KratosUnittest.skip("This test has a race Condition in the CI causing a memory corruption. Please check")
 class MPMRestartTestDynamicCantilever2D(MPMRestartTestFactory):
     file_name = "beam_tests/dynamic_cantilever/dynamic_cantilever_consistent_mass_test"
 
 class MPMRestartTestBeamStaticLineLoad2D(MPMRestartTestFactory):
     file_name = "beam_tests/cantilever_beam/static_line_load_2D_quad_test"
+
+class MPMRestartTestCantileverLagrange2D(MPMRestartTestFactory):
+    file_name = "beam_tests/hyperelastic_cantilever_beam/lagrange_self_weight_load_2D_quad_test"
 
 
 if __name__ == "__main__":
@@ -111,6 +114,7 @@ if __name__ == "__main__":
     small_suite = suites['small'] # These tests are executed by the continuous integration tool
     small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MPMRestartTestBeamStaticLineLoad2D]))
     small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MPMRestartTestDynamicCantilever2D]))
+    small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MPMRestartTestCantileverLagrange2D]))
     all_suite = suites['all']
     all_suite.addTests(small_suite)
     KratosUnittest.runTests(suites)

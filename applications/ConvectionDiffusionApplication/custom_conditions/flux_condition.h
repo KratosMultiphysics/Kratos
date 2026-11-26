@@ -56,8 +56,8 @@ public:
         Vector DetJ = ZeroVector(NumGauss);
         rGeometry.DeterminantOfJacobian(DetJ,GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-        mShapeFunctionValues.resize(NumGauss,TNodeNumber);
-        mIntegrationWeights.resize(NumGauss);
+        mShapeFunctionValues.resize(NumGauss,TNodeNumber, false);
+        mIntegrationWeights.resize(NumGauss, false);
 
         noalias(mShapeFunctionValues) = rGeometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 

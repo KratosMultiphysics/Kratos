@@ -133,7 +133,7 @@ namespace Kratos
 
 
 			//loop in elements to change their ID to their position in the array. Easier to get information later.
-			//DO NOT PARALELIZE THIS! IT MUST BE SERIAL!!!!!!!!!!!!!!!!!!!!!!
+			//DO NOT PARALLELIZE THIS! IT MUST BE SERIAL!!!!!!!!!!!!!!!!!!!!!!
 			/*
 			ModelPart::ElementsContainerType::iterator ielembegin = mcalculation_model_part.ElementsBegin();
 			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
@@ -236,7 +236,7 @@ namespace Kratos
 
 	///this function should find the element into which a given node is located
 	///and return a pointer to the element and the vector containing the
-	///shape functions that define the postion within the element
+	///shape functions that define the position within the element
 	///if "false" is devolved the element is not found
 	bool FindNodeOnMesh( //int last_element,
 						 array_1d<double,3>& position,

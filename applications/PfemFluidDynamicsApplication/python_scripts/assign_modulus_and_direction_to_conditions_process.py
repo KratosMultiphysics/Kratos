@@ -2,8 +2,8 @@
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as PfemFluid
 
-## This proces sets the value of a vector variable using a modulus and direction
-## In this case, the fixicity is given set by deffault to false.
+## This process sets the value of a vector variable using a modulus and direction
+## In this case, the fixicity is given set by default to false.
 import sys
 from math import *
 

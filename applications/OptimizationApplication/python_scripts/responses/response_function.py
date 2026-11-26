@@ -7,7 +7,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 class ResponseFunction(ABC):
     """Base response function.
 
-    This reponse function is the base response function. This is assumed to have following responsibilities.
+    This response function is the base response function. This is assumed to have following responsibilities.
         1. CalculateValue for a new design. (@see CalculateValue)
         2. CalculateSensitivity for a new design (@see CalculateSensitivity)
 
@@ -55,8 +55,8 @@ class ResponseFunction(ABC):
         that sensitivities w.r.t. those variables are requested from the response. If sensitivities
         w.r.t. other variables are required from this response, they are ASSUMED TO BE ZERO.
 
-        Please return all the dependent physical variables, eventhough the gradient computation is not yet implemented
-        for some to avoid future bugs.
+        Please return all the dependent physical variables, even though the gradient computation is not yet
+        implemented for some to avoid future bugs.
 
         Returns:
             list[SupportedSensitivityFieldVariableTypes]: All dependent physical variables of the response.
@@ -75,21 +75,21 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+    def CalculateGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         """Calculate gradient w.r.t. given physical variables.
 
-        This method should always calculate the sensitivities w.r.t. requested physical variables on the given container expressions
-        in the collective expression. An error should be thrown if sensitivitiy computation w.r.t. one or more given physical variables
+        This method should always calculate the sensitivities w.r.t. requested physical variables on the given @ref  Kratos::TensorAdaptor
+        in the @ref Kratos::CombinedTensorAdaptor. An error should be thrown if sensitivitiy computation w.r.t. one or more given physical variables
         are not implemented.
 
         This method should always calculate the sensitivities assuming the domain has changed.
 
-        physical_variable_collective_expressions is a map of physical variables, and their domains. The domains are represented by a CollectiveExpression
-        which contains list of empty ContainerExpression. Each empty ContainerExpression contains details of the model part's nodes/conditions/element/properties
+        physical_variable_gradient_map is a map of physical variables, and their domains. The domains are represented by a @ref Kratos::CombinedTensorAdaptor
+        which contains list of empty @ref Kratos::TensorAdaptor. Each empty Kratos::TensorAdaptor contains details of the model part's nodes/conditions/element/properties
         container for which the sensitivities w.r.t. physical variable requested.
 
         Args:
-            physical_variable_collective_expressions (dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]): Output containing calculated sensitivities w.r.t. requested physical variables.
+            physical_variable_gradient_map (dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]): Output containing calculated sensitivities w.r.t. requested physical variables.
         """
         pass
 

@@ -718,7 +718,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, -2.0], [0.0, 0.0, 0.0, 0.0]]))
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, -2.0, 0.0, 0.0]]))
 
         # move load to next element, also increase time step
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.75)
@@ -778,7 +778,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
             cond.CalculateLocalSystem(lhs, rhs, self.model_part.ProcessInfo)
             all_rhs.append(list(rhs))
 
-        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, -2.0], [0.0, 0.0, 0.0, 0.0]]))
+        self.assertTrue(np.allclose(all_rhs, [[0.0, 0.0, 0.0, 0.0], [0.0, -2.0, 0.0, 0.0]]))
 
         # move load to element connection element
         self.next_solution_step(process)

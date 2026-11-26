@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/geometrical_transformation_utilities.h"
@@ -65,6 +66,13 @@ ApplyPeriodicConditionProcess::ApplyPeriodicConditionProcess(ModelPart &rMasterM
 
 ApplyPeriodicConditionProcess::~ApplyPeriodicConditionProcess()
 {
+}
+
+Process::Pointer ApplyPeriodicConditionProcess::Create(Model &rModel, Parameters ThisParameters)
+{
+    const std::string master_model_part_name = ThisParameters["master_model_part_name"].GetString();
+    const std::string slave_model_part_name = ThisParameters["slave_model_part_name"].GetString();
+    return Kratos::make_shared<ApplyPeriodicConditionProcess>(rModel.GetModelPart(master_model_part_name), rModel.GetModelPart(slave_model_part_name), ThisParameters);
 }
 
 /**

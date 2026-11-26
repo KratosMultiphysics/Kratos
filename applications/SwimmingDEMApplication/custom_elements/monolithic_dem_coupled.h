@@ -95,7 +95,7 @@ namespace Kratos
 /// A stabilized element for the incompressible Navier-Stokes equations.
 /**
  * This class implements a stabilized formulation based on the
- * Variational Multiscale framework. The the subscales can be modeled
+ * Variational Multiscale framework. The subscales can be modeled
  * using either Algebraic Subgird Scales (ASGS) or Orthogonal Subscales (OSS).
  * In the case of OSS, the projection terms are treated explicitly (computed
  * using the results of the previous iteration) and the subscales are not
@@ -190,7 +190,7 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -216,7 +216,7 @@ public:
         Element(NewId, pGeometry)
     {}
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -296,7 +296,7 @@ public:
         }
     }
 
-    /// Returns a zero matrix of appropiate size (provided for compatibility with scheme)
+    /// Returns a zero matrix of appropriate size (provided for compatibility with scheme)
     /**
      * @param rLeftHandSideMatrix Local matrix, will be filled with zeros
      * @param rCurrentProcessInfo Process info instance
@@ -904,7 +904,7 @@ public:
                 /* Projections of the elemental residual are computed with
                  * Newton-Raphson iterations of type M(lumped) dx = ElemRes - M(consistent) * x
                  */
-                const double Weight = ConsistentMassCoef(Area); // Consistent mass matrix is Weigth * ( Ones(TNumNodes,TNumNodes) + Identity(TNumNodes,TNumNodes) )
+                const double Weight = ConsistentMassCoef(Area); // Consistent mass matrix is Weight * ( Ones(TNumNodes,TNumNodes) + Identity(TNumNodes,TNumNodes) )
                 // Carefully write results to nodal variables, to avoid parallelism problems
                 for (unsigned int i = 0; i < TNumNodes; ++i)
                 {
@@ -922,13 +922,13 @@ public:
                     this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Area * N[i];
 
                     // Substract M(consistent)*x(i-1) from RHS
-                    for(unsigned int j = 0; j < TNumNodes; ++j) // RHS -= Weigth * Ones(TNumNodes,TNumNodes) * x(i-1)
+                    for(unsigned int j = 0; j < TNumNodes; ++j) // RHS -= Weight * Ones(TNumNodes,TNumNodes) * x(i-1)
                     {
                         for(unsigned int d = 0; d < TDim; ++d)
                             rMomRHS[d] -= Weight * this->GetGeometry()[j].FastGetSolutionStepValue(ADVPROJ)[d];
                         rMassRHS -= Weight * this->GetGeometry()[j].FastGetSolutionStepValue(DIVPROJ);
                     }
-                    for(unsigned int d = 0; d < TDim; ++d) // RHS -= Weigth * Identity(TNumNodes,TNumNodes) * x(i-1)
+                    for(unsigned int d = 0; d < TDim; ++d) // RHS -= Weight * Identity(TNumNodes,TNumNodes) * x(i-1)
                         rMomRHS[d] -= Weight * this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ)[d];
                     rMassRHS -= Weight * this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
 
@@ -1222,7 +1222,7 @@ protected:
     ///@{
 
 //G
-    /// Determine integration point weights and shape funcition derivatives from the element's geometry.
+    /// Determine integration point weights and shape function derivatives from the element's geometry.
     void CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX, Matrix& rNContainer, Vector& rGaussWeights);
 //Z
 
@@ -1497,13 +1497,13 @@ protected:
     /// Add mass-like stabilization terms to LHS.
     /**
      * This function is only used in ASGS. For OSS, we avoid computing these
-     * terms, as they shoud cancel out with the dynamic part of the projection
+     * terms, as they should cancel out with the dynamic part of the projection
      * (which is not computed either)
      * @param rLHSMatrix Left hand side of the velocity-pressure system
      * @param Density Density on integration point
      * @param rAdvVel Advective velocity on integration point
      * @param TauOne Stabilization parameter for momentum equation
-     * @param rShapeFunc Shape funcitions evaluated on integration point
+     * @param rShapeFunc Shape functions evaluated on integration point
      * @param rShapeDeriv Shape function derivatives evaluated on integration point
      * @param Weight Area (or volume) times integration point weight
      */
@@ -1731,7 +1731,7 @@ protected:
 //             double Coef = Density * Weight;
 //
 //             // Note that we iterate first over columns, then over rows to read the Body Force only once per node
-//             for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over colums
+//             for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over columns
 //             {
 //                 // Get Body Force
 //                 const array_1d<double, 3 > & rBodyForce = this->GetGeometry()[j].FastGetSolutionStepValue(BODY_FORCE);
@@ -1753,7 +1753,7 @@ protected:
 //                     {
 //                         // Velocity block
 // //                        K += Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
-//                         // Note that we are usig kinematic viscosity, as we will multiply it by density later
+//                         // Note that we are using kinematic viscosity, as we will multiply it by density later
 //
 //                         // v * Grad(p) block
 //                         G = TauOne * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
@@ -2048,7 +2048,7 @@ protected:
     }
 //Z
 
-    /// Write the convective operator evaluated at this point (for each nodal funciton) to an array
+    /// Write the convective operator evaluated at this point (for each nodal function) to an array
     /**
      * Evaluate the convective operator for each node's shape function at an arbitrary point
      * @param rResult: Output vector
@@ -2083,7 +2083,7 @@ protected:
      * @param Weight: The variable will be weighted by this value before it is added to rResult
      */
 
-    /// Write the complete convective operator (divergence term included) evaluated at this point (for each nodal funciton) to an array
+    /// Write the complete convective operator (divergence term included) evaluated at this point (for each nodal function) to an array
     /**
      * Evaluate the convective operator for each node's shape function at an arbitrary point
      * @param rResult: Output vector
@@ -2467,7 +2467,7 @@ protected:
     /**
      * Unused, left to support derived classes. @see MonolithicDEMCoupled::AddBTransCB
      * @param rB Strain rate matrix
-     * @param rShapeDeriv Nodal shape funcion derivatives
+     * @param rShapeDeriv Nodal shape function derivatives
      */
     void CalculateB( BoundedMatrix<double, (TDim * TNumNodes) / 2, TDim * TNumNodes >& rB,
                      const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv);

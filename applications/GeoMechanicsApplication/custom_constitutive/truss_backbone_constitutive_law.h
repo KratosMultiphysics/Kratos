@@ -24,6 +24,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 /**
  * @namespace TrussBackboneConstitutiveLaw
  * @brief This constitutive law represents a 1D backbone law with linear elastic un- and reloading
@@ -71,9 +73,8 @@ public:
     std::string Info() const override;
 
 private:
-    double                mAccumulatedStrain   = 0.;
-    double                mPreviousAxialStrain = 0.;
-    double                mUnReLoadCenter      = 0.;
+    double                mAccumulatedStrain = 0.;
+    double                mUnReLoadCenter    = 0.;
     Table<double, double> mStressStrainTable;
 
     [[nodiscard]] double BackboneStress(double Strain) const;
@@ -82,12 +83,11 @@ private:
     [[nodiscard]] bool   IsWithinUnReLoading(double Strain, double YoungsModulus) const;
 
     static void CheckStressStrainDiagram(const Properties& rMaterialProperties);
-    static void CheckStrainValuesAreAscending(const Vector& rStrains);
     static void CheckBackboneStiffnessesDontExceedYoungsModulus(const Vector& rStrains,
                                                                 const Vector& rStresses,
                                                                 double        YoungsModulus);
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 }; // Class TrussBackboneConstitutiveLaw

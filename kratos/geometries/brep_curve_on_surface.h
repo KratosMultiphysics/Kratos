@@ -400,7 +400,7 @@ public:
 
         const double max_parameter = mCurveNurbsInterval.MaxParameter();
         if (rPointLocalCoordinates[0] > max_parameter) {
-            rClosestPointLocalCoordinates[0] = min_parameter;
+            rClosestPointLocalCoordinates[0] = max_parameter;
             return 0;
         } else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
             rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
@@ -431,12 +431,23 @@ public:
     {
         CoordinatesArrayType point_global_coordinates;
 
-        return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+        if (mpCurveOnSurface->pGetCurve()->GetProjectionAlgorithm() == ProjectionAlgorithm::NewtonRaphson) {
+            return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+                rProjectedPointLocalCoordinates,
+                rPointGlobalCoordinates,
+                point_global_coordinates,
+                *this,
+                20,
+                Tolerance);
+        }
+
+        return ProjectionNurbsGeometryUtilities::LevenbergMarquardtCurve(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
             point_global_coordinates,
             *this,
-            20, Tolerance);
+            50,
+            Tolerance);
     }
 
     ///@}

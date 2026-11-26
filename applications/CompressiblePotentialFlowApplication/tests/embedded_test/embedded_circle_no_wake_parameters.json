@@ -6,7 +6,7 @@
         "end_time"      : 1
     },
     "solver_settings"      : {
-        "model_part_name"        : "MainModelPart",
+        "model_part_name"        : "FluidModelPart",
         "domain_size"            : 2,
         "solver_type"            : "potential_flow",
         "model_import_settings"  : {
@@ -41,20 +41,21 @@
             "python_module" : "level_set_remeshing_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
-                "model_part_name" : "MainModelPart.Parts_Parts_Auto1",
+                "model_part_name" : "FluidModelPart.Parts_Parts_Auto1",
                 "skin_model_part_name": "circle_05_test",
                 "remeshing_flag": false
             }
             },{
-            "python_module" : "apply_far_field_process",
+            "python_module" : "apply_far_field_and_wake_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
-                "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "angle_of_attack": 0.0,
                 "mach_infinity": 0.02941176471,
                 "inlet_potential": 1.0,
                 "free_stream_density": 1.225,
-                "initialize_flow_field": false
+                "initialize_flow_field": false,
+                "define_wake": false
             }
         }],
         "list_other_processes" :[{
@@ -65,7 +66,7 @@
             "Parameters"            : {
                 "check_variables"  : ["VELOCITY_POTENTIAL"],
                 "input_file_name"  : "embedded_circle_no_wake_velocity_potential_test_results.json",
-                "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
+                "model_part_name"  : "FluidModelPart.Parts_Parts_Auto1",
                 "tolerance"            : 1e-9,
                 "relative_tolerance"   : 1e-12,
                 "time_frequency"   : -2

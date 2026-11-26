@@ -114,6 +114,13 @@ public:
         });
     }
 
+    // Move constructor
+    SystemVector(SystemVector<TDataType,TIndexType>&& rOtherVector)
+    {
+        mpComm = rOtherVector.mpComm;
+        mData = rOtherVector.mData;
+    }
+
     /// Destructor.
     ~SystemVector(){}
 
@@ -196,6 +203,13 @@ public:
         return *this;
     }
 
+    /// Move assignment operator
+    SystemVector& operator=(SystemVector&& rOtherVector)
+    {
+        mpComm = rOtherVector.mpComm;
+        mData = rOtherVector.mData;
+        return *this;
+    }
 
     SystemVector& operator+=(const SystemVector& rOtherVector)
     {
@@ -268,6 +282,22 @@ public:
         for(unsigned int i=0; i<EquationId.size(); ++i){
             IndexType global_i = EquationId[i];
             AssembleEntry(rVectorInput[i], global_i);
+        }
+    }
+
+    template<class TVectorType, class TIndexVectorType >
+    void SafeAssemble(
+        const TVectorType& rVectorInput,
+        const TIndexVectorType& EquationId
+    )
+    {
+        KRATOS_DEBUG_ERROR_IF(rVectorInput.size() != EquationId.size());
+
+        for(unsigned int i=0; i<EquationId.size(); ++i){
+            IndexType global_i = EquationId[i];
+            if (global_i < size()) {
+                AssembleEntry(rVectorInput[i], global_i);
+            }
         }
     }
 

@@ -107,7 +107,7 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
                 if (!is_found) {
                     if (extrapolate_values) to_extrapolate_nodes_buffer.push_back(*(it_node.base()));
                     if (mThisParameters["echo_level"].GetInt() > 0 || ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
-                        KRATOS_WARNING_IF("NodalValuesInterpolationProcess", !extrapolate_values) << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
+                        KRATOS_WARNING_IF("NodalValuesInterpolationProcess", !extrapolate_values) << "WARNING: Node "<< it_node->Id() << " not found (interpolation not possible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
                         KRATOS_WARNING_IF("NodalValuesInterpolationProcess", ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN && !extrapolate_values ) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
                     }
                 } else {
@@ -297,7 +297,7 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
                 PointType projected_point_global;
 
                 GeometryType& r_geom = p_cond_origin->GetGeometry();
-                GeometricalProjectionUtilities::FastProjectDirection( r_geom, *p_node, projected_point_global, p_cond_origin->GetValue(NORMAL), -(p_node->GetValue(NORMAL)));
+                GeometricalProjectionUtilities::FastProjectDirection(r_geom, *p_node, projected_point_global, p_node->GetValue(NORMAL), p_cond_origin->GetValue(NORMAL));
 
                 GeometryType::CoordinatesArrayType projected_point_local;
 

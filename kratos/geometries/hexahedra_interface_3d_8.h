@@ -20,6 +20,7 @@
 
 // Project includes
 #include "geometries/quadrilateral_3d_4.h"
+#include "integration/quadrilateral_gauss_lobatto_integration_points.h"
 #include "integration/hexahedron_gauss_lobatto_integration_points.h"
 
 
@@ -1761,53 +1762,46 @@ private:
         return d_shape_f_values;
     }
 
+    // Note that the interface geometries "hack" the standard geometry integration mechanism
+    // First integration method, referred as GI_GAUSS_1, is the Lobatto quadrature of the lower order geometry
+    // Second intregration method, referred as GI_LOBATTO_1, is the Lobatto quadrature of the current (degenerated) geometry
     static const IntegrationPointsContainerType AllIntegrationPoints()
     {
         IntegrationPointsContainerType integration_points =
         {
             {
-                Quadrature < HexahedronGaussLobattoIntegrationPoints0,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < HexahedronGaussLobattoIntegrationPoints1,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                IntegrationPointsArrayType(),
-                IntegrationPointsArrayType()
+                Quadrature< QuadrilateralGaussLobattoIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature< HexahedronGaussLobattoIntegrationPoints1, 3, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
     }
 
+    // Note that the interface geometries "hack" the standard geometry integration mechanism
+    // First integration method, referred as GI_GAUSS_1, is the Lobatto quadrature of the lower order geometry
+    // Second intregration method, referred as GI_LOBATTO_1, is the Lobatto quadrature of the current (degenerated) geometry
     static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
     {
         ShapeFunctionsValuesContainerType shape_functions_values =
         {
             {
-                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
-                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
-                Matrix(),
-                Matrix()
+                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_1 ), // FIXME: this is the lower order geometry (i.e., quad) Lobatto quadrature and shouldn't be GI_GAUSS_1
+                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
-    static const ShapeFunctionsLocalGradientsContainerType
-    AllShapeFunctionsLocalGradients()
+    // Note that the interface geometries "hack" the standard geometry integration mechanism
+    // First integration method, referred as GI_GAUSS_1, is the Lobatto quadrature of the lower order geometry
+    // Second intregration method, referred as GI_LOBATTO_1, is the Lobatto quadrature of the current (degenerated) geometry
+    static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients()
     {
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
-                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
-                ShapeFunctionsGradientsType(),
-                ShapeFunctionsGradientsType()
+                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_1 ), // FIXME: this is the lower order geometry (i.e., quad) Lobatto quadrature and shouldn't be GI_GAUSS_1
+                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_LOBATTO_1 ),
             }
         };
         return shape_functions_local_gradients;

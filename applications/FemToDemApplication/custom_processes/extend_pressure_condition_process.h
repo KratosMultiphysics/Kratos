@@ -28,7 +28,7 @@ typedef std::size_t SizeType;
 /**
  * @class ExtendPressureConditionProcess
  * @ingroup FemToDemApplication
- * @brief Creates the new presure line loads after removing some elements
+ * @brief Creates the new pressure line loads after removing some elements
  * @details when several elements are removed this methods generates the line loads
  * in order to adapt to the new geometry
  * @author Alejandro Cornejo

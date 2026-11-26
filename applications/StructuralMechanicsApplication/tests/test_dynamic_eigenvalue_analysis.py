@@ -61,7 +61,8 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         mass_2 = mp.CreateNewElement("NodalConcentratedElement2D1N", 12, [6], mp.GetProperties()[0])
         mass_1.SetValue(KratosMultiphysics.NODAL_MASS,250)
         mass_2.SetValue(KratosMultiphysics.NODAL_MASS,500)
-
+        mass_1.Initialize(mp.ProcessInfo)
+        mass_2.Initialize(mp.ProcessInfo)
 
     def _apply_material_properties(self,mp):
         #define properties

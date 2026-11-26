@@ -15,8 +15,10 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_components.h"
 
 // Application includes
+#include "custom_utilities/sensor_utils.h"
 #include "system_identification_application_variables.h"
 
 // Include base h
@@ -27,18 +29,20 @@ namespace Kratos {
 /// Constructor.
 StrainSensor::StrainSensor(
     const std::string& rName,
-    const Point& rLocation,
+    Node::Pointer pNode,
     const Variable<Matrix>& rStrainVariable,
     const StrainType& rStrainType,
     const Element& rElement,
-    const double Weight)
-    : BaseType(rName, rLocation, Weight),
+    const double Weight,
+    const double ErrorThreshold)
+    : BaseType(rName, pNode, Weight, ErrorThreshold),
       mElementId(rElement.Id()),
       mStrainType(rStrainType),
       mrStrainVariable(rStrainVariable)
 {
-    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(this->GetLocation(), mLocalPoint))
-        << "The point " << this->GetLocation() << " is not inside or on the boundary of the geometry of element with id "
+    // same local coordinate tolerance as the domain bins used to find rElement
+    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(*(this->GetNode()), mLocalPoint, 1e-6))
+        << "The point " << this->GetNode()->Coordinates() << " is not inside or on the boundary of the geometry of element with id "
         << mElementId << ".";
 
     // if the element is of type 2d
@@ -64,12 +68,82 @@ StrainSensor::StrainSensor(
                      << " in element with id = " << rElement.Id() << ".";
     }
 
-    this->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
+    this->GetNode()->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
+}
+
+Sensor::Pointer StrainSensor::Create(
+    ModelPart& rDomainModelPart,
+    ModelPart& rSensorModelPart,
+    const IndexType Id,
+    Parameters SensorParameters,
+    GeometricalObjectsBins& rDomainBins)
+{
+    KRATOS_TRY
+
+    SensorParameters.ValidateAndAssignDefaults(StrainSensor::GetDefaultParameters());
+
+    const auto& location = SensorParameters["location"].GetVector();
+    KRATOS_ERROR_IF_NOT(location.size() == 3)
+        << "Location of the sensor \"" << SensorParameters["name"].GetString()
+        << "\" should have 3 components. [ location = " << location << " ].\n";
+
+    const auto search_result = rDomainBins.SearchIsInside(Point(location[0], location[1], location[2]));
+    KRATOS_ERROR_IF_NOT(search_result.GetIsObjectFound())
+        << "Location of the sensor \"" << SensorParameters["name"].GetString()
+        << "\" is not inside any element of " << rDomainModelPart.FullName()
+        << ". [ location = " << location << " ].\n";
+
+    const auto& r_element = rDomainModelPart.GetElement(search_result.Get()->Id());
+
+    auto p_node = rSensorModelPart.CreateNewNode(Id, location[0], location[1], location[2]);
+
+    const auto& strain_type_str = SensorParameters["strain_type"].GetString();
+
+    StrainType strain_type;
+
+    if (strain_type_str == "strain_xx") {
+        strain_type = StrainType::STRAIN_XX;
+    } else if (strain_type_str == "strain_yy") {
+        strain_type = StrainType::STRAIN_YY;
+    } else if (strain_type_str == "strain_zz") {
+        strain_type = StrainType::STRAIN_ZZ;
+    } else if (strain_type_str == "strain_xy") {
+        strain_type = StrainType::STRAIN_XY;
+    } else if (strain_type_str == "strain_xz") {
+        strain_type = StrainType::STRAIN_XZ;
+    } else if (strain_type_str == "strain_yz") {
+        strain_type = StrainType::STRAIN_YZ;
+    } else {
+        KRATOS_ERROR << "Unsupported strain type = \""
+                     << strain_type_str << "\". Followings are supported:"
+                     << "\n\tstrain_xx"
+                     << "\n\tstrain_yy"
+                     << "\n\tstrain_zz"
+                     << "\n\tstrain_xy"
+                     << "\n\tstrain_xz"
+                     << "\n\tstrain_yz";
+    }
+
+    auto p_sensor = Kratos::make_shared<StrainSensor>(
+        SensorParameters["name"].GetString(),
+        p_node,
+        KratosComponents<Variable<Matrix>>::Get(SensorParameters["strain_variable"].GetString()),
+        strain_type,
+        r_element,
+        SensorParameters["weight"].GetDouble(),
+        SensorParameters["error_threshold"].GetDouble()
+    );
+
+    SensorUtils::ReadVariableData(p_sensor->GetNode()->GetData(), SensorParameters["variable_data"]);
+
+    return p_sensor;
+
+    KRATOS_CATCH("");
 }
 
 Parameters StrainSensor::GetDefaultParameters()
 {
-    return Parameters(R"(
+    Parameters parameters(R"(
     {
         "type"           : "strain_sensor",
         "name"           : "",
@@ -78,45 +152,36 @@ Parameters StrainSensor::GetDefaultParameters()
         "strain_type"    : "strain_xx",
         "strain_variable": "SHELL_STRAIN",
         "weight"         : 0.0,
+        "error_threshold": 0.0,
         "variable_data": {}
     })" );
+    parameters["error_threshold"].SetDouble(Sensor::DefaultErrorThreshold);
+    return parameters;
 }
 
-const Parameters StrainSensor::GetSensorParameters() const
+Parameters StrainSensor::GetSensorParameters() const
 {
-    Parameters parameters = Parameters(R"(
-    {
-        "type"           : "strain_sensor",
-        "name"           : "",
-        "value"          : 0.0,
-        "location"       : [0.0, 0.0, 0.0],
-        "strain_type"    : "strain_xx",
-        "strain_variable": "SHELL_STRAIN",
-        "weight"         : 0.0
-    })" );
-    parameters["name"].SetString(this->GetName());
-    parameters["value"].SetDouble(this->GetSensorValue());
-    parameters["location"].SetVector(this->GetLocation());
-    parameters["weight"].SetDouble(this->GetWeight());
+    auto parameters = BaseType::GetSensorParameters();
+    parameters.AddString("type", "strain_sensor");
 
     switch (mStrainType) {
         case StrainType::STRAIN_XX:
-            parameters["strain_type"].SetString("strain_xx");
+            parameters.AddString("strain_type", "strain_xx");
             break;
         case StrainType::STRAIN_YY:
-            parameters["strain_type"].SetString("strain_yy");
+            parameters.AddString("strain_type", "strain_yy");
             break;
         case StrainType::STRAIN_ZZ:
-            parameters["strain_type"].SetString("strain_zz");
+            parameters.AddString("strain_type", "strain_zz");
             break;
         case StrainType::STRAIN_XY:
-            parameters["strain_type"].SetString("strain_xy");
+            parameters.AddString("strain_type", "strain_xy");
             break;
         case StrainType::STRAIN_XZ:
-            parameters["strain_type"].SetString("strain_xz");
+            parameters.AddString("strain_type", "strain_xz");
             break;
         case StrainType::STRAIN_YZ:
-            parameters["strain_type"].SetString("strain_yz");
+            parameters.AddString("strain_type", "strain_yz");
             break;
     };
 
@@ -133,9 +198,9 @@ double StrainSensor::CalculateValue(ModelPart& rModelPart)
         r_element.CalculateOnIntegrationPoints(mrStrainVariable, strains, rModelPart.GetProcessInfo());
 
         for (const auto& strain : strains) {
-            KRATOS_ERROR_IF(strain.data().size() <= mStrainIndex)
-                << "The size of the strain " << strain.data().size() << " does not contain the index = " << mStrainIndex << ".";
-            directional_strain += *(strain.data().begin() + mStrainIndex);
+            KRATOS_ERROR_IF(strain.size1() * strain.size2() <= mStrainIndex)
+                << "The size of the strain " << strain.size1() * strain.size2() << " does not contain the index = " << mStrainIndex << ".";
+            directional_strain += strain.data()[mStrainIndex]; // flat row-major access, valid for both backends
         }
 
         directional_strain /= strains.size();
@@ -312,9 +377,6 @@ void StrainSensor::PrintInfo(std::ostream& rOStream) const
 
 void StrainSensor::PrintData(std::ostream& rOStream) const
 {
-    rOStream << "    Location: " << this->GetLocation() << std::endl;
-    rOStream << "    Value: " << this->GetSensorValue() << std::endl;
-    rOStream << "    Weight: " << this->GetWeight() << std::endl;
     rOStream << "    Element Id: " << mElementId << std::endl;
     switch (mStrainType) {
         case StrainType::STRAIN_XX:
@@ -336,7 +398,7 @@ void StrainSensor::PrintData(std::ostream& rOStream) const
             rOStream << "    Direction: STRAIN_YZ" << std::endl;
             break;
     }
-    DataValueContainer::PrintData(rOStream);
+    Sensor::PrintData(rOStream);
 }
 
 void StrainSensor::SetVectorToZero(
@@ -367,8 +429,8 @@ double StrainSensor::CalculateStrainDirectionalSensitivity(
 
     double strain_sensitivity = 0.0;
     for (IndexType j = 0; j < rPerturbedStrains.size(); ++j) {
-        strain_sensitivity += (*(rPerturbedStrains[j].data().begin() + mStrainIndex) -
-                               *(rRefStrains[j].data().begin() + mStrainIndex)) /
+        strain_sensitivity += (rPerturbedStrains[j].data()[mStrainIndex] -
+                               rRefStrains[j].data()[mStrainIndex]) /
                               Perturbation;
     }
 

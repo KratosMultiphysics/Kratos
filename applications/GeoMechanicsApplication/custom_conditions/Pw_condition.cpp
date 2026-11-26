@@ -12,11 +12,31 @@
 //
 
 // Application includes
-#include "custom_conditions/Pw_condition.hpp"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_conditions/Pw_condition.h"
+#include "custom_utilities/dof_utilities.hpp"
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+PwCondition<TDim, TNumNodes>::PwCondition() : PwCondition(0, nullptr, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+PwCondition<TDim, TNumNodes>::PwCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : PwCondition(NewId, pGeometry, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+PwCondition<TDim, TNumNodes>::PwCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : Condition(NewId, pGeometry, pProperties)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+PwCondition<TDim, TNumNodes>::~PwCondition() = default;
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer PwCondition<TDim, TNumNodes>::Create(IndexType               NewId,
@@ -122,6 +142,18 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Condition::DofsVectorType PwCondition<TDim, TNumNodes>::GetDofs() const
 {
     return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

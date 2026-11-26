@@ -48,7 +48,7 @@ Begin Elements SmallStrainUPwDiffOrderElement2D6N
   8  1  19 21 13 20 17 16
 End Elements
 
-Begin Elements GeoCurvedBeamElement2D3N
+Begin Elements LinearTimoshenkoCurvedBeamElement2D3N
   9  2  5 9 6
   10  2  9 15 12
   11  2  15 21 18

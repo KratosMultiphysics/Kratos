@@ -116,15 +116,11 @@
                     "PIPE_THETA": 37,
                     "RETENTION_LAW": "SaturatedLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 0.06203,
-                    "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.561,
-                    "VAN_GENUCHTEN_GN": 1.377,
-                    "VAN_GENUCHTEN_GL": 1.25,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
                     "PIPE_START_ELEMENT": 18,
                     "PIPE_MODIFIED_D": false,
-					"PIPE_MODEL_FACTOR": 1,
-                    "PIPE_D_70": 0.0001
+                    "PIPE_MODEL_FACTOR": 1,
+                    "PIPE_D_70": 0.0001,
+                    "PIPE_HEIGHT": 0.0
          },
          "Tables": {}
       }

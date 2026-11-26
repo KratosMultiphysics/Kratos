@@ -151,16 +151,11 @@ namespace Kratos
       rModelPart.Nodes().clear();
       rModelPart.Elements().clear();
 
-      //contact conditions are located on Mesh_0
-      // ModelPart::ConditionsContainerType PreservedConditions;
-
       unsigned int nodeId = 1;
       unsigned int elemId = 1;
-      // unsigned int condId=1;
 
       for (ModelPart::SubModelPartIterator i_mp = rModelPart.SubModelPartsBegin(); i_mp != rModelPart.SubModelPartsEnd(); i_mp++)
       {
-        // if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
         if ((i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(FLUID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)))
         { //only the solid domains (no computing) and the rigid body domains (rigid)
 
@@ -168,7 +163,6 @@ namespace Kratos
             std::cout << "    [ SUBMODEL PART [" << i_mp->Name() << "] [Elems=" << i_mp->NumberOfElements() << "|Nodes=" << i_mp->NumberOfNodes() << "|Conds=" << i_mp->NumberOfConditions() << "] ] " << std::endl;
 
           //Clean Nodes when redefining the main model part:
-          const array_1d<double, 3> ZeroNormal(3, 0.0);
           ModelPart::NodesContainerType temporal_nodes;
           temporal_nodes.reserve(i_mp->Nodes().size());
           temporal_nodes.swap(i_mp->Nodes());
@@ -212,20 +206,16 @@ namespace Kratos
 
             for (ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin(); i_node != temporal_nodes.end(); i_node++)
             {
-              //i_node->PrintInfo(std::cout);
-              //std::cout<<std::endl;
 
               if (i_node->Is(BLOCKED) || i_node->Is(RIGID))
               {
                 if (i_node->Is(RIGID) && i_node->IsNot(BLOCKED))
                 {
-                  // double pressureRigid=i_node->FastGetSolutionStepValue(PRESSURE);
                   i_node->FastGetSolutionStepValue(PRESSURE) = 0;
                   if (i_mp->Is(FLUID))
                   {
                     i_node->Reset(FLUID); //reset isolated
                   }
-                  // std::cout<<" fluid 1. SET PRESSURE 0 TO ISOLATED NODE ("<<nodeId<<") its pressure was "<<pressureRigid<<std::endl;
                 }
                 i_node->Reset(ISOLATED);   //reset isolated
                 i_node->Reset(NEW_ENTITY); //reset if was new
@@ -263,37 +253,6 @@ namespace Kratos
             }
           }
 
-          // for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
-          //   {
-          // 	if( i_cond->IsNot(TO_ERASE) ){
-          // 	  i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
-          // 	  PreservedConditions.push_back(*(i_cond.base()));
-          // 	  PreservedConditions.back().SetId(condId);
-          // 	  condId+=1;
-
-          // 	  Geometry< Node >& rGeometry = i_cond->GetGeometry();
-          // 	  unsigned int NumNodes=rGeometry.size();
-          // 	  unsigned int freeSurfaceNodes=0;
-          // 	  unsigned int rigidNodes=0;
-          // 	  for (unsigned int n = 0; n < NumNodes; ++n)
-          // 	    {
-
-          // 	      if(rGeometry[n].Is(RIGID) || rGeometry[n].Is(SOLID)){
-          // 	  	// std::cout<<"rigid node! "<<rGeometry[n].X()<<" "<<rGeometry[n].Y()<<std::endl;
-          // 	  	rigidNodes++;
-          // 	      }else {
-          // 	  	freeSurfaceNodes++;
-          // 	      }
-          // 	    }
-          // 	  if((freeSurfaceNodes>0 && rigidNodes>0) || rigidNodes==0){
-          // 	    for (unsigned int n = 0; n < NumNodes; ++n)
-          // 	      {
-          // 		rGeometry[n].Set(FREE_SURFACE);
-          // 	      }
-          // 	  }
-
-          // 	}
-          //   }
         }
 
         else
@@ -316,37 +275,6 @@ namespace Kratos
         }
       }
 
-      // this->BuildBoundaryModelParts(rModelPart,PreservedConditions, nodeId, elemId, condId);
-
-      // for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
-      // 	{
-      // 	  if( i_mp->Is(BOUNDARY) ){ //boundary model part
-
-      // 	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
-      // 	      {
-      // 		if( i_cond->IsNot(TO_ERASE) ){
-      // 		  i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
-      // 		  PreservedConditions.push_back(*(i_cond.base()));
-      // 		  PreservedConditions.back().SetId(condId);
-      // 		  condId+=1;
-      // 		}
-      // 	      }
-      // 	  }
-
-      // 	}
-
-      // for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
-      // 	{
-      // 	  if(i_cond->Is(CONTACT)){
-      // 	    PreservedConditions.push_back(*(i_cond.base()));
-      // 	    PreservedConditions.back().SetId(condId);
-      // 	    condId+=1;
-      // 	  }
-      // 	}
-
-      // rModelPart.Conditions().swap(PreservedConditions);
-
-      // Unique (it includes sort())
       rModelPart.Nodes().Unique();
       rModelPart.Elements().Unique();
       // rModelPart.Conditions().Unique();
@@ -374,7 +302,6 @@ namespace Kratos
       std::string ComputingModelPartName;
       for (ModelPart::SubModelPartIterator i_mp = rModelPart.SubModelPartsBegin(); i_mp != rModelPart.SubModelPartsEnd(); i_mp++)
       {
-        // if( (i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) ){ //solid_computing_domain
         if ((i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) || (i_mp->Is(ACTIVE) && i_mp->Is(FLUID)))
         { // solid_computing_domain and fluid_computing_domain
           ComputingModelPartName = i_mp->Name();
@@ -385,24 +312,16 @@ namespace Kratos
 
       rComputingModelPart.Nodes().clear();
       rComputingModelPart.Elements().clear();
-      // rComputingModelPart.Conditions().clear();
 
       for (ModelPart::SubModelPartIterator i_mp = rModelPart.SubModelPartsBegin(); i_mp != rModelPart.SubModelPartsEnd(); i_mp++)
       {
-        // if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){
         if (((i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID))) || (i_mp->Is(FLUID) && i_mp->IsNot(ACTIVE)))
         {
 
           for (ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin(); i_node != i_mp->NodesEnd(); i_node++)
           {
             rComputingModelPart.Nodes().push_back(*(i_node.base()));
-            // rComputingModelPart.AddNode(*(i_node.base())); // very slow!
           }
-
-          // for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
-          //   {
-          // 	rComputingModelPart.AddCondition(*(i_cond.base()));
-          //   }
 
           for (ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin(); i_elem != i_mp->ElementsEnd(); i_elem++)
           {
@@ -411,15 +330,9 @@ namespace Kratos
         }
       }
 
-      // // // Sort
-      // // rComputingModelPart.Nodes().Sort();
-      // // rComputingModelPart.Elements().Sort();
-      // // // rComputingModelPart.Conditions().Sort();
-
       // Unique (Sort is included)
       rComputingModelPart.Nodes().Unique();
       rComputingModelPart.Elements().Unique();
-      // rComputingModelPart.Conditions().Unique();
 
       if (EchoLevel > 1)
         std::cout << "    [ SUBMODEL PART [" << rComputingModelPart.Name() << "] [Elems=" << rComputingModelPart.NumberOfElements() << "|Nodes=" << rComputingModelPart.NumberOfNodes() << "|Conds=" << rComputingModelPart.NumberOfConditions() << "] ] " << std::endl;

@@ -13,9 +13,9 @@ class TestDistanceMatrix(UnitTest.TestCase):
 
         cls.distance_matrix = KratosSI.DistanceMatrix()
 
-        exp = Kratos.Expression.NodalExpression(cls.model_part)
-        Kratos.Expression.NodalPositionExpressionIO.Read(exp, Kratos.Configuration.Initial)
-        cls.distance_matrix.Update(exp)
+        ta = Kratos.TensorAdaptors.NodePositionTensorAdaptor(cls.model_part.Nodes, Kratos.Configuration.Initial)
+        ta.CollectData()
+        cls.distance_matrix.Update(ta)
 
     def test_GetDistance1(self) -> None:
         for i, node_i in enumerate(self.model_part.Nodes):

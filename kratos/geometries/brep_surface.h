@@ -11,6 +11,8 @@
 //                   Andreas Apostolatos
 //                   Pooyan Dadvand
 //                   Philipp Bucher
+//                   Nicolò Antonelli
+//                   Andrea Gorgi
 //
 
 #if !defined(KRATOS_BREP_FACE_3D_H_INCLUDED )
@@ -27,6 +29,7 @@
 
 // trimming integration
 #include "utilities/geometry_utilities/brep_trimming_utilities.h"
+#include "utilities/geometry_utilities/brep_sbm_utilities.h"
 
 namespace Kratos
 {
@@ -64,7 +67,9 @@ public:
 
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
     typedef BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
+
     typedef BrepTrimmingUtilities<TShiftedBoundary> BrepTrimmingUtilitiesType;
+    typedef BrepSbmUtilities<Node> BrepSbmUtilitiesType;
 
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
@@ -335,6 +340,22 @@ public:
         return mpNurbsSurface->PolynomialDegree(LocalDirectionIndex);
     }
 
+    /// Return knot spans in U-direction
+    std::vector<double> KnotsU() const
+    {
+        std::vector<double> spans_u;
+        mpNurbsSurface->SpansLocalSpace(spans_u, 0);
+        return spans_u;
+    }
+
+    /// Return knot spans in V-direction
+    std::vector<double> KnotsV() const
+    {
+        std::vector<double> spans_v;
+        mpNurbsSurface->SpansLocalSpace(spans_v, 1);
+        return spans_v;
+    }
+
     ///@}
     ///@name Information
     ///@{
@@ -455,9 +476,20 @@ public:
         if (!mIsTrimmed) {
             // sbm case
             if constexpr (TShiftedBoundary) {
-                // TODO: Next PR -> Call  "BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints"
-                mpNurbsSurface->CreateIntegrationPoints(
-                    rIntegrationPoints, rIntegrationInfo);
+
+                std::vector<double> spans_u;
+                std::vector<double> spans_v;
+                mpNurbsSurface->SpansLocalSpace(spans_u, 0);
+                mpNurbsSurface->SpansLocalSpace(spans_v, 1);
+                
+                // Call  "BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints"
+                BrepSbmUtilitiesType::CreateBrepSurfaceSbmIntegrationPoints(
+                    spans_u, 
+                    spans_v,
+                    *mpSurrogateOuterLoopGeometries,
+                    *mpSurrogateInnerLoopGeometries,
+                    rIntegrationPoints,
+                    rIntegrationInfo);
             }
             // body-fitted case
             else {
@@ -480,7 +512,55 @@ public:
                 rIntegrationInfo);
         }
     }
+    ///@}
+    ///@name Span Triangulation Utilities
+    ///@{
 
+    /* @brief Computes the triangulation of a given knot span in the parameter space
+     *
+     * This function evaluates the trimming state of a parametric knot span
+     * defined by the intervals [u0,u1] × [v0,v1]. It delegates the geometric
+     * processing to BrepTrimmingUtilities, which performs clipping of the span
+     * against the outer and inner trimming loops and computes a triangulation
+     * of the resulting domain.
+     *
+     * @param u0 lower bound of the knot span in u-direction.
+     * @param u1 upper bound of the knot span in u-direction.
+     * @param v0 lower bound of the knot span in v-direction.
+     * @param v1 upper bound of the knot span in v-direction.
+     * @param rTriangles vector containing the resulting triangles in local
+     *        coordinates. Each triangle is stored as a 3x3 matrix where rows
+     *        correspond to vertices and columns to spatial coordinates.
+     *
+     * @return bool indicating whether the span is trimmed.
+     *         - false: full (untrimmed) span.
+     *         - true: partially trimmed or completely outside the domain.
+     *
+     * @note If the span lies completely outside the trimmed domain, the returned
+     *       triangle vector will be empty.
+     *
+     * @see BrepTrimmingUtilities::ComputeSpanTriangulation
+     */
+
+    bool ComputeSpanTriangulationLocalSpace(
+        const double u0,
+        const double u1,
+        const double v0,
+        const double v1,
+        std::vector<Matrix>& rTrianglesLocalSpace) const
+    {
+        bool is_trimmed = false;
+
+        BrepTrimmingUtilitiesType::ComputeSpanTriangulation(
+            mOuterLoopArray,
+            mInnerLoopArray,
+            u0, u1,
+            v0, v1,
+            is_trimmed,
+            rTrianglesLocalSpace);
+
+        return is_trimmed;
+    }
     ///@}
     ///@name Quadrature Point Geometries
     ///@{
@@ -531,6 +611,18 @@ public:
         return rResult;
     }
 
+    void ShapeFunctionsValuesAndCPIndices(
+        const CoordinatesArrayType& rCoordinates,
+        std::vector<IndexType>& rControlPointIndices,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr
+    ) const
+    {
+        mpNurbsSurface->ShapeFunctionsValuesAndCPIndices(
+            rCoordinates, rControlPointIndices, rShapeFunctionsValues, DerivativeOrder, pShapeFunctionDerivatives);
+    }
+
     ///@}
     ///@name Geometry Family
     ///@{
@@ -559,18 +651,18 @@ public:
      * @brief Set the Surrogate Outer Loop Geometries object
      * @param pSurrogateOuterLoopArray 
      */
-    void SetSurrogateOuterLoopGeometries(GeometrySurrogateArrayType &rSurrogateOuterLoopArray)
+    void SetSurrogateOuterLoopGeometries(Kratos::shared_ptr<GeometrySurrogateArrayType> pSurrogateOuterLoopArray)
     {
-        mpSurrogateOuterLoopGeometries = &rSurrogateOuterLoopArray;
+        mpSurrogateOuterLoopGeometries = pSurrogateOuterLoopArray;
     }
     
     /**
      * @brief Set the Surrogate Inner Loop Geometries object
      * @param pSurrogateInnerLoopArray 
      */
-    void SetSurrogateInnerLoopGeometries(GeometrySurrogateArrayType &rSurrogateInnerLoopArray)
+    void SetSurrogateInnerLoopGeometries(Kratos::shared_ptr<GeometrySurrogateArrayType> pSurrogateInnerLoopArray)
     {
-        mpSurrogateInnerLoopGeometries = &rSurrogateInnerLoopArray;
+        mpSurrogateInnerLoopGeometries = pSurrogateInnerLoopArray;
     }
 
     /**
@@ -636,10 +728,10 @@ private:
 
     BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
 
-    GeometrySurrogateArrayType* mpSurrogateInnerLoopGeometries;
-    GeometrySurrogateArrayType* mpSurrogateOuterLoopGeometries;
+    // For SBM
+    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateOuterLoopGeometries = nullptr;
+    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateInnerLoopGeometries = nullptr;
     
-
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
     */

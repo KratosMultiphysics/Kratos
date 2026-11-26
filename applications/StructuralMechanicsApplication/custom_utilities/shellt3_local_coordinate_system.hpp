@@ -66,7 +66,7 @@ public:
         : mP(3)
         , mOrientation(3, 3)
     {
-        // Form the basis vectors alligning the local X direction
+        // Form the basis vectors aligning the local X direction
         // with the 1-2 side
 
         // compute the central point
@@ -117,7 +117,7 @@ public:
         : mP(3)
         , mOrientation(3, 3)
     {
-        // Form the basis vectors alligning the local X direction
+        // Form the basis vectors aligning the local X direction
         // with the 1-2 side
 
         // compute the central point

@@ -1,0 +1,152 @@
+Begin Table 1 TIME SURFACE_LOAD_X
+  0.0  0.0
+  1.0  667.0
+  2.0  1334.0
+  3.0  1500.0
+  4.0  3000.0
+End Table
+
+Begin Table 2 TIME SURFACE_LOAD_Y
+  0.0  0.0
+  1.0  333.0
+  2.0  666.0
+  3.0  999.0
+  4.0  1332.0
+End Table
+
+Begin Table 3 TIME SURFACE_LOAD_Z
+  0.0  0.0
+  1.0  667.0
+  2.0  1334.0
+  3.0  1500.0
+  4.0  3000.0
+End Table
+
+
+Begin Properties 1
+End Properties
+
+
+Begin Nodes
+  1  2.0000000000 0.0000000000 0.0000000000
+  2  4.5000000000 0.0000000000 0.0000000000
+  3  7.0000000000 0.0000000000 0.0000000000
+  4  2.0000000000 0.0000000000 2.0000000000
+  5  4.5000000000 0.0000000000 2.0000000000
+  6  7.0000000000 0.0000000000 2.0000000000
+  7  2.0000000000 0.0000000000 4.0000000000
+  8  4.5000000000 0.0000000000 4.0000000000
+  9  7.0000000000 0.0000000000 4.0000000000
+ 11  2.0000000000 0.0000000000 0.0000000000
+ 12  4.5000000000 0.0000000000 0.0000000000
+ 13  7.0000000000 0.0000000000 0.0000000000
+ 14  2.0000000000 0.0000000000 2.0000000000
+ 15  4.5000000000 0.0000000000 2.0000000000
+ 16  7.0000000000 0.0000000000 2.0000000000
+ 17  2.0000000000 0.0000000000 4.0000000000
+ 18  4.5000000000 0.0000000000 4.0000000000
+ 19  7.0000000000 0.0000000000 4.0000000000
+End Nodes
+
+
+Begin Elements Geo_USurfaceInterfaceElement6Plus6N
+  1  1    1  7  3  4  5  2  11  17  13  14  15  12
+  2  1    7  9  3  8  6  5  17  19  13  18  16  15
+End Elements
+
+
+Begin Conditions UPwFaceLoadCondition3D6N
+  1  1    11  13  17  12  15  14
+  2  1    17  13  19  15  16  18
+End Conditions
+
+
+Begin SubModelPart Interfaces
+  Begin SubModelPartNodes
+      1
+      2
+      3
+      4
+      5
+      6
+      7
+      8
+      9
+     11
+     12
+     13
+     14
+     15
+     16
+     17
+     18
+     19
+  End SubModelPartNodes
+  Begin SubModelPartElements
+      1
+      2
+  End SubModelPartElements
+End SubModelPart
+
+
+Begin SubModelPart FixedNodes
+  Begin SubModelPartNodes
+      1
+      2
+      3
+      4
+      5
+      6
+      7
+      8
+      9
+  End SubModelPartNodes
+End SubModelPart
+
+
+Begin SubModelPart SideZX
+  Begin SubModelPartNodes
+     11
+     12
+     13
+     14
+     15
+     16
+     17
+     18
+     19
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+      1
+      2
+  End SubModelPartConditions
+  Begin SubModelPartTables
+      1
+      2
+      3
+  End SubModelPartTables  
+End SubModelPart
+
+
+Begin SubModelPart AllNodes
+  Begin SubModelPartNodes
+      1
+      2
+      3
+      4
+      5
+      6
+      7
+      8
+      9
+     11
+     12
+     13
+     14
+     15
+     16
+     17
+     18
+     19
+  End SubModelPartNodes
+End SubModelPart

@@ -180,7 +180,7 @@ public:
 protected:
 
     /**
-     * this performs the smooting and integrates the CL and returns the integrated Stress
+     * this performs the smoothing and integrates the CL and returns the integrated Stress
      */
     Vector IntegrateSmoothedConstitutiveLaw(const std::string &rYieldSurface, ConstitutiveLaw::Parameters &rValues,
                                             const BaseSolidElement::ConstitutiveVariables &rThisConstVars, const BaseSolidElement::KinematicVariables &rKinVariables,

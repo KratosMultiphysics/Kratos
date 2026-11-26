@@ -224,7 +224,7 @@ namespace Kratos
             if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_BOUNDARY)==false )
                 KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_BOUNDARY---- variable!!!!!! ERROR","");
 
-            //mark as IS_BOUNDARY the nodes on the "skin". This nodes will be mantained even if they were marked for erase by the user
+            //mark as IS_BOUNDARY the nodes on the "skin". This nodes will be maintained even if they were marked for erase by the user
             for (ModelPart::NodesContainerType::iterator inode = ThisModelPart.NodesBegin(); inode!=ThisModelPart.NodesEnd(); inode++)
                 inode->FastGetSolutionStepValue(IS_BOUNDARY) = 1.0;
             for (ModelPart::ConditionsContainerType::iterator icond = ThisModelPart.ConditionsBegin(); icond!=ThisModelPart.ConditionsEnd(); icond++)
@@ -512,7 +512,7 @@ namespace Kratos
             //if the refinement was performed, we need to add it to the model part.
             if (static_cast<unsigned int>(tet.numberofpoints)>n_points_before_refinement)
             {
-                //defintions for spatial search
+                //definitions for spatial search
 //                 typedef Node PointType;
 //                 typedef Node ::Pointer PointTypePointer;
                 array_1d<double, 4 > N;

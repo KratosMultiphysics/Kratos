@@ -24,6 +24,7 @@
 // Project includes
 #include "geometries/line_2d_5.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
+#include "integration/triangle_gauss_lobatto_integration_points.h"
 
 namespace Kratos
 {
@@ -1535,7 +1536,8 @@ namespace Kratos
                     Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3>>::GenerateIntegrationPoints(),
                     Quadrature<TriangleGaussLegendreIntegrationPoints3, 2, IntegrationPoint<3>>::GenerateIntegrationPoints(),
                     Quadrature<TriangleGaussLegendreIntegrationPoints4, 2, IntegrationPoint<3>>::GenerateIntegrationPoints(),
-                    Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3>>::GenerateIntegrationPoints()
+                    Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3>>::GenerateIntegrationPoints(),
+                    Quadrature<TriangleGaussLobattoIntegrationPoints1, 2, IntegrationPoint<3>>::GenerateIntegrationPoints()
                 }
             };
             return integration_points;
@@ -1551,6 +1553,7 @@ namespace Kratos
                     Triangle2D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_3),
                     Triangle2D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_4),
                     Triangle2D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_5),
+                    Triangle2D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_LOBATTO_1)
                 }
             };
             return shape_functions_values;
@@ -1566,6 +1569,7 @@ namespace Kratos
                     Triangle2D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_3),
                     Triangle2D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_4),
                     Triangle2D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_5),
+                    Triangle2D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_LOBATTO_1)
                 }
             };
             return shape_functions_local_gradients;

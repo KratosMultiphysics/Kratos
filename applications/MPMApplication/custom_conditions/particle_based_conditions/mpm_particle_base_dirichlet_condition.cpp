@@ -66,6 +66,74 @@ void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( const ProcessInfo&
     m_imposed_displacement = ZeroVector(3);
 }
 
+void MPMParticleBaseDirichletCondition::CalculateInterfaceContactForce(const ProcessInfo& rCurrentProcessInfo )
+{
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+    GeneralVariables Variables;
+    MPMShapeFunctionPointValues(Variables.N);
+
+    array_1d<double, 3 > mpc_force = ZeroVector(3);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (std::abs(Variables.N[i]) > std::numeric_limits<double>::epsilon())
+        {
+            auto r_geometry = GetGeometry();
+            
+            const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
+            const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
+
+            if (nodal_area > std::numeric_limits<double>::epsilon())
+            {
+                mpc_force += Variables.N[i] * nodal_force * this->GetIntegrationWeight() / nodal_area;
+            }
+            KRATOS_WARNING_IF( "NODAL_AREA", nodal_area < std::numeric_limits<double>::epsilon() ) << "Node " << r_geometry[i].Id() << " of condition " <<this->Id()<< " has zero value for NODAL_AREA " << std::endl;
+        }
+    }
+
+    // Apply in the normal contact direction and allow releasing motion
+    if (Is(CONTACT))
+    {
+        // Apply only in the normal direction
+        const double normal_force = MathUtils<double>::Dot(mpc_force, m_normal);
+
+        // This check is done to avoid sticking forces
+        if (normal_force > 0.0)
+            mpc_force = normal_force * m_normal;
+        else
+            mpc_force = ZeroVector(3);
+    }
+    
+    m_contact_force = -mpc_force;
+}
+
+void MPMParticleBaseDirichletCondition::CalculateNodalReactions(const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_ERROR << "You are calling the CalculateNodalReactions from the base class for dirichlet conditions" << std::endl;
+}
+
+
+void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
+    const Variable<bool>& rVariable,
+    std::vector<bool>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    rValues.resize(1);
+
+    if (rVariable == MPC_CALCULATE_NODAL_REACTIONS) {
+        this->CalculateNodalReactions(rCurrentProcessInfo);
+        rValues[0] = true;
+    }
+    else if (rVariable == MPC_CALCULATE_CONTACT_FORCE) {
+        this->CalculateInterfaceContactForce(rCurrentProcessInfo);
+        rValues[0] = true;
+    }
+    else {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
 void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,

@@ -67,7 +67,7 @@ public:
                 "stress_averaging_time": 1e-7
             }  )" );
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mImposedDirection = rParameters["imposed_direction"].GetInt();

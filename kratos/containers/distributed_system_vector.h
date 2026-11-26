@@ -9,9 +9,8 @@
 //
 //  Main authors:    Riccardo Rossi
 //
-#if !defined(KRATOS_DISTRIBUTED_SYSTEM_VECTOR_H_INCLUDED )
-#define  KRATOS_DISTRIBUTED_SYSTEM_VECTOR_H_INCLUDED
 
+#pragma once
 
 // System includes
 #include <string>
@@ -505,7 +504,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_DISTRIBUTED_SYSTEM_VECTOR_H_INCLUDED  defined
 
 

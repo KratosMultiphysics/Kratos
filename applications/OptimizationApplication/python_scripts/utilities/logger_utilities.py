@@ -14,6 +14,7 @@ import time as timer
 import datetime
 import KratosMultiphysics as Kratos
 from functools import wraps
+import typing
 
 
 def AddFileLoggerOutput(logger_file_name):
@@ -152,6 +153,46 @@ def DictLogger(title: str, data: dict):
 
     # Add the data to the table
     for label, value in data.items():
+        table += f"{label_format.format(label)} {value:>{max_value_len}} |\n"
+
+    table += '-' * row_width
+
+    # now print
+    Kratos.Logger.PrintInfo(table)
+
+def ListLogger(title: str, data: 'list[tuple[str, typing.Union[int, float, str]]]'):
+    # First do the formatting and converting to strings
+    sting_data: 'list[tuple[str, typing.Union[int, float, str]]]' = []
+    for key, value in data:
+        if isinstance(value, (float, int)):
+            if abs(value) >= 1e6 or abs(value) < 1e-6:
+                sting_data.append((key, "{:.6e}".format(value)))
+            else:
+                sting_data.append((key, "{:.6f}".format(value)))
+
+    # Determine the maximum length of labels
+    max_label_len = max(len(str(label)) for label, _  in data)
+    max_value_len = max(len(str(value)) for _, value in data)
+
+    title_len = len(str(title)) + 8
+
+    # Calculate the row width
+    if title_len > max_label_len + max_value_len + 7:
+        row_width = title_len
+        max_value_len = row_width - max_label_len - 7
+    else:
+        row_width = max_label_len + max_value_len + 7
+
+    # Create format strings for the labels and values
+    label_format = f"| {{:<{max_label_len}}} |"
+
+    # Build the table
+    table = '-' * row_width + "\n"
+    table += f"|{str(title).center(row_width - 2)}|\n"
+    table += '-' * row_width + "\n"
+
+    # Add the data to the table
+    for label, value in data:
         table += f"{label_format.format(label)} {value:>{max_value_len}} |\n"
 
     table += '-' * row_width

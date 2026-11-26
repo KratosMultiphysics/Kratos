@@ -13,7 +13,7 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/test_utilities/spy_condition.h"
 #include "tests/cpp_tests/test_utilities/spy_element.h"
 
@@ -21,8 +21,8 @@ namespace Kratos::Testing
 {
 
 using namespace Kratos;
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType  = TDefaultDenseSpace<double>;
 
 class NewmarkQuasistaticUPwSchemeTester
 {
@@ -55,8 +55,8 @@ public:
         result.GetProcessInfo()[DELTA_TIME] = 4.0;
 
         p_node->FastGetSolutionStepValue(DISPLACEMENT, 1) = Kratos::array_1d<double, 3>{7.0, 8.0, 9.0};
-        p_node->FastGetSolutionStepValue(VELOCITY, 1) = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
-        p_node->FastGetSolutionStepValue(ACCELERATION, 1) = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
+        p_node->FastGetSolutionStepValue(VELOCITY, 1) = Kratos::array_1d<double, 3>{1.0, 2.0, 3.0};
+        p_node->FastGetSolutionStepValue(ACCELERATION, 1) = Kratos::array_1d<double, 3>{4.0, 5.0, 6.0};
 
         p_node->FastGetSolutionStepValue(WATER_PRESSURE, 1) = 1.0;
         p_node->FastGetSolutionStepValue(WATER_PRESSURE, 0) = 2.0;
@@ -75,9 +75,9 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkUPwScheme_SetsTimeFactors, KratosGeoM
 {
     NewmarkQuasistaticUPwSchemeTester tester;
 
-    CompressedMatrix A;
-    Vector           Dx;
-    Vector           b;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
 
     tester.mScheme.Initialize(tester.GetModelPart());
 
@@ -98,18 +98,18 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkUPwSchemePredict_UpdatesVariablesDerivatives, K
 {
     NewmarkQuasistaticUPwSchemeTester tester;
 
-    ModelPart::DofsArrayType dof_set;
-    CompressedMatrix         A;
-    Vector                   Dx;
-    Vector                   b;
+    ModelPart::DofsArrayType    dof_set;
+    SparseSpaceType::MatrixType A;
+    SparseSpaceType::VectorType Dx;
+    SparseSpaceType::VectorType b;
 
     tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
 
     tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
 
     // These expected numbers result from the calculations in UpdateVariablesDerivatives
-    const auto     expected_acceleration      = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
-    const auto     expected_velocity          = Kratos::array_1d<double, 3>{0.0, 0.0, 0.0};
+    const auto     expected_acceleration      = Kratos::array_1d<double, 3>{-6.75, -9.0, -11.25};
+    const auto     expected_velocity          = Kratos::array_1d<double, 3>{-4.5, -6.0, -7.5};
     constexpr auto expected_dt_water_pressure = 1.0 / 3.0;
 
     const auto actual_acceleration =

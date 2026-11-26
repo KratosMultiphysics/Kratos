@@ -20,6 +20,8 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/entities_utilities.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -91,12 +93,14 @@ public:
         BuilderAndSolverPointerType pBuilderAndSolver,
         double MassMatrixDiagonalValue,
         double StiffnessMatrixDiagonalValue,
-        bool ComputeModalDecomposition = false
+        bool ComputeModalDecomposition = false,
+        bool NormalizeEigenvectorsWithMassMatrix = false
         )
         : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
             mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
             mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
-            mComputeModalDecompostion(ComputeModalDecomposition)
+            mComputeModalDecompostion(ComputeModalDecomposition),
+            mNormalizeEigenvectorsWithMassMatrix(NormalizeEigenvectorsWithMassMatrix)
     {
         KRATOS_TRY
 
@@ -450,6 +454,10 @@ public:
             this->ReconstructSlaveSolution(Eigenvectors);
         }
 
+        if (mNormalizeEigenvectorsWithMassMatrix){
+            MassNormalizeEigenvectors(Eigenvectors);
+        }
+
         this->AssignVariables(Eigenvalues,Eigenvectors);
 
 
@@ -578,6 +586,8 @@ private:
 
     bool mComputeModalDecompostion = false;
 
+    bool mNormalizeEigenvectorsWithMassMatrix = false; 
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -650,6 +660,47 @@ private:
         KRATOS_CATCH("")
     }
 
+    /// Normalize the eigenmodes with respect to the mass matrix
+    void MassNormalizeEigenvectors(DenseMatrixType& rEigenvectors)
+    {
+        const SparseMatrixType& rMassMatrix = this->GetMassMatrix();
+        const std::size_t num_modes = rEigenvectors.size1();
+        const std::size_t num_dofs  = rEigenvectors.size2();
+
+        // System-space vectors so TSparseSpace::Mult works on both backends
+        SparseVectorType phi(num_dofs);
+        SparseVectorType tmp(num_dofs);
+
+        for (std::size_t j = 0; j < num_modes; ++j) {
+             // copy row j -> phi
+            IndexPartition<std::size_t>(num_dofs).for_each([&phi, &rEigenvectors, j](std::size_t i){
+                phi[i] = rEigenvectors(j, i);
+            });
+
+            // tmp = M * phi_j
+            TSparseSpace::Mult(rMassMatrix, phi, tmp);
+
+            // Compute modal_mass = phi^T * tmp
+            const double modal_mass = IndexPartition<std::size_t>(num_dofs).for_each<SumReduction<double>>([&phi, &tmp](std::size_t i)->double {
+                return phi[i] * tmp[i];
+            });
+            const auto global_modal_mass = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(modal_mass);
+
+            if (!(global_modal_mass > 0.0)) {
+                KRATOS_WARNING("MassNormalizeEigenvectors")
+                    << "Modal mass for mode " << j << " is non-positive (" << global_modal_mass << "). Skipping normalization.\n";
+                continue;
+            }
+
+            const double scale = 1.0 / std::sqrt(global_modal_mass);
+
+           // scale and write back into rEigenvectors 
+            IndexPartition<std::size_t>(num_dofs).for_each([&rEigenvectors, &phi, scale, j](std::size_t i){
+                rEigenvectors(j, i) = phi[i] * scale;
+            });
+        }
+    }
+
     /// Apply Dirichlet boundary conditions without modifying dof pattern.
     /**
      *  The dof pattern is preserved to support algebraic multigrid solvers with
@@ -677,8 +728,8 @@ private:
         });
 
         double* AValues = std::begin(rA.value_data());
-        std::size_t* ARowIndices = std::begin(rA.index1_data());
-        std::size_t* AColIndices = std::begin(rA.index2_data());
+        typename SparseMatrixType::index_array_type::value_type* ARowIndices = std::begin(rA.index1_data());
+        typename SparseMatrixType::index_array_type::value_type* AColIndices = std::begin(rA.index2_data());
 
         // if there is a line of all zeros, put one on the diagonal
         // #pragma omp parallel for firstprivate(SystemSize)
@@ -705,7 +756,7 @@ private:
                 // row dof is fixed. zero off-diagonal columns and factor diagonal
                 for (std::size_t j = ColBegin; j < ColEnd; ++j)
                 {
-                    if (AColIndices[j] != k)
+                    if (static_cast<std::size_t>(AColIndices[j]) != k)
                     {
                         AValues[j] = 0.0;
                     }
@@ -775,17 +826,37 @@ private:
      */
     void ComputeModalDecomposition(const DenseMatrixType& rEigenvectors)
     {
-        const SparseMatrixType& rMassMatrix = this->GetMassMatrix();
-        SparseMatrixType m_temp = ZeroMatrix(rEigenvectors.size1(),rEigenvectors.size2());
-        boost::numeric::ublas::axpy_prod(rEigenvectors,rMassMatrix,m_temp,true);
-        Matrix modal_mass_matrix = ZeroMatrix(m_temp.size1(),m_temp.size1());
-        boost::numeric::ublas::axpy_prod(m_temp,trans(rEigenvectors),modal_mass_matrix);
+        const std::size_t n_modes = rEigenvectors.size1();
+        const std::size_t n_dofs = rEigenvectors.size2();
 
-        const SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
-        SparseMatrixType k_temp = ZeroMatrix(rEigenvectors.size1(),rEigenvectors.size2());
-        boost::numeric::ublas::axpy_prod(rEigenvectors,rStiffnessMatrix,k_temp,true);
-        Matrix modal_stiffness_matrix = ZeroMatrix(k_temp.size1(),k_temp.size1());
-        boost::numeric::ublas::axpy_prod(k_temp,trans(rEigenvectors),modal_stiffness_matrix);
+        // Projection Phi * A * Phi^T computed through the space API (one sparse
+        // Mult per mode plus dense contractions), so it works on both the uBLAS
+        // and the Eigen backend system matrix. A (mass/stiffness) is symmetric,
+        // hence row_i(Phi * A) == A * phi_i.
+        const auto project = [&](SparseMatrixType& rA) -> Matrix {
+            Matrix a_by_modes(n_modes, n_dofs);
+            SparseVectorType x(n_dofs), y(n_dofs);
+            for (std::size_t i = 0; i < n_modes; ++i) {
+                for (std::size_t k = 0; k < n_dofs; ++k)
+                    x[k] = rEigenvectors(i, k);
+                TSparseSpace::Mult(rA, x, y);
+                for (std::size_t k = 0; k < n_dofs; ++k)
+                    a_by_modes(i, k) = y[k];
+            }
+            Matrix projection(n_modes, n_modes);
+            for (std::size_t i = 0; i < n_modes; ++i) {
+                for (std::size_t j = 0; j < n_modes; ++j) {
+                    double sum = 0.0;
+                    for (std::size_t k = 0; k < n_dofs; ++k)
+                        sum += a_by_modes(i, k) * rEigenvectors(j, k);
+                    projection(i, j) = sum;
+                }
+            }
+            return projection;
+        };
+
+        const Matrix modal_mass_matrix = project(this->GetMassMatrix());
+        const Matrix modal_stiffness_matrix = project(this->GetStiffnessMatrix());
 
         ModelPart& rModelPart = BaseType::GetModelPart();
         rModelPart.GetProcessInfo()[MODAL_MASS_MATRIX] = modal_mass_matrix;

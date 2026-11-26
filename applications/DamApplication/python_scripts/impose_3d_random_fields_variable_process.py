@@ -65,9 +65,9 @@ class Impose3dRandomFieldsVariableProcess(KratosMultiphysics.Process):
         self.process = KratosDam.DamRandomFieldsVariableProcess(model_part, self.table, settings)
 
 
-    def ExecuteInitialize(self):
+    def ExecuteBeforeSolutionLoop(self):
 
-        self.process.ExecuteInitialize()
+        self.process.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
 

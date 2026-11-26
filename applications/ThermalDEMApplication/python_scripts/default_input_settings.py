@@ -9,6 +9,7 @@ def GetDefaultInputSettings():
             "voronoi_tesselation_frequency"  : 1000,
 	        "porosity_update_frequency"      : 1000,
             "automatic_solve_frequency"      : false,
+            "compute_forces"                 : true,
             "compute_motion"                 : true,
             "compute_direct_conduction"      : true,
             "compute_indirect_conduction"    : false,

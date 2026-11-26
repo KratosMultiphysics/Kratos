@@ -20,6 +20,7 @@
 #include "includes/master_slave_constraint.h"
 #include "constraints/linear_master_slave_constraint.h"
 #include "constraints/slip_constraint.h"
+#include "solving_strategies/builder_and_solvers/p_multigrid/linear_multifreedom_constraint.hpp" // LinearMultifreedomConstraint
 
 namespace Kratos::Python
 {
@@ -133,6 +134,33 @@ void AddConstraintToPython(pybind11::module &m)
         >())
     ;
 
+    pybind11::class_<LinearMultifreedomConstraint,
+                     LinearMultifreedomConstraint::Pointer,
+                     MasterSlaveConstraint>(m, "LinearMultifreedomConstraint", "Class representing (part of) a linear multifreedom constraint equation.")
+        .def(pybind11::init([](const IndexType Id,
+                               const LinearMultifreedomConstraint::DofPointerVectorType& rDofs,
+                               const std::vector<std::size_t>& rConstraintLabels,
+                               const LinearMultifreedomConstraint::MatrixType& rRelationMatrix,
+                               const LinearMultifreedomConstraint::VectorType& rConstraintGaps){
+                                    return std::make_shared<LinearMultifreedomConstraint>(
+                                        Id,
+                                        LinearMultifreedomConstraint::DofPointerVectorType(rDofs),
+                                        rConstraintLabels,
+                                        rRelationMatrix,
+                                        rConstraintGaps);
+                               }),
+             (std::string {"@brief Class representing (part of) a linear multifreedom constraint equation.\n"}
+                         + "@param Id Identifier of the constraint instance. Unrelated to the identifier of the constrain equation.\n"
+                         + "@param Dofs List of DoFs participating in the constrain equation(s).\n"
+                         + "@param ConstraintLabels Identifiers of the constraint equations.\n"
+                         + "@param RelationMatrix Matrix storing the coefficients of the participating DoFs. Each row of the matrix defines a constraint equation. The coefficients must be in the same order as the provided DoFs. The number of rows must match the size of ConstraintLabels.\n"
+                         + "@param ConstraintGaps Constants of the constraint equations. The constraint gap vector's size must match the number of rows in RelationMatrix.").c_str(),
+             pybind11::arg("Id"),
+             pybind11::arg("Dofs"),
+             pybind11::arg("ConstraintLabels"),
+             pybind11::arg("RelationMatrix"),
+             pybind11::arg("ConstraintGaps"))
+        ;
 
     pybind11::class_<SlipConstraint, SlipConstraint::Pointer, LinearMasterSlaveConstraint, Flags>
             (m, "SlipConstraint")

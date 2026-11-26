@@ -97,6 +97,9 @@ public:
     /// Definition of a point
     using PointType = Point;
 
+    /// Geometry point type definition
+    using GeometryPointType = Geometry<PointType>;
+
     /// Definition of the geometry type
     using GeometryType = Geometry<Node>;
 
@@ -232,7 +235,7 @@ public:
         ) override;
 
     /**
-     * @brief Creates a new element pointer from an arry of nodes
+     * @brief Creates a new element pointer from an array of nodes
      * @param NewId the ID of the new element
      * @param rThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -273,7 +276,7 @@ public:
         ) const override;
 
     /******************************************************************/
-    /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
+    /********** AUXILIARY METHODS FOR GENERAL CALCULATIONS ************/
     /******************************************************************/
 
     /**
@@ -384,7 +387,7 @@ protected:
     ///@{
 
     /**
-     * This data will be used to compute teh derivatives
+     * This data will be used to compute the derivatives
      */
     struct DofData
     {
@@ -404,14 +407,10 @@ protected:
          */
         DofData(const std::size_t Dimension = TDim)
         {
-            // Resizing as needed (for scalar cases)
-            if (Dimension != TDim) {
-                LagrangeMultipliers.resize(TNumNodes, Dimension, false);
-                u1.resize(TNumNodes, Dimension, false);
-                u2.resize(TNumNodesMaster, Dimension, false);
-            }
-
-            // Clearing the values
+            // For the scalar cases only the first Dimension columns of the
+            // statically-sized storage are used (every consumer loops over
+            // the runtime DoF count); the remaining columns stay zero, so no
+            // runtime shrink of the bounded types is needed
             this->Clear();
         }
 
@@ -573,7 +572,8 @@ protected:
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,
         const GeometryPointType& rGeometryDecomp,
-        const bool DualLM = false
+        const bool DualLM = false,
+        const ProcessInfo::Pointer pCurrentProcessInfo = nullptr
         );
 
     /********************************************************************************/
@@ -609,7 +609,7 @@ protected:
         );
 
     /***********************************************************************************/
-    /**************** AUXILLIARY METHODS FOR CONDITION LHS CONTRIBUTION ****************/
+    /**************** AUXILIARY METHODS FOR CONDITION LHS CONTRIBUTION *****************/
     /***********************************************************************************/
 
     /**
@@ -625,7 +625,7 @@ protected:
         );
 
     /******************************************************************/
-    /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
+    /********** AUXILIARY METHODS FOR GENERAL CALCULATIONS ************/
     /******************************************************************/
 
     /**

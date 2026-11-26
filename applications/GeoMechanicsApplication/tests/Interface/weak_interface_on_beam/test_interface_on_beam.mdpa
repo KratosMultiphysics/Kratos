@@ -6519,7 +6519,7 @@ Begin Elements UPwSmallStrainElement2D3N
   4230  1  240 269 268
 End Elements
 
-Begin Elements GeoCrBeamElementLinear2D2N
+Begin Elements LinearTimoshenkoBeamElement2D2N
   4293  2  865 868
   4294  2  868 877
   4295  2  877 879

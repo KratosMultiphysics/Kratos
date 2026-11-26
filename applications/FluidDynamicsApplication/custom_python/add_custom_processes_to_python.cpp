@@ -26,7 +26,7 @@
 #include "custom_processes/apply_compressible_navier_stokes_boundary_conditions_process.h"
 #include "custom_processes/Boundary_Windkessel_model.h"
 #include "custom_processes/boussinesq_force_process.h"
-#include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
+#include "custom_processes/calculate_levelset_consistent_nodal_gradient_process.h"
 #include "custom_processes/compute_pressure_coefficient_process.h"
 #include "custom_processes/distance_modification_process.h"
 #include "custom_processes/distance_smoothing_process.h"
@@ -43,7 +43,7 @@
 #include "custom_processes/compute_y_plus_process.h"
 #include "custom_processes/two_fluid_navier_stokes_fractional_convection_process.h"
 
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
@@ -60,8 +60,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef TDefaultSparseSpace<double> SparseSpaceType;
+    typedef TDefaultDenseSpace<double> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     py::class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
@@ -167,7 +167,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init< Model&, Parameters >())
     ;
 
-    py::class_<CalulateLevelsetConsistentNodalGradientProcess, CalulateLevelsetConsistentNodalGradientProcess::Pointer, Process>(m,"CalulateLevelsetConsistentNodalGradientProcess")
+    py::class_<CalculateLevelsetConsistentNodalGradientProcess, CalculateLevelsetConsistentNodalGradientProcess::Pointer, Process>(m,"CalculateLevelsetConsistentNodalGradientProcess")
     .def(py::init< ModelPart& >())
     .def(py::init< ModelPart&, Parameters >())
     .def(py::init< Model&, Parameters >())

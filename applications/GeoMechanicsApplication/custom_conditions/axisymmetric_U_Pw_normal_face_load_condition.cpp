@@ -12,11 +12,31 @@
 //
 
 // Application includes
-#include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.hpp"
+#include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.h"
 #include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::AxisymmetricUPwNormalFaceLoadCondition()
+    : AxisymmetricUPwNormalFaceLoadCondition(0, nullptr, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::AxisymmetricUPwNormalFaceLoadCondition(
+    IndexType NewId, GeometryType::Pointer pGeometry)
+    : AxisymmetricUPwNormalFaceLoadCondition(NewId, pGeometry, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::AxisymmetricUPwNormalFaceLoadCondition(
+    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : UPwNormalFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::Create(
@@ -42,12 +62,14 @@ template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::GetIntegrationMethod() const
 {
     switch (this->GetGeometry().GetGeometryOrderType()) {
-    case GeometryData::Kratos_Cubic_Order:
-        return GeometryData::IntegrationMethod::GI_GAUSS_3;
-    case GeometryData::Kratos_Quartic_Order:
-        return GeometryData::IntegrationMethod::GI_GAUSS_5;
+        using enum GeometryData::KratosGeometryOrderType;
+        using enum GeometryData::IntegrationMethod;
+    case Kratos_Cubic_Order:
+        return GI_GAUSS_3;
+    case Kratos_Quartic_Order:
+        return GI_GAUSS_5;
     default:
-        return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        return GI_GAUSS_2;
     }
 }
 
@@ -55,6 +77,18 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::string AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::Info() const
 {
     return "AxisymmetricUPwNormalFaceLoadCondition";
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
 }
 
 template class AxisymmetricUPwNormalFaceLoadCondition<2, 2>;

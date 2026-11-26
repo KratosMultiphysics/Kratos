@@ -227,19 +227,14 @@ public:
         GetCurrentSolver()->FinalizeSolutionStep(rA, rX, rB);
     }
 
-    /**
-     * @brief This function actually performs the solution work, eventually taking advantage of what was done before in the Initialize and InitializeSolutionStep functions.
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
-     */
-    void PerformSolutionStep(
+    /// @copydoc LinearSolver::PerformSolutionStep
+    bool PerformSolutionStep(
         SparseMatrixType& rA,
         VectorType& rX,
         VectorType& rB
         ) override
     {
-        GetCurrentSolver()->PerformSolutionStep(rA, rX, rB);
+        return GetCurrentSolver()->PerformSolutionStep(rA, rX, rB);
     }
 
     /**
@@ -284,6 +279,9 @@ public:
                 // First, update the counter
                 UpdateSolverIndex();
 
+                // If all the solvers have been tried there is nothing else to do
+                if (mCurrentSolverIndex >= mSolvers.size()) break;
+
                 // Call initialize methods
                 InitializeSolutionStep(rA, rX, rB);
 
@@ -322,6 +320,9 @@ public:
                 // First, update the counter
                 UpdateSolverIndex();
 
+                // If all the solvers have been tried there is nothing else to do
+                if (mCurrentSolverIndex >= mSolvers.size()) break;
+
                 // // Call initialize methods (NOTE: does not exist the method for dense matrices)
                 // InitializeSolutionStep(rA, rX, rB);
 
@@ -356,7 +357,7 @@ public:
 
     /**
      * @brief Checks if additional physical data is needed by the solver.
-     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix. 
+     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix.
      * For instance, when solving a mixed u-p problem, it is important to identify the row associated with v and p.
      * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
      * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
@@ -734,7 +735,8 @@ protected:
         if (mCurrentSolverIndex < mSolvers.size()) {
             KRATOS_INFO("FallbackLinearSolver") << "Current solver " << GetCurrentSolver()->Info() << " failed with the following settings: " << mParameters["solvers"][mCurrentSolverIndex].PrettyPrintJsonString() << std::endl;
         } else {
-            KRATOS_WARNING("FallbackLinearSolver") << "Solver index cannot be updated as all potential linear solvers has been already tried. Sticking to current solver "  << GetCurrentSolver()->Info() << std::endl;
+            // NOTE: GetCurrentSolver() cannot be called here, the index is already out of range
+            KRATOS_WARNING("FallbackLinearSolver") << "Solver index cannot be updated as all the " << mSolvers.size() << " potential linear solvers have been already tried" << std::endl;
             return;
         }
 
@@ -745,7 +747,8 @@ protected:
         if (mCurrentSolverIndex < mSolvers.size()) {
             KRATOS_INFO("FallbackLinearSolver") << "Switching to new solver " << GetCurrentSolver()->Info() << " with the following settings: " << mParameters["solvers"][mCurrentSolverIndex].PrettyPrintJsonString() << std::endl;
         } else {
-            KRATOS_WARNING("FallbackLinearSolver") << "Solver index cannot be updated as all potential linear solvers has been already tried. Sticking to current solver "  << GetCurrentSolver()->Info() << std::endl;
+            // NOTE: GetCurrentSolver() cannot be called here, the index is already out of range
+            KRATOS_WARNING("FallbackLinearSolver") << "All the " << mSolvers.size() << " potential linear solvers have been already tried and all of them failed" << std::endl;
             return;
         }
     }

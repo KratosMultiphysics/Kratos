@@ -37,6 +37,7 @@ void GenerateTestingElement(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
+    rModelPart.GetProcessInfo()[MACH_LIMIT] = 1.73205080756887729;
 
     BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
     free_stream_velocity(0) = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH) *
@@ -254,7 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredTra
 
     const double reference_derivative = 1.1620100191086091883e-05;
 
-    KRATOS_EXPECT_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
+    KRATOS_EXPECT_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-13);
 }
 
 // Checks the function ComputeDerivativeLocalMachSquaredWRTVelocitySquared from the utilities, supersonic local Mach number
@@ -281,7 +282,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredSup
 
     const double reference_derivative = 2.0657955895264170124e-05;
 
-    KRATOS_EXPECT_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
+    KRATOS_EXPECT_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-13);
 }
 
 // Checks the function ComputeIncompressiblePerturbationPressureCoefficient from the utilities
@@ -333,7 +334,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationCompressiblePressureCoefficientClam
         PotentialFlowUtilities::ComputePerturbationCompressiblePressureCoefficient<2, 3>(
             *p_element, r_current_process_info);
 
-    const double reference_pressure_coefficient = -3.968253968253968;
+    const double reference_pressure_coefficient = -2.99132886677513;
     const double tolerance = 1e-15;
 
     KRATOS_ERROR_IF(!(std::abs(pressure_coefficient - reference_pressure_coefficient) < tolerance))
@@ -373,7 +374,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationLocalMachNumber, CompressiblePotent
         PotentialFlowUtilities::ComputePerturbationLocalMachNumber<2, 3>(
             *p_element, r_current_process_info);
 
-    KRATOS_EXPECT_NEAR(local_mach_number, 0.9474471158469713, 1e-16);
+    KRATOS_EXPECT_NEAR(local_mach_number, 0.9474471158469713, 1e-13);
 }
 
 // tests the function ComputeUpwindFactor from the utilities

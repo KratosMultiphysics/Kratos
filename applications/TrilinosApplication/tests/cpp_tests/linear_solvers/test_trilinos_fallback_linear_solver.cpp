@@ -16,6 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "spaces/default_spaces.h"
 #include "trilinos_space.h"
 #include "tests/cpp_tests/trilinos_cpp_test_utilities.h"
 #include "tests/cpp_tests/trilinos_fast_suite.h"
@@ -64,12 +65,33 @@ public:
     }
 
     ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "Dummy linear solver";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Dummy linear solver";
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+    }
+
+    ///@}
 
 }; // Class DummyLinearSolver
 
 // Define the types of spaces
 using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using TrilinosLocalSpaceType = TDefaultDenseSpace<double>;
 
 // Define the vector and matrix types
 using SparseMatrixType = typename TrilinosSparseSpaceType::MatrixType;

@@ -130,12 +130,12 @@
             "meshing_before_output" : true,
 	    "echo_level"            : 1,
             "meshing_domains" : [{
-                "python_module": "meshing_domain",
+                "python_module": "KratosMultiphysics.DelaunayMeshingApplication.meshing_domain",
                 "model_part_name": "Solid_Piece",
                 "alpha_shape": 2.4,
                 "offset_factor": 2e-6,
                 "meshing_strategy":{
-                    "python_module": "meshing_strategy",
+                    "python_module": "KratosMultiphysics.DelaunayMeshingApplication.meshing_strategy",
                     "meshing_frequency": 0.0,
                     "remesh": true,
                     "refine": true,
@@ -208,7 +208,7 @@
             "meshing_before_output" : true,
 	    "echo_level"            : 1,
             "meshing_domains" : [{
-                "python_module": "contact_domain",
+                "python_module": "KratosMultiphysics.ContactMechanicsApplication.contact_domain",
                 "model_part_name": "contact_domain",
                 "alpha_shape": 1.6,
                 "offset_factor": 1.0e-6,

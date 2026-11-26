@@ -123,7 +123,7 @@ namespace Kratos
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
        * @param NewId Index number of the new element (optional)
        */
@@ -149,7 +149,7 @@ namespace Kratos
     {
     }
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
        * @param NewId Index of the new element
        * @param pGeometry Pointer to a geometry object
@@ -279,7 +279,7 @@ namespace Kratos
                                     const double Weight) override;
 
     void CalculateTauFIC(double &TauOne,
-                         double ElemSize,
+                         const double ElemSize,
                          const double Density,
                          const double Viscosity,
                          const ProcessInfo &rCurrentProcessInfo) override;

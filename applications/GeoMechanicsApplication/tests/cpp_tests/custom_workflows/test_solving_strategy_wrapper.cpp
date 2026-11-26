@@ -15,7 +15,7 @@
 #include "custom_workflows/solving_strategy_wrapper.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "linear_solvers/linear_solver.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 namespace
@@ -43,11 +43,10 @@ const std::string testParameters = R"(
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Backward_Euler",
-        "reset_displacements":                false,
+        "reset_totals":                       false,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
@@ -69,7 +68,6 @@ const std::string testParameters = R"(
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,
-        "calculate_reactions":                true,
         "max_line_search_iterations":         5,
         "first_alpha_value":                  0.5,
         "second_alpha_value":                 1.0,
@@ -82,7 +80,6 @@ const std::string testParameters = R"(
             "scaling":         true
         },
         "problem_domain_sub_model_part_list": ["Clay_after_excavation","Excavated_clay"],
-        "processes_sub_model_part_list":      ["Side_sliders","Bottom_fixed","Head_line","Bottom_pressure","Gravitational_load"],
         "body_domain_sub_model_part_list":    ["Clay_after_excavation","Excavated_clay"]
     }
 )";
@@ -94,8 +91,8 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;
-using DenseSpaceType   = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType  = TDefaultSparseSpace<double>;
+using DenseSpaceType   = TDefaultDenseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, DenseSpaceType>;
 using SolvingStrategyFactoryType = SolvingStrategyFactory<SparseSpaceType, DenseSpaceType, LinearSolverType>;
 using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
@@ -121,9 +118,9 @@ ModelPart& CreateDummyModelPart(Model& rModel)
 
 SolvingStrategyWrapperType CreateWrapperWithEmptyProcessInfo(ModelPart& rModelPart)
 {
-    const auto reset_displacements = true;
+    const auto reset_totals = true;
     return SolvingStrategyWrapperType{
-        SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart), reset_displacements};
+        SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart), reset_totals};
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
@@ -205,32 +202,6 @@ KRATOS_TEST_CASE_IN_SUITE(IncrementStepNumberFromStrategyWrapper, KratosGeoMecha
     KRATOS_EXPECT_EQ(wrapper.GetStepNumber(), 4);
     wrapper.IncrementStepNumber();
     KRATOS_EXPECT_EQ(wrapper.GetStepNumber(), 5);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(SaveAndAccumulateTotalDisplacementField, KratosGeoMechanicsFastSuite)
-{
-    Model model;
-    auto& r_model_part     = CreateDummyModelPart(model);
-    auto  strategy_wrapper = CreateWrapperWithEmptyProcessInfo(r_model_part);
-    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    r_model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
-
-    auto       p_node                                = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    const auto original_total_displacement           = array_1d<double, 3>{1.0, 2.0, 3.0};
-    p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT) = original_total_displacement;
-
-    // Saving the total displacement field twice should still result in the same expected result.
-    strategy_wrapper.SaveTotalDisplacementFieldAtStartOfTimeLoop();
-    strategy_wrapper.SaveTotalDisplacementFieldAtStartOfTimeLoop();
-
-    const auto displacement_in_time_step       = array_1d<double, 3>{3.0, 2.0, 1.0};
-    p_node->GetSolutionStepValue(DISPLACEMENT) = displacement_in_time_step;
-    strategy_wrapper.AccumulateTotalDisplacementField();
-
-    const auto expected_total_displacement =
-        array_1d<double, 3>{original_total_displacement + displacement_in_time_step};
-
-    KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT), expected_total_displacement);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ComputeIncrementalDisplacementField, KratosGeoMechanicsFastSuite)

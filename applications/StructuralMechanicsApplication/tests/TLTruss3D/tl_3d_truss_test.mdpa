@@ -1,0 +1,55 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1  10.1703000000  -4.8240600000   0.0000000000
+    2  -3.1328040000   0.3632200000   0.0000000000
+    3   0.1816120000   5.5732100000   0.0000000000
+    5   0.1816120000   5.5732100000  10.0000000000
+End Nodes
+
+
+Begin Elements TotalLagrangianTrussElement3D2N// GUI group identifier: Truss Auto1
+        1          0     3     1 
+        2          0     3     5 
+		3          0     1     5
+		4          0     2     3
+        5          0     2     5 
+        6          0     2     1 
+End Elements
+
+Begin SubModelPart Parts_Truss_Truss_Auto1 // Group Truss Auto1 // Subtree Parts_Truss
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            5
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+			3
+			4
+            5
+            6
+    End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            5
+			2
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart SelfWeight3D_Self_weight_Auto1 // Group Self weight Auto1 // Subtree SelfWeight3D
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            5
+    End SubModelPartNodes
+End SubModelPart

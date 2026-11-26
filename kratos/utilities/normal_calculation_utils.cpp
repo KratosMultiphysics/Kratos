@@ -32,26 +32,26 @@ void NormalCalculationUtils::CalculateNormalsInContainer(
     KRATOS_TRY;
 
     // Declare auxiliar coordinates
-    Point::CoordinatesArrayType aux_coords;
+    struct TLS {
+        Point::CoordinatesArrayType aux_coords;
+    };
 
+    // Define array and iterator
     auto& r_entity_array = GetContainer<TContainerType>(rModelPart);
     const auto it_entity_begin = r_entity_array.begin();
 
-    // TODO: Change to OMP parallel utilities
-#pragma omp parallel for firstprivate(aux_coords)
-    for (int i = 0; i < static_cast<int>(r_entity_array.size()); ++i) {
+    // Iterate over entities
+    IndexPartition<IndexType>(r_entity_array.size()).for_each(TLS(), [&](IndexType i, TLS& rTLS) {
         auto it_entity = it_entity_begin + i;
         const auto& r_geometry = it_entity->GetGeometry();
 
-        // Avoid not "flat" conditions
-        if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
-            continue;
+        // Check is "flat" geometry
+        if (r_geometry.WorkingSpaceDimension() == r_geometry.LocalSpaceDimension() + 1) {
+            // Set entity normal
+            r_geometry.PointLocalCoordinates(rTLS.aux_coords, r_geometry.Center());
+            it_entity->SetValue(rNormalVariable, r_geometry.UnitNormal(rTLS.aux_coords));
         }
-
-        // Set entity normal
-        r_geometry.PointLocalCoordinates(aux_coords, r_geometry.Center());
-        it_entity->SetValue(rNormalVariable, r_geometry.UnitNormal(aux_coords));
-    }
+    });
 
     KRATOS_CATCH("Error in CalculateNormalsInContainer");
 }
@@ -591,12 +591,6 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
     // Calculate normals in entities
     CalculateNormalsInContainer<TContainerType>(rModelPart, rNormalVariable);
 
-    // Declare auxiliar coordinates
-    Point::CoordinatesArrayType aux_coords;
-
-    auto& r_entities_array = GetContainer<TContainerType>(rModelPart);
-    const auto it_entity_begin = r_entities_array.begin();
-
     const std::function<array_1d<double, 3>(const GeometryType&, const GeometryType::CoordinatesArrayType&, const double)> retrieve_normal_unit_normal =
     [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient) -> array_1d<double, 3> {return rGeometry.UnitNormal(rLocalCoordinates);};
     const std::function<array_1d<double, 3>(const GeometryType&, const GeometryType::CoordinatesArrayType&, const double)> retrieve_normal_area_normal =
@@ -604,26 +598,32 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
 
     const auto* p_retrieve_normal = ConsiderUnitNormal ? &retrieve_normal_unit_normal : &retrieve_normal_area_normal;
 
-    // TODO: Use TLS in ParallelUtilities
-    #pragma omp parallel for firstprivate(aux_coords)
-    for (int i = 0; i < static_cast<int>(r_entities_array.size()); ++i) {
+    // Declare auxiliary coordinates
+    struct TLS {
+        Point::CoordinatesArrayType aux_coords;
+    };
+
+    // Define array and iterator
+    auto& r_entity_array = GetContainer<TContainerType>(rModelPart);
+    const auto it_entity_begin = r_entity_array.begin();
+
+    // Iterate over entities
+    IndexPartition<IndexType>(r_entity_array.size()).for_each(TLS(), [&](IndexType i, TLS& rTLS) {
         auto it_entity = it_entity_begin + i;
         auto& r_geometry = it_entity->GetGeometry();
 
-        // Avoid not "flat" elements
-        if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
-            continue;
+        // Check is "flat" geometry
+        if (r_geometry.WorkingSpaceDimension() == r_geometry.LocalSpaceDimension() + 1) {
+            // Iterate over nodes
+            const double coefficient = 1.0 / static_cast<double>(r_geometry.PointsNumber());
+            for (auto& r_node : r_geometry) {
+                r_geometry.PointLocalCoordinates(rTLS.aux_coords, r_node.Coordinates());
+                r_node.SetLock();
+                noalias(GetNormalValue<TIsHistorical>(r_node, rNormalVariable)) += (*p_retrieve_normal)(r_geometry, rTLS.aux_coords, coefficient);
+                r_node.UnSetLock();
+            }
         }
-
-        // Iterate over nodes
-        const double coefficient = 1.0 / static_cast<double>(r_geometry.PointsNumber());
-        for (auto& r_node : r_geometry) {
-            r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
-            r_node.SetLock();
-            noalias(GetNormalValue<TIsHistorical>(r_node, rNormalVariable)) += (*p_retrieve_normal)(r_geometry, aux_coords, coefficient);
-            r_node.UnSetLock();
-        }
-    }
+    });
 
     // For MPI: correct values on partition boundaries
     if (TIsHistorical) {

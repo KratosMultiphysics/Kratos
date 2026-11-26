@@ -13,6 +13,7 @@
 #include "includes/node.h"
 #include "includes/variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 using namespace Kratos;
 
@@ -29,12 +30,26 @@ void AddAcceleration(Node& rNode)
     rNode.AddDof(ACCELERATION_Z);
 }
 
+PointerVectorSet<Node, IndexedObject> NodeContainerWithFixedAccelerationY(const intrusive_ptr<Node>& pNode)
+{
+    AddAcceleration(*pNode);
+    pNode->Fix(ACCELERATION_Y);
+    // Setting the buffer size only has an effect when the variables list has been set
+    pNode->SetBufferSize(2);
+
+    auto result = PointerVectorSet<Node, IndexedObject>{};
+    result.SetMaxBufferSize(2);
+    result.insert(pNode);
+    return result;
+}
+
 } // namespace
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateFixedComponent, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AssignUpdatedVectorVariableToNonFixedComponents_DoesNotUpdateFixedComponent,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Node node(1, 0.0, 0.0, 0.0);
     AddAcceleration(node);
@@ -49,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateFixedComponent, KratosGeoMe
     KRATOS_EXPECT_VECTOR_NEAR(expected_vector, node.FastGetSolutionStepValue(ACCELERATION, 0), 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateAnythingWhenAllComponentsAreFixed,
+KRATOS_TEST_CASE_IN_SUITE(AssignUpdatedVectorVariableToNonFixedComponents_DoesNotUpdateAnythingWhenAllComponentsAreFixed,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Node node(1, 0.0, 0.0, 0.0);
@@ -66,7 +81,8 @@ KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateAnythingWhenAllComponentsAr
     KRATOS_EXPECT_VECTOR_NEAR(expected_vector, node.FastGetSolutionStepValue(ACCELERATION, 0), 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_UpdatesEverythingWhenNoComponentIsFixed, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AssignUpdatedVectorVariableToNonFixedComponents_UpdatesEverythingWhenNoComponentIsFixed,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Node node(1, 0.0, 0.0, 0.0);
     AddAcceleration(node);
@@ -76,6 +92,26 @@ KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_UpdatesEverythingWhenNoComponentIsFixed,
 
     const array_1d<double, 3> expected_vector{1.0, 2.0, 3.0};
     KRATOS_EXPECT_VECTOR_NEAR(expected_vector, node.FastGetSolutionStepValue(ACCELERATION, 0), 1e-12)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AssignUpdatedVectorVariableToNodes_UpdatesEverythingRegardlessOfFixities,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_node          = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    auto nodes_container = NodeContainerWithFixedAccelerationY(p_node);
+
+    // Act
+    const array_1d<double, 3> new_acceleration_vector{1.0, 2.0, 4.0};
+    NodeUtilities::AssignUpdatedVectorVariableToNodes(nodes_container, ACCELERATION, new_acceleration_vector, 0);
+    NodeUtilities::AssignUpdatedVectorVariableToNodes(nodes_container, ACCELERATION, new_acceleration_vector, 1);
+
+    // Assert
+    const array_1d<double, 3> expected_acceleration_vector{1.0, 2.0, 4.0};
+    KRATOS_EXPECT_VECTOR_NEAR(expected_acceleration_vector,
+                              p_node->FastGetSolutionStepValue(ACCELERATION, 0), Defaults::absolute_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(expected_acceleration_vector,
+                              p_node->FastGetSolutionStepValue(ACCELERATION, 1), Defaults::absolute_tolerance)
 }
 
 } // namespace Kratos::Testing

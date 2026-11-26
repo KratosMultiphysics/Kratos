@@ -55,7 +55,7 @@ public:
     ///@{
 
     typedef Element::DofsVectorType DofsVectorType;
-    typedef Variable<double>* Array1DComponentsPointerType;
+    typedef const Variable<double>* Array1DComponentsPointerType;
 
     ///@}
     ///@name Pointer Definitions

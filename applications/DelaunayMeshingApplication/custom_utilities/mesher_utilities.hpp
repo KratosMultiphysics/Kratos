@@ -680,13 +680,13 @@ namespace Kratos
                   // Global Meshing info
                   MeshingInfoParameters::Pointer Info;
 
-                  // Global Remining parameters
+                  // Global Remaining parameters
                   RefiningParameters::Pointer Refine;
 
                   // some local bbx-based refining parameters
                   // can be defined here: std::vector<RefiningParameters::Pointer> LocalRefineVector;
 
-                  // Global Tranfer parameters
+                  // Global Transfer parameters
                   TransferParametersType::Pointer Transfer;
 
                   PropertiesType::Pointer Properties;
@@ -1056,15 +1056,15 @@ namespace Kratos
             // computes deformation gradient determinant
             double GetDeformationGradientDeterminant(GeometryType &rVertices, const unsigned int &rDimension);
 
-            void DefineMeshSizeInTransitionZones2D(MeshingParameters &rMeshingVariables,
-                                                   double currentTime,
-                                                   array_1d<double, 3> NodeCoordinates,
+            void DefineMeshSizeInTransitionZones2D(const MeshingParameters &rMeshingVariables,
+                                                   const double currentTime,
+                                                   const array_1d<double, 3> NodeCoordinates,
                                                    double &meanMeshSize,
                                                    bool &insideTransitionZone);
 
-            void DefineMeshSizeInTransitionZones3D(MeshingParameters &rMeshingVariables,
-                                                   double currentTime,
-                                                   array_1d<double, 3> NodeCoordinates,
+            void DefineMeshSizeInTransitionZones3D(const MeshingParameters &rMeshingVariables,
+                                                   const double currentTime,
+                                                   const array_1d<double, 3> NodeCoordinates,
                                                    double &meanMeshSize,
                                                    bool &insideTransitionZone);
             //*******************************************************************************************

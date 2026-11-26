@@ -40,6 +40,8 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DUSE_MPI=ON                                                        \
+-DBOOST_ROOT="/workspace/boost/boost_1_87_0"                        \
+-DBoost_NO_SYSTEM_PATHS=ON                                          \
 -DEXCLUDE_KRATOS_CORE=ON                                            \
 -DEXCLUDE_AUTOMATIC_DEPENDENCIES=ON                                 \
 -DREMOVE_INSTALL_DIRECTORIES=OFF                                    \
@@ -48,6 +50,7 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"                      \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"                  \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_"                               \
+-DUSE_EIGEN_SUITESPARSE:BOOL=ON                                     \
 -DCMAKE_UNITY_BUILD=ON                                              \
 -DINCLUDE_MMG=ON                                                    \
 

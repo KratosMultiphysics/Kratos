@@ -83,7 +83,7 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
     KRATOS_TRY
 
     //
-    //In this CL, we calculate the normal and tangential forces together in this function for calculting a uniform damage in normal and tangential direction.
+    //In this CL, we calculate the normal and tangential forces together in this function for calculating a uniform damage in normal and tangential direction.
     //
     
     //*******************Calculate NormalForces (and also the tangential bond force)************************

@@ -46,7 +46,7 @@ namespace Kratos
 /**
  * @class SimpleContactSearchProcess
  * @ingroup ContactStructuralMechanicsApplication
- * @brief This utilitiy has as objective to create the contact conditions.
+ * @brief This utility has as objective to create the contact conditions.
  * @details The conditions that can be created are Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments
  * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree
  * @author Vicente Mataix Ferrandiz

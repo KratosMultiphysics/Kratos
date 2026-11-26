@@ -136,7 +136,7 @@ namespace Kratos
     for (SizeType i = 0; i < NumNodes; ++i)
     {
       if (this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
-      { // it must be checked once at the begining only
+      { // it must be checked once at the beginning only
 
         // // stored body force information for the closed domain test with analytical solution
         // double posX = (this->GetGeometry()[0].X() + this->GetGeometry()[1].X() + this->GetGeometry()[2].X()) / 3.0;
@@ -420,7 +420,7 @@ namespace Kratos
 
         if (freeSurfaceNodes >= TDim)
         {
-          // bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, 1.0);
+          // bool computeElement = this->CalcStrainRateMeasures(rElementalVariables, rCurrentProcessInfo, rDN_DX, 1.0);
           // VectorType deviatoricSpatialDefRate = rElementalVariables.SpatialDefRate;
           // deviatoricSpatialDefRate[0] -= DivU / 3.0;
           // deviatoricSpatialDefRate[1] -= DivU / 3.0;

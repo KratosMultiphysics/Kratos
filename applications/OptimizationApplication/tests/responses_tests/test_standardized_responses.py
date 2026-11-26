@@ -51,13 +51,16 @@ class TestStandardizedComponent(kratos_unittest.TestCase):
         cls.properties_control.Initialize()
 
         cls.initial_configuration = cls.master_control.GetEmptyField()
-        KratosOA.CollectiveExpressionIO.Read(cls.initial_configuration, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
+        for ta in cls.initial_configuration.GetTensorAdaptors():
+            KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(ta, Kratos.DENSITY, copy=False).StoreData()
+        Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cls.initial_configuration, perform_store_data_recursively=False, copy=False).StoreData()
 
     def _CheckSensitivity(self, standardized_component: Union[StandardizedObjective, StandardizedConstraint], delta: float, precision: int):
         self.optimization_problem.AdvanceStep()
         ref_value = standardized_component.CalculateStandardizedValue(self.initial_configuration)
         gradients = standardized_component.CalculateStandardizedGradient()
-        KratosOA.CollectiveExpressionIO.Write(gradients, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.YOUNG_MODULUS))
+        for ta in gradients.GetTensorAdaptors():
+            KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(ta, Kratos.YOUNG_MODULUS, copy=False).StoreData()
         for element in self.model_part.Elements:
             element.Properties[Kratos.DENSITY] += delta
             current_configuration = self.master_control.GetControlField()

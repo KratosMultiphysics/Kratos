@@ -12,6 +12,8 @@ import test_DEM_2D_contact
 import test_DEM_3D_contact
 import test_DEM_2D_constitutive_laws
 import test_DEM_3D_constitutive_laws
+import test_DEM_2D_contact_models
+import test_DEM_3D_contact_models
 import test_DEM_2D_restitution
 import test_DEM_3D_restitution
 import test_DEM_2D_continuum_vs_discontinuum
@@ -72,6 +74,8 @@ def AssembleTestSuites():
     smallSuite.addTest(test_glued_particles.TestGluedParticles("test_Glued_Particles_1"))
     smallSuite.addTest(test_DEM_2D.TestDEM2D("test_DEM2D_1"))
     smallSuite.addTest(test_DEM_3D_contact.TestDEM3DContact("test_DEM3D_contact"))
+    smallSuite.addTest(test_DEM_2D_contact_models.Test2DContactModels("test_DEM2D_ContactModels"))
+    smallSuite.addTest(test_DEM_3D_contact_models.Test3DContactModels("test_DEM3D_ContactModels"))
     smallSuite.addTest(test_DEM_2D_constitutive_laws.DEM2DConstitutiveLaws("test_DEM2D_ConstitutiveLaws1"))
     smallSuite.addTest(test_DEM_2D_constitutive_laws.DEM2DConstitutiveLaws("test_DEM2D_ConstitutiveLaws2"))
     smallSuite.addTest(test_DEM_2D_constitutive_laws.DEM2DConstitutiveLaws("test_DEM2D_ConstitutiveLaws3"))

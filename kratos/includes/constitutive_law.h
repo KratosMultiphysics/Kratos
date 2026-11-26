@@ -13,16 +13,13 @@
 //                   Josep Maria Carbonell
 //
 
-
-#if !defined(KRATOS_CONSTITUTIVE_LAW )
-#define  KRATOS_CONSTITUTIVE_LAW
+#pragma once
 
 /* System includes */
 
 /* External includes */
 
 /* Project includes */
-#include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/variables.h"
 #include "includes/node.h"
@@ -30,7 +27,7 @@
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 #include "includes/process_info.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/kratos_parameters.h"
 #include "containers/data_value_container.h"
 #include "containers/flags.h"
@@ -1605,4 +1602,3 @@ KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW)
 
 
 } /* namespace Kratos.*/
-#endif /* KRATOS_CONSTITUTIVE_LAW  defined */

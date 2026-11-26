@@ -17,7 +17,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/fallback_linear_solver.h"
 
 namespace Kratos::Testing
@@ -63,12 +63,50 @@ public:
     }
 
     ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "Dummy linear solver";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Dummy linear solver";
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+    }
+
+    ///@}
 
 }; // Class DummyLinearSolver
 
-// Define the types of spaces
-using SpaceType = UblasSpace<double, boost::numeric::ublas::compressed_matrix<double>, boost::numeric::ublas::vector<double>>;
-using LocalSpaceType = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;
+// Define the types of spaces (the sparse one follows the configured backend)
+using SpaceType = TDefaultSparseSpace<double>;
+using LocalSpaceType = TDefaultDenseSpace<double>;
+
+// Builds a small identity by writing the CSR arrays directly (valid for both backends)
+SpaceType::MatrixType MakeIdentityMatrix(const std::size_t Size)
+{
+    SpaceType::MatrixType identity(Size, Size, Size);
+    auto row_ptr = identity.index1_data().begin();
+    auto col_ptr = identity.index2_data().begin();
+    auto val_ptr = identity.value_data().begin();
+    row_ptr[0] = 0;
+    for (std::size_t i = 0; i < Size; ++i) {
+        col_ptr[i] = i;
+        val_ptr[i] = 1.0;
+        row_ptr[i + 1] = i + 1;
+    }
+    identity.set_filled(Size + 1, Size);
+    return identity;
+}
 
 // Define the vector and matrix types
 using SparseMatrixType = typename SpaceType::MatrixType;
@@ -87,19 +125,18 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, KratosCoreFast
     // Create the solvers
     auto p_solver1 = Kratos::make_shared<DummyLinearSolverType>();
     Parameters amgcl_parameters = Parameters(R"({
-        "solver_type": "amgcl"
+        "solver_type": "amgcl",
+        "block_size" : 3
     })");
     auto p_solver2 = LinearSolverFactoryType().Create(amgcl_parameters);
 
     // Create the matrix and vectors
     const std::size_t size = 3;
-    SparseMatrixType A(size, size);
-    // Push back 1.0 in the diagonal
-    for (std::size_t i = 0; i < size; ++i) {
-        A.push_back(i, i, 1.0);
-    }
+    SparseMatrixType A = MakeIdentityMatrix(size);
     VectorType b(size);
+    SpaceType::SetToZero(b);
     VectorType x(size);
+    SpaceType::SetToZero(x);
 
     // Create a simple fallback solver
     std::vector<LinearSolverType::Pointer> solvers = {p_solver1, p_solver2};
@@ -119,20 +156,19 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, KratosCoreF
 {
     // Create the matrix and vectors
     const std::size_t size = 3;
-    SparseMatrixType A(size, size);
-    // Push back 1.0 in the diagonal
-    for (std::size_t i = 0; i < size; ++i) {
-        A.push_back(i, i, 1.0);
-    }
+    SparseMatrixType A = MakeIdentityMatrix(size);
     VectorType b(size);
+    SpaceType::SetToZero(b);
     VectorType x(size);
+    SpaceType::SetToZero(x);
 
     // Create a simple fallback solver
     Parameters parameters = Parameters(R"({
         "solver_type": "fallback_linear_solver",
         "solvers"    : [
             {
-                "solver_type": "amgcl"
+                "solver_type": "amgcl",
+                "block_size" : 3
             },
             {
                 "solver_type": "skyline_lu_factorization"
@@ -150,6 +186,34 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, KratosCoreF
 
     // Check index is 0 (solve 0 succeeded)
     KRATOS_EXPECT_EQ(simple_fallback_solver.GetCurrentSolverIndex(), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverAllSolversFail, KratosCoreFastSuite)
+{
+    // Create the solvers, none of which can solve anything
+    auto p_solver1 = Kratos::make_shared<DummyLinearSolverType>();
+    auto p_solver2 = Kratos::make_shared<DummyLinearSolverType>();
+
+    // Create the matrix and vectors
+    const std::size_t size = 3;
+    SparseMatrixType A(size, size);
+    // Push back 1.0 in the diagonal
+    for (std::size_t i = 0; i < size; ++i) {
+        A.push_back(i, i, 1.0);
+    }
+    A.set_filled(size + 1, size);
+    VectorType b = ZeroVector(size);
+    VectorType x = ZeroVector(size);
+
+    // Create a simple fallback solver
+    std::vector<LinearSolverType::Pointer> solvers = {p_solver1, p_solver2};
+    FallbackLinearSolverType simple_fallback_solver(solvers);
+
+    // Exhausting the list must be reported as a failure, not throw
+    const auto solved = simple_fallback_solver.Solve(A, x, b);
+
+    // Check that the system was not solved
+    KRATOS_EXPECT_FALSE(solved);
 }
 
 } // namespace Kratos::Testing

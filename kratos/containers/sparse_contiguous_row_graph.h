@@ -21,8 +21,7 @@
 #include <span/span.hpp>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/serializer.h"
 #include "includes/lock_object.h"
 #include "includes/parallel_environment.h"
@@ -97,15 +96,16 @@ public:
         });
     }
 
+    SparseContiguousRowGraph(SparseContiguousRowGraph&&) noexcept = default;
+
     /// Destructor.
     ~SparseContiguousRowGraph(){}
 
-    /// Assignment operator. TODO: decide if we do want to allow it
+    /// Assignment operator
     SparseContiguousRowGraph& operator=(SparseContiguousRowGraph const& rOther)=delete;
-    // {
-    //     this->AddEntries(rOther.GetGraph());
-    //     return *this;
-    // }
+
+    /// Move assignment operator
+    SparseContiguousRowGraph& operator=(SparseContiguousRowGraph&&) noexcept = default;
 
     /// Copy constructor.
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
@@ -135,7 +135,7 @@ public:
     void Clear()
     {
         mGraph.clear();
-        mLocks.clear();
+        mLocks = decltype(mLocks)(mGraph.size());
     }
 
     inline IndexType Size() const{
@@ -418,6 +418,7 @@ public:
     ///@name Inquiry
     ///@{
 
+    static constexpr bool IsThreadSafe = true;
 
     ///@}
     ///@name Input and output

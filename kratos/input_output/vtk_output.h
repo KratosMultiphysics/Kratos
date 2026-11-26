@@ -206,6 +206,14 @@ protected:
     virtual void WriteConditionsAndElementsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
+     * @brief Calculate the total number of cells
+     * @tparam TContainerType type of container.
+     * @param rContainer the container which is beging output
+     */
+    template<typename TContainerType>
+    std::size_t DetermineVtkContainerSize(const TContainerType& rContainer) const;
+
+    /**
      * @brief Calculate the total number of cells which are in the provided rModelPart. = num_elements + num_conditions
      *          It is necessary to be known prior to output
      * @tparam TContainerType type of container.
@@ -383,6 +391,20 @@ protected:
         std::ofstream& rFileStream) const;
 
     /**
+     * @brief Write the scalar-nonhistorical variable results of rContainer.
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
+     * @tparam TVarType The type of Variable of the entity on which the results are to be written
+     * @param rContainer the container which is beging output
+     * @param rVariable Variable of the result to be written.
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType>
+    void WriteFlagsContainerVariable(
+        const TContainerType& rContainer,
+        const Variable<Flags>& rVariable,
+        std::ofstream& rFileStream) const;
+
+    /**
      * @brief Write the scalar GP variable results of rContainer.
      * @tparam TContainerType The type of container of the entity on which the results are to be written
      * @tparam TVarType The type of Variable of the entity on which the results are to be written
@@ -513,7 +535,6 @@ private:
         const TContainerType& rContainer,
         const std::string& DataName,
         std::ofstream& rFileStream) const;
-
 
     /**
      * @brief Print the given rModelPart as VTK file together with the requested results (Only for model parts without nodes)

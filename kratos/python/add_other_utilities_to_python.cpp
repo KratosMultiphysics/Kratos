@@ -18,7 +18,7 @@
 
 // Project includes
 #include "python/add_other_utilities_to_python.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
@@ -69,6 +69,7 @@
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
 #include "utilities/model_part_utils.h"
+#include "utilities/container_classification_utilities.h"
 
 namespace Kratos::Python {
 
@@ -193,9 +194,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    using LocalSpaceType = DefaultLocalSpaceType;
 
     py::class_<BasicGenericFunctionUtility,  BasicGenericFunctionUtility::Pointer >(m,"BasicGenericFunctionUtility")
         .def(py::init<const std::string&>() )
@@ -224,15 +223,17 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     // This is required to recognize the different overloads of ConditionNumberUtility::GetConditionNumber
-    typedef double (ConditionNumberUtility::*InputGetConditionNumber)(SparseSpaceType::MatrixType&, LinearSolverType::Pointer, LinearSolverType::Pointer);
-    typedef double (ConditionNumberUtility::*DirectGetConditionNumber)(SparseSpaceType::MatrixType&);
+    // NOTE: the utility defines its own (uBLAS) space types, so the member
+    // function types are built from those and not from the default spaces
+    typedef double (ConditionNumberUtility::*InputGetConditionNumber)(ConditionNumberUtility::SparseMatrixType&, ConditionNumberUtility::LinearSolverType::Pointer, ConditionNumberUtility::LinearSolverType::Pointer);
+    typedef double (ConditionNumberUtility::*DirectGetConditionNumber)(ConditionNumberUtility::SparseMatrixType&);
 
     InputGetConditionNumber ThisGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
     DirectGetConditionNumber ThisDirectGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
 
     py::class_<ConditionNumberUtility,ConditionNumberUtility::Pointer>(m,"ConditionNumberUtility")
         .def(py::init<>())
-        .def(py::init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
+        .def(py::init<ConditionNumberUtility::LinearSolverType::Pointer, ConditionNumberUtility::LinearSolverType::Pointer>())
         .def("GetConditionNumber", ThisGetConditionNumber)
         .def("GetConditionNumber", ThisDirectGetConditionNumber)
         ;
@@ -253,8 +254,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("GetTime", &Timer::GetTime)
         .def_static("SetOutputFile", &Timer::SetOutputFile)
         .def_static("CloseOutputFile", &Timer::CloseOutputFile)
-        .def_static("SetOuputFile", &Timer::SetOuputFile) // TODO: Remove this line eventually, it is a typo
-        .def_static("CloseOuputFile", &Timer::CloseOuputFile) // TODO: Remove this line eventually, it is a typo
         .def_static("GetPrintOnScreen", &Timer::GetPrintOnScreen)
         .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
         .def_static("GetPrintIntervalInformation", &Timer::GetPrintIntervalInformation)
@@ -558,10 +557,18 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     //Sensitivity utilities
-    py::class_<SensitivityUtilities>(m,"SensitivityUtilities")
-        .def_static("AssignConditionDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
-        .def_static("AssignElementDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
-        ;
+    auto sensitivity_utilities = m.def_submodule("SensitivityUtilities");
+    sensitivity_utilities.def("AssignConditionDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>);
+    sensitivity_utilities.def("AssignElementDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>);
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<bool>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<int>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<double>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<array_1d<double, 3>>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<array_1d<double, 4>>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<array_1d<double, 6>>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<array_1d<double, 9>>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<Vector>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<Matrix>>, py::arg("variable"));
 
     //OpenMP utilities
     py::class_<OpenMPUtils >(m,"OpenMPUtils")
@@ -863,6 +870,18 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
             py::arg("properties")
         );
     ;
+
+    py::class_<ContainerClassificationUtilities, ContainerClassificationUtilities::Pointer>(m, "ContainerClassificationUtilities")
+        .def(py::init<>())
+        // Classify
+        .def("Classify", &ContainerClassificationUtilities::Classify<ModelPart::ElementsContainerType>)
+        .def("Classify", &ContainerClassificationUtilities::Classify<ModelPart::ConditionsContainerType>)
+        .def("Classify", &ContainerClassificationUtilities::Classify<ModelPart::GeometryContainerType>)
+        // ClassifyByGeometryType
+        .def("ClassifyByGeometryType", &ContainerClassificationUtilities::ClassifyByGeometryType<ModelPart::ElementsContainerType>)
+        .def("ClassifyByGeometryType", &ContainerClassificationUtilities::ClassifyByGeometryType<ModelPart::ConditionsContainerType>)
+        .def("ClassifyByGeometryType", &ContainerClassificationUtilities::ClassifyByGeometryType<ModelPart::GeometryContainerType>);
+
 }
 
 } // namespace Kratos::Python.

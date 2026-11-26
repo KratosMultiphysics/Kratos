@@ -16,7 +16,7 @@
 #include <cmath>
 
 // External includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 // Project includes
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
@@ -44,7 +44,7 @@ MCPlasticFlowRule::MCPlasticFlowRule(YieldCriterionPointer pYieldCriterion)
 
 }
 
-//********* ASSIGMENT OPERATOR
+//********* ASSIGNMENT OPERATOR
 MCPlasticFlowRule& MCPlasticFlowRule::operator=(MCPlasticFlowRule const& rOther)
 {
     MPMFlowRule::operator=(rOther);
@@ -429,7 +429,7 @@ void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariable
 
     BoundedVector<double,3> principal_stress = ZeroVector(3);
 
-    // Evalute the Kirchhoff principal stress
+    // Evaluate the Kirchhoff principal stress
     principal_stress = prod(ElasticMatrix, main_strain);
 
     for(unsigned int i=0; i<3; i++)
@@ -476,10 +476,10 @@ void MCPlasticFlowRule::CalculateModificationMatrix(const RadialReturnVariables&
 
 void MCPlasticFlowRule::CalculateDepSurface(BoundedMatrix<double,3,3>& rElasticMatrix, BoundedVector<double,3>& rFNorm, BoundedVector<double,3>& rGNorm, BoundedMatrix<double,3,3>& rAuxDep)
 {
-    BoundedVector<double,3> aux_F = prod(trans(rFNorm), rElasticMatrix);
+    BoundedVector<double,3> aux_F = prod(rFNorm, rElasticMatrix);
 
     BoundedVector<double,3> a = prod(rElasticMatrix, rGNorm);
-    BoundedVector<double,3> b = prod(trans(rFNorm),rElasticMatrix);
+    BoundedVector<double,3> b = prod(rFNorm, rElasticMatrix);
 
     BoundedMatrix<double,3,3> num = ZeroMatrix(3,3);
 

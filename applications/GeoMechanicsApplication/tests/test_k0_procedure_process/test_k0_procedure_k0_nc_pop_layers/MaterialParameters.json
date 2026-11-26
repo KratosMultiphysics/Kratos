@@ -23,9 +23,9 @@
                     "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
                     "YOUNG_MODULUS": 10000.0,
                     "POISSON_RATIO": 0.3,
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "K0_MAIN_DIRECTION": 1,
-                    "POP": 1400,
+                    "POP": 1400.0,
                     "POISSON_UNLOADING_RELOADING": 0.2,
                     "K0_NC": 0.826352
                 }
@@ -54,9 +54,9 @@
                     "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
                     "YOUNG_MODULUS": 50000.00000000001,
                     "POISSON_RATIO": 0.1,
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "K0_MAIN_DIRECTION": 1,
-                    "POP": 1600,
+                    "POP": 1600.0,
                     "POISSON_UNLOADING_RELOADING": 0.2,
                     "K0_NC": 0.826352
                 }
@@ -85,9 +85,9 @@
                     "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
                     "YOUNG_MODULUS": 25000.000000000004,
                     "POISSON_RATIO": 0.2,
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "K0_MAIN_DIRECTION": 1,
-                    "POP": 1200,
+                    "POP": 1200.0,
                     "POISSON_UNLOADING_RELOADING": 0.2,
                     "K0_NC": 0.826352
                 }

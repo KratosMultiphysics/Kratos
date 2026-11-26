@@ -17,6 +17,7 @@
 #include "includes/element.h"
 
 // Application includes
+#include "custom_utilities/dam_initial_stress_utilities.hpp"
 #include "dam_application_variables.h"
 
 namespace Kratos
@@ -125,13 +126,7 @@ public:
         KRATOS_WATCH(mrayleigh_k)
 
         // Initialize INITIAL_STRESS_TENSOR
-        block_for_each(r_model_part.Nodes(), [](Node& rNode){
-            auto& r_initial_stress = rNode.FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
-            if (r_initial_stress.size1() != 3 || r_initial_stress.size2() != 3) {
-                r_initial_stress.resize(3,3,false);
-            }
-            r_initial_stress.clear();
-        });
+        DamInitialStressUtilities::EnsureInitialStressTensorStorage(r_model_part);
 
         BaseType::mSchemeIsInitialized = true;
 

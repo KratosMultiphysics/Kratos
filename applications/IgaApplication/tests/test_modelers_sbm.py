@@ -1,3 +1,5 @@
+import math
+
 import KratosMultiphysics
 import KratosMultiphysics.IgaApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -16,7 +18,291 @@ def run_modelers(current_model, modelers_list):
     for modeler in list_of_modelers:
         modeler.SetupModelPart()
 
+def square_nurbs_sbm_modeler_settings():
+    return KratosMultiphysics.Parameters("""
+    [
+        {
+            "modeler_name": "ImportNurbsSbmModeler",
+            "Parameters": {
+                "input_filename": "import_nurbs_test/square_nurbs.json",
+                "model_part_name": "skinModelPart_outer_initial",
+                "link_layer_to_condition_name": [
+                    {"layer_name": "bottom", "condition_name": "SbmLaplacianConditionNeumann"},
+                    {"layer_name": "left", "condition_name": "SbmLaplacianConditionNeumann"},
+                    {"layer_name": "right", "condition_name": "SbmLaplacianConditionNeumann"},
+                    {"layer_name": "top", "condition_name": "SbmLaplacianConditionNeumann"}
+                ]
+            }
+        },
+        {
+            "modeler_name": "NurbsGeometryModelerSbm",
+            "Parameters": {
+                "model_part_name": "IgaModelPart",
+                "lower_point_xyz": [-1.0, -1.0, 0.0],
+                "upper_point_xyz": [2.0, 2.0, 0.0],
+                "polynomial_order": [1, 1],
+                "number_of_knot_spans": [10, 10],
+                "lambda_outer": 0.5,
+                "number_of_inner_loops": 0,
+                "number_initial_points_if_importing_nurbs": 40,
+                "skin_model_part_outer_initial_name": "skinModelPart_outer_initial",
+                "skin_model_part_name": "skin_model_part"
+            }
+        },
+        {
+            "modeler_name": "IgaModelerSbm",
+            "Parameters": {
+                "skin_model_part_name": "skin_model_part",
+                "analysis_model_part_name": "IgaModelPart",
+                "element_condition_list": [
+                    {
+                        "geometry_type": "GeometrySurface",
+                        "iga_model_part": "ComputationalDomain",
+                        "type": "element",
+                        "name": "LaplacianElement",
+                        "shape_function_derivatives_order": 3
+                    },
+                    {
+                        "geometry_type": "SurfaceEdge",
+                        "iga_model_part": "SBM_Support_outer",
+                        "type": "condition",
+                        "name": "SbmCondition",
+                        "shape_function_derivatives_order": 3,
+                        "sbm_parameters": {
+                            "is_inner": false,
+                            "projection_type": "analytical"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+    """)
+
+def sbm_projection_validation_settings():
+    return KratosMultiphysics.Parameters("""
+    [
+        {
+            "modeler_name": "IgaModelerSbm",
+            "Parameters": {
+                "analysis_model_part_name": "IgaModelPart",
+                "element_condition_list": [
+                    {
+                        "type": "condition",
+                        "name": "SbmCondition",
+                        "sbm_parameters": {
+                            "is_inner": false,
+                            "projection_type": "analytical"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+    """)
+
 class TestModelersSbm(KratosUnittest.TestCase):
+
+    def test_iga_modeler_outer_sbm(self):
+        current_model = KratosMultiphysics.Model()
+        skin_model_part_outer_initial = current_model.CreateModelPart("skinModelPart_outer_initial")
+        skin_model_part_outer_initial.CreateNewProperties(1)
+        skin_model_part_outer_initial.CreateNewNode(1, 0.0, 0.0, 0.0)
+        skin_model_part_outer_initial.CreateNewNode(2, 2.0, 0.0, 0.0)
+        skin_model_part_outer_initial.CreateNewNode(3, 2.0, 2.0, 0.0)
+        skin_model_part_outer_initial.CreateNewNode(4, 0.0, 2.0, 0.0)
+        skin_model_part_outer_initial.CreateNewCondition("LineCondition2D2N", 1, [1, 2], skin_model_part_outer_initial.GetProperties()[1])
+        skin_model_part_outer_initial.CreateNewCondition("LineCondition2D2N", 2, [2, 3], skin_model_part_outer_initial.GetProperties()[1])
+        skin_model_part_outer_initial.CreateNewCondition("LineCondition2D2N", 3, [3, 4], skin_model_part_outer_initial.GetProperties()[1])
+        skin_model_part_outer_initial.CreateNewCondition("LineCondition2D2N", 4, [4, 1], skin_model_part_outer_initial.GetProperties()[1])
+        
+        modeler_settings = KratosMultiphysics.Parameters("""
+        [
+            {
+            "modeler_name": "NurbsGeometryModelerSbm",
+            "Parameters": {
+                    "model_part_name" : "IgaModelPart",
+                    "lower_point_xyz": [0.0,0.0,0.0],
+                    "upper_point_xyz": [2.0,2.0,0.0],
+                    "polynomial_order" : [1, 1],
+                    "number_of_knot_spans" : [5,5],
+                    "lambda_outer": 0.5,
+                    "number_of_inner_loops": 0,
+                    "skin_model_part_outer_initial_name": "skinModelPart_outer_initial",           
+                    "skin_model_part_name": "skin_model_part"
+                }
+            },
+            {
+                "modeler_name": "IgaModelerSbm",
+                "Parameters": {
+                    "echo_level": 0,
+                    "skin_model_part_name": "skin_model_part",
+                    "analysis_model_part_name": "IgaModelPart",
+                    "element_condition_list": [
+                        {
+                            "geometry_type": "GeometrySurface",
+                            "iga_model_part": "ComputationalDomain",
+                            "type": "element",
+                            "name": "LaplacianElement",
+                            "shape_function_derivatives_order": 3,
+                            "variables": [
+                            {
+                                "variable_name": "BODY_FORCE",
+                                "value": ["0.0", "0.0", "0.0"]
+                            }]
+                        },
+                        {
+                            "geometry_type": "SurfaceEdge",
+                            "iga_model_part": "SBM_Support_outer",
+                            "type": "condition",
+                            "name": "SbmLaplacianConditionDirichlet",
+                            "shape_function_derivatives_order": 3, 
+                            "sbm_parameters": {
+                                "is_inner" : false,
+                                "projection_type" : "linealized"
+                            }
+                        }
+                    ] // element condition list
+                }
+            }] // iga modeler
+            """)
+        
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        
+        run_modelers(current_model, modeler_settings)
+
+        support_model_part = current_model.GetModelPart("IgaModelPart.SBM_Support_outer")
+        computational_model_part = current_model.GetModelPart("IgaModelPart.ComputationalDomain")
+
+        # Support SBM model parts now store only the conditions, not duplicated nodes
+        self.assertEqual(support_model_part.NumberOfConditions(), 60)
+        self.assertEqual(computational_model_part.NumberOfConditions(), 0)
+
+        self.assertEqual(support_model_part.GetConditions()[21].Info(), "\"SbmLaplacianConditionDirichlet\" #21")
+        self.assertEqual(support_model_part.GetConditions()[80].Info(), "\"SbmLaplacianConditionDirichlet\" #80")
+
+        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianElement #13")
+        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianElement #40")
+
+        self.assertEqual(iga_model_part.NumberOfElements(), 100)
+        skin_model_part = current_model.GetModelPart("skin_model_part")
+        self.assertGreater(skin_model_part.NumberOfConditions(), 0)
+        self.assertGreater(skin_model_part.NumberOfNodes(), 0)
+
+    def test_iga_modeler_inner_outer_sbm(self):
+        current_model = KratosMultiphysics.Model()
+        # Create Inner skin boundary
+        skin_model_part_inner_initial = current_model.CreateModelPart("skinModelPart_inner_initial")
+        skin_model_part_inner_initial.CreateNewProperties(1)
+        skin_model_part_inner_initial.CreateNewNode(1, 1.5, 0.5, 0.0)
+        skin_model_part_inner_initial.CreateNewNode(2, 3.0, 0.5, 0.0)
+        skin_model_part_inner_initial.CreateNewNode(3, 3.0, 3.5, 0.0)
+        skin_model_part_inner_initial.CreateNewNode(4, 1.5, 3.5, 0.0)
+        skin_model_part_inner_initial.CreateNewCondition("LineCondition2D2N", 1, [1, 2], skin_model_part_inner_initial.GetProperties()[1])
+        skin_model_part_inner_initial.CreateNewCondition("LineCondition2D2N", 2, [2, 3], skin_model_part_inner_initial.GetProperties()[1])
+        skin_model_part_inner_initial.CreateNewCondition("LineCondition2D2N", 3, [3, 4], skin_model_part_inner_initial.GetProperties()[1])
+        skin_model_part_inner_initial.CreateNewCondition("LineCondition2D2N", 4, [4, 1], skin_model_part_inner_initial.GetProperties()[1])
+
+        # Create Outer skin boundary
+        skin_model_part_outer_initial = current_model.CreateModelPart("skinModelPart_outer_initial")
+        skin_model_part_outer_initial.CreateNewProperties(1)
+        skin_model_part_outer_initial.CreateNewNode(1, 0.4, 0.0, 0.0)
+        skin_model_part_outer_initial.CreateNewNode(2, 3.5, 0.0, 0.0)
+        skin_model_part_outer_initial.CreateNewNode(3, 3.2, 5.0, 0.0)
+        skin_model_part_outer_initial.CreateNewNode(4, 1.0, 5.5, 0.0)
+        skin_model_part_outer_initial.CreateNewCondition("LineCondition2D2N", 1, [1, 2], skin_model_part_outer_initial.GetProperties()[1])
+        skin_model_part_outer_initial.CreateNewCondition("LineCondition2D2N", 2, [2, 3], skin_model_part_outer_initial.GetProperties()[1])
+        skin_model_part_outer_initial.CreateNewCondition("LineCondition2D2N", 3, [3, 4], skin_model_part_outer_initial.GetProperties()[1])
+        skin_model_part_outer_initial.CreateNewCondition("LineCondition2D2N", 4, [4, 1], skin_model_part_outer_initial.GetProperties()[1])
+
+        
+        modeler_settings = KratosMultiphysics.Parameters("""
+        [
+            {
+                "modeler_name": "NurbsGeometryModelerSbm",
+                "Parameters": {
+                        "model_part_name" : "IgaModelPart",
+                        "lower_point_xyz": [0.0,0.0,0.0],
+                        "upper_point_xyz": [4.0,6.0,0.0],
+                        "polynomial_order" : [2, 2],
+                        "number_of_knot_spans" : [20,10],
+                        "lambda_inner": 1.0,
+                        "lambda_outer": 0.5,
+                        "number_of_inner_loops": 1,
+                        "skin_model_part_inner_initial_name": "skinModelPart_inner_initial",
+                        "skin_model_part_outer_initial_name": "skinModelPart_outer_initial",
+                        "skin_model_part_name": "skinModelPart"
+                }
+            },
+            {
+                "modeler_name": "IgaModelerSbm",
+                "Parameters": {
+                    "echo_level": 0,
+                    "skin_model_part_name": "skinModelPart",
+                    "analysis_model_part_name": "IgaModelPart",
+                    "element_condition_list": [
+                        {
+                            "geometry_type": "GeometrySurface",
+                            "iga_model_part": "ComputationalDomain",
+                            "type": "element",
+                            "name": "LaplacianElement",
+                            "shape_function_derivatives_order": 3,
+                            "variables": [
+                            {
+                                "variable_name": "BODY_FORCE",
+                                "value": ["0.0", "0.0", "0.0"]
+                            }]
+                        },
+                        {
+                            "geometry_type": "SurfaceEdge",
+                            "iga_model_part": "SBM_Support_outer",
+                            "type": "condition",
+                            "name": "SbmLaplacianConditionNeumann",
+                            "shape_function_derivatives_order": 3, 
+                            "sbm_parameters": {
+                                "is_inner" : false,
+                                "projection_type" : "linealized"
+                            }
+                        },
+                        {
+                            "geometry_type": "SurfaceEdge",
+                            "iga_model_part": "SBM_Support_inner",
+                            "type": "condition",
+                            "name": "SbmLaplacianConditionDirichlet",
+                            "shape_function_derivatives_order": 4, 
+                            "sbm_parameters": {
+                                "is_inner" : true,
+                                "projection_type" : "linealized"
+                            }
+                        }
+                    ] // element condition list
+                }
+            }
+        ] // iga modeler
+        """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        
+        run_modelers(current_model, modeler_settings)
+
+        support_model_part_outer = current_model.GetModelPart("IgaModelPart.SBM_Support_outer")
+        support_model_part_inner = current_model.GetModelPart("IgaModelPart.SBM_Support_inner")
+        computational_model_part = current_model.GetModelPart("IgaModelPart.ComputationalDomain")
+
+        # Support SBM model parts now store only the conditions, not duplicated nodes
+        self.assertEqual(support_model_part_inner.NumberOfConditions(), 110)
+        self.assertEqual(support_model_part_outer.NumberOfConditions(), 240)
+        self.assertEqual(computational_model_part.NumberOfConditions(), 0)
+        self.assertEqual(computational_model_part.NumberOfElements(), 810)
+        self.assertEqual(support_model_part_inner.GetConditions()[323].Info(), "\"SbmLaplacianConditionDirichlet\" #323")
+        self.assertEqual(support_model_part_inner.GetConditions()[411].Info(), "\"SbmLaplacianConditionDirichlet\" #411")
+        self.assertEqual(support_model_part_outer.GetConditions()[73].Info(), "\"SbmLaplacianConditionNeumann\" #73")
+        self.assertEqual(support_model_part_outer.GetConditions()[301].Info(), "\"SbmLaplacianConditionNeumann\" #301")
+        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianElement #13")
+        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianElement #40")
+        self.assertEqual(iga_model_part.NumberOfElements(), 811)
     
     # test the call to the nurbs_geometry_modeler_sbm to create a rectangle + the breps
     def test_nurbs_geometry_2d_modeler_control_points(self):
@@ -28,13 +314,15 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "model_part_name" : "IgaModelPart",
                 "lower_point_xyz": [0.0,0.0,0.0],
                 "upper_point_xyz": [1.0,1.0,0.0],
-                "lower_point_uvw": [0.0,0.0,0.0],
-                "upper_point_uvw": [1.0,1.0,0.0],
                 "polynomial_order" : [4, 1],
                 "number_of_knot_spans" : [3,2]
             }
         }]
         """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
         run_modelers(current_model, modeler_settings)
 
         model_part = current_model.GetModelPart("IgaModelPart")
@@ -85,8 +373,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "model_part_name" : "IgaModelPart",
                 "lower_point_xyz": [0.0,0.0,0.0],
                 "upper_point_xyz": [2.0,2.0,0.0],
-                "lower_point_uvw": [0.0,0.0,0.0],
-                "upper_point_uvw": [2.0,2.0,0.0],
                 "polynomial_order" : [1, 1],
                 "number_of_knot_spans" : [5,5],
                 "lambda_outer": 0.5,
@@ -96,6 +382,10 @@ class TestModelersSbm(KratosUnittest.TestCase):
             }
         }]
         """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
        # New model
         current_model = KratosMultiphysics.Model()
         skin_model_part_outer_initial = current_model.CreateModelPart("skinModelPart_outer_initial")
@@ -115,26 +405,26 @@ class TestModelersSbm(KratosUnittest.TestCase):
         run_modelers(current_model, modeler_settings)
 
         expected_nodes = [
-            [ 0.0  ,  0.4  ,  0.0 ],
-            [ 2.0  ,  0.4  ,  0.0 ],
-            [ 0.0  ,  0.8  ,  0.0 ],
-            [ 2.0  ,  0.8  ,  0.0 ],
-            [ 0.0  ,  1.2000000000000002  ,  0.0 ],
-            [ 2.0  ,  1.2000000000000002  ,  0.0 ],
-            [ 0.0  ,  1.6  ,  0.0 ],
-            [ 2.0  ,  1.6  ,  0.0 ],
-            [ 0.0  ,  2.0  ,  0.0 ],
-            [ 2.0  ,  2.0  ,  0.0 ],
-            [ 0.0  ,  0.0  ,  0.0 ],
-            [ 0.4  ,  2.0  ,  0.0 ],
-            [ 0.4  ,  0.0  ,  0.0 ],
-            [ 0.8  ,  2.0  ,  0.0 ],
-            [ 0.8  ,  0.0  ,  0.0 ],
-            [ 1.2000000000000002  ,  2.0  ,  0.0 ],
-            [ 1.2000000000000002  ,  0.0  ,  0.0 ],
-            [ 1.6  ,  2.0  ,  0.0 ],
-            [ 1.6  ,  0.0  ,  0.0 ],
-            [ 2.0  ,  2.0  ,  0.0 ]
+            [ 0.0 ,  0.4 ,  0.0 ],
+            [ 2.0 ,  0.4 ,  0.0 ],
+            [ 0.0 ,  0.8 ,  0.0 ],
+            [ 2.0 ,  0.8 ,  0.0 ],
+            [ 0.0 ,  1.2000000000000002 ,  0.0 ],
+            [ 2.0 ,  1.2000000000000002 ,  0.0 ],
+            [ 0.0 ,  1.6 ,  0.0 ],
+            [ 2.0 ,  1.6 ,  0.0 ],
+            [ 0.0 ,  2.0 ,  0.0 ],
+            [ 2.0 ,  2.0 ,  0.0 ],
+            [ 0.0 ,  0.0 ,  0.0 ],
+            [ 0.0 ,  2.0 ,  0.0 ],
+            [ 0.4 ,  0.0 ,  0.0 ],
+            [ 0.4 ,  2.0 ,  0.0 ],
+            [ 0.8 ,  0.0 ,  0.0 ],
+            [ 0.8 ,  2.0 ,  0.0 ],
+            [ 1.2000000000000002 ,  0.0 ,  0.0 ],
+            [ 1.2000000000000002 ,  2.0 ,  0.0 ],
+            [ 1.6 ,  0.0 ,  0.0 ],
+            [ 1.6 ,  2.0 ,  0.0 ]
         ]
 
         # test surrogate nodes
@@ -164,8 +454,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "model_part_name" : "IgaModelPart",
                 "lower_point_xyz": [0.0,0.0,0.0],
                 "upper_point_xyz": [4.0,6.0,0.0],
-                "lower_point_uvw": [0.0,0.0,0.0],
-                "upper_point_uvw": [4.0,6.0,0.0],
                 "polynomial_order" : [2, 2],
                 "number_of_knot_spans" : [6,9],
                 "lambda_inner": 0.5,
@@ -175,6 +463,10 @@ class TestModelersSbm(KratosUnittest.TestCase):
             }
         }]
         """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
        # New model
         current_model = KratosMultiphysics.Model()
         skin_model_part_inner_initial = current_model.CreateModelPart("skinModelPart_inner_initial")
@@ -234,8 +526,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "model_part_name" : "IgaModelPart",
                 "lower_point_xyz": [0.0,0.0,0.0],
                 "upper_point_xyz": [4.0,6.0,0.0],
-                "lower_point_uvw": [0.0,0.0,0.0],
-                "upper_point_uvw": [4.0,6.0,0.0],
                 "polynomial_order" : [2, 2],
                 "number_of_knot_spans" : [10,15],
                 "lambda_inner": 0.5,
@@ -245,6 +535,9 @@ class TestModelersSbm(KratosUnittest.TestCase):
             }
         }]
         """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
         current_model = KratosMultiphysics.Model()
 
@@ -339,8 +632,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
                 "model_part_name" : "IgaModelPart",
                 "lower_point_xyz": [0.0,0.0,0.0],
                 "upper_point_xyz": [4.0,6.0,0.0],
-                "lower_point_uvw": [0.0,0.0,0.0],
-                "upper_point_uvw": [4.0,6.0,0.0],
                 "polynomial_order" : [2, 2],
                 "number_of_knot_spans" : [20,10],
                 "lambda_inner": 1.0,
@@ -352,10 +643,11 @@ class TestModelersSbm(KratosUnittest.TestCase):
             }
         }]
         """)
-        current_model = KratosMultiphysics.Model()
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
         # Create Inner skin boundary
-
         skin_model_part_inner_initial = current_model.CreateModelPart("skinModelPart_inner_initial")
         skin_model_part_inner_initial.CreateNewProperties(1)
         skin_model_part_inner_initial.CreateNewNode(1, 1.5, 0.5, 0.0)
@@ -407,56 +699,54 @@ class TestModelersSbm(KratosUnittest.TestCase):
         ]
 
         expected_nodes_outer = [
-            [ 0.4  ,  0.6  ,  0.0 ],
-            [ 3.600000000000001  ,  0.6  ,  0.0 ],
-            [ 0.4  ,  1.2  ,  0.0 ],
-            [ 3.400000000000001  ,  1.2  ,  0.0 ],
-            [ 0.6000000000000001  ,  1.7999999999999998  ,  0.0 ],
-            [ 3.400000000000001  ,  1.7999999999999998  ,  0.0 ],
-            [ 0.6000000000000001  ,  2.4  ,  0.0 ],
-            [ 3.400000000000001  ,  2.4  ,  0.0 ],
-            [ 0.6000000000000001  ,  3.0  ,  0.0 ],
-            [ 3.400000000000001  ,  3.0  ,  0.0 ],
-            [ 0.8  ,  3.6  ,  0.0 ],
-            [ 3.400000000000001  ,  3.6  ,  0.0 ],
-            [ 0.8  ,  4.2  ,  0.0 ],
-            [ 3.2000000000000006  ,  4.2  ,  0.0 ],
-            [ 0.8  ,  4.8  ,  0.0 ],
-            [ 3.2000000000000006  ,  4.8  ,  0.0 ],
-            [ 1.0  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.8000000000000003  ,  5.3999999999999995  ,  0.0 ],
-            [ 0.4  ,  0.0  ,  0.0 ],
-            [ 0.4  ,  1.2  ,  0.0 ],
-            [ 0.6000000000000001  ,  0.0  ,  0.0 ],
-            [ 0.6000000000000001  ,  3.0  ,  0.0 ],
-            [ 0.8  ,  0.0  ,  0.0 ],
-            [ 0.8  ,  4.8  ,  0.0 ],
-            [ 1.0  ,  0.0  ,  0.0 ],
-            [ 1.0  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.2  ,  0.0  ,  0.0 ],
-            [ 1.2  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.4  ,  0.0  ,  0.0 ],
-            [ 1.4  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.5999999999999999  ,  0.0  ,  0.0 ],
-            [ 1.5999999999999999  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.7999999999999998  ,  0.0  ,  0.0 ],
-            [ 1.7999999999999998  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.9999999999999998  ,  0.0  ,  0.0 ],
-            [ 1.9999999999999998  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.1999999999999997  ,  0.0  ,  0.0 ],
-            [ 2.1999999999999997  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.4  ,  0.0  ,  0.0 ],
-            [ 2.4  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.6  ,  0.0  ,  0.0 ],
-            [ 2.6  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.8000000000000003  ,  0.0  ,  0.0 ],
-            [ 2.8000000000000003  ,  4.8  ,  0.0 ],
-            [ 3.0000000000000004  ,  0.0  ,  0.0 ],
-            [ 3.0000000000000004  ,  4.8  ,  0.0 ],
-            [ 3.2000000000000006  ,  0.0  ,  0.0 ],
-            [ 3.2000000000000006  ,  3.6  ,  0.0 ],
-            [ 3.400000000000001  ,  0.0  ,  0.0 ],
-            [ 3.400000000000001  ,  0.6  ,  0.0 ]
+            [0.4, 0.6, 0.0],
+            [3.400000000000001, 0.6, 0.0],
+            [0.4, 1.2, 0.0],
+            [3.400000000000001, 1.2, 0.0],
+            [0.6000000000000001, 1.7999999999999998, 0.0],
+            [3.400000000000001, 1.7999999999999998, 0.0],
+            [0.6000000000000001, 2.4, 0.0],
+            [3.400000000000001, 2.4, 0.0],
+            [0.6000000000000001, 3.0, 0.0],
+            [3.400000000000001, 3.0, 0.0],
+            [0.8, 3.6, 0.0],
+            [3.400000000000001, 3.6, 0.0],
+            [0.8, 4.2, 0.0],
+            [3.2000000000000006, 4.2, 0.0],
+            [0.8, 4.8, 0.0],
+            [3.2000000000000006, 4.8, 0.0],
+            [1.0, 5.3999999999999995, 0.0],
+            [2.8000000000000003, 5.3999999999999995, 0.0],
+            [0.4, 0.0, 0.0],
+            [0.4, 1.2, 0.0],
+            [0.6000000000000001, 0.0, 0.0],
+            [0.6000000000000001, 3.0, 0.0],
+            [0.8, 0.0, 0.0],
+            [0.8, 4.8, 0.0],
+            [1.0, 0.0, 0.0],
+            [1.0, 5.3999999999999995, 0.0],
+            [1.2, 0.0, 0.0],
+            [1.2, 5.3999999999999995, 0.0],
+            [1.4, 0.0, 0.0],
+            [1.4, 5.3999999999999995, 0.0],
+            [1.5999999999999999, 0.0, 0.0],
+            [1.5999999999999999, 5.3999999999999995, 0.0],
+            [1.7999999999999998, 0.0, 0.0],
+            [1.7999999999999998, 5.3999999999999995, 0.0],
+            [1.9999999999999998, 0.0, 0.0],
+            [1.9999999999999998, 5.3999999999999995, 0.0],
+            [2.1999999999999997, 0.0, 0.0],
+            [2.1999999999999997, 5.3999999999999995, 0.0],
+            [2.4, 0.0, 0.0],
+            [2.4, 5.3999999999999995, 0.0],
+            [2.6, 0.0, 0.0],
+            [2.6, 5.3999999999999995, 0.0],
+            [2.8000000000000003, 0.0, 0.0],
+            [2.8000000000000003, 4.8, 0.0],
+            [3.0000000000000004, 0.0, 0.0],
+            [3.0000000000000004, 4.8, 0.0],
+            [3.2000000000000006, 0.0, 0.0],
+            [3.2000000000000006, 3.6, 0.0],
         ]
 
         # test surrogate nodes
@@ -479,10 +769,546 @@ class TestModelersSbm(KratosUnittest.TestCase):
             i += 1
 
         # test the creation of the breps
-        self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 73)
+        self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 71)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().X, 2.0)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().Y, 3.0)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().Z, 0.0)
+
+    
+    def test_iga_modeler_outer_sbm_layers(self):
+        current_model = KratosMultiphysics.Model()
+        modeler_settings = KratosMultiphysics.Parameters("""
+        [
+            {
+            "modeler_name" : "ImportNurbsSbmModeler",
+            "Parameters" : {
+                "input_filename" : "import_nurbs_test/square_nurbs.json",
+                "model_part_name" : "skinModelPart_outer_initial",
+                "link_layer_to_condition_name": [
+                {
+                    "layer_name" : "bottom",
+                    "condition_name" : "SbmLaplacianConditionDirichlet"
+                },
+                                                         {
+                    "layer_name" : "left",
+                    "condition_name" : "SbmLaplacianConditionDirichlet"
+                },
+                {
+                    "layer_name" : "right",
+                    "condition_name" : "SbmLaplacianConditionNeumann"
+                },
+                                                         {
+                    "layer_name" : "top",
+                    "condition_name" : "SbmLaplacianConditionNeumann"
+                }
+                ]
+                }
+            },                            
+            {
+            "modeler_name": "NurbsGeometryModelerSbm",
+            "Parameters": {
+                    "model_part_name" : "IgaModelPart",
+                    "lower_point_xyz": [-1.0,-1.0,0.0],
+                    "upper_point_xyz": [2.0,2.0,0.0],
+                    "polynomial_order" : [1, 1],
+                    "number_of_knot_spans" : [10,10],
+                    "lambda_outer": 0.5,
+                    "number_of_inner_loops": 0,
+                    "skin_model_part_outer_initial_name": "skinModelPart_outer_initial",           
+                    "skin_model_part_name": "skin_model_part"
+                }
+            },
+            {
+                "modeler_name": "IgaModelerSbm",
+                "Parameters": {
+                    "echo_level": 0,
+                    "skin_model_part_name": "skin_model_part",
+                    "analysis_model_part_name": "IgaModelPart",
+                    "element_condition_list": [
+                        {
+                            "geometry_type": "GeometrySurface",
+                            "iga_model_part": "ComputationalDomain",
+                            "type": "element",
+                            "name": "LaplacianElement",
+                            "shape_function_derivatives_order": 3
+                        },
+                        {
+                            "geometry_type": "SurfaceEdge",
+                            "iga_model_part": "SBM_Support_outer",
+                            "type": "condition",
+                            "name": "SbmCondition",
+                            "shape_function_derivatives_order": 3, 
+                            "sbm_parameters": {
+                                "is_inner" : false,
+                                "projection_type" : "analytical"
+                            }
+                        }
+                    ] // element condition list
+                }
+            }] // iga modeler
+            """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        
+        run_modelers(current_model, modeler_settings)
+
+        support_model_part = current_model.GetModelPart("IgaModelPart.SBM_Support_outer")
+        computational_model_part = current_model.GetModelPart("IgaModelPart.ComputationalDomain")
+
+        # # Check if all needed node are within the model parts
+        self.assertEqual(support_model_part.NumberOfNodes(), 0)
+        self.assertEqual(support_model_part.NumberOfConditions(), 48)
+        self.assertEqual(computational_model_part.NumberOfConditions(), 0)
+
+        self.assertEqual(support_model_part.GetConditions()[55].Info(), "\"SbmLaplacianConditionDirichlet\" #55")
+        self.assertEqual(support_model_part.GetConditions()[28].Info(), "\"SbmLaplacianConditionNeumann\" #28")
+        self.assertEqual(iga_model_part.NumberOfElements(), 64)
+        self.assertEqual(current_model.GetModelPart("skin_model_part").NumberOfConditions(), 0)
+
+    def test_iga_modeler_outer_sbm_layers_unordered_curves(self):
+        current_model = KratosMultiphysics.Model()
+        modeler_settings = KratosMultiphysics.Parameters("""
+        [
+            {
+            "modeler_name" : "ImportNurbsSbmModeler",
+            "Parameters" : {
+                "input_filename" : "import_nurbs_test/square_nurbs_unordered.json",
+                "model_part_name" : "skinModelPart_outer_initial",
+                "link_layer_to_condition_name": [
+                {
+                    "layer_name" : "bottom",
+                    "condition_name" : "SbmLaplacianConditionDirichlet"
+                },
+                {
+                    "layer_name" : "left",
+                    "condition_name" : "SbmLaplacianConditionDirichlet"
+                },
+                {
+                    "layer_name" : "right",
+                    "condition_name" : "SbmLaplacianConditionNeumann"
+                },
+                {
+                    "layer_name" : "top",
+                    "condition_name" : "SbmLaplacianConditionNeumann"
+                }
+                ]
+                }
+            },                            
+            {
+            "modeler_name": "NurbsGeometryModelerSbm",
+            "Parameters": {
+                    "model_part_name" : "IgaModelPart",
+                    "lower_point_xyz": [-1.0,-1.0,0.0],
+                    "upper_point_xyz": [2.0,2.0,0.0],
+                    "polynomial_order" : [1, 1],
+                    "number_of_knot_spans" : [10,10],
+                    "lambda_outer": 0.5,
+                    "number_of_inner_loops": 0,
+                    "skin_model_part_outer_initial_name": "skinModelPart_outer_initial",           
+                    "skin_model_part_name": "skin_model_part"
+                }
+            },
+            {
+                "modeler_name": "IgaModelerSbm",
+                "Parameters": {
+                    "echo_level": 0,
+                    "skin_model_part_name": "skin_model_part",
+                    "analysis_model_part_name": "IgaModelPart",
+                    "element_condition_list": [
+                        {
+                            "geometry_type": "GeometrySurface",
+                            "iga_model_part": "ComputationalDomain",
+                            "type": "element",
+                            "name": "LaplacianElement",
+                            "shape_function_derivatives_order": 3
+                        },
+                        {
+                            "geometry_type": "SurfaceEdge",
+                            "iga_model_part": "SBM_Support_outer",
+                            "type": "condition",
+                            "name": "SbmCondition",
+                            "shape_function_derivatives_order": 3, 
+                            "sbm_parameters": {
+                                "is_inner" : false,
+                                "projection_type" : "analytical"
+                            }
+                        }
+                    ] // element condition list
+                }
+            }] // iga modeler
+            """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        
+        run_modelers(current_model, modeler_settings)
+
+        support_model_part = current_model.GetModelPart("IgaModelPart.SBM_Support_outer")
+        computational_model_part = current_model.GetModelPart("IgaModelPart.ComputationalDomain")
+
+        # Expect same results as ordered case: curves are reordered internally
+        self.assertEqual(support_model_part.NumberOfNodes(), 0)
+        self.assertEqual(support_model_part.NumberOfConditions(), 48)
+        self.assertEqual(computational_model_part.NumberOfConditions(), 0)
+        self.assertEqual(
+            current_model.GetModelPart("skin_model_part").NumberOfNodes(),
+            support_model_part.NumberOfConditions())
+
+        # Spot-check two conditions types to ensure mapping still holds
+        self.assertEqual(support_model_part.GetConditions()[55].Info(), "\"SbmLaplacianConditionDirichlet\" #55")
+        self.assertEqual(support_model_part.GetConditions()[28].Info(), "\"SbmLaplacianConditionNeumann\" #28")
+        self.assertEqual(iga_model_part.NumberOfElements(), 64)
+
+    def test_iga_modeler_inner_sbm_rational_circle_projection(self):
+        current_model = KratosMultiphysics.Model()
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
+        modeler_settings = KratosMultiphysics.Parameters("""
+        [
+            {
+                "modeler_name": "ImportNurbsSbmModeler",
+                "Parameters": {
+                    "input_filename": "import_nurbs_test/circle_00_22.json",
+                    "model_part_name": "skinModelPart_inner_initial",
+                    "link_layer_to_condition_name": [
+                        {
+                            "layer_name": "Layer0",
+                            "condition_name": "SbmLaplacianConditionNeumann"
+                        }
+                    ]
+                }
+            },
+            {
+                "modeler_name": "NurbsGeometryModelerSbm",
+                "Parameters": {
+                    "model_part_name": "IgaModelPart",
+                    "lower_point_xyz": [0.0, 0.0, 0.0],
+                    "upper_point_xyz": [2.0, 2.0, 0.0],
+                    "polynomial_order": [1, 1],
+                    "number_of_knot_spans": [31, 31],
+                    "lambda_inner": 0.5,
+                    "number_of_inner_loops": 1,
+                    "number_initial_points_if_importing_nurbs": 100,
+                    "skin_model_part_inner_initial_name":
+                        "skinModelPart_inner_initial",
+                    "skin_model_part_name": "skin_model_part"
+                }
+            },
+            {
+                "modeler_name": "IgaModelerSbm",
+                "Parameters": {
+                    "echo_level": 0,
+                    "skin_model_part_name": "skin_model_part",
+                    "analysis_model_part_name": "IgaModelPart",
+                    "element_condition_list": [
+                        {
+                            "geometry_type": "GeometrySurface",
+                            "iga_model_part": "ComputationalDomain",
+                            "type": "element",
+                            "name": "LaplacianElement",
+                            "shape_function_derivatives_order": 3
+                        },
+                        {
+                            "geometry_type": "SurfaceEdge",
+                            "iga_model_part": "SBM_Support_inner",
+                            "type": "condition",
+                            "name": "SbmCondition",
+                            "shape_function_derivatives_order": 3,
+                            "sbm_parameters": {
+                                "is_inner": true,
+                                "projection_type" : "analytical"
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+        """)
+
+        run_modelers(current_model, modeler_settings)
+
+        support_model_part = current_model.GetModelPart(
+            "IgaModelPart.SBM_Support_inner.Layer0")
+        projection_model_part = current_model.GetModelPart(
+            "skin_model_part.inner.Layer0.projection_data")
+        self.assertGreater(support_model_part.NumberOfConditions(), 0)
+        self.assertEqual(
+            support_model_part.NumberOfConditions(),
+            projection_model_part.NumberOfNodes())
+        self.assertEqual(
+            current_model.GetModelPart("skin_model_part").NumberOfNodes(),
+            projection_model_part.NumberOfNodes())
+
+        conditions = sorted(
+            support_model_part.Conditions, key=lambda condition: condition.Id)
+        nodes = sorted(projection_model_part.Nodes, key=lambda node: node.Id)
+        radius = 0.2
+        for condition, node in zip(conditions, nodes):
+            center = condition.GetGeometry().Center()
+            dx = center.X - 1.0
+            dy = center.Y - 1.0
+            distance = math.hypot(dx, dy)
+            self.assertGreater(distance, 0.0)
+
+            # The exact closest point on the circle lies on the radial line.
+            expected_x = 1.0 + radius * dx / distance
+            expected_y = 1.0 + radius * dy / distance
+            self.assertAlmostEqual(node.X, expected_x, delta=1e-3)
+            self.assertAlmostEqual(node.Y, expected_y, delta=1e-3)
+            self.assertAlmostEqual(node.Z, 0.0, delta=1e-8)
+            projected_radius = math.hypot(node.X - 1.0, node.Y - 1.0)
+            self.assertAlmostEqual(projected_radius, radius, delta=1e-8)
+
+            # For an inner boundary, the normal points into the circular hole.
+            normal = node.GetValue(KratosMultiphysics.NORMAL)
+            self.assertAlmostEqual(normal[0], (1.0 - node.X) / radius,
+                                   delta=1e-6)
+            self.assertAlmostEqual(normal[1], (1.0 - node.Y) / radius,
+                                   delta=1e-6)
+            self.assertAlmostEqual(normal[2], 0.0, delta=1e-8)
+            expected_info = f'"SbmLaplacianConditionNeumann" #{condition.Id}'
+            self.assertEqual(condition.Info(), expected_info)
+
+    def test_iga_modeler_sbm_requires_projection_type(self):
+        current_model = KratosMultiphysics.Model()
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        modeler_settings = sbm_projection_validation_settings()
+        sbm_parameters = modeler_settings[0]["Parameters"]["element_condition_list"][0]["sbm_parameters"]
+        sbm_parameters.RemoveValue("projection_type")
+
+        with self.assertRaisesRegex(RuntimeError, 'Missing "projection_type"'):
+            run_modelers(current_model, modeler_settings)
+
+        self.assertEqual(iga_model_part.NumberOfSubModelParts(), 0)
+
+    def test_iga_modeler_sbm_rejects_invalid_projection_type(self):
+        current_model = KratosMultiphysics.Model()
+        current_model.CreateModelPart("IgaModelPart")
+        modeler_settings = sbm_projection_validation_settings()
+        sbm_parameters = modeler_settings[0]["Parameters"]["element_condition_list"][0]["sbm_parameters"]
+        projection_type = sbm_parameters["projection_type"]
+        projection_type.SetString("linearized")
+
+        with self.assertRaisesRegex(RuntimeError, 'Unsupported "projection_type"'):
+            run_modelers(current_model, modeler_settings)
+
+    def test_iga_modeler_sbm_rejects_non_string_projection_type(self):
+        current_model = KratosMultiphysics.Model()
+        current_model.CreateModelPart("IgaModelPart")
+        modeler_settings = sbm_projection_validation_settings()
+        sbm_parameters = modeler_settings[0]["Parameters"]["element_condition_list"][0]["sbm_parameters"]
+        sbm_parameters["projection_type"].SetInt(1)
+
+        with self.assertRaisesRegex(RuntimeError, '"projection_type" must be a string'):
+            run_modelers(current_model, modeler_settings)
+
+    def test_iga_modeler_sbm_rejects_mixed_projection_types(self):
+        current_model = KratosMultiphysics.Model()
+        current_model.CreateModelPart("IgaModelPart")
+        modeler_settings = sbm_projection_validation_settings()
+        modeler_settings[0]["Parameters"]["element_condition_list"].Append(
+            KratosMultiphysics.Parameters("""
+            {
+                "type": "condition",
+                "name": "SbmCondition",
+                "sbm_parameters": {
+                    "is_inner": true,
+                    "projection_type": "linealized"
+                }
+            }
+            """))
+
+        with self.assertRaisesRegex(RuntimeError, 'same "projection_type"'):
+            run_modelers(current_model, modeler_settings)
+
+    def test_iga_modeler_sbm_rejects_analytical_projection_in_3d(self):
+        current_model = KratosMultiphysics.Model()
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
+
+        with self.assertRaisesRegex(RuntimeError, 'Analytical SBM projection is only implemented in 2D'):
+            run_modelers(current_model, sbm_projection_validation_settings())
+
+        self.assertEqual(iga_model_part.NumberOfSubModelParts(), 0)
+
+    def test_iga_modeler_sbm_analytical_projection_on_curved_skin(self):
+        current_model = KratosMultiphysics.Model()
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        settings = square_nurbs_sbm_modeler_settings()
+        import_settings = settings[0]["Parameters"]
+        import_settings["input_filename"].SetString(
+            "import_nurbs_test/complex_2d_nurbs.json")
+        import_settings.RemoveValue("link_layer_to_condition_name")
+        import_settings.AddValue("link_layer_to_condition_name", KratosMultiphysics.Parameters("""
+            [
+                {"layer_name": "Layer0", "condition_name": "SbmLaplacianConditionNeumann"},
+                {"layer_name": "Layer1", "condition_name": "SbmLaplacianConditionNeumann"}
+            ]
+            """))
+        geometry_settings = settings[1]["Parameters"]
+        for key, coordinates in (
+                ("lower_point_xyz", (-12.0, -4.0)),
+                ("upper_point_xyz", (6.0, 8.0))):
+            for i, coordinate in enumerate(coordinates):
+                geometry_settings[key][i].SetDouble(coordinate)
+        for i, spans in enumerate((9, 6)):
+            geometry_settings["number_of_knot_spans"][i].SetInt(spans)
+
+        run_modelers(current_model, settings)
+
+        support = current_model.GetModelPart("IgaModelPart.SBM_Support_outer.Layer1")
+        projections = current_model.GetModelPart(
+            "skin_model_part.outer.Layer1.projection_data")
+        self.assertEqual(support.NumberOfConditions(), projections.NumberOfNodes())
+        pairs = zip(
+            sorted(support.Conditions, key=lambda condition: condition.Id),
+            sorted(projections.Nodes, key=lambda node: node.Id))
+        projected_nodes = [node for condition, node in pairs
+                           if abs(condition.GetGeometry().Center().X + 4.0) < 1e-8
+                           and abs(condition.GetGeometry().Center().Y + 1.0) < 1e-8]
+        self.assertEqual(len(projected_nodes), 1)
+        self.assertAlmostEqual(projected_nodes[0].X, -4.39001728, delta=1e-3)
+        self.assertAlmostEqual(projected_nodes[0].Y, -0.73418399, delta=1e-3)
+        self.assertAlmostEqual(projected_nodes[0].Z, 0.0)
+
+    def test_iga_modeler_sbm_rejects_unregistered_nurbs_curve_condition_on_use(self):
+        current_model = KratosMultiphysics.Model()
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        modeler_settings = square_nurbs_sbm_modeler_settings()
+        layers = modeler_settings[0]["Parameters"]["link_layer_to_condition_name"]
+        for i in range(layers.size()):
+            layers[i]["condition_name"].SetString("UnknownSbmCondition")
+
+        with self.assertRaisesRegex(RuntimeError, 'UnknownSbmCondition.*not registered'):
+            run_modelers(current_model, modeler_settings)
+
+        self.assertEqual(
+            current_model.GetModelPart("skinModelPart_outer_initial").NumberOfGeometries(), 4)
+
+    def test_iga_modeler_sbm_rejects_unregistered_condition_before_skin_cleanup(self):
+        current_model = KratosMultiphysics.Model()
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        modeler_settings = square_nurbs_sbm_modeler_settings()
+        modeler_settings[2]["Parameters"]["element_condition_list"][1]["name"].SetString(
+            "UnregisteredSbmCondition")
+
+        with self.assertRaisesRegex(RuntimeError, 'UnregisteredSbmCondition.*not registered'):
+            run_modelers(current_model, modeler_settings)
+
+        self.assertGreater(current_model.GetModelPart("skin_model_part").NumberOfConditions(), 0)
+
+    def test_iga_modeler_sbm_rejects_fixed_condition_name_for_nurbs(self):
+        for projection_type in ("analytical", "linealized"):
+            with self.subTest(projection_type=projection_type):
+                current_model = KratosMultiphysics.Model()
+                iga_model_part = current_model.CreateModelPart("IgaModelPart")
+                iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+                modeler_settings = square_nurbs_sbm_modeler_settings()
+                condition_settings = (
+                    modeler_settings[2]["Parameters"]["element_condition_list"][1])
+                condition_settings["name"].SetString("SbmLaplacianConditionDirichlet")
+                condition_settings["sbm_parameters"]["projection_type"].SetString(
+                    projection_type)
+
+                with self.assertRaisesRegex(RuntimeError, "SbmCondition"):
+                    run_modelers(current_model, modeler_settings)
+
+                skin_model_part = current_model.GetModelPart("skin_model_part")
+                self.assertGreater(skin_model_part.NumberOfConditions(), 0)
+                self.assertGreater(skin_model_part.NumberOfNodes(), 0)
+
+    def test_iga_modeler_sbm_rejects_analytical_projection_for_discretized_skin(self):
+        current_model = KratosMultiphysics.Model()
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        initial_skin = current_model.CreateModelPart("skinModelPart_outer_initial")
+        initial_skin.CreateNewProperties(1)
+        initial_skin.CreateNewNode(1, 0.0, 0.0, 0.0)
+        initial_skin.CreateNewNode(2, 2.0, 0.0, 0.0)
+        initial_skin.CreateNewNode(3, 2.0, 2.0, 0.0)
+        initial_skin.CreateNewNode(4, 0.0, 2.0, 0.0)
+        properties = initial_skin.GetProperties()[1]
+        initial_skin.CreateNewCondition("LineCondition2D2N", 1, [1, 2], properties)
+        initial_skin.CreateNewCondition("LineCondition2D2N", 2, [2, 3], properties)
+        initial_skin.CreateNewCondition("LineCondition2D2N", 3, [3, 4], properties)
+        initial_skin.CreateNewCondition("LineCondition2D2N", 4, [4, 1], properties)
+
+        modeler_settings = KratosMultiphysics.Parameters("""
+        [
+            {
+                "modeler_name": "NurbsGeometryModelerSbm",
+                "Parameters": {
+                    "model_part_name": "IgaModelPart",
+                    "lower_point_xyz": [0.0, 0.0, 0.0],
+                    "upper_point_xyz": [2.0, 2.0, 0.0],
+                    "polynomial_order": [1, 1],
+                    "number_of_knot_spans": [5, 5],
+                    "lambda_outer": 0.5,
+                    "number_of_inner_loops": 0,
+                    "skin_model_part_outer_initial_name": "skinModelPart_outer_initial",
+                    "skin_model_part_name": "skin_model_part"
+                }
+            },
+            {
+                "modeler_name": "IgaModelerSbm",
+                "Parameters": {
+                    "skin_model_part_name": "skin_model_part",
+                    "analysis_model_part_name": "IgaModelPart",
+                    "element_condition_list": [
+                        {
+                            "geometry_type": "GeometrySurface",
+                            "iga_model_part": "ComputationalDomain",
+                            "type": "element",
+                            "name": "LaplacianElement",
+                            "shape_function_derivatives_order": 3
+                        },
+                        {
+                            "geometry_type": "SurfaceEdge",
+                            "iga_model_part": "SBM_Support_outer",
+                            "type": "condition",
+                            "name": "SbmLaplacianConditionDirichlet",
+                            "shape_function_derivatives_order": 3,
+                            "sbm_parameters": {
+                                "is_inner": false,
+                                "projection_type": "analytical"
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+        """)
+
+        with self.assertRaisesRegex(RuntimeError, "linealized"):
+            run_modelers(current_model, modeler_settings)
+
+        skin_model_part = current_model.GetModelPart("skin_model_part")
+        self.assertGreater(skin_model_part.NumberOfConditions(), 0)
+        self.assertGreater(skin_model_part.NumberOfNodes(), 0)
+
+    def test_iga_modeler_sbm_linealized_projection_with_layer_condition_name(self):
+        current_model = KratosMultiphysics.Model()
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        modeler_settings = square_nurbs_sbm_modeler_settings()
+        sbm_parameters = modeler_settings[2]["Parameters"]["element_condition_list"][1]["sbm_parameters"]
+        sbm_parameters["projection_type"].SetString("linealized")
+
+        run_modelers(current_model, modeler_settings)
+
+        support_model_part = current_model.GetModelPart("IgaModelPart.SBM_Support_outer")
+        self.assertGreater(support_model_part.NumberOfConditions(), 0)
+        for condition in support_model_part.Conditions:
+            self.assertEqual(
+                condition.Info(), f'"SbmLaplacianConditionNeumann" #{condition.Id}')
+        skin_model_part = current_model.GetModelPart("skin_model_part")
+        self.assertGreater(skin_model_part.NumberOfConditions(), 0)
+        self.assertGreater(skin_model_part.NumberOfNodes(), 0)
 
 
 if __name__ == '__main__':

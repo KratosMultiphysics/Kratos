@@ -1,3 +1,5 @@
+pybind11 3.0.1 https://github.com/pybind/pybind11/releases/tag/v3.0.1
+
 Copyright (c) 2016 Wenzel Jakob <wenzel.jakob@epfl.ch>, All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

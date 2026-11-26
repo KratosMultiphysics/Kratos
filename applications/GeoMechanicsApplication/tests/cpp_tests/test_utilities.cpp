@@ -7,33 +7,124 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Richard Faasse
+//  Main authors:    Anne van de Graaf
 //
-#include "test_utilities.h"
 
-#include <fstream>
+#include "tests/cpp_tests/test_utilities.h"
+#include "includes/expect.h"
 
 namespace Kratos::Testing
 {
 
-bool TestUtilities::CompareFiles(const std::filesystem::path& rPath1, const std::filesystem::path& rPath2)
+void AssertLHSMatrixBlocksAreNear(const Matrix& rActualLHSMatrix,
+                                  const Matrix& rExpectedUUBlockMatrix,
+                                  const Matrix& rExpectedUPBlockMatrix,
+                                  const Matrix& rExpectedPUBlockMatrix,
+                                  const Matrix& rExpectedPPBlockMatrix,
+                                  std::size_t   NumberOfUDofs,
+                                  std::size_t   NumberOfPwDofs,
+                                  double        AbsoluteTolerance)
 {
-    std::ifstream file_1(rPath1, std::ifstream::binary | std::ifstream::ate);
-    std::ifstream file_2(rPath2, std::ifstream::binary | std::ifstream::ate);
+    ASSERT_EQ(rActualLHSMatrix.size1(), NumberOfUDofs + NumberOfPwDofs);
+    ASSERT_EQ(rActualLHSMatrix.size2(), NumberOfUDofs + NumberOfPwDofs);
 
-    if (file_1.fail() || file_2.fail()) {
-        return false; // file problem
-    }
+    AssertUUBlockMatrixIsNear(rActualLHSMatrix, rExpectedUUBlockMatrix, NumberOfUDofs, AbsoluteTolerance);
+    AssertUPBlockMatrixIsNear(rActualLHSMatrix, rExpectedUPBlockMatrix, NumberOfUDofs,
+                              NumberOfPwDofs, AbsoluteTolerance);
+    AssertPUBlockMatrixIsNear(rActualLHSMatrix, rExpectedPUBlockMatrix, NumberOfUDofs,
+                              NumberOfPwDofs, AbsoluteTolerance);
+    AssertPPBlockMatrixIsNear(rActualLHSMatrix, rExpectedPPBlockMatrix, NumberOfUDofs,
+                              NumberOfPwDofs, AbsoluteTolerance);
+}
 
-    if (file_1.tellg() != file_2.tellg()) {
-        return false; // size mismatch
-    }
+void AssertUUBlockMatrixIsNear(const Matrix& rActualLHSMatrix,
+                               const Matrix& rExpectedUUBlockMatrix,
+                               std::size_t   NumberOfUDofs,
+                               double        AbsoluteTolerance)
+{
+    ASSERT_EQ(rExpectedUUBlockMatrix.size1(), NumberOfUDofs);
+    ASSERT_EQ(rExpectedUUBlockMatrix.size2(), NumberOfUDofs);
 
-    // seek back to beginning and use std::equal to compare contents
-    file_1.seekg(0, std::ifstream::beg);
-    file_2.seekg(0, std::ifstream::beg);
-    return std::equal(std::istreambuf_iterator<char>(file_1.rdbuf()), std::istreambuf_iterator<char>(),
-                      std::istreambuf_iterator<char>(file_2.rdbuf()));
+    KRATOS_EXPECT_MATRIX_NEAR(subrange(rActualLHSMatrix, 0, 0 + NumberOfUDofs, 0, 0 + NumberOfUDofs),
+                              rExpectedUUBlockMatrix, AbsoluteTolerance)
+}
+
+void AssertUPBlockMatrixIsNear(const Matrix& rActualLHSMatrix,
+                               const Matrix& rExpectedUPBlockMatrix,
+                               std::size_t   NumberOfUDofs,
+                               std::size_t   NumberOfPwDofs,
+                               double        AbsoluteTolerance)
+{
+    ASSERT_EQ(rExpectedUPBlockMatrix.size1(), NumberOfUDofs);
+    ASSERT_EQ(rExpectedUPBlockMatrix.size2(), NumberOfPwDofs);
+
+    KRATOS_EXPECT_MATRIX_NEAR(
+        subrange(rActualLHSMatrix, 0, 0 + NumberOfUDofs, NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs),
+        rExpectedUPBlockMatrix, AbsoluteTolerance)
+}
+
+void AssertPUBlockMatrixIsNear(const Matrix& rActualLHSMatrix,
+                               const Matrix& rExpectedPUBlockMatrix,
+                               std::size_t   NumberOfUDofs,
+                               std::size_t   NumberOfPwDofs,
+                               double        AbsoluteTolerance)
+{
+    ASSERT_EQ(rExpectedPUBlockMatrix.size1(), NumberOfPwDofs);
+    ASSERT_EQ(rExpectedPUBlockMatrix.size2(), NumberOfUDofs);
+
+    KRATOS_EXPECT_MATRIX_NEAR(
+        subrange(rActualLHSMatrix, NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs, 0, 0 + NumberOfUDofs),
+        rExpectedPUBlockMatrix, AbsoluteTolerance)
+}
+
+void AssertPPBlockMatrixIsNear(const Matrix& rActualLHSMatrix,
+                               const Matrix& rExpectedPPBlockMatrix,
+                               std::size_t   NumberOfUDofs,
+                               std::size_t   NumberOfPwDofs,
+                               double        AbsoluteTolerance)
+{
+    ASSERT_EQ(rExpectedPPBlockMatrix.size1(), NumberOfPwDofs);
+    ASSERT_EQ(rExpectedPPBlockMatrix.size2(), NumberOfPwDofs);
+
+    KRATOS_EXPECT_MATRIX_NEAR(subrange(rActualLHSMatrix, NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs,
+                                       NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs),
+                              rExpectedPPBlockMatrix, AbsoluteTolerance)
+}
+
+void AssertRHSVectorBlocksAreNear(const Vector& rActualRHSVector,
+                                  const Vector& rExpectedUBlockVector,
+                                  const Vector& rExpectedPBlockVector,
+                                  std::size_t   NumberOfUDofs,
+                                  std::size_t   NumberOfPwDofs,
+                                  double        AbsoluteTolerance)
+{
+    ASSERT_EQ(rActualRHSVector.size(), NumberOfUDofs + NumberOfPwDofs);
+
+    AssertUBlockVectorIsNear(rActualRHSVector, rExpectedUBlockVector, NumberOfUDofs, AbsoluteTolerance);
+    AssertPBlockVectorIsNear(rActualRHSVector, rExpectedPBlockVector, NumberOfUDofs, NumberOfPwDofs,
+                             AbsoluteTolerance);
+}
+
+void AssertUBlockVectorIsNear(const Vector& rActualRHSVector,
+                              const Vector& rExpectedUBlockVector,
+                              std::size_t   NumberOfUDofs,
+                              double        AbsoluteTolerance)
+{
+    ASSERT_EQ(rExpectedUBlockVector.size(), NumberOfUDofs);
+
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(rActualRHSVector, 0, 0 + NumberOfUDofs), rExpectedUBlockVector, AbsoluteTolerance)
+}
+
+void AssertPBlockVectorIsNear(const Vector& rActualRHSVector,
+                              const Vector& rExpectedPBlockVector,
+                              std::size_t   NumberOfUDofs,
+                              std::size_t   NumberOfPwDofs,
+                              double        AbsoluteTolerance)
+{
+    ASSERT_EQ(rExpectedPBlockVector.size(), NumberOfPwDofs);
+
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(rActualRHSVector, NumberOfUDofs, NumberOfUDofs + NumberOfPwDofs),
+                              rExpectedPBlockVector, AbsoluteTolerance)
 }
 
 } // namespace Kratos::Testing

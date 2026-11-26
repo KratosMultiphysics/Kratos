@@ -284,7 +284,7 @@ void VoxelMeshGeneratorModeler::ApplyOperations(Parameters ThisParameters)
         const std::string label = stream.str();
         Timer::Start(label);
 
-        p_operation->Apply();
+        p_operation->Execute();
 
         Timer::Stop(label);
     }

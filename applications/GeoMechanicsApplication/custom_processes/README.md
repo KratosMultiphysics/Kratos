@@ -5,8 +5,13 @@ This folder contains the custom processes that are used in the GeoMechanicsAppli
 Documented processes:
 - [$c-\phi$ reduction process](#c-phi-reduction-process)
 - [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
-- [ResetDisplacementProcess](#reset-displacement-process)
+- [ApplyFinalStressesOfPreviousStageToInitialState](#apply-final-stresses-of-previous-stage-to-initial-state-process)
 - [$K_0$ procedure process](#K_0-procedure-process)
+- [ApplyInitialUniformStress](#apply-initial-uniform-stress)
+- [FindNeighboursOfInterfaces](#find-neighbours-of-interfaces)
+- [GeoApplyConstantScalarValueProcess](#Geo-Apply-Constant-Scalar-Value-Process)
+- [ApplyComponentTableProcess](#Apply-Component-Table-Process)
+- [ApplySeepageBoundaryProcess](#apply-seepage-boundary-process)
 
 ## $c-\phi$ reduction process
 For the assessment of a safety factor to characterize slope stability, a Mohr-Coulomb material based $c-\phi$ reduction 
@@ -37,14 +42,14 @@ $$\alpha = \frac{c_c}{c} = \frac{\tan \phi_c}{\tan \phi}$$
 The `GeoExtrapolateIntegrationPointValuesToNodesProcess` can be used as a post-processing step to acquire nodal data for variables that are stored at the integration points. This is useful for visualization services which expect nodal data.
 
 Conceptually the process consists of the following steps:
-1. Determine a count for each node, to keep track of how many elements will contribute to the nodal value.
+1. Determine a count for each node, to keep track of how many elements will contribute to the nodal value.  Note that only the elements of the given model part(s) are considered!
 2. Calculate the extrapolation matrix, to distribute the integration values to the nodes.
 3. Calculate the integration point values of the variables of interest, by using the `CalculateOnIntegrationPoints` function of the `Element` class.
 4. For each element, distribute the integration point values to their respective nodes by multiplying the extrapolation matrix with the integration point values.
 5. Divide the nodal values by the count to get the average value.
 
-### Restrictions
-Currently, this process is only implemented for 3-noded or 6-noded `Triangle` and 4-noded or 8-noded `Quadrilateral` elements in 2D. The extrapolation is always done linearly. For the higher order 6-noded and 8-noded elements, this means the corner nodes are extrapolated as usual, but the mid-side nodes are extrapolated using linear combinations of the extrapolation contributions for the corner nodes.
+### Limitations
+The process supports floating-point scalar, vector, and matrix variables.  The supported element shapes include lines, triangles, quadrilaterals, tetrahedra, and hexahedra as well as line and plane interfaces.  Furthermore, the order of the element's shape functions must be either linear or quadratic.  The extrapolation is always done linearly.  For the quadratic elements, this means the corner nodes are extrapolated as usual, but the mid-side nodes are extrapolated using linear combinations of the extrapolation contributions for the corner nodes.
 
 ### Usage
 The process is defined as follows in json (also found in some of the [integration tests](../tests/test_integration_node_extrapolation)):
@@ -59,19 +64,18 @@ The process is defined as follows in json (also found in some of the [integratio
   }
 }
 ```
-Where the `model_part_name` should contain the name of the model part where the extrapolation is to be performed for the variables in `list_of_variables`. These variables could be of any type, as long as the `Element` class has an implementation of the `CalculateOnIntegrationPoints` function for them.
+The process receives either a single model part name (when using `model_part_name`) or a list of model part names (when using `model_part_name_list`).  Note that any elements that are not part of the given model part(s) are **not** considered by the extrapolation process.  Inactive elements are automatically discarded by the process.  In general, the variables that are to be extrapolated (supplied through `list_of_variables`) should be valid for all elements of the supplied model part(s), or else errors may occur.  For instance, extrapolation of bending moments only makes sense for structural elements that have curvatures.  Similarly, extrapolation of traction vectors only makes sense in the context of interface elements.  Therefore, it is recommended to have one extrapolation process per group of variables that can be calculated for all of the elements of the given model part(s).  As mentioned in the [Section Limitations](#limitations), these variables could be of any type, as long as the `Element` class has an implementation of the `CalculateOnIntegrationPoints` function for them.
 
 
 When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 
 
-## Reset displacement process
-The `ResetDisplacementProcess` can be used to change the reference point of the displacements to the displacement at the start of that stage.
+## Apply Final Stresses Of Previous Stage To Initial State Process
+The `ApplyFinalStressesOfPreviousStageToInitialState` process can be used to change the reference point of the displacements to the displacement at the start of that stage. This process only needs to be applied to structural and interface elements, to convert the displacements from a total displacement to a staged displacement.
 
 ### Requirements
 For this process to work, the following requirements have to be met:
 1. The elements in the model part that the process is applied to should have an implementation for `CalculateOnIntegrationPoints` that calculates the PK2_STRESS_VECTOR as well as an overload of `CalculateOnIntegrationPoints` that returns a list of ConstitutiveLaw::Pointer objects for each integration point.
-2. The input type of the model can only be "rest" (short for restarted), to ensure that the state of the model is retained from the previous stage. The reason for this, is that the constitutive laws are used at the start of a state to calculate the initial stresses based on the history. If the model is not 'restarted', the constitutive laws will be cleared and the initial stresses can not be calculated correctly.
-3. The ConstitutiveLaw used in the elements this process is applied to should use the `InitialState` to apply the initial stresses to the calculated stresses.
+2. The ConstitutiveLaw used in the elements this process is applied to should use the `InitialState` to apply the initial stresses to the calculated stresses.
 
 
 ## $K_0$ procedure process
@@ -84,7 +88,7 @@ When set to true, the material used for the modelpart used for the $K_0$ procedu
 When the stress computation is completed, the original constitutive law is restored.
 
 Depending on the given input parameters, the following scheme is adapted for computation of the $K_0$ value.
-$K_0^{nc}$ is gotten from either "K0_NC" the material input file or by computation from input of "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS":
+$K_0^{nc}$ is gotten from either "K0_NC" the material input file or by computation from input of "GEO_FRICTION_ANGLE" or "INDEX_OF_UMAT_PHI_PARAMETER" and "UMAT_PARAMETERS":
 
 $$K_0^{nc} = 1.0 - \sin \phi$$
 
@@ -122,13 +126,29 @@ The process is defined as follows in "ProjectParameters.json" (also found in som
       "process_name": "ApplyK0ProcedureProcess",
       "Parameters": {
         "model_part_name": "PorousDomain.porous_computational_model_part",
-        "variable_name": "CAUCHY_STRESS_TENSOR",
         "use_standard_procedure": true
       }
     }
   ]
 }
 ```
+Next to specifying a single model part, it is also possible to provide a list:
+```json
+{
+  "auxiliary_process_list": [
+    {
+      "python_module": "apply_k0_procedure_process",
+      "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+      "process_name": "ApplyK0ProcedureProcess",
+      "Parameters": {
+        "model_part_name_list": ["PorousDomain.Clay", "PorousDomain.Sand"],
+        "use_standard_procedure": true
+      }
+    }
+  ]
+}
+```
+
 The "apply_k0_procedure_process" needs the following material parameter input to be added in the "MaterialParameters.json".
 ```json
 {
@@ -150,6 +170,96 @@ The "apply_k0_procedure_process" needs the following material parameter input to
   }
 }
 ```
+
+## Apply Initial Uniform Stress
+
+This process applies an initial uniform stress field to all elements in a model part.
+The elements in the model part need to be able to calculate and set the CAUCHY_STRESS_VECTOR variable.
+The Parameters object should contain a "value" field, which is a vector representing the stress components.
+The vector should have a length equal to the strain size (e.g. 4 for plane strain and axisymmetric cases, 6 for 3D).
+Note that this means that if you want to apply a uniform stress field to 
+elements with different strain sizes, you will need to apply the process multiple times with separate model parts.
+
+Example usage for a case with 3D elements in a ProjectParameters.json file:
+```json
+{
+    "loads_process_list": [
+      {
+        "python_module": "apply_initial_uniform_stress_field",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyInitialUniformStressField",
+        "Parameters":    {
+        "model_part_name": "PorousDomain.Soil",
+        "value": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+        }
+      }
+    ]
+}
+```
+
+
+## Find Neighbours Of Interfaces
+
+This process finds the neighbouring elements of interface elements in a model part. These neighbours are then used to calculate and apply a prestress to the interfaces based on the stress state of the neighbouring elements. Typically, this process is used in a multi-stage analysis, where in a specific stage the interfaces are installed (along with a structural element that models, for instance, a sheet pile wall). To avoid deformations due to differences in stress between already existing soil elements and the newly added interface elements, equilibrium is ensured by prestressing the interfaces using the stresses of the surrounding soil.
+
+The process of applying prestress to the interfaces consists of the following steps:
+1. The neighbouring elements of the interface elements are found using this process.
+2. The stresses at the integration points of the neighbouring elements are extrapolated to their respective nodes.
+3. The nodal stresses are interpolated to the integration points of the interface elements.
+
+Note that steps 2 and 3 are not part of `FindNeighboursOfInterfacesProcess`, but they are taken care of by the interface element itself when neighbours are known. The process only finds neighbouring elements with a higher local dimension than the interface elements, to avoid prestressing the element with stresses of non-continuum elements (e.g. structural elements or other interface elements). 
+
+Example usage for a case in a ProjectParameters.json file:
+
+```json
+{
+  "python_module": "find_neighbours_of_interfaces_process",
+  "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+  "process_name": "FindNeighboursOfInterfacesProcess",
+  "Parameters": {
+    "model_part_name": "PorousDomain.Interface",
+    "model_part_name_for_neighbouring_elements": "PorousDomain.porous_computational_model_part"
+  }
+}
+```
+
+The `model_part_name_for_neighbouring_elements` is used to specify the model part that contains the elements which can be neighbours to the interface elements. Typically, this is the entire computational domain.
+
+Next to specifying a single model part, it is also possible to provide a list of model parts containing interface elements:
+```json
+{
+  "auxiliary_process_list": [
+    {
+      "python_module": "find_neighbours_of_interfaces_process",
+      "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+      "process_name": "FindNeighboursOfInterfacesProcess",
+      "Parameters": {
+        "model_part_name_list": ["Interfaces_Left", "Interfaces_Right"],
+        "model_part_name_for_neighbouring_elements": "PorousDomain.porous_computational_model_part"
+      }
+    }
+  ]
+}
+```
+## Geo Apply Constant Scalar Value Process
+
+The `GeoApplyConstantScalarValueProcess` is used internally for setting Dirichlet type boundary conditions on scalar D.o.F. i.e. water pressures. It implements the following steps:
+- GeoApplyConstantScalarValueProcess::ExecuteInitialize() applies a fixity to the scalar D.o.F. indicated by member variable `mVariableName` on the model part indicated by member variable `mrModelPart`, depending on the value of member variable `mIsFixed`.
+- GeoApplyConstantScalarValueProcess::ExecuteInitializeSolutionStep() applies the scalar value stored in member variable `mDoubleValue` to these D.o.F. This happens only during the first call and is safeguarded by member variable `mIsInitialized`.
+- GeoApplyConstantScalarValueProcess::ExecuteFinalize() releases the fixity, if it was set during `ExecuteInitialize`.
+
+For integer and bool type variables only ExecuteInitializeSolutionStep() is implemented, but sofar this is not used in GeoMechanicsApplication.
+
+## Apply Component Table Process
+
+The `ApplyComponentTableProcess` is used internally for setting Dirichlet type boundary conditions on components of vector D.o.F., i.e. displacements or rotations in X, Y, or Z direction and on water pressure D.o.F. The values are given in time or space by reference to a table. It implements the following steps:
+- ApplyComponentTableProcess::ExecuteInitialize() applies a fixity to the scalar D.o.F. indicated by member variable `mVariableName` on the model part indicated by member variable `mrModelPart`, depending on the value of member variable `mIsFixed`. It also sets the initial value of the D.o.F. using member variable `mInitialValue` if a time table is attached. For attached spatial tables, the value from spatial table interpolation is set.
+- ApplyComponentTableProcess::ExecuteInitializeSolutionStep() applies the scalar value obtained from time table interpolation to these D.o.F. This happens every time step.
+- ApplyComponentTableProcess::ExecuteFinalize() releases the fixity, if it was set during `ExecuteInitialize`.
+
+## Apply Seepage Boundary Process
+
+The `ApplySeepageBoundaryProcess` is used to mark the free element boundaries where seepage may occur. It requires a single parameter named `model_part_name` which provides the name of the model part that represents the seepage boundary. When a process instance is created, it checks whether or not `model_part_name` has been provided. If yes, it also checks whether or not the model part name corresponds to an existing model part. The simple fact of having this process in the list of constraint processes ensures that the corresponding boundary conditions are applied to the computational model part.
 
 ## References
 <a id="1">[1]</a> Brinkgreve, R.B.J., Bakker, H.L., 1991. Non-linear finite element analysis of safety factors, Computer Methods and Advances in Geomechanics, Beer, Booker & Carterr (eds), Balkema, Rotterdam.

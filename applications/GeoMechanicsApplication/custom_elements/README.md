@@ -13,11 +13,11 @@ For simulating soil behavior, the geomechanics application offers continuum elem
 
 Depending on your needs, you may opt for either so-called "diff order" elements or "non-diff order" elements. The former implies that the order of the interpolation polynomials that will be used for the pore water pressure field is one less than the order of the interpolation polynomials of the displacement field. The latter, on the other hand, assumes one and the same order for the interpolation polynomials of both fields.
 
-Regardless of the above distinction, the application orders the degrees of freedom (DOFs) in the same way. The first part relates to the displacement DOFs (grouped per node), followed by a second part that contains the pore water pressure DOFs. For instance, assuming a 6-noded triangular diff order element, the DOFs are ordered as follows:
+Regardless of the above distinction, the application orders the degrees of freedom (DOF) in the same way. The first part relates to the displacement DOF (grouped per node), followed by a second part that contains the pore water pressure DOF. For instance, assuming a 6-noded triangular diff order element, the DOF are ordered as follows:
 
 $$ u_{x,1}, u_{y,1}, u_{x,2}, u_{y,2}, \dots, u_{x,6}, u_{y,6}, p_1, p_2, p_3 $$
 
-where the directions of the displacements are denoted by a suffix (here either $x$ or $y$), and the node number is also added as a suffix. Note that in this case, there are only three pore water pressure DOFs (due to the diff order nature of the element). For a non-diff order quadratic element the above list of DOFs is appended by $p_4$, $p_5$, and $p_6$.
+where the directions of the displacements are denoted by a suffix (here either $x$ or $y$), and the node number is also added as a suffix. Note that in this case, there are only three pore water pressure DOF (due to the diff order nature of the element). For a non-diff order quadratic element the above list of DOF is appended by $p_4$, $p_5$, and $p_6$.
 
 The governing equations for the U-Pw continuum elements in matrix form are:
 
@@ -37,6 +37,45 @@ where the degrees of freedom are displacement $u$ and water pressure $p_w$, thei
 $M$ is the mass matrix, $D$ the damping matrix, $Q$ the coupling matrix, $C$ the compressibility matrix, $K$ the stiffness matrix
 and $H$ the permeability matrix. $f_u$ are forces on boundary and body and $f_p$ are fluxes on boundary and body.
 
+# U-Pw Interface Elements
+
+The `UPwInterfaceElement` models a interface between two domains, for instance a soil-structure contact or a discontinuity in the soil. Like the continuum elements, it takes into account the displacement field ($u$) and the pore water pressure field ($p_w$).
+
+## Geometry
+The element is defined on an interface geometry, which consists of two sides (lines in 2D, planes in 3D) that connect to the adjacent model parts. Most calculations are performed on the so-called mid-geometry, which is located halfway between the two sides. See the [interface geometry documentation](../custom_geometries/README.md#interface-geometry) for the supported geometries, their node numbering and the definition of the mid-geometry.
+
+## Degrees of freedom
+The displacement DOF are defined on all nodes of the interface geometry (both sides). The pore water pressure DOF follow the same ordering convention as the continuum elements: first all displacement DOF (grouped per node), followed by the pore water pressure DOF. As for the continuum elements, a "diff order" variant is available, which uses a linear pressure field combined with a quadratic displacement field.
+
+## Element contributions
+The element is assembled from separate calculation contributions (see `CalculationContribution`), each of which adds to the left- and/or right-hand side:
+
+- stiffness (`StiffnessCalculator`)
+- coupling between displacement and water pressure (`UPCouplingCalculator` and `PUCouplingCalculator`)
+- permeability (`PermeabilityCalculator`)
+- fluid body flow (`FluidBodyFlowCalculator`)
+
+Which contributions are active can be defined at registration time. Furthermore, the `GEO_DRAINAGE_TYPE` of the element, can also switch contributions off (for example, the `CONSTANT_PW_FIELD` drainage type will switch off the `PUCouplingCalculator`, the `PermeabilityCalculator` and the `FluidBodyFlowCalculator`). Stress-state specific behavior is delegated to a `StressStatePolicy`, and the integration points follow an integration scheme (Lobatto by default for the interface elements) rather than the scheme of the underlying geometry.
+
+## Contact surface perimeter
+Line interface elements are integrated per unit length (plane strain). To model a line interface that is wrapped around a body with a certain circumference, e.g. the grout-soil interface around a grouted anchor represented by a truss, the integration coefficients can be scaled by the perimeter of the contact surface. This is done with the optional material property `GEO_CONTACT_SURFACE_PERIMETER`:
+
+$$ w_{i}^{*} = w_{i} \cdot P $$
+
+where $w_i$ is the integration coefficient at integration point $i$ (integration weight times the determinant of the Jacobian of the mid-geometry) and $P$ is the contact surface perimeter. The scaling is performed by the `IntegrationCoefficientModifierForInterfaceElement`, which is passed to the element on construction. Since it modifies the integration coefficients themselves, it applies to all contributions of the element (stiffness, coupling, permeability and fluid body flow). The contact surface parameter can only be defined for line interfaces, since for plane interface elements, their surface area is already equal to the integration area.
+
+If `GEO_CONTACT_SURFACE_PERIMETER` is not specified in the properties, the integration coefficients are left unchanged (i.e. $P = 1$). The property is specified in the `Variables` of the material, for example:
+
+```json
+"Variables": {
+    "INTERFACE_NORMAL_STIFFNESS": 7.69230769230769e+08,
+    "INTERFACE_SHEAR_STIFFNESS": 7.69230769230769e+07,
+    "GEO_CONTACT_SURFACE_PERIMETER": 0.471
+}
+```
+
+An example can be found in the [grouted anchor test](../tests/grouted_anchor/README.md).
+
 # Pw Elements
 Conservation of mass for saturated soil
 
@@ -51,13 +90,13 @@ where
 - $t$				= time $\mathrm{\left[ T \right]}$
 - $x$				= global coordinates $\mathrm{\left[ L \right]}$
 - $q_i$				= specific discharge $\mathrm{\left[ LT^{-1} \right]}$
-- $\alpha$			= $\left( 1 - n \right) / K_{soild}$, solid skeleton compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
-- $\beta$			= $1 / K_{Fluid}$, liquid phase compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
+- $\alpha$			= $\left( Biot - n \right) / K_{solid}$, solid skeleton compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
+- $\beta$			= $1 / K_{fluid}$, liquid phase compressibility $\mathrm{\left[ L^2 F^{-1} \right]}$
 - $\rho^w$			= fluid density $\mathrm{\left[ M L^{-3} \right]}$
 - $\Omega$			= flow domain $\mathrm{\left[ L^2 \right]}$
 - $K_{solid}$		= bulk modulus of soil $\mathrm{\left[ F L^{-2} \right]}$
-- $K_{Fluid}$		= bulk modulus of water $\mathrm{\left[ F L^{-2} \right]}$
-
+- $K_{fluid}$		= bulk modulus of water $\mathrm{\left[ F L^{-2} \right]}$
+- $Biot$			= Biot coefficient $\mathrm{\left[ - \right]}$
 Darcy's law
 
 ```math
@@ -68,7 +107,7 @@ q = -\frac{K_{ij}}{\mu} \left( \frac{\partial p}{\partial x_j} - \rho^w g_j \rig
 - $K_{ij}$			= intrinsic permeability $\mathrm{\left[ L^2 \right]}$
 - $\mu$				= dynamic viscosity $\mathrm{\left[ F T L^{-2} \right]}$
 
-Richard's eqyation for partly saturates soil
+Richard's equation for partly saturated soil
 
 ```math
 \left[ \left( \alpha + n \beta \right) \rho^w S + n \rho^w \frac{dS}{dP} \right] \frac{\partial p}{\partial t} = \frac{\partial}{\partial x_i} \left[ \frac{\rho^w k_r K_{ij}}{\mu} \left( \frac{\partial p}{\partial x_j} - \rho^w g_j \right) \right]  \quad \quad \text{on} \quad \Omega
@@ -76,6 +115,35 @@ Richard's eqyation for partly saturates soil
 
 - $k_r$				= relative permeability $\mathrm{\left[ - \right]}$
 - $S$				= saturation $\mathrm{\left[ - \right]}$
+
+In Biot’s poroelasticity, the Biot coefficient is:
+
+$$ Biot=1 - \frac{K}{K_{solid}} $$
+
+where
+- $K$ 			= drained bulk modulus of the skeleton $\mathrm{\left[ F L^{-2} \right]}$
+
+$$ K = \frac{1}{3} \frac{E}{1 - 2 \nu} $$
+
+- $\nu$			= Poisson's ratio $\mathrm{\left[ - \right]}$
+- $E$			= Young's modulus of skeleton $\mathrm{\left[ F L^{-2} \right]}$
+
+As mentioned above, the solid skeleton compressibility is:
+
+$$ \alpha = \frac{Biot - n}{K_{solid}}  $$
+
+And the liquid phase compressibility:
+
+$$ \beta =\frac{1}{K_{fluid}} $$
+
+However, Biot coefficient can be a user defined value. In this case, a value calculated with above equations is replaced with the user value.
+
+For most soils and even many rocks, the Biot coefficient is very close to 1. Since mineral grains are much stiffer than the porous frame.
+
+When it’s not close to 1?
+- In very stiff, low-porosity rocks (e.g., crystalline granite)
+- In cemented or heavily compacted materials
+  Here, $K$ can be a significant fraction of $K_{solid}$, making α noticeably less than 1, sometimes 0.6–0.8.
 
 The governing equations in matrix form for the Pw elements are:
 ```math
@@ -110,7 +178,7 @@ where
 K_w = \frac{R^2 \rho_0 g}{8 \mu_0} \quad \quad \quad \quad f_u = \frac{\mu_0}{\mu} \quad \quad \quad \quad \chi = \frac{\rho - \rho_0}{\rho_0} \quad \quad \quad \quad h = \frac{p}{\rho_0 g} + y
 ```
 
-- $Q_w$			= pumping rate sink $\mathrm{\left[ L^3 T^{-1} \right]}$
+- $Q_w$				= pumping rate sink $\mathrm{\left[ L^3 T^{-1} \right]}$
 - $t$				= time $\mathrm{\left[ T \right]}$
 - $y$				= vertical coordinate $\mathrm{\left[ L \right]}$
 - $y_w$				= location of the discharge point $\mathrm{\left[ L \right]}$
@@ -126,7 +194,7 @@ K_w = \frac{R^2 \rho_0 g}{8 \mu_0} \quad \quad \quad \quad f_u = \frac{\mu_0}{\m
 - $g$				= gravitational acceleration $\mathrm{\left[ L T^{-2} \right]}$
 - $\rho_0$			= reference density of the fluid $\mathrm{\left[ M L^{-3} \right]}$
 - $\mu_0$			= reference viscosity of the fluid $\mathrm{\left[ F T L^{-2} \right]}$
-- $p$				= liquid pressure $\mathrm{\left[ Pa \right]}$
+- $p$				= liquid pressure $\mathrm{\left[ FL^{-2} \right]}$
 
 reformulated in pressure and preserving mass
 

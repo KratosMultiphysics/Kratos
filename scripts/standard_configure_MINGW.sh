@@ -41,11 +41,13 @@ cmake ..                                                                        
 -DCMAKE_BUILD_TYPE="${KRATOS_BUILD_TYPE}"                                                           \
 -DCMAKE_EXE_LINKER_FLAGS="-s"                                                                       \
 -DCMAKE_SHARED_LINKER_FLAGS="-s"                                                                    \
+-DCMAKE_POLICY_VERSION_MINIMUM=3.5                                                                  \
 -H"${KRATOS_SOURCE}"                                                                                \
 -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
 -DUSE_MPI=OFF                                                                                       \
 -DKRATOS_SHARED_MEMORY_PARALLELIZATION="${KRATOS_SHARED_MEMORY_PARALLELIZATION}"                    \
--DUSE_EIGEN_MKL=OFF
+-DUSE_EIGEN_MKL=OFF                                                                                 \
+-DKRATOS_LINEAR_ALGEBRA_BACKEND="ublas"
 
 # Build
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)

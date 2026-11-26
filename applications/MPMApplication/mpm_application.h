@@ -23,13 +23,12 @@
 #include "mpm_application_variables.h"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/constitutive_law.h"
 #include "includes/kratos_application.h"
 
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 #include "containers/flags.h"
 
@@ -42,6 +41,7 @@
 #include "custom_conditions/grid_based_conditions/mpm_grid_surface_load_condition_3d.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_lagrange_dirichlet_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_load_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_point_load_condition.h"
 
@@ -238,6 +238,7 @@ private:
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian2D3N;
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian3D4N;
     const MPMUpdatedLagrangian mMPMUpdatedLagrangianUP2D3N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangianUP2D4N;
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian2D4N;
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian3D8N;
     const MPMUpdatedLagrangian mMPMUpdatedLagrangianAxisymmetry2D3N;
@@ -254,6 +255,7 @@ private:
     const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D4N;
     // MPM Conditions:
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition;
 
     // Deprecated Conditions
@@ -261,6 +263,10 @@ private:
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition2D4N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition3D4N;
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition3D8N;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition2D3N;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition2D4N;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition3D4N;
+    const MPMParticleLagrangeDirichletCondition mMPMParticleLagrangeDirichletCondition3D8N;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition2D3N;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition3D4N;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition2D4N;

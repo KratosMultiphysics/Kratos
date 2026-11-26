@@ -46,7 +46,7 @@ namespace Kratos
 /**
  * @class MetricErrorProcess
  * @ingroup MeshingApplication
- * @brief This class is can be used to compute the metrics of the model part with a error already computed
+ * @brief This class can be used to compute the metrics of the model part with a error already computed
  * @author Vicente Mataix Ferrandiz
  * @author Anna Rehr
  */

@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -148,6 +149,7 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.SOLID_FRACTION_VELOCITY)
@@ -265,14 +267,19 @@ class NavierStokesLowMachSolver(NavierStokesMonolithicSolver):
             err_msg += "\t- 'closed_with_inflow_outflow'\n"
             raise Exception(err_msg)
 
-    #FIXME: We should fix the issue with the rotations
     def _CreateScheme(self):
         # "Fake" scheme for those cases in where the element manages the time integration
         # It is required to perform the nodal update once the current time step is solved
-        # domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        # block_size = domain_size + 2
-        # scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(domain_size, block_size)
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        scheme_settings = KratosMultiphysics.Parameters("""{
+            "block_size" : 0,
+            "domain_size" : 0,
+            "rotation_dof_position" : 1,
+            "rotation_flag_name" : "SLIP"
+        }""")
+        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        scheme_settings["domain_size"].SetInt(domain_size)
+        scheme_settings["block_size"].SetInt(domain_size + 2)
+        scheme = KratosCFD.IncrementalUpdateRotationScheme(scheme_settings)
 
         # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
         if (self.settings["time_scheme"].GetString() == "bdf2"):

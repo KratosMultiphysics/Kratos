@@ -62,7 +62,7 @@ StressFailureCheckUtilities(ModelPart& rModelPart,
             "max_radius": 0.00481
         }  )" );
 
-    // Now validate agains defaults -- this also ensures no type mismatch
+    // Now validate against defaults -- this also ensures no type mismatch
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
     mCylinderCenter[0] = rParameters["cylinder_center"][0].GetDouble();
@@ -165,7 +165,7 @@ void ExecuteFinalizeSolutionStep()
 ///@name Input and output
 ///@{
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> string.
 
 virtual std::string Info() const
 {

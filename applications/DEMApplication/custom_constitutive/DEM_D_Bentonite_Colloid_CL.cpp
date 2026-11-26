@@ -26,7 +26,7 @@ namespace Kratos {
     // Hard-coded values for the moment; some should probably be nodal
     DEM_D_Bentonite_Colloid::DEM_D_Bentonite_Colloid(){
         mA_H = 10e-19;
-        mD_p = 2.0e-7; // particle diameter; it whould be equal for both particles or the third law of Newton will be violated
+        mD_p = 2.0e-7; // particle diameter; it would be equal for both particles or the third law of Newton will be violated
         mA_p = 0.25 * Globals::Pi * mD_p * mD_p;
         mThickness = 1.0e-9;
         mDDLCoefficient = 1.5e5;

@@ -28,7 +28,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           true,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Steady-State-Groundwater-Flow",
         "scheme_type":                        "Newmark",
@@ -53,7 +52,6 @@
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,
-        "calculate_reactions":                true,
         "max_line_search_iterations":         5,
         "first_alpha_value":                  0.5,
         "second_alpha_value":                 1.0,
@@ -68,7 +66,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["Left_water_head","Right_water_head","gravity"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {

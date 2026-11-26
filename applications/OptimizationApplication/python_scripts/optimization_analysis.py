@@ -40,13 +40,14 @@ class OptimizationAnalysis:
         self._CreateControls()
         self._CreateResponses()
         self._CreateAlgorithm()
-        self._CreateProcesses()
 
     def Initialize(self):
         CallOnAll(self.__list_of_model_part_controllers, ModelPartController.ImportModelPart)
         CallOnAll(self.__list_of_model_part_controllers, ModelPartController.Initialize)
+        self._CreateProcesses()
         for process_type in self.__algorithm.GetProcessesOrder():
             CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteInitialize)
+            CallOnAll(self.optimization_problem.GetListOfProcesses(process_type), Kratos.Process.ExecuteBeforeSolutionLoop)
         CallOnAll(self.optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Initialize)
 
         self.__algorithm.Initialize()

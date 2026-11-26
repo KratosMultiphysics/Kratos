@@ -1,4 +1,3 @@
-/* gidpost 2.1 */
 /* -*- mode: c++ -*-
  *
  *  gidpostHash.h --
@@ -14,11 +13,13 @@
 
 #include "gidpost.h"
 
-int GiD_HashInit();
-int GiD_HashDone();
+typedef struct _CPostFile CPostFile; // defined in gipostInt.h
 
-GiD_FILE GiD_HashAdd   (void *data);
-void    *GiD_HashFind  (GiD_FILE fd);
-void     GiD_HashRemove(GiD_FILE fd);
+int GiD_HashInit( void );
+int GiD_HashDone( void );
+
+GiD_FILE GiD_HashAdd   ( CPostFile *data);
+CPostFile *GiD_HashFind  (GiD_FILE fd);
+int     GiD_HashRemove(GiD_FILE fd);
 
 #endif

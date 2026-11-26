@@ -11,24 +11,20 @@
 //
 
 // External includes
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
+//#include <gmock/gmock.h>
+//#include <gtest/gtest.h>
 
 // Project includes
-#include "testing/testing.h"
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_fast_suite.h"
 
-int main(int argc, char* argv[]) 
-{
-    ::testing::InitGoogleTest(&argc, argv);
+namespace Kratos::Testing{
 
-    Kratos::Testing::mApplicationInitializerList.push_back([](std::vector<Kratos::KratosApplication::Pointer> & rRegisteredApplications, Kratos::Kernel & rKernel) {
-      if (!rKernel.IsImported("SolidMechanicsApplication")) {
-        auto pApplication = std::make_shared<Kratos::KratosSolidMechanicsApplication>();
-        rKernel.ImportApplication(pApplication);
-        rRegisteredApplications.push_back(std::move(pApplication));
-      }
-    });
-
-    return RUN_ALL_TESTS();
+KratosSolidMechanicsFastSuite::KratosSolidMechanicsFastSuite() 
+  : KratosCoreFastSuite() {
+  mpSolidMechanicsApp = std::make_shared<KratosSolidMechanicsApplication>();
+  this->ImportApplicationIntoKernel(mpSolidMechanicsApp);
 }
+
+} // namespace Kratos::Testing
+
+

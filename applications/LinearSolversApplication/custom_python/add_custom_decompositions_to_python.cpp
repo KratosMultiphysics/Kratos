@@ -15,9 +15,8 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/define_python.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "utilities/dense_qr_decomposition.h"
 #include "utilities/dense_svd_decomposition.h"
 
@@ -28,14 +27,13 @@
 #include "custom_decompositions/eigen_dense_householder_qr_decomposition.h"
 #include "custom_decompositions/eigen_dense_column_pivoting_householder_qr_decomposition.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddCustomDecompositionsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+    typedef TDefaultDenseSpace<double> DenseSpaceType;
     typedef typename DenseSpaceType::MatrixType MatrixType;
     typedef typename DenseSpaceType::VectorType VectorType;
     typedef DenseQRDecomposition<DenseSpaceType> BaseQRType;
@@ -92,6 +90,4 @@ void AddCustomDecompositionsToPython(pybind11::module& m)
 
 }
 
-} // namespace Python
-
-} // namespace Kratos
+} // namespace Kratos::Python

@@ -24,6 +24,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTCondition : public Condition
 {
@@ -36,10 +38,9 @@ public:
 
     GeoTCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
-    {
-        return Kratos::make_intrusive<GeoTCondition>(NewId, GetGeometry().Create(rThisNodes), pProperties);
-    }
+    Condition::Pointer Create(IndexType               NewId,
+                              NodesArrayType const&   rThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
 
     using Condition::Create;
 
@@ -61,17 +62,11 @@ protected:
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
 
-    friend class Serializer;
+    friend Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
+    void load(Serializer& rSerializer) override;
 };
 
 } // namespace Kratos

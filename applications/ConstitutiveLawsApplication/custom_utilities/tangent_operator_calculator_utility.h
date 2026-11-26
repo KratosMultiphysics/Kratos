@@ -608,7 +608,7 @@ private:
     }
 
     /**
-     * @brief This method computes the maximum absolut value (Vector)
+     * @brief This method computes the maximum absolute value (Vector)
      * @param rArrayValues The array containing the values
      * @param rMaxValue The value to be computed
      */
@@ -630,7 +630,7 @@ private:
     }
 
     /**
-     * @brief This method computes the maximum absolut value (Matrix)
+     * @brief This method computes the maximum absolute value (Matrix)
      * @param rArrayValues The array containing the values
      * @param rMaxValue The value to be computed
      */
@@ -659,7 +659,7 @@ private:
     }
 
     /**
-     * @brief This method computes the minimim absolut value (Vector)
+     * @brief This method computes the minimim absolute value (Vector)
      * @param rArrayValues The array containing the values
      * @param rMinValue The value to be computed
      */
@@ -681,7 +681,7 @@ private:
     }
 
     /**
-     * @brief This method computes the minimim absolut value (Matrix)
+     * @brief This method computes the minimim absolute value (Matrix)
      * @param rArrayValues The array containing the values
      * @param rMinValue The value to be computed
      */

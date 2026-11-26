@@ -150,7 +150,7 @@ public:
 
     CoordinatesArrayType& Coordinates() const override
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not initialized!" << std::endl;
         return mpNode->Coordinates();
     }
 
@@ -176,7 +176,7 @@ private:
 * Each node on the destination side gets assigned is's closest condition or element (distance to center)
 * on the other side of the interface.
 * In the mapping phase every node gets assigned the interpolated value of the condition/element.
-* The interpolation is done with the shape funcitons
+* The interpolation is done with the shape functions
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */

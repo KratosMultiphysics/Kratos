@@ -1,0 +1,26 @@
+"""Generator of ``AugmentedLagrangianMethodFrictionlessMortarContactCondition`` (thesis section 4.3.3, scalar multiplier).
+
+Run ``python3 generate_frictionless_mortar_condition.py [--combinations 2,2,2 ...] [--normal-variation false|true|both]``.
+The documented version of this generator is the notebook ``ALM_frictionless_mortar_condition.ipynb`` in this folder.
+"""
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+import mortar_condition_generator as generator
+
+
+def frictionless_functional(s, node, branch):
+    """Galerkin functional of one slave node (thesis eqs. 4.36-4.44). ``branch`` is ``inactive`` or ``active``."""
+    rv_galerkin = 0
+    if branch == "active":
+        augmented_contact_pressure = (s.ScaleFactor * s.LMNormal[node] + s.PenaltyParameter[node] * s.NormalGap[node])
+        rv_galerkin += s.DynamicFactor[node] * (augmented_contact_pressure * s.NormalSlave.row(node)).dot(s.Dw1Mw2.row(node))
+        rv_galerkin += s.ScaleFactor * s.NormalGap[node] * s.wLMNormal[node]
+    else:
+        rv_galerkin -= s.ScaleFactor**2 / s.PenaltyParameter[node] * s.LMNormal[node] * s.wLMNormal[node]
+    return rv_galerkin
+
+
+if __name__ == "__main__":
+    generator.Main(generator.ALM_FRICTIONLESS, frictionless_functional, os.path.dirname(os.path.abspath(__file__)))

@@ -534,11 +534,6 @@ public:
                                             array_1d<double,4>& Npos,
                                             array_1d<double,4>& Nneg)
     {
-        //count positives
-        int n_positives = 0;
-        for(unsigned int i=0; i<distances.size(); i++)
-            if(distances[i]>0) n_positives++;
-
         //generate the points on the edges at the zero of the distance function
         //generate "father nodes", defined as the end nodes of the edge on which the local point is located
         std::vector< Point > edge_points;
@@ -2773,7 +2768,7 @@ private:
 
     inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, DenseVector<unsigned int>& partitions)
     {
-        partitions.resize(number_of_threads + 1);
+        partitions.resize(number_of_threads + 1, false);
         int partition_size = number_of_rows / number_of_threads;
         partitions[0] = 0;
         partitions[number_of_threads] = number_of_rows;

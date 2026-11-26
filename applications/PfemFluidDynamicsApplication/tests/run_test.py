@@ -12,7 +12,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # SMALL TESTS
 import SmallTests
-# NIGTHLY TESTS
+# NIGHTLY TESTS
 import NightTests
 
 if __name__ == '__main__':

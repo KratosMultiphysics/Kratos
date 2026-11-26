@@ -36,9 +36,9 @@ class ImposeInputTableNodalYoungModulusProcess(KratosMultiphysics.Process):
         self.process = KratosDam.DamInputTableNodalYoungModulusProcess(model_part, self.table, settings)
 
 
-    def ExecuteInitialize(self):
+    def ExecuteBeforeSolutionLoop(self):
 
-        self.process.ExecuteInitialize()
+        self.process.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
 

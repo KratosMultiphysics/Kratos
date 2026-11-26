@@ -77,7 +77,7 @@ public:
             WriteDeformedMeshFlag::WriteUndeformed,
             WriteConditionsFlag::WriteConditions);
 
-        // deliberately rewritting the mesh in case the geometry is updated
+        // deliberately rewriting the mesh in case the geometry is updated
         mpGidEigenIO->InitializeMesh(0.0);
         mpGidEigenIO->WriteMesh(mrModelPart.GetMesh());
         mpGidEigenIO->WriteNodeMesh(mrModelPart.GetMesh());

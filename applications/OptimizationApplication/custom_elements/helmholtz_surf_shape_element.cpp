@@ -427,7 +427,7 @@ void HelmholtzSurfShapeElement::CalculateSurfaceStiffnessMatrix(
 
     }
 
-    //contruct the stifness matrix in all dims
+    //construct the stiffness matrix in all dims
     for(IndexType i=0;i<number_of_nodes;i++)
         for(IndexType j=0;j<dimension;j++)
             for(IndexType k=0;k<number_of_nodes;k++)
@@ -507,7 +507,7 @@ void HelmholtzSurfShapeElement::CalculateAvgSurfUnitNormal(VectorType & rNormal)
     const IntegrationMethod& integration_method = r_geom.GetDefaultIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
 
-    rNormal.resize(3);
+    rNormal.resize(3, false);
     rNormal = ZeroVector(3);
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number )
         rNormal += r_geom.UnitNormal(point_number,integration_method);

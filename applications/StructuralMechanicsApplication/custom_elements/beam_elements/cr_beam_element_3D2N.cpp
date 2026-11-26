@@ -285,7 +285,7 @@ void CrBeamElement3D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
         load_orthogonal_direction /= vector_norm_c;
     }
 
-    // now caluclate respective work equivilent nodal moments
+    // now calculate respective work equivilent nodal moments
 
     const double custom_moment =
         norm_force_vector_orthogonal * GeometryLength * GeometryLength / 12.00;
@@ -845,7 +845,7 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
 
     VectorDifference = 0.50 * VectorDifference / scalar_diff;
 
-    // rotate inital element basis
+    // rotate initial element basis
     const double r0 = mean_rotation_scalar;
     const double r1 = mean_rotation_vector[0];
     const double r2 = mean_rotation_vector[1];

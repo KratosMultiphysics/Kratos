@@ -28,22 +28,20 @@
 
 //Elements
 #include "custom_elements/wave_equation_element.hpp"
-#include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
 #include "custom_elements/small_displacement_interface_element.hpp"
-#include "custom_elements/small_displacement_element.hpp"
+
+// Historical Dam small-displacement registration names are backed by the
+// StructuralMechanicsApplication SmallDisplacement runtime element.
+#include "custom_elements/solid_elements/small_displacement.h"
 
 //Constitutive Laws
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_strain.hpp"
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_stress.hpp"
 
-#include "custom_constitutive/linear_elastic_3D_law_nodal.hpp"
 #include "custom_constitutive/linear_elastic_2D_plane_strain_nodal.hpp"
 #include "custom_constitutive/linear_elastic_2D_plane_stress_nodal.hpp"
 
-#include "custom_constitutive/thermal_linear_elastic_3D_law_nodal.hpp"
-#include "custom_constitutive/thermal_linear_elastic_2D_plane_strain_nodal.hpp"
-#include "custom_constitutive/thermal_linear_elastic_2D_plane_stress_nodal.hpp"
 
 #include "custom_constitutive/thermal_simo_ju_local_damage_3D_law.hpp"
 #include "custom_constitutive/thermal_simo_ju_local_damage_plane_strain_2D_law.hpp"
@@ -117,32 +115,22 @@ const SmallDisplacementInterfaceElement<2,4> mSmallDisplacementInterfaceElement2
 const SmallDisplacementInterfaceElement<3,6> mSmallDisplacementInterfaceElement3D6N;
 const SmallDisplacementInterfaceElement<3,8> mSmallDisplacementInterfaceElement3D8N;
 
-const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement2D3N;
-const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement2D6N;
-const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement2D4N;
-const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement2D8N;
-const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement2D9N;
+//small displacement (StructuralMechanicsApplication SmallDisplacement runtime).
+// One prototype per unique geometry; the historical mechanical AND
+// thermo-mechanical registration names both point to these prototypes.
+const SmallDisplacement mSmallDisplacementElement2D3N;
+const SmallDisplacement mSmallDisplacementElement2D4N;
+const SmallDisplacement mSmallDisplacementElement2D6N;
+const SmallDisplacement mSmallDisplacementElement2D8N;
+const SmallDisplacement mSmallDisplacementElement2D9N;
 
-const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D4N;
-const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D10N;
-const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D8N;
-const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D20N;
-const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D27N;
-
-//small displacement
-const SmallDisplacementElement mSmallDisplacementElement2D3N;
-const SmallDisplacementElement mSmallDisplacementElement2D4N;
-const SmallDisplacementElement mSmallDisplacementElement2D6N;
-const SmallDisplacementElement mSmallDisplacementElement2D8N;
-const SmallDisplacementElement mSmallDisplacementElement2D9N;
-
-const SmallDisplacementElement mSmallDisplacementElement3D4N;
-const SmallDisplacementElement mSmallDisplacementElement3D6N;
-const SmallDisplacementElement mSmallDisplacementElement3D8N;
-const SmallDisplacementElement mSmallDisplacementElement3D10N;
-const SmallDisplacementElement mSmallDisplacementElement3D15N;
-const SmallDisplacementElement mSmallDisplacementElement3D20N;
-const SmallDisplacementElement mSmallDisplacementElement3D27N;
+const SmallDisplacement mSmallDisplacementElement3D4N;
+const SmallDisplacement mSmallDisplacementElement3D6N;
+const SmallDisplacement mSmallDisplacementElement3D8N;
+const SmallDisplacement mSmallDisplacementElement3D10N;
+const SmallDisplacement mSmallDisplacementElement3D15N;
+const SmallDisplacement mSmallDisplacementElement3D20N;
+const SmallDisplacement mSmallDisplacementElement3D27N;
 
 const FreeSurfaceCondition<2,2> mFreeSurfaceCondition2D2N;
 const FreeSurfaceCondition<3,3> mFreeSurfaceCondition3D3N;
@@ -164,13 +152,9 @@ const ThermalLinearElastic3DLaw mThermalLinearElastic3DLaw;
 const ThermalLinearElastic2DPlaneStrain mThermalLinearElastic2DPlaneStrain;
 const ThermalLinearElastic2DPlaneStress mThermalLinearElastic2DPlaneStress;
 
-const LinearElastic3DLawNodal mLinearElastic3DLawNodal;
 const LinearElastic2DPlaneStrainNodal mLinearElastic2DPlaneStrainNodal;
 const LinearElastic2DPlaneStressNodal mLinearElastic2DPlaneStressNodal;
 
-const ThermalLinearElastic3DLawNodal mThermalLinearElastic3DLawNodal;
-const ThermalLinearElastic2DPlaneStrainNodal mThermalLinearElastic2DPlaneStrainNodal;
-const ThermalLinearElastic2DPlaneStressNodal mThermalLinearElastic2DPlaneStressNodal;
 
 const ThermalSimoJuLocalDamage3DLaw mThermalSimoJuLocalDamage3DLaw;
 const ThermalSimoJuLocalDamagePlaneStrain2DLaw mThermalSimoJuLocalDamagePlaneStrain2DLaw;

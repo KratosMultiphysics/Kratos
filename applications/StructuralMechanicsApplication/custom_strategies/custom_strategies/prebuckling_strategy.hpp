@@ -230,9 +230,9 @@ public:
      * @details
      * {
      * 0 -> Mute... no echo at all
-     * 1 -> Printing time and basic informations
+     * 1 -> Printing time and basic information
      * 2 -> Printing linear solver data
-     * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * 3 -> Print of debug information: Echo of stiffness matrix, Dx, b...
      * }
      */
     void SetEchoLevel(int Level) override
@@ -431,7 +431,7 @@ public:
 
         // Update loadfactor increment
         double delta_load_multiplier = 0.0;
-        if( mLoadStepIteration == 1) // inital load increment
+        if( mLoadStepIteration == 1) // initial load increment
         {
             delta_load_multiplier = mInitialLoadIncrement*(mLambda + mLambdaPrev);
         }
@@ -551,11 +551,12 @@ public:
             // between the current and previous step
             rStiffnessMatrix = rStiffnessMatrixPrevious - rStiffnessMatrix;
 
-            // Symmetrice matrices if enabled
-            // The ublas transpose function is called manually, because it is missing in the corresponding space
+            // Symmetrize matrices if enabled
+            // Unqualified trans() resolves to the uBLAS template or the Eigen
+            // compat overload depending on the configured backend matrix type
             if( mMakeMatricesSymmetricFlag ){
-                rStiffnessMatrix = 0.5 * ( rStiffnessMatrix + boost::numeric::ublas::trans(rStiffnessMatrix) );
-                rStiffnessMatrixPrevious = 0.5 * ( rStiffnessMatrixPrevious + boost::numeric::ublas::trans(rStiffnessMatrixPrevious) );
+                rStiffnessMatrix = 0.5 * ( rStiffnessMatrix + trans(rStiffnessMatrix) );
+                rStiffnessMatrixPrevious = 0.5 * ( rStiffnessMatrixPrevious + trans(rStiffnessMatrixPrevious) );
             }
 
             this->pGetEigenSolver()->GetLinearSystemSolver()->Solve(

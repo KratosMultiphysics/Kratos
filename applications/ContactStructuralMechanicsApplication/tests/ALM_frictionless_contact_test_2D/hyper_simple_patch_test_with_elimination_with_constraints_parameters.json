@@ -28,7 +28,7 @@
             "time_step" : 1.1
         },
         "builder_and_solver_settings" : {
-            "use_block_builder" : false
+            "type" : "elimination"
         },
         "clear_storage"                      : true,
         "compute_reactions"                  : false,
@@ -105,8 +105,8 @@
             "process_name"          : "ALMContactProcess",
             "Parameters"            : {
                 "model_part_name"             : "Structure",
-                "assume_master_slave"         : { "0" : ["Parts_Parts_Auto2"]},
-                "contact_model_part"          : { "0" : ["Contact_Part"]},
+                "contact_model_part"         : { "0" : ["Contact_Part_1","Contact_Part_2"]},
+                "assume_master_slave"        : { "0" : ["Contact_Part_1"]},
                 "contact_type"                : "Frictionless"
             }
         }

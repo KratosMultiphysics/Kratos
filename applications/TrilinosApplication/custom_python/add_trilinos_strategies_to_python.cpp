@@ -22,7 +22,7 @@
 
 // Project includes
 #include "trilinos_space.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -46,7 +46,7 @@ namespace py = pybind11;
 void AddStrategies(pybind11::module& m)
 {
     using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-    using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using TrilinosLocalSpaceType = TDefaultDenseSpace<double>;
     using TrilinosLinearSolverType = LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
     using TrilinosConvergenceCriteria = ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
 
@@ -99,6 +99,8 @@ void AddStrategies(pybind11::module& m)
     py::class_<TrilinosBlockBuilderAndSolverType, typename TrilinosBlockBuilderAndSolverType::Pointer, TrilinosBuilderAndSolverType>(m, "TrilinosBlockBuilderAndSolver")
         .def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
         .def(py::init<Epetra_MpiComm&, TrilinosLinearSolverType::Pointer, Parameters > () )
+        .def("IsConstantConstraints", &TrilinosBlockBuilderAndSolverType::IsConstantConstraints)
+        .def("SetConstantConstraints", &TrilinosBlockBuilderAndSolverType::SetConstantConstraints)
     ;
 
     using TrilinosBlockBuilderAndSolverPeriodicType = TrilinosBlockBuilderAndSolverPeriodic< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >;

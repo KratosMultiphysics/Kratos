@@ -178,7 +178,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mpInterfaceVectorContainerSlave->GetModelPart(),
         mpInterfaceVectorContainerSlave->GetModelPart(),
         mMapperLocalSystemsSlave,
-        0); // The echo-level is no longer neeed here, refactor in separate PR
+        0); // The echo-level is no longer needed here, refactor in separate PR
 
     MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrix(
         mpMappingMatrixProjector,
@@ -187,7 +187,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mpInterfaceVectorContainerMaster->GetModelPart(),
         mpInterfaceVectorContainerSlave->GetModelPart(),
         mMapperLocalSystemsProjector,
-        0); // The echo-level is no longer neeed here, refactor in separate PR
+        0); // The echo-level is no longer needed here, refactor in separate PR
 
     // Perform consistency scaling if requested
     if (mMapperSettings["consistency_scaling"].GetBool()) {
@@ -326,7 +326,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
     SparseSpaceType::Mult(rInterfaceMatrixSlave, unit_vector, slave_row_sums_vector);
 
     // Get row sum vector of projected matrix
-    unit_vector.resize(SparseSpaceType::Size2(rInterfaceMatrixProjected));
+    unit_vector.resize(SparseSpaceType::Size2(rInterfaceMatrixProjected), false);
     SparseSpaceType::Set(unit_vector, 1.0);
     SparseSpaceType::VectorType projected_row_sums_vector(SparseSpaceType::Size1(rInterfaceMatrixProjected));
     SparseSpaceType::Mult(rInterfaceMatrixProjected, unit_vector, projected_row_sums_vector);

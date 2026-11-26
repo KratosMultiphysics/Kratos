@@ -12,16 +12,26 @@
 
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
+#include "custom_utilities/ublas_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
 
 namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
-Vector CalculateStress(GeoIncrementalLinearElasticLaw& rConstitutiveLaw)
+Properties SetBasicPropertiesFor2D()
+{
+    Properties properties;
+    properties.SetValue(YOUNG_MODULUS, 1.0e7);
+    properties.SetValue(POISSON_RATIO, 0.3);
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
+    return properties;
+}
+
+Vector CalculateStress(GeoIncrementalLinearElasticLaw& rConstitutiveLaw, const Properties& rProperties)
 {
     ConstitutiveLaw::Parameters parameters;
     parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -36,10 +46,7 @@ Vector CalculateStress(GeoIncrementalLinearElasticLaw& rConstitutiveLaw)
     Matrix constitutive_matrix;
     parameters.SetConstitutiveMatrix(constitutive_matrix);
 
-    Properties properties;
-    properties.SetValue(YOUNG_MODULUS, 1.0e7);
-    properties.SetValue(POISSON_RATIO, 0.3);
-    parameters.SetMaterialProperties(properties);
+    parameters.SetMaterialProperties(rProperties);
 
     rConstitutiveLaw.CalculateMaterialResponsePK2(parameters);
 
@@ -121,10 +128,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress,
 {
     auto law = CreateLinearElasticPlaneStrainLaw();
 
-    const auto stress = CalculateStress(law);
+    const auto properties = SetBasicPropertiesFor2D();
 
-    Vector expected_stress{4};
-    expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06;
+    const auto stress = CalculateStress(law, properties);
+
+    const auto expected_stress = UblasUtilities::CreateVector({2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -133,11 +141,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
 {
     auto law = CreateLinearElasticPlaneStrainLaw();
     law.SetConsiderDiagonalEntriesOnlyAndNoShear(true);
+    const auto properties = SetBasicPropertiesFor2D();
 
-    const auto stress = CalculateStress(law);
+    const auto stress = CalculateStress(law, properties);
 
-    Vector expected_stress{4};
-    expected_stress <<= 1.34615e+07, 1.34615e+07, 1.34615e+07, 0;
+    const auto expected_stress = UblasUtilities::CreateVector({1.34615e+07, 1.34615e+07, 1.34615e+07, 0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -151,12 +159,13 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     parameters.SetStrainVector(initial_strain);
     auto initial_stress = Vector{ScalarVector{4, 1e6}};
     parameters.SetStressVector(initial_stress);
+    const auto properties = SetBasicPropertiesFor2D();
+    parameters.SetMaterialProperties(properties);
     law.InitializeMaterialResponseCauchy(parameters);
 
-    const auto stress = CalculateStress(law);
+    const auto stress = CalculateStress(law, properties);
 
-    Vector expected_stress{4};
-    expected_stress <<= 1.35e+07, 1.35e+07, 1.35e+07, 2.92308e+06;
+    const auto expected_stress = UblasUtilities::CreateVector({1.35e+07, 1.35e+07, 1.35e+07, 2.92308e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -170,25 +179,30 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     initial_parameters.SetStrainVector(initial_strain);
     auto initial_stress = Vector{ScalarVector{4, 1e6}};
     initial_parameters.SetStressVector(initial_stress);
+    const auto properties = SetBasicPropertiesFor2D();
+    initial_parameters.SetMaterialProperties(properties);
+
     law.InitializeMaterialResponseCauchy(initial_parameters);
 
-    auto stress = CalculateStress(law);
+    auto stress = CalculateStress(law, properties);
 
     ConstitutiveLaw::Parameters final_parameters;
     auto                        final_strain = Vector{ScalarVector{4, 1.3}};
     final_parameters.SetStrainVector(final_strain);
     law.FinalizeMaterialResponseCauchy(final_parameters);
-    stress = CalculateStress(law);
+    stress = CalculateStress(law, properties);
 
-    Vector expected_stress{4};
-    expected_stress <<= 6e+06, 6e+06, 6e+06, 1.76923e+06;
+    const auto expected_stress = UblasUtilities::CreateVector({6e+06, 6e+06, 6e+06, 1.76923e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-#ifdef KRATOS_DEBUG
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawThrows_WhenElementProvidedStrainIsSetToFalse,
+KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawRaisesADebugError_WhenElementProvidedStrainIsSetToFalse,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+#ifndef KRATOS_DEBUG
+    GTEST_SKIP() << "This test requires a debug build";
+#endif
+
     auto law = CreateLinearElasticPlaneStrainLaw();
 
     ConstitutiveLaw::Parameters parameters;
@@ -197,7 +211,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawThrows_WhenElementProv
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.CalculateMaterialResponsePK2(parameters),
                                       "The GeoLinearElasticLaw needs an element provided strain");
 }
-#endif
 
 KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawChecksYoungModulusAndPoissonRatio,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -210,20 +223,25 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawChecksYoungModulusAndP
     const auto process_info     = ProcessInfo{};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, element_geometry, process_info),
-        "Error: YOUNG_MODULUS is not available in the parameters of material 3.")
+        "YOUNG_MODULUS does not exist in the parameters of material with Id 3.")
     properties.SetValue(YOUNG_MODULUS, -1.0e7);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, element_geometry, process_info),
-        "Error: The value of YOUNG_MODULUS (-1e+07) should be positive in material 3.")
+        "YOUNG_MODULUS in the parameters of material with Id 3 has an "
+        "invalid value: -1e+07 is out of the range (0, -).")
     properties.SetValue(YOUNG_MODULUS, 1.0e7);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, element_geometry, process_info),
-        "Error: POISSON_RATIO is not available in the parameters of material 3.")
+        "POISSON_RATIO does not exist in the parameters of material with Id 3.")
     properties.SetValue(POISSON_RATIO, 0.7);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, element_geometry, process_info),
-        "Error: The value of POISSON_RATIO (0.7) should be in the range [-1.0, 0.5> in material 3.")
+        "POISSON_RATIO in the parameters of material with Id 3 has an "
+        "invalid value: 0.7 is out of the range (-1, 0.5).")
     properties.SetValue(POISSON_RATIO, 0.25);
+    KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
+
+    properties.SetValue(GEO_YOUNGS_MODULUS_FORMULATION, "Constant"s);
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
 

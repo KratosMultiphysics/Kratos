@@ -151,7 +151,7 @@ public:
         // reference coordinate system
         ShellQ4_LocalCoordinateSystem a(CreateReferenceCoordinateSystem());
 
-        // current coordinate system using the 1-2 side alignement
+        // current coordinate system using the 1-2 side alignment
         ShellQ4_LocalCoordinateSystem b(geom[0], geom[1], geom[2], geom[3]);
 
         double aX1 = a.X1();
@@ -495,7 +495,7 @@ private:
 
                 iNode[j] += pert; // apply perturbation
 
-                ShellQ4_LocalCoordinateSystem b(nodes[0], nodes[1], nodes[2], nodes[3]);   // perturbed coordinate system (1-2 side alignement)
+                ShellQ4_LocalCoordinateSystem b(nodes[0], nodes[1], nodes[2], nodes[3]);   // perturbed coordinate system (1-2 side alignment)
 
                 double bX1 = b.X1();
                 double bY1 = b.Y1();

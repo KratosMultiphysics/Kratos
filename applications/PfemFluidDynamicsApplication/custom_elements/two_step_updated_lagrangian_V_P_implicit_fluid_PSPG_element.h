@@ -122,7 +122,7 @@ namespace Kratos
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
        * @param NewId Index number of the new element (optional)
        */
@@ -148,7 +148,7 @@ namespace Kratos
     {
     }
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
        * @param NewId Index of the new element
        * @param pGeometry Pointer to a geometry object
@@ -262,7 +262,7 @@ namespace Kratos
     ///@{
 
     /**
-       * A constistent mass matrix is used.
+       * A consistent mass matrix is used.
        * @param rMassMatrix The local matrix where the result will be added.
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.

@@ -195,7 +195,6 @@ KRATOS_TEST_CASE_IN_SUITE(XCartesianRayPlaneIntersection, KratosCoreFastSuite)
 		KRATOS_EXPECT_EQ(ray_2.GetIntersections().size(), 0);
 
 		KRATOS_EXPECT_NEAR(ray_1.GetIntersections()[0].first, .4, 1e-6);
-		KRATOS_EXPECT_NEAR(ray_2.GetIntersections()[0].first, .4, 1e-6);
 	}
 
 
@@ -243,7 +242,6 @@ KRATOS_TEST_CASE_IN_SUITE(XCartesianRayPlaneIntersection, KratosCoreFastSuite)
 		KRATOS_EXPECT_EQ(ray_2.GetIntersections().size(), 0);
 
 		KRATOS_EXPECT_NEAR(ray_1.GetIntersections()[0].first, .4, 1e-6);
-		KRATOS_EXPECT_NEAR(ray_2.GetIntersections()[0].first, .4, 1e-6);
 	}
 
 
@@ -323,6 +321,24 @@ KRATOS_TEST_CASE_IN_SUITE(XCartesianRayPlaneIntersection, KratosCoreFastSuite)
 				}
             }
 		}
+	}
+
+	KRATOS_TEST_CASE_IN_SUITE(CartesianMeshColorsGetPoint, KratosCoreFastSuite)
+	{
+		Kratos::Internals::CartesianMeshColors mesh_colors;
+		mesh_colors.SetCoordinates({0., 1., 3.}, {0., 2., 4.}, {0., 1., 2.});
+
+		// Last node: no ceil node exists, so it must not be accessed
+		const auto last = mesh_colors.GetPoint(2., 2., 2.);
+		KRATOS_EXPECT_DOUBLE_EQ(last[0], 3.);
+		KRATOS_EXPECT_DOUBLE_EQ(last[1], 4.);
+		KRATOS_EXPECT_DOUBLE_EQ(last[2], 2.);
+
+		// Interpolation between nodes
+		const auto mid = mesh_colors.GetPoint(1.5, 0.5, 2.);
+		KRATOS_EXPECT_DOUBLE_EQ(mid[0], 2.);
+		KRATOS_EXPECT_DOUBLE_EQ(mid[1], 1.);
+		KRATOS_EXPECT_DOUBLE_EQ(mid[2], 2.);
 	}
 
 	KRATOS_TEST_CASE_IN_SUITE(CartesianMeshColorsInitialRays, KratosCoreFastSuite)

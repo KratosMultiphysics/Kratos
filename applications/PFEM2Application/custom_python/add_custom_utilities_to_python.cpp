@@ -63,7 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_utilities/visualization.h"
 #include "custom_utilities/calculate_water_fraction.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/add_fixed_velocity_condition.h"
 
@@ -87,8 +87,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
 namespace py = pybind11;
 
- // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
- // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+ // typedef TDefaultSparseSpace<double> SparseSpaceType;
+ // typedef TDefaultDenseSpace<double> LocalSpaceType;
  // typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
 
@@ -104,7 +104,7 @@ namespace py = pybind11;
    .def("CalculateVelOverElemSize", &MoveParticleUtilityPFEM2<2>::CalculateVelOverElemSize)
    .def("CalculateDeltaVelocity", &MoveParticleUtilityPFEM2<2>::CalculateDeltaVelocity)
    .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityPFEM2<2>::CopyVectorVarToPreviousTimeStep)
-   .def("IntializeTransferTool", &MoveParticleUtilityPFEM2<2>::IntializeTransferTool)
+   .def("InitializeTransferTool", &MoveParticleUtilityPFEM2<2>::InitializeTransferTool)
    .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityPFEM2<2>::PreReseedUsingTopographicDomain)
    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityPFEM2<2>::ExecuteParticlesPritingTool)
    .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityPFEM2<2>::ExecuteParticlesPritingToolForDroppletsOnly)
@@ -123,7 +123,7 @@ namespace py = pybind11;
    .def("CalculateVelOverElemSize", &MoveParticleUtilityPFEM2<3>::CalculateVelOverElemSize)
    .def("CalculateDeltaVelocity", &MoveParticleUtilityPFEM2<3>::CalculateDeltaVelocity)
    .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityPFEM2<3>::CopyVectorVarToPreviousTimeStep)
-   .def("IntializeTransferTool", &MoveParticleUtilityPFEM2<3>::IntializeTransferTool)
+   .def("InitializeTransferTool", &MoveParticleUtilityPFEM2<3>::InitializeTransferTool)
    .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityPFEM2<3>::PreReseedUsingTopographicDomain)
    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityPFEM2<3>::ExecuteParticlesPritingTool)
    .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityPFEM2<3>::ExecuteParticlesPritingToolForDroppletsOnly)

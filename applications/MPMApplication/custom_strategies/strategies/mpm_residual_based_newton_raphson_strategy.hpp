@@ -230,6 +230,15 @@ public:
 
             if (this->mpConvergenceCriteria->GetActualizeRHSflag() == true)
             {
+                // due to the assembly procedure the friction related values need to be reset
+                const bool friction_active = BaseType::GetModelPart().GetProcessInfo()[FRICTION_ACTIVE];
+                if (friction_active){
+                    for (Node &curr_node : BaseType::GetModelPart().Nodes()){
+                    curr_node.SetValue(FRICTION_ASSIGNED, false);
+                    curr_node.FastGetSolutionStepValue(STICK_FORCE).clear();
+                    }
+                }
+
                 TSparseSpace::SetToZero(rb);
                 p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), rb);
             }
@@ -247,17 +256,33 @@ public:
         }
 
         // Plot a warning if the maximum number of iterations is exceeded
-        if (iteration_number >= this->mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-        {
-            if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
+        if (iteration_number >= this->mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0) {
+            this->MaxIterationsExceeded();
+        } else {
+            KRATOS_INFO_IF("MPMResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
+                << "Convergence achieved after " << iteration_number << " / "
+                << this->mMaxIterationNumber << " iterations" << std::endl;
         }
 
 
         // recompute first timestep if friction is active
-        const bool recompute_first_timestep = BaseType::GetModelPart().GetProcessInfo()[FRICTION_ACTIVE];
+        const bool friction_active = BaseType::GetModelPart().GetProcessInfo()[FRICTION_ACTIVE];
         const bool is_initial_loop = (BaseType::GetModelPart().GetProcessInfo()[STEP] ==  1);
 
-        if (is_initial_loop && recompute_first_timestep){
+        //calculate reactions if required
+        if (this->mCalculateReactionsFlag == true){
+            // due to the assembly procedure the friction related values need to be reset
+            if (friction_active){
+                for (Node &curr_node : BaseType::GetModelPart().Nodes()){
+                curr_node.SetValue(FRICTION_ASSIGNED, false);
+                curr_node.FastGetSolutionStepValue(STICK_FORCE).clear();
+                }
+            }
+
+            p_builder_and_solver->CalculateReactions(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
+        }
+
+        if (is_initial_loop && friction_active){
             BaseType::GetModelPart().GetProcessInfo()[INITIAL_LOOP_COMPLETE] = true;
 
             // Transfer STICK_FORCE into a 'previous' timestep
@@ -282,18 +307,45 @@ public:
             }
 
             // Plot a warning if the maximum number of iterations is exceeded
-            if (iteration_number >= this->mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-            {
-                if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
+            if (iteration_number >= this->mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0) {
+                this->MaxIterationsExceeded();
+            } else {
+                KRATOS_INFO_IF("MPMResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)
+                    << "Convergence achieved after " << iteration_number << " / "
+                    << this->mMaxIterationNumber << " iterations" << std::endl;
+            }
+
+            if (this->mCalculateReactionsFlag == true){
+                // due to the assembly procedure the friction related values need to be reset
+                if (friction_active){
+                    for (Node &curr_node : BaseType::GetModelPart().Nodes()){
+                    curr_node.SetValue(FRICTION_ASSIGNED, false);
+                    curr_node.FastGetSolutionStepValue(STICK_FORCE).clear();
+                    }
+                }
+
+                p_builder_and_solver->CalculateReactions(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
             }
         }
 
         return is_converged;
     }
 
+protected:
+
+    /**
+     * @brief This method prints information after reach the max number of iterations
+     */
+    void MaxIterationsExceeded() override
+    {
+        KRATOS_WARNING("MPMResidualBasedNewtonRaphsonStrategy") << "max iterations ("
+            << this->mMaxIterationNumber << ") exceeded!" << std::endl;
+    }
+
+
 private:
     /**
-     * @brief Auxilliary function to perform a single Newton-Rhapson iteration. For use in the SolveSolutionStep
+     * @brief Auxiliary function to perform a single Newton-Rhapson iteration. For use in the SolveSolutionStep
      */
     void inline SolveSolutionStepIteration(typename TSchemeType::Pointer p_scheme,
                                     typename TBuilderAndSolverType::Pointer p_builder_and_solver,
@@ -361,6 +413,15 @@ private:
         {
             if (this->mpConvergenceCriteria->GetActualizeRHSflag() == true)
             {
+                // due to the assembly procedure the friction related values need to be reset
+                const bool friction_active = BaseType::GetModelPart().GetProcessInfo()[FRICTION_ACTIVE];
+                if (friction_active){
+                    for (Node &curr_node : BaseType::GetModelPart().Nodes()){
+                    curr_node.SetValue(FRICTION_ASSIGNED, false);
+                    curr_node.FastGetSolutionStepValue(STICK_FORCE).clear();
+                    }
+                }
+
                 TSparseSpace::SetToZero(rb);
 
                 p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), rb);

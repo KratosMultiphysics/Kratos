@@ -54,7 +54,7 @@ public:
         // So that an error is thrown if they don't exist
         rParameters["model_part_name"];
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mangular_velocity = rParameters["angular_velocity"].GetDouble();

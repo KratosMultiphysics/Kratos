@@ -80,7 +80,7 @@ template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumN
 SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMortarMapperProcess(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart,
-    TVarType& rThisVariable,
+    const TVarType& rThisVariable,
     Parameters ThisParameters,
     LinearSolverType::Pointer pThisLinearSolver
     ):  mOriginModelPart(rOriginModelPart),
@@ -430,7 +430,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
 
                 GeometryType::CoordinatesArrayType slave_gp_global;
                 rSlaveGeometry.GlobalCoordinates( slave_gp_global, local_point_parent );
-                GeometricalProjectionUtilities::FastProjectDirection( rMasterGeometry, gp_global, projected_gp_global, rMasterNormal, -gp_normal ); // The opposite direction
+                GeometricalProjectionUtilities::FastProjectDirection( rMasterGeometry, gp_global, projected_gp_global, gp_normal, rMasterNormal ); // The opposite direction
 
                 rMasterGeometry.PointLocalCoordinates(projected_gp_local, projected_gp_global.Coordinates( ) ) ;
 
@@ -595,11 +595,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-IntegrationMethod SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetIntegrationMethod()
+GeometryData::IntegrationMethod SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetIntegrationMethod()
 {
     const int integration_order = mThisParameters["integration_order"].GetInt();
-    switch ( integration_order )
-    {
+    switch ( integration_order ) {
         case 1: return GeometryData::IntegrationMethod::GI_GAUSS_1;
         case 2: return GeometryData::IntegrationMethod::GI_GAUSS_2;
         case 3: return GeometryData::IntegrationMethod::GI_GAUSS_3;
@@ -675,8 +674,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
     )
 {
     double* values_vector = rA.value_data().begin();
-    SizeType* index1_vector = rA.index1_data().begin();
-    SizeType* index2_vector = rA.index2_data().begin();
+    typename MatrixType::index_array_type::value_type* index1_vector = rA.index1_data().begin();
+    typename MatrixType::index_array_type::value_type* index2_vector = rA.index2_data().begin();
 
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         const SizeType node_i_id = rSlaveGeometry[i_node].Id();
@@ -690,7 +689,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
 
         SizeType left_limit = index1_vector[pos_i_id];
         SizeType last_pos = left_limit;
-        while(pos_i_id != index2_vector[last_pos]) last_pos++;
+        while(pos_i_id != static_cast<SizeType>(index2_vector[last_pos])) last_pos++;
         double& a_value = values_vector[last_pos];
 
         AtomicAdd(a_value, rThisMortarOperators.DOperator(i_node, i_node));
@@ -860,7 +859,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             residual_norm[i_size] = 0.0;
         }
 
-        block_for_each(mDestinationModelPart.Nodes(), [&](NodeType& rNode) {
+        block_for_each(mDestinationModelPart.Nodes(), [&](Node& rNode) {
             if(mOptions.Is(DESTINATION_IS_HISTORICAL)) {
                 MortarUtilities::AddAreaWeightedNodalValue<TVarType, MortarUtilitiesSettings::SaveAsHistoricalVariable>(rNode, *mpDestinationVariable, ref_area);
             } else {

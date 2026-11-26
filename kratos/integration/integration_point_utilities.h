@@ -53,6 +53,12 @@ public:
         IntegrationPointsArrayType & rIntegrationPoints,
         const std::vector<double>&rSpansLocalSpace,
         const IntegrationInfo& rIntegrationInfo);
+    
+    static void CreateIntegrationPoints2D(
+        IntegrationPointsArrayType & rIntegrationPoints,
+        const std::vector<double>&rSpansLocalSpaceU,
+        const std::vector<double>&rSpansLocalSpaceV,
+        const IntegrationInfo& rIntegrationInfo);
 
     ///@}
     ///@name Create Integration Points
@@ -62,6 +68,13 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         const std::vector<double>& rSpanIntervals,
         const SizeType IntegrationPointsPerSpan);
+    
+    static void CreateIntegrationPoints2DGauss(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpanIntervalsU,
+        const std::vector<double>& rSpanIntervalsV,
+        const SizeType IntegrationPointsPerSpanU,
+        const SizeType IntegrationPointsPerSpanV);
 
     static void CreateIntegrationPoints1DGrid(
         IntegrationPointsArrayType & rIntegrationPoints,

@@ -70,4 +70,4 @@ tests_success = CheckOutputFile(tests_output_file, keyword_array, tests_success)
 tests_success = CheckOutputFile(kratos_output_file, keyword_array, tests_success)
 
 test_runtime = datetime.timedelta(seconds=int((time() - start_time)))
-print("\nTests Sucessful: " + str(tests_success) + ", Runtime: " + str(test_runtime))
+print("\nTests Successful: " + str(tests_success) + ", Runtime: " + str(test_runtime))

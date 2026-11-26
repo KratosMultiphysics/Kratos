@@ -13,7 +13,7 @@
 //
 
 // Application includes
-#include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
+#include "custom_conditions/U_Pw_normal_face_load_condition.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
 
@@ -21,6 +21,26 @@
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFaceLoadCondition<TDim, TNumNodes>::UPwNormalFaceLoadCondition()
+    : UPwCondition<TDim, TNumNodes>()
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFaceLoadCondition<TDim, TNumNodes>::UPwNormalFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : UPwCondition<TDim, TNumNodes>(NewId, pGeometry)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFaceLoadCondition<TDim, TNumNodes>::UPwNormalFaceLoadCondition(IndexType NewId,
+                                                                        GeometryType::Pointer pGeometry,
+                                                                        PropertiesType::Pointer pProperties)
+    : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer UPwNormalFaceLoadCondition<TDim, TNumNodes>::Create(IndexType NewId,
@@ -125,11 +145,24 @@ std::string UPwNormalFaceLoadCondition<TDim, TNumNodes>::Info() const
     return "UPwNormalFaceLoadCondition";
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFaceLoadCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFaceLoadCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
+}
 template class UPwNormalFaceLoadCondition<2, 2>;
 template class UPwNormalFaceLoadCondition<2, 3>;
 template class UPwNormalFaceLoadCondition<2, 4>;
 template class UPwNormalFaceLoadCondition<2, 5>;
 template class UPwNormalFaceLoadCondition<3, 3>;
 template class UPwNormalFaceLoadCondition<3, 4>;
+template class UPwNormalFaceLoadCondition<3, 6>;
+template class UPwNormalFaceLoadCondition<3, 8>;
 
 } // Namespace Kratos.

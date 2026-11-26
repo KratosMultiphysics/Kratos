@@ -29,7 +29,7 @@ MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::MPCContactSearchProce
     Properties::Pointer pPairedProperties
     ) : BaseType(rMainModelPart, ThisParameters, pPairedProperties)
 {
-    // If we are going to consider multple searchs
+    // If we are going to consider multple searches
     const std::string& id_name = BaseType::mThisParameters["id_name"].GetString();
 
     // We get the contact model part
@@ -155,7 +155,7 @@ void MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CleanModelPart(M
     auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
     VariableUtils().SetFlag(TO_ERASE, true, r_constraints_array);
 
-    BaseType::mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(TO_ERASE);
+    BaseType::mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
 }
 
 /***********************************************************************************/

@@ -19,6 +19,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class RetentionLaw;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalDispersionLaw : public GeoThermalLaw
@@ -35,16 +37,10 @@ public:
 private:
     std::size_t mNumberOfDimensions = 2;
 
-    friend class Serializer;
+    friend Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        rSerializer.save("NumberOfDimensions", mNumberOfDimensions);
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        rSerializer.load("NumberOfDimensions", mNumberOfDimensions);
-    }
+    void load(Serializer& rSerializer) override;
 };
 } // namespace Kratos.

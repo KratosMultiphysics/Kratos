@@ -12,7 +12,7 @@
 #pragma once
 
 #include "containers/flags.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 #include <cstddef>
 #include <memory>
@@ -20,6 +20,7 @@
 namespace Kratos
 {
 
+class Properties;
 class Serializer;
 
 class ConstitutiveLawDimension
@@ -27,7 +28,7 @@ class ConstitutiveLawDimension
 public:
     virtual ~ConstitutiveLawDimension() = default;
 
-    [[nodiscard]] virtual Matrix CalculateElasticMatrix(double YoungsModulus, double PoissonsRatio) const = 0;
+    [[nodiscard]] virtual Matrix CalculateElasticConstitutiveTensor(const Properties& rProperties) const = 0;
     [[nodiscard]] virtual std::unique_ptr<ConstitutiveLawDimension> Clone() const         = 0;
     [[nodiscard]] virtual std::size_t                               GetStrainSize() const = 0;
     [[nodiscard]] virtual std::size_t                               GetDimension() const  = 0;
@@ -35,7 +36,7 @@ public:
     [[nodiscard]] virtual Flags       GetSpatialType() const                              = 0;
 
 private:
-    friend class Serializer;
+    friend Serializer;
     virtual void save(Serializer& rSerializer) const = 0;
     virtual void load(Serializer& rSerializer)       = 0;
 };

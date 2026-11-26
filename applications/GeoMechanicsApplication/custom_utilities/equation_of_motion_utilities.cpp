@@ -13,7 +13,7 @@
 // Project includes
 
 // Application includes
-#include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "utilities/geometry_utilities.h"
 
@@ -121,21 +121,16 @@ Matrix GeoEquationOfMotionUtilities::CalculateDampingMatrix(double        Raylei
     return RayleighAlpha * rMassMatrix + RayleighBeta * rStiffnessMatrix;
 }
 
-Matrix GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(const Matrix& rB,
-                                                                    const Matrix& rConstitutiveMatrix,
-                                                                    double IntegrationCoefficient)
-{
-    return prod(trans(rB), Matrix(prod(rConstitutiveMatrix, rB))) * IntegrationCoefficient;
-}
-
 Matrix GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(const std::vector<Matrix>& rBs,
                                                               const std::vector<Matrix>& rConstitutiveMatrices,
                                                               const std::vector<double>& rIntegrationCoefficients)
 {
     Matrix result = ZeroMatrix(rBs[0].size2(), rBs[0].size2());
+    Matrix stiffness_matrix(rBs[0].size2(), rBs[0].size2());
     for (unsigned int GPoint = 0; GPoint < rBs.size(); ++GPoint) {
-        result += CalculateStiffnessMatrixGPoint(rBs[GPoint], rConstitutiveMatrices[GPoint],
-                                                 rIntegrationCoefficients[GPoint]);
+        CalculateStiffnessMatrixGPoint(stiffness_matrix, rBs[GPoint], rConstitutiveMatrices[GPoint],
+                                       rIntegrationCoefficients[GPoint]);
+        noalias(result) += stiffness_matrix;
     }
     return result;
 }

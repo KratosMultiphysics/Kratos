@@ -86,7 +86,7 @@ public:
     ///@{
 
     /// Geometries map type definition
-    using GeometriesMapType = ModelPart::GeometriesMapType;
+    using GeometryContainerType = ModelPart::GeometryContainerType;
 
     /// The nodes array type definition
     using NodesArrayType = Element::NodesArrayType;
@@ -237,6 +237,24 @@ private:
     ///@{
 
     /**
+     * @brief Detects whether the stream contains a binary STL file.
+     * @details Checks if the file size matches the expected binary STL layout
+     *          (80-byte header + 4-byte triangle count + 50 bytes per triangle).
+     * @return True if the stream is a binary STL, false if it is ASCII.
+     */
+    bool IsBinaryStl();
+
+    /**
+     * @brief Reads a binary STL stream into the model part.
+     * @param rThisModelPart Reference to the model part to populate.
+     * @param rCreateEntityFunctor A functor to create entities from node arrays.
+     */
+    void ReadBinaryModelPart(
+        ModelPart& rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+        );
+
+    /**
      * @brief Read a solid object from a model part.
      * @details This function reads a solid object from the given model part using the provided function to create the entity.
      * @param rThisModelPart Reference to the model part to read the solid from.
@@ -295,7 +313,7 @@ private:
      * @details Writes a geometry block to the destination.
      * @param rThisGeometries Reference to the geometries to write.
      */
-    void WriteGeometryBlock(const GeometriesMapType& rThisGeometries);
+    void WriteGeometryBlock(const GeometryContainerType& rThisGeometries);
 
     /**
      * @brief Writes an entity block (MPI version).
@@ -317,7 +335,7 @@ private:
      * @param rDataCommunicator The data communicator considered for MPI.
      */
     void WriteGeometryBlockMPI(
-        const GeometriesMapType& rThisGeometries,
+        const GeometryContainerType& rThisGeometries,
         const DataCommunicator& rDataCommunicator
         );
 

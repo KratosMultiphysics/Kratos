@@ -456,4 +456,3 @@ template std::ostream& operator<<(std::ostream&, const Profiler<std::chrono::nan
     #define KRATOS_PROFILE_SCOPE(CODE_LOCATION)
 
 #endif
-

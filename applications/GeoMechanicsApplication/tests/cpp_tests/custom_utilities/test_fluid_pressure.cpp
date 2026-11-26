@@ -10,8 +10,8 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include "boost/numeric/ublas/assignment.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
@@ -22,14 +22,11 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateFluidPressureGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Vector N(5);
-    N <<= 1.0, 2.0, 3.0, 4.0, 5.0;
+    const auto N               = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0, 5.0});
+    const auto pressure_vector = UblasUtilities::CreateVector({0.5, 0.7, 0.8, 0.9, 0.4});
 
-    Vector pressure_vector(5);
-    pressure_vector <<= 0.5, 0.7, 0.8, 0.9, 0.4;
-
-    auto fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(N, pressure_vector);
-    double expected_value = 9.9;
+    const auto fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(N, pressure_vector);
+    constexpr auto expected_value = 9.9;
     KRATOS_CHECK_NEAR(fluid_pressure, expected_value, 1e-12);
 }
 

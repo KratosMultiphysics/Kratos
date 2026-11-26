@@ -18,7 +18,7 @@
 #include "includes/define_python.h"
 #include "python/add_strategies_to_python.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "includes/ublas_complex_interface.h"
 #include "utilities/variable_utils.h"
 
@@ -66,6 +66,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_lagrange_multiplier.h"
+#include "solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_builder_and_solver.hpp"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -74,15 +75,16 @@ namespace Kratos:: Python
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef DefaultSparseSpaceType SparseSpaceType;
+    typedef DefaultLocalSpaceType LocalSpaceType;
 
-    typedef UblasSpace<std::complex<double>, ComplexCompressedMatrix, boost::numeric::ublas::vector<std::complex<double>>> ComplexSparseSpaceType;
-    typedef UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector> ComplexLocalSpaceType;
+    typedef DefaultComplexSparseSpaceType ComplexSparseSpaceType;
+    typedef DefaultComplexLocalSpaceType ComplexLocalSpaceType;
 
     //ADDED BY PAOLO (next two)
 
-    double Dot(SparseSpaceType& dummy, SparseSpaceType::VectorType& rX, SparseSpaceType::VectorType& rY)
+    template< typename TSpaceType >
+    double Dot(TSpaceType& dummy, typename TSpaceType::VectorType& rX, typename TSpaceType::VectorType& rY)
     {
         return dummy.Dot(rX, rY);
     }
@@ -101,7 +103,8 @@ namespace Kratos:: Python
         dummy.Mult(rA, rX, rY);
     }
 
-    void TransposeMult(SparseSpaceType& dummy, SparseSpaceType::MatrixType& rA, SparseSpaceType::VectorType& rX, SparseSpaceType::VectorType& rY)
+    template< typename TSpaceType >
+    void TransposeMult(TSpaceType& dummy, typename TSpaceType::MatrixType& rA, typename TSpaceType::VectorType& rX, typename TSpaceType::VectorType& rY)
     //rY=A*rX (the product is stored inside the rY)
     {
         dummy.TransposeMult(rA, rX, rY);
@@ -161,7 +164,8 @@ namespace Kratos:: Python
         dummy.Clear(x);
     }
 
-    double TwoNorm(SparseSpaceType& dummy, SparseSpaceType::VectorType& x)
+    template< typename TSpaceType >
+    double TwoNorm(TSpaceType& dummy, typename TSpaceType::VectorType& x)
     {
         return dummy.TwoNorm(x);
     }
@@ -500,10 +504,12 @@ namespace Kratos:: Python
         .def(py::init< LinearSolverType::Pointer, Parameters > ())
         ;
 
-        typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
+        using ResidualBasedBlockBuilderAndSolverType = ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >;
         py::class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer > ())
         .def(py::init< LinearSolverType::Pointer, Parameters > ())
+        .def("IsConstantConstraints", &ResidualBasedBlockBuilderAndSolverType::IsConstantConstraints)
+        .def("SetConstantConstraints", &ResidualBasedBlockBuilderAndSolverType::SetConstantConstraints)
         ;
 
         typedef ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType;
@@ -512,6 +518,17 @@ namespace Kratos:: Python
         .def(py::init< LinearSolverType::Pointer, Parameters > ())
         ;
 
+        typedef PMultigridBuilderAndSolver<SparseSpaceType,LocalSpaceType> PMultigridBuilderAndSolverType;
+        py::class_<PMultigridBuilderAndSolverType,PMultigridBuilderAndSolverType::Pointer,BuilderAndSolverType>(m, "PMultigridBuilderAndSolver")
+            .def(py::init<>())
+            .def(py::init<const LinearSolverType::Pointer&,Parameters>(),
+                 (std::string {"@param LinearSolver Pointer to a linear solver. This is ignored because PMultigridBuilderAndSolver constructs its own instances internally.\n"}
+                             + "@param Settings\n"
+                             + "@details Default parameters:\n" + PMultigridBuilderAndSolverType().GetDefaultParameters().PrettyPrintJsonString()).c_str(),
+                 py::arg("LinearSolver"),
+                 py::arg("Settings"))
+            ;
+
         //********************************************************************
         //********************************************************************
         //********************************************************************
@@ -519,18 +536,25 @@ namespace Kratos:: Python
         //********************************************************************
         //********************************************************************
 
-        auto sparse_space_binder = CreateSpaceInterface< SparseSpaceType >(m,"UblasSparseSpace");
-        sparse_space_binder.def("TwoNorm", TwoNorm);
-        // The dot product of two vectors
-        sparse_space_binder.def("Dot", Dot);
-        sparse_space_binder.def("TransposeMult", TransposeMult);
-        // Size functions
+        // The sparse space of the strategies (the configure-time selected
+        // backend), plus backend-agnostic aliases: scripts that build system
+        // matrices/vectors to feed directly into a linear solver should use
+        // SparseSpace/SparseMatrix/SparseVector instead of hardcoding the
+        // backend-specific names.
+        const std::string sparse_space_name = "UblasSparseSpace";
+        auto sparse_space_binder = CreateSpaceInterface< SparseSpaceType >(m, sparse_space_name.c_str());
+        sparse_space_binder.def("TwoNorm", TwoNorm<SparseSpaceType>);
+        // the dot product of the argument vectors
+        sparse_space_binder.def("Dot", Dot<SparseSpaceType>);
+        sparse_space_binder.def("TransposeMult", TransposeMult<SparseSpaceType>);
         sparse_space_binder.def("Size", &SparseSpaceType::Size);
         sparse_space_binder.def("Size1", &SparseSpaceType::Size1);
         sparse_space_binder.def("Size2", &SparseSpaceType::Size2);
-        // Information functions
         sparse_space_binder.def("IsDistributed", &SparseSpaceType::IsDistributed);
         sparse_space_binder.def("FastestDirectSolverList", &SparseSpaceType::FastestDirectSolverList);
+        m.attr("SparseSpace") = m.attr(sparse_space_name.c_str());
+        m.attr("SparseMatrix") = m.attr("CompressedMatrix");
+        m.attr("SparseVector") = m.attr("Vector");
 
         auto cplx_sparse_space_binder = CreateSpaceInterface< ComplexSparseSpaceType >(m,"UblasComplexSparseSpace");
 

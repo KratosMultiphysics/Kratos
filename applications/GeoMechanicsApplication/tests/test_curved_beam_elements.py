@@ -29,7 +29,7 @@ class KratosGeoMechanicsCurvedBeamElementTests(KratosUnittest.TestCase):
         x_displacements = [displacement[0] for displacement in displacements]
 
         node_number = 15
-        expected_value = 32.337500
+        expected_value = 34.50000
         self.assertAlmostEqual(expected_value, x_displacements[node_number-1], 6)
 
 

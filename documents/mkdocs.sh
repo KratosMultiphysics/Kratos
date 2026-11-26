@@ -121,6 +121,7 @@ fi
 # These will be used by every application to link relevant references
 # from their dependencies (most commonly from core).
 cd "$kratos_root_dir/documents"
+echo "Status: write KratosCore tag generation logs to $PWD/tag.log"
 if ! { ( cat doxyfile ; echo "GENERATE_HTML=NO" ) | doxygen - &>tag.log & } ; then
     >&2 echo "Error: generating tag file for core failed."
     exit 1
@@ -134,6 +135,7 @@ for pair in $applications; do
         cd "$application_dir/$application_name/documents"
         if [ -f doxyfile ]; then
             # Generate the tag file.
+            echo "Status: write $application_name tag generation logs to $PWD/tag.log"
             if ! { ( cat doxyfile ; echo "GENERATE_HTML=NO" ) | doxygen - &>tag.log & } ; then
                 >&2 echo "Error: generating tag file for $application_name failed."
                 exit 1
@@ -172,6 +174,7 @@ for pair in $applications; do
 done
 
 # Run doxygen for core
+echo "Status: write KratosCore HTML generation logs to $PWD/doxygen.log"
 if ! { ( cat doxyfile ; echo "TAGFILES=$application_tagfiles" ; echo "INPUT+=index.md" ) | doxygen - &>doxygen.log & } ; then
     >&2 echo "Error: generating HTML docs for core failed."
     exit 1
@@ -185,6 +188,7 @@ for pair in $applications; do
         cd "$kratos_root_dir/applications/$application_name/documents"
         if [ -f doxyfile ]; then
             # Run doxygen.
+            echo "Status: write $application_name HTML generation logs to $PWD/doxygen.log"
             if ! { doxygen doxyfile &>doxygen.log & } ; then
                 >&2 echo "Error: generating HTML docs for $application_name failed."
                 exit 1

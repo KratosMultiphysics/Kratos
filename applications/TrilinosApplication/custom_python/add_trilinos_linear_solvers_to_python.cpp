@@ -19,11 +19,11 @@
 // Project includes
 #include "includes/define_python.h"
 #include "trilinos_space.h"
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "includes/model_part.h"
 
 // Linear solvers
-#include "linear_solvers/linear_solver.h"
+#include "custom_utilities/linear_solver_trilinos.h"
 #include "linear_solvers/fallback_linear_solver.h"
 #include "custom_factories/trilinos_linear_solver_factory.h"
 
@@ -55,7 +55,7 @@ namespace Kratos::Python
 namespace py = pybind11;
 
 using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using TrilinosLocalSpaceType = TDefaultDenseSpace<double>;
 using TrilinosLinearSolverType = LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
 
 void Solve(TrilinosLinearSolverType& solver,
@@ -168,6 +168,12 @@ void  AddLinearSolvers(pybind11::module& m)
         .def("Has",&TrilinosLinearSolverFactoryType::Has)
         ;
 }
+
+// Dummy solver definition to mark LinearSolver as an imported class
+// (MSVC linker workaround)
+class KRATOS_API(LINEARSOLVERS_APPLICATION) DummyDistributedLinearSolver
+    : public TrilinosLinearSolverType
+{};
 
 } // namespace Python:: Kratos.
 

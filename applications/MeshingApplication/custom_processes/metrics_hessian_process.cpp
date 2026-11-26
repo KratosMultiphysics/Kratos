@@ -50,7 +50,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
 
 ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     ModelPart& rThisModelPart,
-    Variable<double>& rVariable,
+    const Variable<double>& rVariable,
     Parameters ThisParameters
     ) : mrModelPart(rThisModelPart),
         mpOriginVariable(&rVariable)
@@ -238,11 +238,11 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
 
         // Resize if needed
         if (fe.DN_DX.size1() != number_of_nodes || fe.DN_DX.size2() != dimension)
-            fe.DN_DX.resize(number_of_nodes, dimension);
+            fe.DN_DX.resize(number_of_nodes, dimension, false);
         if (fe.N.size() != number_of_nodes)
-            fe.N.resize(number_of_nodes);
+            fe.N.resize(number_of_nodes, false);
         if (fe.J0.size1() != dimension || fe.J0.size2() != local_space_dimension)
-            fe.J0.resize(dimension, local_space_dimension);
+            fe.J0.resize(dimension, local_space_dimension, false);
 
         // The integration points
         const auto& integration_method = r_geometry.GetDefaultIntegrationMethod();
@@ -443,7 +443,7 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
         TensorArrayType& r_metric = rNode.GetValue(r_tensor_variable);
 
         const double norm_metric = norm_2(r_metric);
-        if (norm_metric > 0.0) { // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
+        if (norm_metric > 0.0) { // NOTE: This means we combine different metrics, at the same time means that the metric should be reset each time
             const TensorArrayType& r_old_metric = rNode.GetValue(r_tensor_variable);
             const TensorArrayType new_metric = ComputeHessianMetricTensor<TDim>(r_hessian, aux_variables);
 

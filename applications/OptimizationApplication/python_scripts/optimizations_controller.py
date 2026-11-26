@@ -95,7 +95,7 @@ class OptimizationsController:
 
             # check for type
             if not opt_type in self.supported_opt_types:  
-                raise RuntimeError("OptimizationsController: Optimization type '{}' is not supported, supprted types {}.".format(opt_type,self.supported_opt_types))                  
+                raise RuntimeError("OptimizationsController: Optimization type '{}' is not supported, supported types {}.".format(opt_type,self.supported_opt_types))                  
             self.optimizations_types[opt_name]=opt_type
 
 
@@ -193,7 +193,7 @@ class OptimizationsController:
             # checks for algorithms settings
             algorithm = opt_settings["settings"]["algorithm"].GetString()
             if not algorithm in self.supported_algorithms:
-                raise RuntimeError("OptimizationsController: Optimization algorithm '{}' is not supported, supprted types {}.".format(algorithm,self.supported_algorithms))                  
+                raise RuntimeError("OptimizationsController: Optimization algorithm '{}' is not supported, supported types {}.".format(algorithm,self.supported_algorithms))                  
 
             if algorithm == "gradient_projection":
                 self.optimizations[opt_name] = gradient_projection.AlgorithmGradientProjection(opt_name,opt_settings["settings"],model,model_parts_controller,analyses_controller,responses_controller,controls_controller)

@@ -115,7 +115,7 @@ class TestOperations(KratosUnittest.TestCase):
             with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5PartitionedModelPartIO', autospec=True) as p:
                 partitioned_model_part_output.Execute()
                 args, _ = p.call_args
-                self.assertEqual(args[1], '/ModelData/model_part/1.23')
+                self.assertEqual(args[0]["prefix"].GetString(), '/ModelData/model_part/1.23')
 
 if __name__ == "__main__":
     KratosUnittest.main()

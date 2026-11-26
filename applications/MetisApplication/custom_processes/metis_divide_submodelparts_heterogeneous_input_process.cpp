@@ -4,13 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Daniel Diez
 //
-
-
 
 // System includes
 
@@ -37,17 +35,25 @@ void MetisDivideSubModelPartsHeterogeneousInputProcess::GetNodesPartitions(
             IO::ConnectivitiesContainerType kratos_format_node_connectivities;
             std::unordered_set<SizeType> submodelpart_elements_ids;
             std::unordered_set<SizeType> submodelpart_conditions_ids;
+            std::unordered_set<SizeType> submodelpart_constraints_ids;
+            std::unordered_set<SizeType> submodelpart_geometries_ids;
             std::vector<idxtype> submodelpart_partition_nodes;
 
-            BaseType::mrIO.ReadSubModelPartElementsAndConditionsIds(
+            BaseType::mrIO.ReadSubModelPartEntitiesIds(
                 submodelpart_name,
                 submodelpart_elements_ids,
-                submodelpart_conditions_ids);
+                submodelpart_conditions_ids,
+                submodelpart_constraints_ids,
+                submodelpart_geometries_ids
+                );
 
             rNumNodes = BaseType::mrIO.ReadNodalGraphFromEntitiesList(
                 kratos_format_node_connectivities,
                 submodelpart_elements_ids,
-                submodelpart_conditions_ids);
+                submodelpart_conditions_ids,
+                submodelpart_constraints_ids,
+                submodelpart_geometries_ids
+                );
 
             SizeType id = 0;
             IO::ConnectivitiesContainerType reduced_kratos_format_node_connectivities;
@@ -75,11 +81,9 @@ void MetisDivideSubModelPartsHeterogeneousInputProcess::GetNodesPartitions(
             idxtype* node_indices = 0;
             idxtype* node_connectivities = 0;
 
-
             LegacyPartitioningUtilities::ConvertKratosToCSRFormat(reduced_kratos_format_node_connectivities, &node_indices, &node_connectivities);
 
             PartitionNodes(reduced_kratos_format_node_connectivities.size(), node_indices, node_connectivities, submodelpart_partition_nodes);
-
 
             for (auto map_element : node_ids_map) {
                 rNodePartition[map_element.first] = submodelpart_partition_nodes[map_element.second];
@@ -95,7 +99,6 @@ void MetisDivideSubModelPartsHeterogeneousInputProcess::GetNodesPartitions(
         KRATOS_CATCH("")
 
     }
-
 
 ///@}
 

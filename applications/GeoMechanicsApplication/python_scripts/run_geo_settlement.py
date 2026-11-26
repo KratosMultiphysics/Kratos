@@ -1,9 +1,42 @@
 import argparse
+import atexit
 import sys
 
+import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
 
-def clean_up_api_object(api_object):
+
+def _clean_up_api_object(api_object):
     del api_object
+
+
+def run_stages(working_dir, project_parameters_filenames) -> int:
+    import KratosMultiphysics.GeoMechanicsApplication as GeoMechanicsApplication
+
+    no_logging = lambda msg: None
+    no_progress_reporting = lambda fraction_done: None
+    no_progress_message = lambda msg: None
+    do_not_cancel = lambda: False
+
+    settlement_api = (
+        GeoMechanicsApplication.CustomWorkflowFactory.CreateKratosGeoSettlement()
+    )
+    atexit.register(_clean_up_api_object, settlement_api)
+
+    with context_managers.set_cwd_to(working_dir):
+        for filename in project_parameters_filenames:
+            status = settlement_api.RunStage(
+                working_dir,
+                filename,
+                no_logging,
+                no_progress_reporting,
+                no_progress_message,
+                do_not_cancel,
+            )
+            if status != 0:
+                print(f"Running analysis stage failed: status = {status}")
+                return status
+
+    return 0
 
 
 def _main() -> int:
@@ -20,34 +53,7 @@ def _main() -> int:
 
     args = parser.parse_args()
 
-    import KratosMultiphysics.GeoMechanicsApplication as GeoMechanicsApplication
-
-    no_logging = lambda msg: None
-    no_progress_reporting = lambda fraction_done: None
-    no_progress_message = lambda msg: None
-    do_not_cancel = lambda: False
-
-    import atexit
-
-    settlement_api = (
-        GeoMechanicsApplication.CustomWorkflowFactory.CreateKratosGeoSettlement()
-    )
-    atexit.register(clean_up_api_object, settlement_api)
-
-    for project_parameters_filename in args.project_parameters_filenames:
-        status = settlement_api.RunStage(
-            args.working_dir,
-            project_parameters_filename,
-            no_logging,
-            no_progress_reporting,
-            no_progress_message,
-            do_not_cancel,
-        )
-        if status != 0:
-            print(f"Running analysis stage failed: status = {status}")
-            return status
-
-    return 0
+    return run_stages(args.working_dir, args.project_parameters_filenames)
 
 
 if __name__ == "__main__":

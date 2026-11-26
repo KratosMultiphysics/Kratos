@@ -120,7 +120,7 @@ public:
     /**
      * @brief Indicates the amount of DoFs per node (u0, v, theta)
      */
-    IndexType GetDoFsPerNode() const
+    virtual IndexType GetDoFsPerNode() const
     {
         return 3;
     }
@@ -157,12 +157,12 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues) const;
+    virtual void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues) const;
 
     /**
      * @brief Computes the length of the FE and returns it
      */
-    double CalculateLength() const
+    virtual double CalculateLength() const
     {
         return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     }
@@ -337,7 +337,7 @@ public:
      * @param rIntegrationPoints array of IP
      * @param PointNumber tthe IP to be evaluated
     */
-    array_1d<double, 3> GetLocalAxesBodyForce(
+    virtual array_1d<double, 3> GetLocalAxesBodyForce(
         const Element &rElement,
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
         const IndexType PointNumber) const;
@@ -374,6 +374,35 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
+
+    /**
+     * @brief Calculates a Vector variable on the element
+     * @details Supports INTERNAL_FORCES_VECTOR and EXTERNAL_FORCES_VECTOR, such that RHS = external - internal
+     * @param rVariable The variable to be computed
+     * @param rOutput The resulting vector, in global axes
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+    using Element::Calculate;
+
+    /**
+     * @brief Computes the external minus the internal forces vector, in global axes
+     * @details Only the requested contributions are added, hence with both flags the RHS is obtained
+     * @param rForces the elemental forces vector (external - internal)
+     * @param rCurrentProcessInfo the current process info instance
+     * @param ComputeInternalForces whether the internal forces (stress contributions) are subtracted
+     * @param ComputeExternalForces whether the external forces (body force contributions) are added
+     */
+    virtual void CalculateInternalAndExternalForcesVector(
+        VectorType& rForces,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool ComputeInternalForces,
+        const bool ComputeExternalForces
+        );
 
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law
@@ -425,7 +454,13 @@ public:
      * If the strain_size is 3 (standard Timoshenko beam), the area is the CROSS_AREA
      * Else (plane strain Timoshenko beam), hence the area is per unit length
      */
-    double GetCrossArea();
+    virtual double GetCrossArea();
+
+    /**
+     * @brief This function is called at the end of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access

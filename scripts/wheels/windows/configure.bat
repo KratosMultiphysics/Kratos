@@ -21,16 +21,12 @@ CALL :add_app %KRATOS_APP_DIR%\ConvectionDiffusionApplication;
 CALL :add_app %KRATOS_APP_DIR%\DamApplication;
 CALL :add_app %KRATOS_APP_DIR%\PoromechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FSIApplication;
-CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\ConstitutiveLawsApplication;
-CALL :add_app %KRATOS_APP_DIR%\FemToDemApplication;
-CALL :add_app %KRATOS_APP_DIR%\PfemFluidDynamicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\DelaunayMeshingApplication;
 CALL :add_app %KRATOS_APP_DIR%\MeshingApplication;
 CALL :add_app %KRATOS_APP_DIR%\DemStructuresCouplingApplication;
 CALL :add_app %KRATOS_APP_DIR%\MeshMovingApplication;
-CALL :add_app %KRATOS_APP_DIR%\CSharpWrapperApplication;
 CALL :add_app %KRATOS_APP_DIR%\ShapeOptimizationApplication;
 CALL :add_app %KRATOS_APP_DIR%\CoSimulationApplication;
 CALL :add_app %KRATOS_APP_DIR%\CableNetApplication;
@@ -52,16 +48,18 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
-
 echo %KRATOS_SOURCE%
 echo %KRATOS_BUILD%\%KRATOS_BUILD_TYPE%
 
 cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
 -DCMAKE_INSTALL_PREFIX=%3                                                                   ^
+-DCMAKE_POLICY_VERSION_MINIMUM=3.5                                                          ^
+-DKRATOS_USE_FUTURE=ON                                                                      ^
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                                               ^
 -DCMAKE_C_FLAGS="/MP24 /Gm- /Zm10"                                                          ^
 -DCMAKE_CXX_FLAGS="/MP24 /Gm- /Zm10"                                                        ^
 -DBOOST_ROOT=%BOOST_ROOT%                                                                   ^
+-DINSTALL_TPL_LIBRARIES=ON                                                                  ^
 -DKRATOS_BUILD_TESTING=OFF                                                                  ^
 -DHDF5_ROOT="c:\hdf5\bin"                                                                   ^
 -DMED_ROOT="c:\med\bin"                                                                     ^

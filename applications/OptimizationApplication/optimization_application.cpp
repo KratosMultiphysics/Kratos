@@ -26,6 +26,7 @@
 // Application includes
 #include "optimization_application.h"
 #include "optimization_application_variables.h"
+#include "custom_utilities/tensor_adaptors/properties_variable_tensor_adaptor.h"
 
 namespace Kratos
 {
@@ -199,6 +200,8 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(YOUNG_MODULUS_SENSITIVITY);
         KRATOS_REGISTER_VARIABLE(POISSON_RATIO_SENSITIVITY);
 
+        KRATOS_REGISTER_VARIABLE(CUSTOM_DESIGN_VARIABLE);
+
         // do not expose the following variables to python. They are used
         // as temporary data holders. They can be changed
         // at any point of time in an analysis.
@@ -248,6 +251,11 @@ namespace Kratos
 
         // Register linear elastics laws
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HelmholtzJacobianStiffened3D", mHelmholtzJacobianStiffened3D);
+
+        // Register tensor adaptor subtypes with the Serializer, so a CombinedTensorAdaptor's
+        // children can be reconstructed with the right dynamic type on load -- mirrors the core
+        // subtype registrations in kratos_application.cpp.
+        Serializer::Register("PropertiesVariableTensorAdaptor", PropertiesVariableTensorAdaptor());
 
  	}
 

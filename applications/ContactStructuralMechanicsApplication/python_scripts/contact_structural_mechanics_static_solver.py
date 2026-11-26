@@ -138,7 +138,9 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
     def _CreateBuilderAndSolver(self):
         if self.contact_settings["mortar_type"].GetString() != "":
             linear_solver = self._GetLinearSolver()
-            if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+            builder_and_solver_type: str = self.settings["builder_and_solver_settings"]["type"].GetString()
+
+            if builder_and_solver_type == "block":
                 builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
                     # We use the elimination builder and solver

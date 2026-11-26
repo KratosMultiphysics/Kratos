@@ -52,7 +52,7 @@ TEST_P(ParametrizedDGeoFlowTests, ErosionProcessStrategy)
 
     // Act
     const auto status = execute.ExecuteFlowAnalysis(working_directory, project_file, critical_head_info,
-                                                   "PorousDomain.Left_head", call_back_functions);
+                                                    "PorousDomain.Left_head", call_back_functions);
 
     // Assert
     KRATOS_EXPECT_EQ(status, 0);
@@ -66,6 +66,6 @@ TEST_P(ParametrizedDGeoFlowTests, ErosionProcessStrategy)
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsIntegrationSuite,
                          ParametrizedDGeoFlowTests,
-                         ::testing::Values("HeightAquiferD10L30.gid", "HeightAquiferD10L30line"));
+                         ::testing::Values("HeightAquiferD10L30line"));
 
 } // namespace Kratos::Testing

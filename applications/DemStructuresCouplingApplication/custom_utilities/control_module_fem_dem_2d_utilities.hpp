@@ -82,7 +82,7 @@ ControlModuleFemDem2DUtilities(ModelPart& rFemModelPart,
             "stress_averaging_time": 1.0e-5
         }  )" );
 
-    // Now validate agains defaults -- this also ensures no type mismatch
+    // Now validate against defaults -- this also ensures no type mismatch
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
     // Note: this utility is design to be used in the Z direction of a 2D case
@@ -264,7 +264,7 @@ void ExecuteFinalizeSolutionStep()
 ///@name Input and output
 ///@{
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> string.
 
 virtual std::string Info() const
 {

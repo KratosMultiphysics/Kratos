@@ -25,6 +25,7 @@
 #include "geometries/quadrilateral_3d_8.h"
 #include "utilities/integration_utilities.h"
 #include "integration/hexahedron_gauss_legendre_integration_points.h"
+#include "integration/hexahedron_gauss_lobatto_integration_points.h"
 
 namespace Kratos
 {
@@ -493,6 +494,98 @@ public:
     }
 
     /**
+     * Returns a matrix of the local coordinates of all points
+     * @param rResult a Matrix that will be overwritten by the results
+     * @return the coordinates of all points of the current geometry
+     */
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
+    {
+        rResult.resize( 20, 3, false );
+
+        rResult( 0, 0 ) = -1.0;
+        rResult( 0, 1 ) = -1.0;
+        rResult( 0, 2 ) = -1.0;
+
+        rResult( 1, 0 ) =  1.0;
+        rResult( 1, 1 ) = -1.0;
+        rResult( 1, 2 ) = -1.0;
+
+        rResult( 2, 0 ) =  1.0;
+        rResult( 2, 1 ) =  1.0;
+        rResult( 2, 2 ) = -1.0;
+
+        rResult( 3, 0 ) = -1.0;
+        rResult( 3, 1 ) =  1.0;
+        rResult( 3, 2 ) = -1.0;
+
+        rResult( 4, 0 ) = -1.0;
+        rResult( 4, 1 ) = -1.0;
+        rResult( 4, 2 ) =  1.0;
+
+        rResult( 5, 0 ) =  1.0;
+        rResult( 5, 1 ) = -1.0;
+        rResult( 5, 2 ) =  1.0;
+
+        rResult( 6, 0 ) =  1.0;
+        rResult( 6, 1 ) =  1.0;
+        rResult( 6, 2 ) =  1.0;
+
+        rResult( 7, 0 ) = -1.0;
+        rResult( 7, 1 ) =  1.0;
+        rResult( 7, 2 ) =  1.0;
+
+        rResult( 8, 0 ) =  0.0;
+        rResult( 8, 1 ) = -1.0;
+        rResult( 8, 2 ) = -1.0;
+
+        rResult( 9, 0 ) =  1.0;
+        rResult( 9, 1 ) =  0.0;
+        rResult( 9, 2 ) = -1.0;
+
+        rResult( 10, 0 ) =  0.0;
+        rResult( 10, 1 ) =  1.0;
+        rResult( 10, 2 ) = -1.0;
+
+        rResult( 11, 0 ) = -1.0;
+        rResult( 11, 1 ) =  0.0;
+        rResult( 11, 2 ) = -1.0;
+
+        rResult( 12, 0 ) = -1.0;
+        rResult( 12, 1 ) = -1.0;
+        rResult( 12, 2 ) =  0.0;
+
+        rResult( 13, 0 ) =  1.0;
+        rResult( 13, 1 ) = -1.0;
+        rResult( 13, 2 ) =  0.0;
+
+        rResult( 14, 0 ) =  1.0;
+        rResult( 14, 1 ) =  1.0;
+        rResult( 14, 2 ) =  0.0;
+
+        rResult( 15, 0 ) = -1.0;
+        rResult( 15, 1 ) =  1.0;
+        rResult( 15, 2 ) =  0.0;
+
+        rResult( 16, 0 ) =  0.0;
+        rResult( 16, 1 ) = -1.0;
+        rResult( 16, 2 ) =  1.0;
+
+        rResult( 17, 0 ) =  1.0;
+        rResult( 17, 1 ) =  0.0;
+        rResult( 17, 2 ) =  1.0;
+
+        rResult( 18, 0 ) =  0.0;
+        rResult( 18, 1 ) =  1.0;
+        rResult( 18, 2 ) =  1.0;
+
+        rResult( 19, 0 ) = -1.0;
+        rResult( 19, 1 ) =  0.0;
+        rResult( 19, 2 ) =  1.0;
+
+        return rResult;
+    }
+
+    /**
      * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
@@ -850,7 +943,7 @@ public:
         rResult[16] = ((1.0 - rCoordinates[0] * rCoordinates[0]) * (1.0 - rCoordinates[1]) * (1.0 + rCoordinates[2])) / 4.0;
 
         rResult[17] = ((1.0 + rCoordinates[0]) * (1.0 - rCoordinates[1] * rCoordinates[1]) * (1.0 + rCoordinates[2])) / 4.0;
-        
+
         rResult[18] = ((1.0 - rCoordinates[0] * rCoordinates[0]) * (1.0 + rCoordinates[1]) * (1.0 + rCoordinates[2])) / 4.0;
 
         rResult[19] = ((1.0 - rCoordinates[0]) * (1.0 - rCoordinates[1] * rCoordinates[1]) * (1.0 + rCoordinates[2])) / 4.0;
@@ -1430,7 +1523,7 @@ private:
                              (1.0 + integration_points[pnt].Z())) / 2.0;
             result(19, 2) = ((-1.0 + integration_points[pnt].X()) *
                              (-1.0 + integration_points[pnt].Y() * integration_points[pnt].Y())) / 4.0;
-    
+
 
             d_shape_f_values[pnt] = result;
         }
@@ -1448,7 +1541,9 @@ private:
              Quadrature<HexahedronGaussLegendreIntegrationPoints2, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
              Quadrature<HexahedronGaussLegendreIntegrationPoints3, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
              Quadrature<HexahedronGaussLegendreIntegrationPoints4, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
-             Quadrature<HexahedronGaussLegendreIntegrationPoints5, 3, IntegrationPoint<3>>::GenerateIntegrationPoints()}};
+             Quadrature<HexahedronGaussLegendreIntegrationPoints5, 3, IntegrationPoint<3>>::GenerateIntegrationPoints(),
+             Quadrature<HexahedronGaussLobattoIntegrationPoints1, 3, IntegrationPoint<3>>::GenerateIntegrationPoints()
+            }};
         return integration_points;
     }
 
@@ -1467,7 +1562,10 @@ private:
              Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                  GeometryData::IntegrationMethod::GI_GAUSS_4),
              Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                 GeometryData::IntegrationMethod::GI_GAUSS_5)}};
+                 GeometryData::IntegrationMethod::GI_GAUSS_5),
+             Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                 GeometryData::IntegrationMethod::GI_LOBATTO_1)
+            }};
         return shape_functions_values;
     }
 
@@ -1486,7 +1584,10 @@ private:
              Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                  GeometryData::IntegrationMethod::GI_GAUSS_4),
              Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                 GeometryData::IntegrationMethod::GI_GAUSS_5)}};
+                 GeometryData::IntegrationMethod::GI_GAUSS_5),
+             Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                 GeometryData::IntegrationMethod::GI_LOBATTO_1)
+            }};
         return shape_functions_local_gradients;
     }
 

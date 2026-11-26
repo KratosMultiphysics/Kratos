@@ -14,6 +14,10 @@
 #include "custom_retention/saturated_law.h"
 #include "geo_mechanics_application_variables.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace Kratos
 {
 
@@ -51,4 +55,5 @@ int SaturatedLaw::Check(const Properties& rMaterialProperties, const ProcessInfo
     return 0;
 }
 
+std::string SaturatedLaw::Info() const { return "SaturatedLaw"s; }
 } // namespace Kratos

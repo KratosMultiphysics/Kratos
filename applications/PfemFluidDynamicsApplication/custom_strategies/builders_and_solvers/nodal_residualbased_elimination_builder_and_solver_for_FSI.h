@@ -70,7 +70,7 @@ namespace Kratos
    * the end of the system ordered in reverse order with respect to the DofSet.
    * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
    * this information.
-   * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+   * Calculation of the reactions involves a cost very similar to the calculation of the total residual
    * @author Riccardo Rossi
    */
   template <class TSparseSpace,
@@ -210,7 +210,7 @@ namespace Kratos
       bool belytsckoCase = false;
       bool cooksMembraneCase = false;
 
-      if (cooksMembraneCase == true)
+      if (cooksMembraneCase)
       {
         for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
         {
@@ -226,7 +226,7 @@ namespace Kratos
         }
       }
 
-      if (belytsckoCase == true)
+      if (belytsckoCase)
       {
         for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
         {
@@ -320,14 +320,14 @@ namespace Kratos
               // solidRHS_Contribution[1]+=40.0/65.0; // mesh 0.0625 (64 element per edge)
               //}
 
-              if (belytsckoCase == true)
+              if (belytsckoCase)
               {
                 if (itNode->X0() > 24.999 && itNode->X0() < 25.001)
                 {
                   solidRHS_Contribution[1] += nodalExternalForce;
                 }
               }
-              if (cooksMembraneCase == true)
+              if (cooksMembraneCase)
               {
                 if (itNode->X0() > 47.999 && itNode->X0() < 48.001)
                 {
@@ -369,7 +369,7 @@ namespace Kratos
                 firstCol += 2;
 
                 unsigned int indexNode = i + 1;
-                if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true && indexNode < neighSize)
+                if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) && indexNode < neighSize)
                 {
                   unsigned int other_neigh_nodes_id = solidNodalSFDneighboursId[indexNode];
                   for (unsigned int k = 0; k < neighb_nodes.size(); k++)
@@ -471,7 +471,7 @@ namespace Kratos
                 firstCol += 3;
 
                 unsigned int indexNode = i + 1;
-                if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true && indexNode < neighSize)
+                if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) && indexNode < neighSize)
                 {
                   unsigned int other_neigh_nodes_id = solidNodalSFDneighboursId[indexNode];
                   for (unsigned int k = 0; k < neighb_nodes.size(); k++)
@@ -560,7 +560,7 @@ namespace Kratos
       for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
       {
 
-        if ((itNode->Is(FLUID) && itNode->IsNot(SOLID)) || itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
+        if ((itNode->Is(FLUID) && itNode->IsNot(SOLID)) || itNode->FastGetSolutionStepValue(INTERFACE_NODE))
         {
 
           NodeWeakPtrVectorType &neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
@@ -629,7 +629,7 @@ namespace Kratos
               array_1d<double, 3> Sigma(3, 0.0);
               Sigma = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS);
 
-              if (itNode->IsNot(SOLID) || itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
+              if (itNode->IsNot(SOLID) || itNode->FastGetSolutionStepValue(INTERFACE_NODE))
               {
                 pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
                 Sigma[0] = itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[0] + pressure;
@@ -666,7 +666,7 @@ namespace Kratos
                 firstCol += 2;
 
                 unsigned int indexNode = i + 1;
-                if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true && indexNode < neighSize)
+                if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) && indexNode < neighSize)
                 {
                   unsigned int other_neigh_nodes_id = nodalSFDneighboursId[indexNode];
                   for (unsigned int k = 0; k < neighb_nodes.size(); k++)
@@ -717,7 +717,7 @@ namespace Kratos
               array_1d<double, 6> Sigma(6, 0.0);
               Sigma = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS);
 
-              if (itNode->IsNot(SOLID) || itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
+              if (itNode->IsNot(SOLID) || itNode->FastGetSolutionStepValue(INTERFACE_NODE))
               {
                 pressure = itNode->FastGetSolutionStepValue(PRESSURE, 0) * theta + itNode->FastGetSolutionStepValue(PRESSURE, 1) * (1 - theta);
                 Sigma[0] = itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[0] + pressure;
@@ -766,7 +766,7 @@ namespace Kratos
                 firstCol += 3;
 
                 unsigned int indexNode = i + 1;
-                if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true && indexNode < neighSize)
+                if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) && indexNode < neighSize)
                 {
                   unsigned int other_neigh_nodes_id = nodalSFDneighboursId[indexNode];
                   // std::cout<<"other_neigh_nodes_id= "<<other_neigh_nodes_id<<" within "<<nodalSFDneighboursId<<std::endl;
@@ -988,7 +988,7 @@ namespace Kratos
     /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
      * and condition its Dofs.
-     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
+     * @details The list of dofs is stores inside the BuilderAndSolver as it is closely connected to the
      * way the matrix and RHS are built
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
@@ -1092,7 +1092,7 @@ namespace Kratos
 
       BaseType::mDofSet = Doftemp;
 
-      // Throws an execption if there are no Degrees of freedom involved in the analysis
+      // Throws an exception if there are no Degrees of freedom involved in the analysis
       KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
 
       BaseType::mDofSetIsInitialized = true;
@@ -1170,7 +1170,7 @@ namespace Kratos
       TSystemVectorType &b = *pb;
 
       // resizing the system vectors and matrix
-      if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) // if the matrix is not initialized
+      if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag()) // if the matrix is not initialized
       {
         A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
         ConstructMatrixStructureForFSI(pScheme, A, rModelPart);
@@ -1180,7 +1180,7 @@ namespace Kratos
         if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
         {
           KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
-          KRATOS_ERROR << "The equation system size has changed during the simulation. This is not permited." << std::endl;
+          KRATOS_ERROR << "The equation system size has changed during the simulation. This is not permitted." << std::endl;
           A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
           ConstructMatrixStructureForFSI(pScheme, A, rModelPart);
         }
@@ -1191,7 +1191,7 @@ namespace Kratos
         b.resize(BaseType::mEquationSystemSize, false);
 
       // if needed resize the vector for the calculation of reactions
-      if (BaseType::mCalculateReactionsFlag == true)
+      if (BaseType::mCalculateReactionsFlag)
       {
         unsigned int ReactionsVectorSize = BaseType::mDofSet.size();
         if (BaseType::mpReactionsVector->size() != ReactionsVectorSize)
@@ -1426,7 +1426,7 @@ namespace Kratos
           if (dimension == 3)
             EquationId[2] = itNode->GetDof(VELOCITY_Z, xDofPos + 2).EquationId();
 
-          if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
+          if (itNode->FastGetSolutionStepValue(INTERFACE_NODE))
           {
             NodeWeakPtrVectorType &neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
             for (unsigned int i = 0; i < neighb_nodes.size(); i++)
@@ -1471,7 +1471,7 @@ namespace Kratos
           }
         }
 
-        if ((itNode->Is(FLUID) && itNode->IsNot(SOLID)) || itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
+        if ((itNode->Is(FLUID) && itNode->IsNot(SOLID)) || itNode->FastGetSolutionStepValue(INTERFACE_NODE))
         {
           const unsigned int localSize = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS).size();
           const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
@@ -1490,7 +1490,7 @@ namespace Kratos
           if (dimension == 3)
             EquationId[2] = itNode->GetDof(VELOCITY_Z, xDofPos + 2).EquationId();
 
-          if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
+          if (itNode->FastGetSolutionStepValue(INTERFACE_NODE))
           {
             NodeWeakPtrVectorType &neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
             for (unsigned int i = 0; i < neighb_nodes.size(); i++)
@@ -1698,7 +1698,7 @@ namespace Kratos
     {
       unsigned int local_size = RHS_Contribution.size();
 
-      if (BaseType::mCalculateReactionsFlag == false)
+      if (!BaseType::mCalculateReactionsFlag)
       {
         for (unsigned int i_local = 0; i_local < local_size; i_local++)
         {

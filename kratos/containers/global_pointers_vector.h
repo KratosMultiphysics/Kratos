@@ -504,11 +504,10 @@ private:
         std::size_t size;
 
         rSerializer.load("Size", size);
+        this->resize(size);
 
         for (std::size_t i = 0; i < size; i++) {
-            GlobalPointer<TDataType> p(nullptr);
-            rSerializer.load("Data", p);
-            this->push_back(p);
+            rSerializer.load("Data", this->operator()(i));
         }
     }
 

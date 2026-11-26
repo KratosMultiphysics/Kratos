@@ -13,6 +13,7 @@
 
 // System includes
 #include <algorithm>
+#include <cstdlib>
 
 // External includes
 
@@ -32,7 +33,13 @@ Logger::~Logger()
     auto outputs = GetOutputsInstance();
     KRATOS_CRITICAL_SECTION
     {
-        GetDefaultOutputInstance().WriteMessage(mCurrentMessage);
+        const bool suppress_message =
+            mCurrentMessage.GetCategory() != Logger::Category::CRITICAL
+         && std::getenv("KRATOS_QUIET") != nullptr;
+        if (!suppress_message) {
+            GetDefaultOutputInstance().WriteMessage(mCurrentMessage);
+        }
+
         for (auto it_output = outputs.begin(); it_output != outputs.end(); ++it_output) {
             (*it_output)->WriteMessage(mCurrentMessage);
         }

@@ -18,6 +18,7 @@
 // Project includes
 
 // Application includes
+#include "custom_utilities/sensor_utils.h"
 #include "system_identification_application_variables.h"
 
 // Include base h
@@ -28,11 +29,12 @@ namespace Kratos {
 /// Constructor.
 DisplacementSensor::DisplacementSensor(
     const std::string& rName,
-    const Point& rLocation,
+    Node::Pointer pNode,
     const array_1d<double, 3>& rDirection,
     const Element& rElement,
-    const double Weight)
-    : BaseType(rName, rLocation, Weight),
+    const double Weight,
+    const double ErrorThreshold)
+    : BaseType(rName, pNode, Weight, ErrorThreshold),
       mElementId(rElement.Id()),
       mDirection(rDirection)
 {
@@ -43,10 +45,12 @@ DisplacementSensor::DisplacementSensor(
     }
 
     const auto& r_geometry = rElement.GetGeometry();
-    const auto& current_sensor_location = this->GetLocation();
+    const auto& current_sensor_location = *(this->GetNode());
 
+    // same local coordinate tolerance as the domain bins used to find rElement, otherwise a
+    // point lying on a face shared by two elements may be rejected by the element the bins found.
     Point local_point;
-    if (r_geometry.IsInside(current_sensor_location, local_point)) {
+    if (r_geometry.IsInside(current_sensor_location, local_point, 1e-6)) {
         // point is within the geometry. Use shape function evaluations
         // from the element geometry to get the shape function values.
         r_geometry.ShapeFunctionsValues(mNs, local_point);
@@ -90,35 +94,71 @@ DisplacementSensor::DisplacementSensor(
         }
 
         KRATOS_ERROR_IF_NOT(is_point_on_a_node || is_point_on_an_edge)
-                << "The point " << this->GetLocation() << " is not inside or on the boundary of the geometry of element with id "
+                << "The point " << this->GetNode()->Coordinates() << " is not inside or on the boundary of the geometry of element with id "
                 << mElementId << ".";
     }
 
-    this->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
+    this->GetNode()->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
 }
 
-const Parameters DisplacementSensor::GetSensorParameters() const
+Sensor::Pointer DisplacementSensor::Create(
+    ModelPart& rDomainModelPart,
+    ModelPart& rSensorModelPart,
+    const IndexType Id,
+    Parameters SensorParameters,
+    GeometricalObjectsBins& rDomainBins)
 {
-    Parameters parameters = Parameters(R"(
-    {
-        "type"      : "displacement_sensor",
-        "name"      : "",
-        "value"     : 0.0,
-        "location"  : [0.0, 0.0, 0.0],
-        "direction" : [0.0, 0.0, 0.0],
-        "weight"    : 0.0
-    })" );
-    parameters["name"].SetString(this->GetName());
-    parameters["value"].SetDouble(this->GetSensorValue());
-    parameters["location"].SetVector(this->GetLocation());
-    parameters["direction"].SetVector(mDirection);
-    parameters["weight"].SetDouble(this->GetWeight());
+    KRATOS_TRY
+
+    SensorParameters.ValidateAndAssignDefaults(DisplacementSensor::GetDefaultParameters());
+
+    const auto& direction = SensorParameters["direction"].GetVector();
+    KRATOS_ERROR_IF_NOT(direction.size() == 3)
+        << "Direction of the sensor \"" << SensorParameters["name"].GetString()
+        << "\" should have 3 components. [ direction = " << direction << " ].\n";
+
+    const auto& location = SensorParameters["location"].GetVector();
+    KRATOS_ERROR_IF_NOT(location.size() == 3)
+        << "Location of the sensor \"" << SensorParameters["name"].GetString()
+        << "\" should have 3 components. [ location = " << location << " ].\n";
+
+    const auto search_result = rDomainBins.SearchIsInside(Point(location[0], location[1], location[2]));
+    KRATOS_ERROR_IF_NOT(search_result.GetIsObjectFound())
+        << "Location of the sensor \"" << SensorParameters["name"].GetString()
+        << "\" is not inside any element of " << rDomainModelPart.FullName()
+        << ". [ location = " << location << " ].\n";
+
+    const auto& r_element = rDomainModelPart.GetElement(search_result.Get()->Id());
+
+    auto p_node = rSensorModelPart.CreateNewNode(Id, location[0], location[1], location[2]);
+
+    auto p_sensor = Kratos::make_shared<DisplacementSensor>(
+        SensorParameters["name"].GetString(),
+        p_node,
+        array_1d<double, 3>{direction[0], direction[1], direction[2]},
+        r_element,
+        SensorParameters["weight"].GetDouble(),
+        SensorParameters["error_threshold"].GetDouble()
+    );
+
+    SensorUtils::ReadVariableData(p_sensor->GetNode()->GetData(), SensorParameters["variable_data"]);
+
+    return p_sensor;
+
+    KRATOS_CATCH("");
+}
+
+Parameters DisplacementSensor::GetSensorParameters() const
+{
+    auto parameters = BaseType::GetSensorParameters();
+    parameters.AddString("type", "displacement_sensor");
+    parameters.AddVector("direction", mDirection);
     return parameters;
 }
 
 Parameters DisplacementSensor::GetDefaultParameters()
 {
-    return Parameters(R"(
+    Parameters parameters(R"(
     {
         "type"         : "displacement_sensor",
         "name"         : "",
@@ -126,8 +166,11 @@ Parameters DisplacementSensor::GetDefaultParameters()
         "location"     : [0.0, 0.0, 0.0],
         "direction"    : [0.0, 0.0, 0.0],
         "weight"       : 1.0,
+        "error_threshold": 0.0,
         "variable_data": {}
     })" );
+    parameters["error_threshold"].SetDouble(Sensor::DefaultErrorThreshold);
+    return parameters;
 }
 
 double DisplacementSensor::CalculateValue(ModelPart& rModelPart)
@@ -274,13 +317,9 @@ void DisplacementSensor::PrintInfo(std::ostream& rOStream) const
 
 void DisplacementSensor::PrintData(std::ostream& rOStream) const
 {
-    PrintInfo(rOStream);
-    rOStream << "    Location: " << this->GetLocation() << std::endl;
-    rOStream << "    Value: " << this->GetSensorValue() << std::endl;
-    rOStream << "    Weight: " << this->GetWeight() << std::endl;
     rOStream << "    Direction: " << mDirection << std::endl;
     rOStream << "    Element Id: " << mElementId << std::endl;
-    DataValueContainer::PrintData(rOStream);
+    Sensor::PrintData(rOStream);
 }
 
 void DisplacementSensor::SetVectorToZero(

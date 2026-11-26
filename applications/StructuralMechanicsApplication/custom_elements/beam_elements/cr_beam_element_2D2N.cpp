@@ -387,7 +387,7 @@ void CrBeamElement2D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
         load_orthogonal_direction /= vector_norm_c;
     }
 
-    // now caluclate respective work equivilent nodal moments
+    // now calculate respective work equivilent nodal moments
 
     const double custom_moment =
         norm_force_vector_orthogonal * GeometryLength * GeometryLength / 12.00;
@@ -624,9 +624,11 @@ CrBeamElement2D2N::CreateElementStiffnessMatrix_Total() const
 
     BoundedMatrix<double, msElementSize, msLocalSize> S =
         CalculateTransformationS();
-    BoundedMatrix<double, msElementSize, msElementSize> K_d_element =
-        prod(K_d, Matrix(trans(S)));
-    K_d_element = prod(S, K_d_element);
+    // the intermediate product has (local x element) shape
+    const BoundedMatrix<double, msLocalSize, msElementSize> K_d_intermediate =
+        prod(K_d, trans(S));
+    const BoundedMatrix<double, msElementSize, msElementSize> K_d_element =
+        prod(S, K_d_intermediate);
 
     // total K
     BoundedMatrix<double, msElementSize, msElementSize> K_total =

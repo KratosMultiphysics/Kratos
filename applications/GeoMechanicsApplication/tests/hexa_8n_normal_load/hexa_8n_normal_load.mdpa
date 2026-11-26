@@ -18,7 +18,7 @@ Begin Elements UPwSmallStrainElement3D8N
   1  1  1 2 3 4 5 6 7 8
 End Elements
 
-Begin Conditions UpwNormalFaceLoadCondition3D4N
+Begin Conditions UPwNormalFaceLoadCondition3D4N
   1  1   5 6 7 8
 End Conditions
 

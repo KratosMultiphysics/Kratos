@@ -18,6 +18,8 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/atomic_utilities.h"
+#include "utilities/data_type_traits.h"
 
 // Application includes
 
@@ -263,6 +265,120 @@ std::vector<std::vector<ModelPart*>> OptimizationUtils::GetComponentWiseModelPar
     KRATOS_CATCH("");
 }
 
+TensorAdaptor<double>::Pointer OptimizationUtils::MapContainerDataToNodalData(
+    const TensorAdaptor<double>& rInput,
+    ModelPart::NodesContainerType::Pointer pNodes)
+{
+    KRATOS_TRY
+
+    const auto& shape = rInput.Shape();
+    const auto input_data = rInput.ViewData();
+
+    DenseVector<unsigned int> output_shape(shape);
+    output_shape[0] = pNodes->size();
+
+    auto p_nd_data = Kratos::make_shared<NDData<double>>(output_shape, 0.0);
+    auto p_result = Kratos::make_shared<TensorAdaptor<double>>(pNodes, p_nd_data, false);
+    auto output_data = p_nd_data->ViewData();
+
+    const auto number_of_components = std::accumulate(shape.begin() + 1, shape.end(), 1U, std::multiplies<IndexType>{});
+
+    std::visit([&rInput, &input_data, &pNodes, &output_data, number_of_components](const auto pContainer) {
+        using container_type = BareType<decltype(*pContainer)>;
+
+        if constexpr(IsInList<container_type, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
+            IndexPartition<IndexType>(pContainer->size()).for_each([&pContainer,&pNodes, &rInput, &output_data, &input_data, number_of_components](const auto EntityIndex) {
+                const auto& r_geometry = (pContainer->begin() + EntityIndex)->GetGeometry();
+
+                for (const auto& r_node : r_geometry) {
+                    auto p_node_itr = pNodes->find(r_node.Id());
+                    KRATOS_ERROR_IF(p_node_itr == pNodes->end())
+                        << "The node with id = " << r_node.Id()
+                        << " in entity with id  = " << (pContainer->begin() + EntityIndex)->Id()
+                        << " not found in the provided neighbour entities container [ "
+                        << " input tensor adaptor = " << rInput << " ].\n";
+
+                    const auto node_index = std::distance(pNodes->begin(), pNodes->find(r_node.Id()));
+
+                    for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
+                        AtomicAdd(
+                            output_data[node_index * number_of_components + i_comp],
+                            input_data[EntityIndex * number_of_components + i_comp] / r_geometry.size());
+                    }
+                }
+            });
+
+        } else {
+            KRATOS_ERROR << "The input tensor adaptor should have data based on conditions / elements [ input tensor adaptor = " << rInput << " ].\n";
+        }
+    }, rInput.GetContainer());
+
+    return p_result;
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerPointerType>
+TensorAdaptor<double>::Pointer OptimizationUtils::MapNodalDataToContainerData(
+    const TensorAdaptor<double>& rInput,
+    TContainerPointerType pEntities,
+    const TensorAdaptor<int>& rNeighbourCount)
+{
+    KRATOS_TRY
+
+    const auto& shape = rInput.Shape();
+    const auto input_data = rInput.ViewData();
+    const auto neighbour_data = rNeighbourCount.ViewData();
+
+    DenseVector<unsigned int> output_shape(shape);
+    output_shape[0] = pEntities->size();
+
+    auto p_nd_data = Kratos::make_shared<NDData<double>>(output_shape, 0.0);
+    auto p_result = Kratos::make_shared<TensorAdaptor<double>>(pEntities, p_nd_data, false);
+    auto output_data = p_nd_data->ViewData();
+
+    const auto number_of_components = std::accumulate(shape.begin() + 1, shape.end(), 1U, std::multiplies<IndexType>{});
+
+    if (!std::holds_alternative<ModelPart::NodesContainerType::Pointer>(rInput.GetContainer()) ||
+        !std::holds_alternative<ModelPart::NodesContainerType::Pointer>(rNeighbourCount.GetContainer())) {
+        KRATOS_ERROR
+            << "Input container and neighbour container count tensor adaptors should be having nodal containers [ input tensor adaptor = "
+            << rInput << ", neighbour count tensor adaptor = " << rNeighbourCount << " ].\n";
+    }
+
+    const auto& r_nodes = *std::get<ModelPart::NodesContainerType::Pointer>(rInput.GetContainer());
+
+    if (&r_nodes != &*(std::get<ModelPart::NodesContainerType::Pointer>(rNeighbourCount.GetContainer()))) {
+        KRATOS_ERROR
+            << "The nodal containers in input and neighbour count tensor adaptors mismatch [ "
+            << "input tensor adaptor = " << rInput << ", neighbour count tensor adaptor = " << rNeighbourCount << " ].\n";
+    }
+
+    IndexPartition<IndexType>(pEntities->size()).for_each([&input_data, &output_data, &neighbour_data, &r_nodes, &pEntities, &rInput, &rNeighbourCount, number_of_components](const auto EntityIndex) {
+        const auto& r_geometry = (pEntities->begin() + EntityIndex)->GetGeometry();
+
+        for (const auto& r_node : r_geometry) {
+            auto p_node_itr = r_nodes.find(r_node.Id());
+
+            KRATOS_ERROR_IF(p_node_itr == r_nodes.end())
+                << "The node with id = " << r_node.Id() << " in entity with id = "
+                << (pEntities->begin() + EntityIndex)->Id() << " is not found in the nodes of the input tensor adaptor [ "
+                << "input tensor adaptor = " << rInput << ", neighbour count tensor adaptor = " << rNeighbourCount << " ].\n";
+
+            const IndexType node_index = std::distance(r_nodes.begin(), p_node_itr);
+
+            for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
+                AtomicAdd(output_data[EntityIndex * number_of_components + i_comp],
+                          input_data[node_index * number_of_components + i_comp] / neighbour_data[node_index]);
+            }
+        }
+    });
+
+    return p_result;
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 #ifndef KRATOS_OPTIMIZATION_UTILS_UPDATE_PROPERTIES_VARIABLE_RECURSIVELY
 #define KRATOS_OPTIMIZATION_UTILS_UPDATE_PROPERTIES_VARIABLE_RECURSIVELY(CONTAINER_TYPE)                                                                                                                                \
@@ -298,5 +414,8 @@ template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariable
 template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ElementsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);
 template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const DataCommunicator& rDataCommunicator);
 template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties(const ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const DataCommunicator& rDataCommunicator);
+
+template KRATOS_API(OPTIMIZATION_APPLICATION) TensorAdaptor<double>::Pointer OptimizationUtils::MapNodalDataToContainerData(const TensorAdaptor<double>&, ModelPart::ConditionsContainerType::Pointer, const TensorAdaptor<int>&);
+template KRATOS_API(OPTIMIZATION_APPLICATION) TensorAdaptor<double>::Pointer OptimizationUtils::MapNodalDataToContainerData(const TensorAdaptor<double>&, ModelPart::ElementsContainerType::Pointer, const TensorAdaptor<int>&);
 
 }

@@ -80,6 +80,7 @@ void  AddModelerToPython(pybind11::module& m)
 
     py::class_<ConnectivityPreserveModeler,ConnectivityPreserveModeler::Pointer,Modeler>(m,"ConnectivityPreserveModeler")
     .def(py::init< >())
+    .def(py::init<Model&, Parameters>())
     .def("GenerateModelPart",
         [] (Modeler& rModeler, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rElementName, const std::string& rConditionName)
         {rModeler.GenerateModelPart(origin_model_part, destination_model_part,

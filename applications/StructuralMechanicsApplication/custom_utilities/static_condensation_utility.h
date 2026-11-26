@@ -30,7 +30,7 @@ namespace Kratos
     /**
      * @namespace StaticCondensationUtility
      *
-     * @brief This utilitiy condenses given degrees of freedom from any element stiffness matrix to model e.g. hinges
+     * @brief This utility condenses given degrees of freedom from any element stiffness matrix to model e.g. hinges
      *
      * @author Klaus B Sautter, Philipp Bucher
      */

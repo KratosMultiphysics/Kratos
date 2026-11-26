@@ -12,17 +12,18 @@
 //                   Gennady Markelov
 //
 #include "apply_normal_load_table_process.h"
-#include "apply_boundary_hydrostatic_pressure_table_process.hpp"
-#include "apply_boundary_phreatic_line_pressure_table_process.hpp"
-#include "apply_boundary_phreatic_surface_pressure_table_process.hpp"
+#include "apply_boundary_hydrostatic_pressure_table_process.h"
+#include "apply_boundary_phreatic_line_pressure_table_process.h"
+#include "apply_boundary_phreatic_surface_pressure_table_process.h"
 #include "apply_component_table_process.h"
 #include "custom_utilities/parameters_utilities.h"
+#include "geo_apply_constant_scalar_value_process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "processes/apply_constant_scalarvalue_process.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 constexpr int normalComponentNumber     = 0;
 constexpr int tangentialComponentNumber = 1;
@@ -44,17 +45,17 @@ void ApplyNormalLoadTableProcess::MakeInternalProcesses(const Parameters& rProce
     }
 }
 
-bool ApplyNormalLoadTableProcess::IsNormalComponentActive(const Parameters& rProcessSettings) const
+bool ApplyNormalLoadTableProcess::IsNormalComponentActive(const Parameters& rProcessSettings)
 {
     return IsComponentActive(rProcessSettings, normalComponentNumber);
 }
 
-bool ApplyNormalLoadTableProcess::IsTangentialComponentActive(const Parameters& rProcessSettings) const
+bool ApplyNormalLoadTableProcess::IsTangentialComponentActive(const Parameters& rProcessSettings)
 {
     return IsComponentActive(rProcessSettings, tangentialComponentNumber);
 }
 
-bool ApplyNormalLoadTableProcess::IsComponentActive(const Parameters& rProcessSettings, int componentNumber) const
+bool ApplyNormalLoadTableProcess::IsComponentActive(const Parameters& rProcessSettings, int componentNumber)
 {
     return rProcessSettings["active"][componentNumber].GetBool();
 }
@@ -88,7 +89,7 @@ void ApplyNormalLoadTableProcess::MakeProcessForUniformFluidPressureType(const P
         normal_parameters.AddValue("table", rProcessSettings["table"][normalComponentNumber]);
         mProcesses.push_back(std::make_unique<ApplyComponentTableProcess>(mrModelPart, normal_parameters));
     } else {
-        mProcesses.push_back(std::make_unique<ApplyConstantScalarValueProcess>(mrModelPart, normal_parameters));
+        mProcesses.push_back(std::make_unique<GeoApplyConstantScalarValueProcess>(mrModelPart, normal_parameters));
     }
 }
 
@@ -151,11 +152,9 @@ void ApplyNormalLoadTableProcess::MakeProcessForTangentialComponent(const Parame
         tangential_params.AddValue("table", rProcessSettings["table"][tangentialComponentNumber]);
         mProcesses.push_back(std::make_unique<ApplyComponentTableProcess>(mrModelPart, tangential_params));
     } else {
-        mProcesses.push_back(std::make_unique<ApplyConstantScalarValueProcess>(mrModelPart, tangential_params));
+        mProcesses.push_back(std::make_unique<GeoApplyConstantScalarValueProcess>(mrModelPart, tangential_params));
     }
 }
-
-ApplyNormalLoadTableProcess::~ApplyNormalLoadTableProcess() = default;
 
 void ApplyNormalLoadTableProcess::ExecuteInitialize()
 {
@@ -171,6 +170,13 @@ void ApplyNormalLoadTableProcess::ExecuteInitializeSolutionStep()
     }
 }
 
-std::string ApplyNormalLoadTableProcess::Info() const { return "ApplyNormalLoadTableProcess"; }
+void ApplyNormalLoadTableProcess::ExecuteFinalize()
+{
+    for (const auto& process : mProcesses) {
+        process->ExecuteFinalize();
+    }
+}
+
+std::string ApplyNormalLoadTableProcess::Info() const { return "ApplyNormalLoadTableProcess"s; }
 
 } // namespace Kratos

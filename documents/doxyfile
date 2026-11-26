@@ -14,6 +14,9 @@ PROJECT_LOGO           = kratos_small.png
 OUTPUT_DIRECTORY       = ../documents
 CREATE_SUBDIRS         = YES
 
+# Common
+AUTOLINK_SUPPORT       = NO     ##< prevent doxygen from creating unintended references/links
+
 # C++
 MULTILINE_CPP_IS_BRIEF = NO
 ENABLE_PREPROCESSING   = YES

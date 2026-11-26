@@ -27,9 +27,6 @@ if(@OpenCL_FOUND@)
     set(OpenCL_INCLUDE_DIR "@OpenCL_INCLUDE_DIR@")
     set(OpenCL_LIBRARY "@OpenCL_LIBRARY@")
     find_package(OpenCL)
-
-    # Support for CMake < 3.7
-    include("${CMAKE_CURRENT_LIST_DIR}/VexCLOpenCLTarget.cmake")
 endif()
 
 
@@ -53,8 +50,6 @@ find_package(Boost REQUIRED COMPONENTS
     )
 
 include("${CMAKE_CURRENT_LIST_DIR}/VexCLBoostTargets.cmake")
-
-include("${CMAKE_CURRENT_LIST_DIR}/VexCLTargets.cmake")
 
 if(TARGET VexCL::OpenCL)
     message(STATUS "Found VexCL::OpenCL")

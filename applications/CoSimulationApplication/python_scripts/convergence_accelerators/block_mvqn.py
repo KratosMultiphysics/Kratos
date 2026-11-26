@@ -11,6 +11,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_conve
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.utilities.array_backend import HostArrayBoundary
 
 # Other imports
 import numpy as np
@@ -56,7 +57,9 @@ class BLOCKMVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param data_name coupling variable
     # @param yResidual (coupled solver) residual yResidual
     # Computes the approximated update in each iteration.
+    @HostArrayBoundary
     def UpdateSolution( self, r, x, y, data_name, yResidual,):
+        xp = self.xp
 
         coupled_data_name = self.coupl_data_names[data_name]
         self.X_tilde[data_name].appendleft( deepcopy(r + x) )
@@ -73,35 +76,35 @@ class BLOCKMVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         if k == 0:
             if self.J[data_name] is None or self.J[coupled_data_name] is None:
                 ## Zero initial Jacobians
-                self.J_hat[data_name] = np.zeros( (row, rowY) )
-                self.J_hat[coupled_data_name] = np.zeros( (rowY, row) )
-                self.J[coupled_data_name] = np.zeros( (rowY, row) )
-                self.J[data_name] = np.zeros( (row, rowY) )
+                self.J_hat[data_name] = xp.zeros( (row, rowY) )
+                self.J_hat[coupled_data_name] = xp.zeros( (rowY, row) )
+                self.J[coupled_data_name] = xp.zeros( (rowY, row) )
+                self.J[data_name] = xp.zeros( (row, rowY) )
                 return self.alpha * r # Initial acceleration to be a constant relaxation
             else:
 
-                blockJacobian = (np.eye(row) - self.J[data_name] @ self.J[coupled_data_name])
+                blockJacobian = (xp.eye(row) - self.J[data_name] @ self.J[coupled_data_name])
                 b = r - self.J[data_name] @ yResidual
-                return np.linalg.solve( blockJacobian, b )
+                return xp.linalg.solve( blockJacobian, b )
 
         ## Construct matrix W(differences of intermediate solutions y)
-        W = np.empty( shape = (col, rowY) ) # will be transposed later
+        W = xp.empty( shape = (col, rowY) ) # will be transposed later
         for i in range(0, col):
             W[i] = self.X[coupled_data_name][i] - self.X[coupled_data_name][i + 1]
         W = W.T
 
         ## Construct matrix W(differences of intermediate solutions x~)
-        V = np.empty( shape = (col, row) ) # will be transposed later
+        V = xp.empty( shape = (col, row) ) # will be transposed later
         for i in range(0, col):
             V[i] = self.X_tilde[data_name][i] - self.X_tilde[data_name][i + 1]
         V = V.T
 
-        self.J_hat[data_name] = self.J[data_name] + (V - self.J[data_name] @ W) @ (np.linalg.pinv(W, rcond=self.epsilon))
+        self.J_hat[data_name] = self.J[data_name] + (V - self.J[data_name] @ W) @ (xp.linalg.pinv(W, rcond=self.epsilon))
 
-        blockJacobian = (np.eye(row) - self.J_hat[data_name] @ self.J_hat[coupled_data_name])
+        blockJacobian = (xp.eye(row) - self.J_hat[data_name] @ self.J_hat[coupled_data_name])
         b = r - self.J_hat[data_name] @ yResidual
 
-        return np.linalg.solve( blockJacobian, b )
+        return xp.linalg.solve( blockJacobian, b )
 
     def FinalizeSolutionStep( self ):
 

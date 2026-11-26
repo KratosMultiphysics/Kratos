@@ -67,7 +67,7 @@ void GetCurrentContinuumBonds(pybind11::list& current_continuum_bonds_list);
 ///@name Input and output
 ///@{
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> string.
 
 virtual std::string Info() const;
 

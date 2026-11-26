@@ -30,12 +30,12 @@ public:
                                              OutputIter                   Destination,
                                              const Properties&            rProperties)
     {
-        const auto c   = ConstitutiveLawUtilities::GetCohesion(rProperties);
-        const auto phi = ConstitutiveLawUtilities::GetFrictionAngleInDegrees(rProperties);
-        auto       calculate_shear_capacity = [c, phi](const auto& rStressVector) {
-            return StressStrainUtilities::CalculateMohrCoulombShearCapacity(rStressVector, c, phi);
+        const auto c = ConstitutiveLawUtilities::GetCohesion(rProperties);
+        const auto phi_in_radians = ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties);
+        auto calculate_shear_capacity = [c, phi_in_radians](const auto& rStressVector) {
+            return StressStrainUtilities::CalculateMohrCoulombShearCapacity(rStressVector, c, phi_in_radians);
         };
-        std::transform(std::begin(rStressVectors), std::end(rStressVectors), Destination, calculate_shear_capacity);
+        std::ranges::transform(rStressVectors, Destination, calculate_shear_capacity);
     }
 };
 

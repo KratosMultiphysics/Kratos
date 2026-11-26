@@ -137,7 +137,8 @@ public:
         const auto& r_properties = r_element.GetProperties();
 
         ConstitutiveLaw::Parameters cl_params(r_geometry, r_properties, rConstantData.mrProcessInfo);
-        cl_params.SetShapeFunctionsValues(row(rConstantData.mNs, IntegrationPoint));
+        const Vector& N = row(rConstantData.mNs, IntegrationPoint);
+        cl_params.SetShapeFunctionsValues(N);
 
         Matrix constitutive_matrix;
         constitutive_matrix = r_properties.GetValue(CONSTITUTIVE_LAW)->CalculateValue(cl_params, CONSTITUTIVE_MATRIX, constitutive_matrix);

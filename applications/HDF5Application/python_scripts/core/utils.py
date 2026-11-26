@@ -12,6 +12,13 @@ from collections.abc import Mapping
 
 import KratosMultiphysics
 
+def EvaluatePattern(pattern: str, model_part: KratosMultiphysics.ModelPart, time_format='') -> str:
+    time = model_part.ProcessInfo[KratosMultiphysics.TIME]
+    step = model_part.ProcessInfo[KratosMultiphysics.STEP]
+    pattern = pattern.replace("<time>", format(time, time_format))
+    pattern = pattern.replace("<step>", str(step))
+    pattern = pattern.replace("<model_part_name>", model_part.Name)
+    return pattern
 
 class ParametersWrapper(Mapping):
     '''A pythonic wrapper to KratosMultiphysics.Parameters.

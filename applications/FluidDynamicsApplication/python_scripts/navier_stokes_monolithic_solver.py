@@ -227,6 +227,7 @@ class NavierStokesMonolithicSolver(FluidSolver):
                 "input_filename": "unknown_name",
                 "reorder": false
             },
+            "enforce_element_and_conditions_replacement": true,
             "material_import_settings": {
                 "materials_filename": ""
             },

@@ -162,7 +162,7 @@ public:
     //*******************************************************************************************
 
     /**
-     * Mesher :: Initilize
+     * Mesher :: Initialize
      */
     virtual void InitializeMesher(ModelPart& rModelPart);
 
@@ -282,7 +282,7 @@ protected:
 
 
     /**
-     * Mesher :: Process to be done at the begining of the Generation
+     * Mesher :: Process to be done at the beginning of the Generation
      */
     virtual void ExecutePreMeshingProcesses();
 

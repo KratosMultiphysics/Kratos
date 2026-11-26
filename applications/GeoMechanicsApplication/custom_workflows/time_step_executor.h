@@ -14,7 +14,7 @@
 #pragma once
 
 #include "processes/process.h"
-#include "strategy_wrapper.hpp"
+#include "strategy_wrapper.h"
 #include "time_step_end_state.hpp"
 
 #include <functional>

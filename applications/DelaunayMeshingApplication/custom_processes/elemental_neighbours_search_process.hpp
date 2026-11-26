@@ -415,7 +415,7 @@ class ElementalNeighboursSearchProcess
     CleanElementNeighbours();
 
 
-    //*************  Neigbours of nodes  ************//
+    //*************  Neighbours of nodes  ************//
     //add the neighbour elements to all the nodes in the mesh
     for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
     {
@@ -426,7 +426,7 @@ class ElementalNeighboursSearchProcess
       }
     }
 
-    //*************  Neigbours of elements  *********//
+    //*************  Neighbours of elements  *********//
     //add the neighbour elements to all the elements in the mesh
 
     unsigned int search_performed = false;
@@ -626,7 +626,7 @@ class ElementalNeighboursSearchProcess
     CleanElementNeighbours();
 
 
-    //*************  Neigbours of nodes  ************//
+    //*************  Neighbours of nodes  ************//
     //add the neighbour elements to all the nodes in the mesh
     for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
     {
@@ -639,7 +639,7 @@ class ElementalNeighboursSearchProcess
       }
     }
 
-    //*************  Neigbours of elements  *********//
+    //*************  Neighbours of elements  *********//
     //add the neighbour elements to all the elements in the mesh
     //loop over faces
 
@@ -692,7 +692,7 @@ class ElementalNeighboursSearchProcess
 
         auto& nElements = rNodes[ipoin].GetValue(NEIGHBOUR_ELEMENTS);
 
-        for(auto& i_nelem : nElements)  //loop over elements surronding a point
+        for(auto& i_nelem : nElements)  //loop over elements surrounding a point
         {
           jelem=i_nelem.Id();
           unsigned int ielem =rElements[el].Id();

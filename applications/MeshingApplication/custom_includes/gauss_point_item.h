@@ -4,14 +4,13 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GAUSS_POINT_ITEM )
-#define  KRATOS_GAUSS_POINT_ITEM
+#pragma once
 
 // System includes
 
@@ -52,12 +51,15 @@ class GaussPointItem
     : public Point
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
-    /// The type used to idenify index and key
-    typedef std::size_t IndexType;
+    /// The type used to identify index and key
+    using IndexType = std::size_t;
+
+    /// Disambiguate from names injected by the dense-backend base of Point
+    using Matrix = Kratos::Matrix;
+    using Vector = Kratos::Vector;
 
     /// Counted pointer of GaussPointItem
     KRATOS_CLASS_POINTER_DEFINITION( GaussPointItem );
@@ -153,7 +155,7 @@ public:
     }
 
     /**
-     * @brief Returns the integration weigth associated to the point
+     * @brief Returns the integration weight associated to the point
      * @return mWeight: The pointer to the Constitutive Law associated to the point
      */
 
@@ -163,7 +165,7 @@ public:
     }
 
     /**
-     * @brief Sets the integration weigth associated to the point
+     * @brief Sets the integration weight associated to the point
      * @param Weight The integration weight
      */
 
@@ -482,5 +484,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GAUSS_POINT_ITEM  defined

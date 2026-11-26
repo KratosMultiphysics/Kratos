@@ -9,6 +9,13 @@ except:
     sympy_available = False
     print("Skipping tests that require sympy")
 
+try:
+    import cupy
+    HAS_CUPY = True
+except ImportError:
+    HAS_CUPY = False
+    print("Skipping tests that require CuPy.")
+
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
@@ -20,6 +27,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suites
 from artificial_compressibility_test import ArtificialCompressibilityTest
 from buoyancy_test import BuoyancyTest
+from coupled_fluid_thermal_solver_test import CoupledFluidThermalSolverTest
 from couette_flow_test import CouetteFlowTest
 from darcy_channel_test import DarcyChannelTest
 from embedded_piston_test import EmbeddedPistonTest
@@ -46,16 +54,25 @@ from test_fluid_auxiliary_utilities import FluidAuxiliaryUtilitiesTest
 from test_navier_stokes_compressible_explicit_solver import NavierStokesCompressibleExplicitSolverTest
 from two_fluid_mass_conservation_source_test import TwoFluidMassConservationTest
 from apply_compressible_navier_stokes_boundary_conditions_process_test import ApplyMachDependentBoundaryConditionsTest
+from apply_outlet_process_test import ApplyOutletProcessTest
 if sympy_available:
     from compressible_navier_stokes_symbolic_generator_formulation_test import CompressibleNavierStokesSymbolicGeneratorFormulationTest
 from compressible_slip_wall_process_test import TestCompressibleSlipWallProcess
 from compute_pressure_coefficient_process_test import ComputePressureCoefficientProcessTest
-from compute_drag_process_test import ComputeDragProcessTest
+from applications.FluidDynamicsApplication.tests.compute_flow_forces_and_moments_process_test import ComputeFlowForcesAndMomentsProcessTest
 from test_compute_y_plus_process import ComputeYPlusProcessTest
 from test_fluid_computation_processes import FluidComputationProcessesTest
 from slip_spurious_tangential_correction_test import SlipSpuriousTangentialCorrectionTest
 from apply_wall_law_process_test import ApplyWallLawProcessTest
+from test_apply_mass_flow_process import ApplyMassFlowProcessTest
 from test_navier_stokes_fractional_vectorial_convection import NavierStokesFractionalVectorialConvectionTest
+from test_python_pool import TestBufferPoolNumPy
+if HAS_CUPY:
+    from test_python_pool import TestBufferPoolCuPy
+from test_cfd_utils import TestCFDUtils
+from vectorized_fluid_dynamics_analysis_test import VectorizedFluidDynamicsAnalysisTestOpenMP
+if HAS_CUPY:
+    from vectorized_fluid_dynamics_analysis_test import VectorizedFluidDynamicsAnalysisTestGPU
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -88,13 +105,20 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyMachDependentBoundaryConditionsTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyOutletProcessTest]))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCompressibleSlipWallProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputePressureCoefficientProcessTest]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeDragProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeFlowForcesAndMomentsProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeYPlusProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SlipSpuriousTangentialCorrectionTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyWallLawProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCFDUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBufferPoolNumPy]))
+    if HAS_CUPY:
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestBufferPoolCuPy]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyMassFlowProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CoupledFluidThermalSolverTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -133,9 +157,14 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidComputationProcessesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesFractionalVectorialConvectionTest]))
+    nightSuite.addTest(AdjointFluidTest('testCylinder'))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([VectorizedFluidDynamicsAnalysisTestOpenMP]))
+    if HAS_CUPY:
+        nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([VectorizedFluidDynamicsAnalysisTestGPU]))
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
@@ -145,7 +174,6 @@ def AssembleTestSuites():
     validationSuite.addTest(AdjointQSVMSSensitivity2D('testSteadyCylinder'))
     validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
     #FIXME: MOVE BACK THE SOD TO NIGHT ONCE WE FIX THE NIGHTLY BUILD ISSUE
-    validationSuite.addTest(AdjointFluidTest('testCylinder'))
     validationSuite.addTest(AdjointFluidTest('testSlipCylinder'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))

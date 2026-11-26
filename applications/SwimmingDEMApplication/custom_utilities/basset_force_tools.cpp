@@ -146,7 +146,7 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order, const in
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 // This method precalculates values needed for the implementation of the method described by van Hinsberg et al. (2011)
-// The method requires the determination of m numbers ai and m other numbers ti which determine m exponentials.The sum of these exponentials is unsed as an approximation to the tail of the Basset kernel
+// The method requires the determination of m numbers ai and m other numbers ti which determine m exponentials.The sum of these exponentials is used as an approximation to the tail of the Basset kernel
 // In the following particular values of these numbers are presented up to m = 10. These numbers were obtained by Casas and Ferrer (2016)
 void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m, const int n_quad_delta_times_window)
 {
@@ -464,7 +464,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
     const double e = std::exp(1);
 
     for (int i = 0; i < m; i++){
-        Ts[i] *= mTimeWindow;  // here we recover the dimensional tis from the non-dimensional tis (which are idependent of the time_window)
+        Ts[i] *= mTimeWindow;  // here we recover the dimensional tis from the non-dimensional tis (which are independent of the time_window)
         Alphas[i] = std::sqrt(e / Ts[i]);
         Betas[i] = - 0.5 / Ts[i];
     }
@@ -473,7 +473,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         DenseVector<double>& hinsberg_tail_contributions = inode->GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
-        hinsberg_tail_contributions.resize(3 * m + 3); //  the extra contribution will contain the oldest integrand that has been discarded from the integrands vector
+        hinsberg_tail_contributions.resize(3 * m + 3, false); //  the extra contribution will contain the oldest integrand that has been discarded from the integrands vector
         for (int i = 0; i < 3 * m + 3; i++){
             hinsberg_tail_contributions[i] = 0.0;
         }
@@ -498,7 +498,7 @@ void BassetForceTools::AppendIntegrands(ModelPart& r_model_part)
 
         int n = historic_integrands.size();
 
-        historic_integrands.resize(n + 3);
+        historic_integrands.resize(n + 3, true);
         historic_integrands.insert_element(n,     slip_vel[0]);
         historic_integrands.insert_element(n + 1, slip_vel[1]);
         historic_integrands.insert_element(n + 2, slip_vel[2]);
@@ -522,7 +522,7 @@ void BassetForceTools::AppendIntegrandsImplicit(ModelPart& r_model_part)
 
         if (mFirstTimeAppending){
             mFirstTimeAppending = false;
-            historic_integrands.resize(n + 9);
+            historic_integrands.resize(n + 9, true);
             historic_integrands.insert_element(n    , slip_vel[0]);
             historic_integrands.insert_element(n + 1, slip_vel[1]);
             historic_integrands.insert_element(n + 2, slip_vel[2]);
@@ -539,7 +539,7 @@ void BassetForceTools::AppendIntegrandsImplicit(ModelPart& r_model_part)
             old_particle_vel[0] = historic_integrands[n - 3];
             old_particle_vel[1] = historic_integrands[n - 2];
             old_particle_vel[2] = historic_integrands[n - 1];
-            historic_integrands.resize(n + 3);
+            historic_integrands.resize(n + 3, true);
             historic_integrands.insert_element(n - 6, slip_vel[0]);
             historic_integrands.insert_element(n - 5, slip_vel[1]);
             historic_integrands.insert_element(n - 4, slip_vel[2]);
@@ -570,7 +570,7 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
 
                 if (int(historic_integrands.size()) >= 3 * mNumberOfQuadratureStepsInWindow){
                     DenseVector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
-                    hinsberg_tail_contributions.resize(3 * mNumberOfExponentials + 3); // in case there is an inlet and new particles with empty vectors come about
+                    hinsberg_tail_contributions.resize(3 * mNumberOfExponentials + 3, true); // in case there is an inlet and new particles with empty vectors come about
                     hinsberg_tail_contributions[3 * mNumberOfExponentials]     = historic_integrands[0];
                     hinsberg_tail_contributions[3 * mNumberOfExponentials + 1] = historic_integrands[1];
                     hinsberg_tail_contributions[3 * mNumberOfExponentials + 2] = historic_integrands[2];
@@ -589,7 +589,7 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
             int n = historic_integrands.size();
 
             if (n < 3 * mNumberOfQuadratureStepsInWindow){ // list of integrands still growing
-                historic_integrands.resize(n + 3);
+                historic_integrands.resize(n + 3, true);
                 historic_integrands.insert_element(n,     slip_vel[0]);
                 historic_integrands.insert_element(n + 1, slip_vel[1]);
                 historic_integrands.insert_element(n + 2, slip_vel[2]);

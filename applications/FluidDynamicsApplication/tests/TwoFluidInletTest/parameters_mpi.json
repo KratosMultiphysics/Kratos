@@ -48,7 +48,7 @@
             "verbosity" : 0,
             "tolerance" : 1e-8,
             "scaling" : false,
-            "block_size" : 3,
+            "block_size" : "auto",
             "use_block_matrices_if_possible" : true,
             "coarse_enough" : 500
     	},

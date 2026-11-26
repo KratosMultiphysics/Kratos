@@ -24,6 +24,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 struct WaterFluxes {
     double precipitation = 0.0;
     double evaporation   = 0.0;
@@ -40,17 +42,11 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    GeoTMicroClimateFluxCondition() : GeoTCondition<TDim, TNumNodes>() {}
+    GeoTMicroClimateFluxCondition();
 
-    GeoTMicroClimateFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry)
-    {
-    }
+    GeoTMicroClimateFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    GeoTMicroClimateFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties)
-        : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
-    {
-    }
+    GeoTMicroClimateFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     Condition::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, Properties::Pointer pProperties) const override;
 
@@ -108,41 +104,11 @@ private:
                                            double FrictionDragCoefficient) const;
 
     // Serialization
-    friend class Serializer;
+    friend Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-        rSerializer.save("mIsInitialized", mIsInitialized);
-        rSerializer.save("mAlbedoCoefficient", mAlbedoCoefficient);
-        rSerializer.save("mFirstCoverStorageCoefficient", mFirstCoverStorageCoefficient);
-        rSerializer.save("mSecondCoverStorageCoefficient", mSecondCoverStorageCoefficient);
-        rSerializer.save("mThirdCoverStorageCoefficient", mThirdCoverStorageCoefficient);
-        rSerializer.save("mBuildEnvironmentRadiation", mBuildEnvironmentRadiation);
-        rSerializer.save("mMinimalStorage", mMinimalStorage);
-        rSerializer.save("mMaximalStorage", mMaximalStorage);
-        rSerializer.save("mRoughnessTemperature", mRoughnessTemperature);
-        rSerializer.save("mNetRadiation", mNetRadiation);
-        rSerializer.save("mWaterStorage", mWaterStorage);
-        rSerializer.save("mWaterDensity", mWaterDensity);
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-        rSerializer.load("mIsInitialized", mIsInitialized);
-        rSerializer.load("mAlbedoCoefficient", mAlbedoCoefficient);
-        rSerializer.load("mFirstCoverStorageCoefficient", mFirstCoverStorageCoefficient);
-        rSerializer.load("mSecondCoverStorageCoefficient", mSecondCoverStorageCoefficient);
-        rSerializer.load("mThirdCoverStorageCoefficient", mThirdCoverStorageCoefficient);
-        rSerializer.load("mBuildEnvironmentRadiation", mBuildEnvironmentRadiation);
-        rSerializer.load("mMinimalStorage", mMinimalStorage);
-        rSerializer.load("mMaximalStorage", mMaximalStorage);
-        rSerializer.load("mRoughnessTemperature", mRoughnessTemperature);
-        rSerializer.load("mNetRadiation", mNetRadiation);
-        rSerializer.load("mWaterStorage", mWaterStorage);
-        rSerializer.load("mWaterDensity", mWaterDensity);
-    }
+    void load(Serializer& rSerializer) override;
 
     bool   mIsInitialized                 = false;
     double mAlbedoCoefficient             = 0.0;

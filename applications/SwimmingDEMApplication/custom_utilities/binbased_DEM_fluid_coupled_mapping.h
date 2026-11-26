@@ -247,7 +247,6 @@ void ComputePostProcessResults(ModelPart& r_dem_model_part, ModelPart& r_fluid_m
 ///@name Input and output
 ///@{
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
 virtual std::string Info() const
 {
     return "";

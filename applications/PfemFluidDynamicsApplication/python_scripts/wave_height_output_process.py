@@ -106,7 +106,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         if param.IsVector(): # There is a single coordinate
             coordinates_list.append(param.GetVector())
         else:
-            for coordinate in param: # There is a list of coordinates
+            for coordinate in param.values(): # There is a list of coordinates
                 coordinates_list.append(coordinate.GetVector())
         return coordinates_list
 

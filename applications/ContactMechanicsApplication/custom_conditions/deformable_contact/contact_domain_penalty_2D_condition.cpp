@@ -305,7 +305,7 @@ namespace Kratos
 
     if(H==0) rVariables.Contact.TangentialGapSign=0;
 
-    // if friction still not avaliable:
+    // if friction still not available:
     //rVariables.Contact.Penalty.Tangent = 0;
     //rVariables.Contact.ContactFactor.Tangent = 0;
     //rVariables.Contact.TangentialGapSign=0;

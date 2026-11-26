@@ -80,7 +80,7 @@ public:
     ///@{
 
     /** @brief Calculates the bounding box for the given object.
-     * @details For this configuation file, the bounding box is equal to the point given in 'rObject'.
+     * @details For this configuration file, the bounding box is equal to the point given in 'rObject'.
      * @param rObject Point for which the bounding box will be calculated.
      * @param rLowPoint Lower point of the boundingbox.
      * @param rHighPoint Higher point of the boundingbox.
@@ -91,7 +91,7 @@ public:
     }
 
     /** @brief Calculates the bounding box for the given object extended with a Radius.
-     * @details For this configuation file, the bounding box is equal to the point given in 'rObject' + - a radius.
+     * @details For this configuration file, the bounding box is equal to the point given in 'rObject' + - a radius.
      * @param rObject Point for which the bounding box will be calculated.
      * @param rLowPoint Lower point of the boundingbox.
      * @param rHighPoint Higher point of the boundingbox.
@@ -115,7 +115,7 @@ public:
     }
 
     /** @brief Tests the intersection of two objects extended with a given radius.
-     * @details For this configuation file, tests if euclidean distance between the two nodes
+     * @details For this configuration file, tests if euclidean distance between the two nodes
      * is smaller than the provided 'Radius' within an Epsilon tolerance range.
      * @param rObj_1 First point of the test.
      * @param rObj_2 Second point of the test.
@@ -135,7 +135,7 @@ public:
     }
 
     /** @brief Tests the intersection of one object with a boundingbox described by 'rLowPoint' and 'rHighPoint'.
-     * @details For this configuation file, tests if one point is inside the boundingbox
+     * @details For this configuration file, tests if one point is inside the boundingbox
      * described by 'rLowPoint' and 'rHighPoint' within an Epsilon tolerance range.
      * @param rObject Point of the tests.
      * @param rLowPoint Lower point of the boundingbox.
@@ -154,7 +154,7 @@ public:
     }
 
     /** @brief Tests the intersection of one object with a boundingbox described by 'rLowPoint' and 'rHighPoint'.
-     * @details For this configuation file, tests if one point extended by radius is inside the boundingbox
+     * @details For this configuration file, tests if one point extended by radius is inside the boundingbox
      * described by 'rLowPoint' and 'rHighPoint' within an Epsilon tolerance range.
      * @param rObject Point of the tests.
      * @param rLowPoint Lower point of the boundingbox.

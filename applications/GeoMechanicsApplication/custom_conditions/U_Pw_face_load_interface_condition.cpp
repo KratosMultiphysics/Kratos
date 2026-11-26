@@ -13,11 +13,34 @@
 //
 
 // Application includes
-#include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
+#include "custom_conditions/U_Pw_face_load_interface_condition.h"
 #include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::UPwFaceLoadInterfaceCondition()
+    : UPwFaceLoadInterfaceCondition(0, nullptr, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::UPwFaceLoadInterfaceCondition(IndexType NewId,
+                                                                              GeometryType::Pointer pGeometry)
+    : UPwFaceLoadInterfaceCondition(NewId, pGeometry, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::UPwFaceLoadInterfaceCondition(IndexType NewId,
+                                                                              GeometryType::Pointer pGeometry,
+                                                                              PropertiesType::Pointer pProperties)
+    : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+    // Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
+    this->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1);
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Create(IndexType NewId,
@@ -44,7 +67,7 @@ void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Initialize(const ProcessInf
 template <>
 void UPwFaceLoadInterfaceCondition<2, 2>::CalculateInitialGap(const GeometryType& Geom)
 {
-    mInitialGap.resize(1);
+    mInitialGap.resize(1, false);
 
     array_1d<double, 3> Vx;
     noalias(Vx)    = Geom.GetPoint(1) - Geom.GetPoint(0);
@@ -54,7 +77,7 @@ void UPwFaceLoadInterfaceCondition<2, 2>::CalculateInitialGap(const GeometryType
 template <>
 void UPwFaceLoadInterfaceCondition<3, 4>::CalculateInitialGap(const GeometryType& Geom)
 {
-    mInitialGap.resize(2);
+    mInitialGap.resize(2, false);
 
     array_1d<double, 3> Vx;
     noalias(Vx)    = Geom.GetPoint(3) - Geom.GetPoint(0);
@@ -300,6 +323,18 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::string UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Info() const
 {
     return "UPwFaceLoadInterfaceCondition";
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
 }
 
 template class UPwFaceLoadInterfaceCondition<2, 2>;

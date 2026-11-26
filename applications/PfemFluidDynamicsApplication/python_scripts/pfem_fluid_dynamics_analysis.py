@@ -159,7 +159,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         (for each step) BEFORE solving the solution step.
         """
         self.clock_time = self.StartTimeMeasuring()
-        # processes to be executed at the begining of the solution step
+        # processes to be executed at the beginning of the solution step
         self.model_processes.ExecuteInitializeSolutionStep()
 
         for process in self._GetListOfProcesses():

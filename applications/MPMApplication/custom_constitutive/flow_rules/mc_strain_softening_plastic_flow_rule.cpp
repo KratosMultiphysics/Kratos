@@ -16,7 +16,7 @@
 #include <cmath>
 
 // External includes
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 // Project includes
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
@@ -43,7 +43,7 @@ MCStrainSofteningPlasticFlowRule::MCStrainSofteningPlasticFlowRule(YieldCriterio
 
 }
 
-//********* ASSIGMENT OPERATOR
+//********* ASSIGNMENT OPERATOR
 MCStrainSofteningPlasticFlowRule& MCStrainSofteningPlasticFlowRule::operator=(MCStrainSofteningPlasticFlowRule const& rOther)
 {
     MCPlasticFlowRule::operator=(rOther);

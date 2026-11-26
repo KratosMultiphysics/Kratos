@@ -1,0 +1,91 @@
+{
+    "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis",
+    "problem_data": {
+        "problem_name": "test_link_constraint_2d",
+        "parallel_type": "OpenMP",
+        "echo_level": 1,
+        "start_time": 0,
+        "end_time": 1
+    },
+    "solver_settings": {
+        "time_stepping": {
+            "time_step": 0.5
+        },
+        "solver_type": "Static",
+        "model_part_name": "root",
+        "domain_size": 2,
+        "echo_level": 0,
+        "analysis_type": "non_linear",
+        "reform_dofs_at_each_step" : false,
+        "move_mesh_flag" : false,
+        "max_iteration" : 1e2,
+        "model_import_settings": {
+            "input_type": "use_input_model_part"
+        },
+        "material_import_settings": {
+            "materials_filename": "link_constraint_2d_materials.json"
+        },
+        "convergence_criterion": "displacement_criterion",
+        "displacement_relative_tolerance": 1e-4,
+        "displacement_absolute_tolerance": 1e-9,
+        "builder_and_solver_settings" : {
+            "type" : "p_multigrid",
+            "advanced_settings" : {
+                "max_iterations" : 1,
+                "verbosity" : 1,
+                "linear_solver_settings" : {"solver_type" : "skyline_lu_factorization"},
+                "constraint_imposition_settings" : {
+                    "method" : "augmented_lagrange",
+                    "penalty_factor" : "1e6 * max",
+                    "max_iterations" : 2e1,
+                    "tolerance" : 1e-9,
+                    "verbosity" : 1
+                }
+            }
+        }
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "root.dirichlet",
+                    "variable_name": "DISPLACEMENT",
+                    "interval": [0, "End"],
+                    "constrained": [true, true, false],
+                    "value": [0, 0, 0]
+                }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+                "python_module" : "link_constraint_process",
+                "process_name" : "LinkConstraintProcess",
+                "Parameters" : {
+                    "model_part_name" : "root",
+                    "node_pairs" : [[2, 3]],
+                    "dimensions" : 2,
+                    "move_mesh_flag" : false,
+                    "interval" : [0, 0.6]
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "assign_vector_by_direction_to_condition_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionToConditionProcess",
+                "Parameters": {
+                    "model_part_name": "root.neumann",
+                    "variable_name": "POINT_LOAD",
+                    "interval": [
+                        0, "End"
+                    ],
+                    "modulus": "t",
+                    "direction": [-2, 7, 0]
+                }
+            }
+        ]
+    }
+}

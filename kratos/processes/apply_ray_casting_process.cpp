@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand, Ruben Zorrilla
 //
@@ -30,8 +30,8 @@ namespace Kratos
         ModelPart& rSkinPart,
         Parameters ThisParameters)
         : mSettings(ThisParameters),
-          mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)),
-          mIsSearchStructureAllocated(true)
+            mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)),
+            mIsSearchStructureAllocated(true)
     {
         mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
         mRelativeTolerance = mSettings["relative_tolerance"].GetDouble();
@@ -43,10 +43,10 @@ namespace Kratos
     ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-		const double RelativeTolerance)
-		: mRelativeTolerance(RelativeTolerance),
-          mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)),
-          mIsSearchStructureAllocated(true)
+        const double RelativeTolerance)
+        : mRelativeTolerance(RelativeTolerance),
+            mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)),
+            mIsSearchStructureAllocated(true)
     {
         KRATOS_WARNING("ApplyRayCastingProcess") << "Using deprecated constructor. Please use the one with Parameters.\n";
         mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
@@ -60,8 +60,8 @@ namespace Kratos
         FindIntersectedGeometricalObjectsProcess &TheFindIntersectedObjectsProcess,
         Parameters ThisParameters)
         : mSettings(ThisParameters),
-          mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess),
-          mIsSearchStructureAllocated(false)
+            mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess),
+            mIsSearchStructureAllocated(false)
     {
         mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
         mRelativeTolerance = mSettings["relative_tolerance"].GetDouble();
@@ -70,15 +70,15 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
-		FindIntersectedGeometricalObjectsProcess &TheFindIntersectedObjectsProcess,
-		const double RelativeTolerance,
-		const Variable<double>* pDistanceVariable,
-		const DistanceDatabase& rDistanceDatabase)
-		: mRelativeTolerance(RelativeTolerance),
-		  mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess),
-		  mIsSearchStructureAllocated(false),
-          mpDistanceVariable(pDistanceVariable)
+    ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
+        FindIntersectedGeometricalObjectsProcess &TheFindIntersectedObjectsProcess,
+        const double RelativeTolerance,
+        const Variable<double>* pDistanceVariable,
+        const DistanceDatabase& rDistanceDatabase)
+        : mRelativeTolerance(RelativeTolerance),
+            mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess),
+            mIsSearchStructureAllocated(false),
+            mpDistanceVariable(pDistanceVariable)
     {
         KRATOS_WARNING("ApplyRayCastingProcess") << "Using deprecated constructor. Please use the one with Parameters.\n";
         mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
@@ -90,7 +90,7 @@ namespace Kratos
             distance_database = "nodal_non_historical";
         } else {
             KRATOS_ERROR << "Provided 'distance_database' is '" << distance_database <<
-             "'. Available options are 'nodal_historical' and 'nodal_non_historical'." <<  std::endl;
+                "'. Available options are 'nodal_historical' and 'nodal_non_historical'." <<  std::endl;
         }
         mSettings["distance_database"].SetString(distance_database);
         mSettings["distance_database"].SetString(pDistanceVariable->Name());
@@ -104,7 +104,17 @@ namespace Kratos
             delete mpFindIntersectedObjectsProcess;
     }
 
-
+    template<std::size_t TDim>
+    Process::Pointer ApplyRayCastingProcess<TDim>::Create(
+        Model& rModel,
+        Parameters ThisParameters)
+    {
+        return Kratos::make_shared<ApplyRayCastingProcess<TDim>>(
+            rModel.GetModelPart(ThisParameters["volume_model_part"].GetString()),
+            rModel.GetModelPart(ThisParameters["skin_model_part"].GetString()),
+            ThisParameters);
+    }
+    
     template<std::size_t TDim>
     const Parameters ApplyRayCastingProcess<TDim>::GetDefaultParameters() const
     {
@@ -137,12 +147,12 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    double ApplyRayCastingProcess<TDim>::DistancePositionInSpace(const Node &rNode)
+    double ApplyRayCastingProcess<TDim>::DistancePositionInSpace(const Point &rPoint)
     {
         array_1d<double,TDim> distances;
         unsigned int n_ray_pos(0), n_ray_neg(0);
         IntersectionsContainerType intersections;
-        const auto &r_coords = rNode.Coordinates();
+        const auto &r_coords = rPoint.Coordinates();
 
         // Loop the x,y and z (3D) ray directions
         for (unsigned int i_direction = 0; i_direction < TDim; i_direction++){
@@ -505,9 +515,9 @@ namespace Kratos
         NodeScalarGetFunctionType distance_getter_functor;
         const std::string database = mSettings["distance_database"].GetString();
         if (database == "nodal_historical") {
-            distance_getter_functor = [](NodeType& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.FastGetSolutionStepValue(rDistanceVariable);};
+            distance_getter_functor = [](Node& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.FastGetSolutionStepValue(rDistanceVariable);};
         } else if (database == "nodal_non_historical") {
-            distance_getter_functor = [](NodeType& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.GetValue(rDistanceVariable);};
+            distance_getter_functor = [](Node& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.GetValue(rDistanceVariable);};
         } else {
             KRATOS_ERROR << "Provided 'distance_database' is '" << database << "'. Available options are 'nodal_historical' and 'nodal_non_historical'." <<  std::endl;
         }
@@ -559,8 +569,6 @@ namespace Kratos
         mEpsilon = mRelativeTolerance * mCharacteristicLength;
         mExtraRayOffset = 2.0 * mRelativeTolerance * mCharacteristicLength;
     }
-
-
 
     template class Kratos::ApplyRayCastingProcess<2>;
     template class Kratos::ApplyRayCastingProcess<3>;

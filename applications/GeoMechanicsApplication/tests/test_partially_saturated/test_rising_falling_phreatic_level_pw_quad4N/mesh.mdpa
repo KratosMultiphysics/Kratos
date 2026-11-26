@@ -1,0 +1,124 @@
+Begin Properties 0
+End Properties
+
+Begin Table 1 TIME WATER_PRESSURE
+   0.0  0.0
+   1.0  0.0
+  13.0  3.0
+  29.0 -1.0
+End Table
+
+Begin Nodes
+   1  1.0000000000 -5.0000000000 0.0000000000
+   2  1.0000000000  0.0000000000 0.0000000000
+   3  0.0000000000  0.0000000000 0.0000000000
+   4  0.0000000000 -5.0000000000 0.0000000000
+   5  1.0000000000 -4.0000000000 0.0000000000
+   6  1.0000000000 -3.0000000000 0.0000000000
+   7  1.0000000000 -2.0000000000 0.0000000000
+   8  1.0000000000 -1.0000000000 0.0000000000
+  15  0.0000000000 -1.0000000000 0.0000000000
+  16  0.0000000000 -2.0000000000 0.0000000000
+  17  0.0000000000 -3.0000000000 0.0000000000
+  18  0.0000000000 -4.0000000000 0.0000000000
+End Nodes
+
+Begin Elements TransientPwElement2D4N
+   1  0   4  1  5 18
+   2  0  18  5  6 17
+   3  0  17  6  7 16
+   4  0  16  7  8 15
+   5  0  15  8  2  3
+End Elements
+
+Begin SubModelPart Soil
+  Begin SubModelPartNodes
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+    15
+    16
+    17
+    18
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+    3
+    4
+    5
+  End SubModelPartElements
+End SubModelPart 
+
+Begin SubModelPart gravity
+  Begin SubModelPartNodes
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+    15
+    16
+    17
+    18
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+    3
+    4
+    5
+  End SubModelPartElements
+End SubModelPart 
+
+Begin SubModelPart TopWaterPressure
+  Begin SubModelPartTables
+    1
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    2
+    3
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart BottomWaterPressure
+  Begin SubModelPartTables
+    1
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    4
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart InitialWaterPressure
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    15
+    16
+    17
+    18
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+    3
+    4
+    5
+  End SubModelPartElements
+End SubModelPart 

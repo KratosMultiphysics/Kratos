@@ -69,7 +69,7 @@ namespace Kratos
    * the end of the system ordered in reverse order with respect to the DofSet.
    * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
    * this information.
-   * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+   * Calculation of the reactions involves a cost very similar to the calculation of the total residual
    * @author Riccardo Rossi
    */
   template <class TSparseSpace,
@@ -189,7 +189,7 @@ namespace Kratos
           if (EquationId.size() != 1)
             EquationId.resize(1, false);
 
-          if ((itNode->Is(FLUID) && itNode->IsNot(SOLID)) || itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
+          if ((itNode->Is(FLUID) && itNode->IsNot(SOLID)) || itNode->FastGetSolutionStepValue(INTERFACE_NODE))
           {
 
             double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
@@ -206,7 +206,7 @@ namespace Kratos
               }
 
               double volumetricCoeff = itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT) + 2.0 * deviatoricCoeff / 3.0;
-              if (itNode->IsNot(SOLID) || itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
+              if (itNode->IsNot(SOLID) || itNode->FastGetSolutionStepValue(INTERFACE_NODE))
               {
                 volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
               }
@@ -370,7 +370,7 @@ namespace Kratos
     /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
      * and condition its Dofs.
-     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
+     * @details The list of dofs is stores inside the BuilderAndSolver as it is closely connected to the
      * way the matrix and RHS are built
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
@@ -457,7 +457,7 @@ namespace Kratos
 
       BaseType::mDofSet = Doftemp;
 
-      // Throws an execption if there are no Degrees of freedom involved in the analysis
+      // Throws an exception if there are no Degrees of freedom involved in the analysis
       KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
 
       BaseType::mDofSetIsInitialized = true;
@@ -653,7 +653,7 @@ namespace Kratos
     {
       unsigned int local_size = RHS_Contribution.size();
 
-      if (BaseType::mCalculateReactionsFlag == false)
+      if (!BaseType::mCalculateReactionsFlag)
       {
         for (unsigned int i_local = 0; i_local < local_size; i_local++)
         {

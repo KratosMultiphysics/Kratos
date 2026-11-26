@@ -1,4 +1,4 @@
-GiD Post Results File 1.0
+GiD Post Results File 1.2
 Result "1_EigenFrequency_[Hz]_55.0004_DISPLACEMENT" "EigenVector_Animation" 0 Vector OnNodes
 Values
 1 1.1915 0.999326 0.860531

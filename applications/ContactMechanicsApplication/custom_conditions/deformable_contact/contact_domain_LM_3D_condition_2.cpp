@@ -118,7 +118,7 @@ namespace Kratos
       }
 
 
-    //set conectivities a-b-c-d correspondence with 1-2-3-4 (local contact element):
+    //set connectivities a-b-c-d correspondence with 1-2-3-4 (local contact element):
     //nodes 1/2/3 and slave for FaceType (PATCH-A)
     //nodes 1/2 and 3/4 for EdgeType (PATCH-B)
 
@@ -1189,7 +1189,7 @@ namespace Kratos
 
     //From total current gap compute multipliers:
 
-    //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //posible computation of the Lagrange Multiplier
+    //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //possible computation of the Lagrange Multiplier
     rVariables.Contact.Multiplier.Normal =rVariables.Contact.CurrentTensil.Normal;
     rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(1.0/(3.0*rVariables.Contact.ContactFactor.Normal));
 
@@ -1539,7 +1539,7 @@ namespace Kratos
 
     //From total current gap compute multipliers:
 
-    //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //posible computation of the Lagrange Multiplier
+    //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //possible computation of the Lagrange Multiplier
     rVariables.Contact.Multiplier.Normal =rVariables.Contact.CurrentTensil.Normal;
     rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(rVariables.Contact.Tangent.EquivalentHeigh/(3.0*rVariables.Contact.ContactFactor.Normal));
 

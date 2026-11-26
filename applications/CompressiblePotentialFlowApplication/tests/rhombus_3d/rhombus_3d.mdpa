@@ -761,13 +761,6 @@ Begin Conditions SurfaceCondition3D3N// GUI group identifier: _HIDDEN__SKIN_
     216 0 17 8 3
 End Conditions
 
-Begin Conditions LineCondition2D2N
-    217 0 109 87
-    218 0 87 56
-    219 0 56 49
-    220 0 49 42
-End Conditions
-
 Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto1 // Subtree Parts
     Begin SubModelPartNodes
             1
@@ -1601,10 +1594,6 @@ Begin SubModelPart Wake3D_Wake_Auto1 // Group Wake Auto1 // Subtree Wake3D
     Begin SubModelPartElements
     End SubModelPartElements
     Begin SubModelPartConditions
-            217
-            218
-            219
-            220
     End SubModelPartConditions
 End SubModelPart
 Begin SubModelPart Tip3D_Wing_Tips_Auto1 // Group Wing Tips Auto1 // Subtree Tip3D

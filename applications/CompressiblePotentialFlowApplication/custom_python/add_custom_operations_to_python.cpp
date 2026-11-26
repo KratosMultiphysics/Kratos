@@ -19,6 +19,8 @@
 #include "operations/operation.h"
 #include "custom_python/add_custom_operations_to_python.h"
 #include "custom_operations/potential_to_compressible_navier_stokes_operation.h"
+#include "custom_operations/define_2d_wake_operation.h"
+#include "custom_operations/define_3d_wake_operation.h"
 
 namespace Kratos::Python
 {
@@ -29,6 +31,14 @@ void AddCustomOperationsToPython(pybind11::module& m)
 
     py::class_<PotentialToCompressibleNavierStokesOperation, PotentialToCompressibleNavierStokesOperation::Pointer, Operation > (m,"PotentialToCompressibleNavierStokesOperation")
     .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<Define2DWakeOperation, Define2DWakeOperation::Pointer, Operation > (m,"Define2DWakeOperation")
+    .def(py::init< Model&, Parameters >())
+    ;
+
+    py::class_<Define3DWakeOperation, Define3DWakeOperation::Pointer, Operation > (m,"Define3DWakeOperation")
+    .def(py::init< Model&, Parameters >())
     ;
 }
 

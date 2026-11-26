@@ -25,6 +25,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "containers/model.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 namespace Kratos::Python
 {
@@ -88,6 +89,16 @@ void  AddSerializerToPython(pybind11::module& m)
     .def("LoadFromBeginning",SerializerLoadFromBeginning<Flags>)
     .def("Save",SerializerSave<Flags>)
 
+    .def("Load",SerializerLoad<TensorAdaptor<double>>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<TensorAdaptor<double>>)
+    .def("Save",SerializerSave<TensorAdaptor<double>>)
+    .def("Load",SerializerLoad<TensorAdaptor<int>>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<TensorAdaptor<int>>)
+    .def("Save",SerializerSave<TensorAdaptor<int>>)
+    .def("Load",SerializerLoad<TensorAdaptor<bool>>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<TensorAdaptor<bool>>)
+    .def("Save",SerializerSave<TensorAdaptor<bool>>)
+
     .def("Set",   &Serializer::Set)
     .def("Print", SerializerPrint)
     ;
@@ -98,6 +109,7 @@ void  AddSerializerToPython(pybind11::module& m)
     py::class_<FileSerializer, FileSerializer::Pointer, Serializer >(m,"FileSerializer")
     .def(py::init<std::string const&>())
     .def(py::init<std::string const&, Serializer::TraceType>())
+    .def(py::init<std::string const&, Serializer::TraceType, const bool>(), py::arg("tag"), py::arg("trace_type"), py::arg("is_data_only"))
     ;
 
     py::class_<StreamSerializer, StreamSerializer::Pointer, Serializer >(m,"StreamSerializer")

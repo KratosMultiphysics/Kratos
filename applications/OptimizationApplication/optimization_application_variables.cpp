@@ -157,6 +157,8 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double, YOUNG_MODULUS_SENSITIVITY);
     KRATOS_CREATE_VARIABLE(double, POISSON_RATIO_SENSITIVITY);
 
+    KRATOS_CREATE_VARIABLE(double, CUSTOM_DESIGN_VARIABLE);
+
     // do not expose the following variables to python. They are used
     // as temporary data holders. They can be changed
     // at any point of time in an analysis.

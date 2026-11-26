@@ -133,6 +133,57 @@ Begin SubModelPart GENERIC_Master // Group Master // Subtree GENERIC
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
+
+Begin SubModelPart Slave_lower_right // Group Slave_lower_right // Subtree GENERIC
+    Begin SubModelPartNodes
+           19
+           24
+           25
+           30
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Master_lower_right // Group Master_lower_right // Subtree GENERIC
+    Begin SubModelPartNodes
+           21
+           26
+           27
+           31
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Slave_upper_left // Group Slave_upper_left // Subtree GENERIC
+    Begin SubModelPartNodes
+            8
+           11
+           12
+           18
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Master_upper_left // Group Master_upper_left // Subtree GENERIC
+    Begin SubModelPartNodes
+            7
+            9
+           10
+           20
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
 Begin SubModelPart CNVDFFParts_Body // Group Body // Subtree CNVDFFParts
     Begin SubModelPartNodes
             1

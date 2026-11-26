@@ -2,6 +2,8 @@ import os
 
 import KratosMultiphysics                as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
 class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
@@ -384,37 +386,36 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
 
         test_name = os.path.join("test_k0_procedure_process", "test_k0_procedure_simple_dike")
         project_path = test_helper.get_file_path(os.path.join('.', test_name))
-        cwd = os.getcwd()
 
         # run simulation
         n_stages = 2
-        stages = test_helper.get_stages(project_path, n_stages)
+        run_multiple_stages.run_stages(project_path, n_stages)
 
-        os.chdir(project_path)
-        cauchy_stresses = [None] * n_stages
-        for idx, stage in enumerate(stages):
-            stage.Run()
-            # retrieve Cauchy stress tensor of this stage
-            cauchy_stresses[idx] = test_helper.get_cauchy_stress_tensor(stage)
-        os.chdir(cwd)
+        reader = GiDOutputFileReader()
 
         # compare first stage cauchy_stress_xx = k0_nc * cauchy_stress_yy, cauchy_stress_xy = 0.
         # k0_nc = 1 - sin( 30 degrees )
         k0_nc = 0.5
-        sig_stage1_element1562_integrationpoint1 = cauchy_stresses[0][1562-1][0]
-        sig_xx_1 = sig_stage1_element1562_integrationpoint1[0,0]
-        sig_yy_1 = sig_stage1_element1562_integrationpoint1[1,1]
+        output_data = reader.read_output_from(os.path.join(project_path, "simple_dike_test_with_gravity_umat_stage1.post.res"))
+        time = 0.0
+        element_ids = [1562]
+        integration_point_indices = [0]
+        sig_stage1_element1562_integrationpoint1 = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data, element_ids, integration_point_indices)[0][0]
+        sig_xx_1 = sig_stage1_element1562_integrationpoint1[0]
+        sig_yy_1 = sig_stage1_element1562_integrationpoint1[1]
         self.assertAlmostEqual( sig_xx_1, k0_nc*sig_yy_1 )
-        sig_xy_1 = sig_stage1_element1562_integrationpoint1[0,1]
+        sig_xy_1 = sig_stage1_element1562_integrationpoint1[3]
         self.assertEqual( sig_xy_1, 0.0 )
 
         # compare if Cauchy stress is almost unaltered far from the dam in second stage
-        sig_stage2_element1562_integrationpoint1 = cauchy_stresses[1][1562-1][0]
-        sig_xx_2 = sig_stage2_element1562_integrationpoint1[0,0]
+        output_data = reader.read_output_from(os.path.join(project_path, "simple_dike_test_with_gravity_umat_stage2.post.res"))
+        time = 1.0
+        sig_stage2_element1562_integrationpoint1 = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data, element_ids, integration_point_indices)[0][0]
+        sig_xx_2 = sig_stage2_element1562_integrationpoint1[0]
         self.assertIsClose( sig_xx_2, sig_xx_1, rel_tol=0.02 )
-        sig_yy_2 = sig_stage2_element1562_integrationpoint1[1,1]
+        sig_yy_2 = sig_stage2_element1562_integrationpoint1[1]
         self.assertIsClose( sig_yy_2, sig_yy_1, rel_tol=0.02 )
-        sig_xy_2 = sig_stage2_element1562_integrationpoint1[0,1]
+        sig_xy_2 = sig_stage2_element1562_integrationpoint1[3]
         self.assertIsClose( sig_xy_2, sig_xy_1, abs_tol=1.0E01 )
 
     def test_k0_procedure_for_horizontal_layers(self):

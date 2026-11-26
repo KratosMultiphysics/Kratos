@@ -15,7 +15,17 @@ class FluidAnalysisWithoutSolution(FluidDynamicsAnalysis):
         while self.time < self.end_time:
             self.time = self._solver.AdvanceInTime(self.time)
             self.InitializeSolutionStep()
-            #self.solver.Predict()
             #self.solver.SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
+
+    def InitializeSolutionStep(self):
+        """This function performs all the required operations that should be executed
+        (for each step) BEFORE solving the solution step.
+        """
+        self.PrintAnalysisStageProgressInformation()
+
+        self.ApplyBoundaryConditions() #here the processes are called
+        self.ChangeMaterialProperties() #this is normally empty
+        # self._GetSolver().Predict()
+        self._GetSolver().InitializeSolutionStep()

@@ -759,7 +759,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                     // Compute element kinematics B, F, DN_DX ...
                     CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-                    // Compute material reponse
+                    // Compute material response
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
                     double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ[point_number]);
@@ -823,7 +823,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
                 const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( this_constitutive_variables.StressVector );
@@ -967,10 +967,10 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 //call the constitutive law to update material variables
                 if( rVariable == CAUCHY_STRESS_VECTOR) {
-                    // Compute material reponse
+                    // Compute material response
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
                 } else {
-                    // Compute material reponse
+                    // Compute material response
                     CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
                 }
 
@@ -1006,7 +1006,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this_stress_measure);
 
                 if ( rOutput[point_number].size() != strain_size)
@@ -1093,7 +1093,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
                 if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
@@ -1721,7 +1721,7 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
 
     noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
 
-    // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    // 1.-Get Damping Coefficients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0.0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) )
         alpha = GetProperties()[RAYLEIGH_ALPHA];

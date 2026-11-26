@@ -12,8 +12,7 @@
 
 
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_PQ_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_PQ_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -107,9 +106,9 @@ public:
     //************* STARTING - ENDING  METHODS
 
     /**
-     * Called at the beginning of each solution step
+     * Performs the particle to grid mapping
      */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -145,4 +144,3 @@ private:
 
 }; // Class MPMUpdatedLagrangianPQ
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_PQ_H_INCLUDED  defined

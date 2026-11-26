@@ -205,6 +205,52 @@ KRATOS_TEST_CASE_IN_SUITE(VariableUtilsClearNonHistoricalDataConditions, KratosC
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(VariableUtilsClearHistoricalData, KratosCoreFastSuite)
+{
+    // Set auxilary nodal structure
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+    r_test_model_part.AddNodalSolutionStepVariable(PRESSURE);
+    r_test_model_part.AddNodalSolutionStepVariable(VELOCITY);
+    r_test_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    r_test_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_test_model_part.AddNodalSolutionStepVariable(DEFORMATION_GRADIENT);
+    for (std::size_t i = 0; i < 10; ++i) {
+        r_test_model_part.CreateNewNode(i,0.0,0.0,0.0);
+    }
+
+    // Set fake values in the historical database
+    array_1d<double,3> aux_vect;
+    Matrix aux_mat = ZeroMatrix(3,3);
+    for (std::size_t i = 0; i < 3; ++i) {
+        aux_vect[i] = 1.0;
+        for (std::size_t j = 0; j < 3; ++j) {
+            aux_mat(i,j) = 1.0;
+        }
+    }
+    for (auto& r_node : r_test_model_part.Nodes()) {
+        r_node.FastGetSolutionStepValue(PRESSURE) = 1.0;
+        r_node.FastGetSolutionStepValue(TEMPERATURE) = 1.0;
+        noalias(r_node.FastGetSolutionStepValue(VELOCITY)) = aux_vect;
+        noalias(r_node.FastGetSolutionStepValue(DISPLACEMENT)) = aux_vect;
+        r_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT) = aux_mat;
+    }
+
+    // Set some values to zero in the non-historical database
+    VariableUtils().ClearHistoricalData(r_test_model_part);
+
+    // Values are properly allocated
+    const double tolerance = 1.0e-12;
+    const auto ZeroArray = array_1d<double, 3>(3, 0.0);
+    for (const auto& r_node : r_test_model_part.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(PRESSURE), 0.0, tolerance);
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(TEMPERATURE), 0.0, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_node.FastGetSolutionStepValue(VELOCITY), ZeroArray, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_node.FastGetSolutionStepValue(DISPLACEMENT), ZeroArray, tolerance);
+        KRATOS_EXPECT_MATRIX_NEAR(r_node.FastGetSolutionStepValue(DEFORMATION_GRADIENT), ZeroMatrix(0,0), tolerance);
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(VariableUtilsGetPositionsVector, KratosCoreFastSuite)
 {
     // Set auxilary elemental structure

@@ -90,13 +90,34 @@ class ANNPROM_Keras_Model(Model):
 
 class RomNeuralNetworkTrainer(object):
 
-    def __init__(self, general_rom_manager_parameters, mu_train, mu_validation, data_base):
+    def __init__(self, general_rom_manager_parameters, mu_train, mu_validation, data_base, sub_solver_name=None, rows=None):
+        """For a coupled sub-solver, 'rows' are the rows of its unknowns in the snapshots and basis matrices,
+        and its files are prefixed with '<sub_solver_name>_'."""
 
         self.general_rom_manager_parameters = general_rom_manager_parameters
         self.nn_parameters = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]
         self.mu_train = mu_train
         self.mu_validation = mu_validation
         self.data_base = data_base
+        self.rows = rows
+        self.file_prefix = "" if sub_solver_name is None else f"{sub_solver_name}_"
+
+    def _GetSnapshots(self, mu_list, table_name='FOM'):
+        snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=table_name)
+        return snapshots if self.rows is None else snapshots[self.rows, :]
+
+    def _GetBasisAndSingularValues(self):
+        _, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
+        phi = self.data_base.get_single_numpy_from_database(hash_basis)
+        if self.rows is None:
+            _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
+            sigma_vec = self.data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(self.mu_train))
+        else:
+            # Basis of the sub-solver: the rows of its unknowns, without the zero-padded columns
+            phi = phi[self.rows, :]
+            phi = phi[:, np.any(phi != 0.0, axis=0)]
+            sigma_vec = np.linalg.norm(phi.T @ self._GetSnapshots(self.mu_train), axis=1)/np.sqrt(len(self.mu_train))
+        return phi, sigma_vec
 
     def _CheckNumberOfModes(self,n_inf,n_sup,n_max):
         if n_inf >= n_max:
@@ -108,15 +129,15 @@ class RomNeuralNetworkTrainer(object):
 
     def _GetTrainingData(self, n_inf, n_sup):
 
-        S_train = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name=f'FOM')
-        S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM')
+        S_train = self._GetSnapshots(self.mu_train)
+        S_val = self._GetSnapshots(self.mu_validation)
 
-        _, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
-        phi = self.data_base.get_single_numpy_from_database(hash_basis)
-        _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
-        sigma_vec =  self.data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(self.mu_train))
+        phi, sigma_vec = self._GetBasisAndSingularValues()
 
         self._CheckNumberOfModes(n_inf,n_sup,sigma_vec.shape[0])
+
+        # Kept to be saved with the network of a sub-solver: its online decoder must use the same scaling
+        self.sigma_vec = sigma_vec[:n_sup]
 
         phisig_inv_inf = np.linalg.inv(np.diag(sigma_vec[:n_inf]))@phi[:,:n_inf].T
         phisig_inv_sup = np.linalg.inv(np.diag(sigma_vec[n_inf:n_sup]))@phi[:,n_inf:n_sup].T
@@ -131,7 +152,7 @@ class RomNeuralNetworkTrainer(object):
 
         if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
             #fetching nonconverged sols for enlarging training samples in ann enhanced prom
-            data = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name='NonconvergedFOM') #TODO this might be too large. Add partitioned approached or a limit size
+            data = self._GetSnapshots(self.mu_train, table_name='NonconvergedFOM') #TODO this might be too large. Add partitioned approached or a limit size
             Q_inf_train = np.r_[Q_inf_train, (phisig_inv_inf@data).T]
             Q_sup_train = np.r_[Q_sup_train, (phisig_inv_sup@data).T]
 
@@ -144,15 +165,12 @@ class RomNeuralNetworkTrainer(object):
 
     def _GetEvaluationData(self, model_properties):
 
-        S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM')
+        S_val = self._GetSnapshots(self.mu_validation)
 
         n_inf = model_properties['modes'][0]
         n_sup = model_properties['modes'][1]
 
-        _, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
-        phi = self.data_base.get_single_numpy_from_database(hash_basis)
-        _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
-        sigma_vec =  self.data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(self.mu_train))
+        phi, sigma_vec = self._GetBasisAndSingularValues()
 
         phisig_inv_inf = np.linalg.inv(np.diag(sigma_vec[:n_inf]))@phi[:,:n_inf].T
         phisig_inv_sup = np.linalg.inv(np.diag(sigma_vec[n_inf:n_sup]))@phi[:,n_inf:n_sup].T
@@ -233,8 +251,12 @@ class RomNeuralNetworkTrainer(object):
 
         model_name, _ = self.data_base.get_hashed_file_name_for_table("Neural_Network", self.mu_train)
         model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / model_name)
-        model_path.mkdir(parents=True, exist_ok=False)
+        # The networks of the coupled sub-solvers are saved in the same folder
+        model_path.mkdir(parents=True, exist_ok=self.rows is not None)
 
+        if self.rows is not None:
+            # All the sub-solvers share the 'modes' settings, but they might have fewer modes available
+            n_sup = min(n_sup, self._GetBasisAndSingularValues()[0].shape[1])
 
         Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor = self._GetTrainingData(n_inf, n_sup)
 
@@ -269,21 +291,23 @@ class RomNeuralNetworkTrainer(object):
             }
         }
 
-        with open(str(model_path)+"/train_config.json", "w") as ae_config_json_file:
+        with open(str(model_path)+f"/{self.file_prefix}train_config.json", "w") as ae_config_json_file:
             json.dump(training_parameters_dict, ae_config_json_file)
 
-        network.save_weights(str(model_path)+"/model.weights.h5")
-        with open(str(model_path)+"/history.json", "w") as history_file:
+        network.save_weights(str(model_path)+f"/{self.file_prefix}model.weights.h5")
+        with open(str(model_path)+f"/{self.file_prefix}history.json", "w") as history_file:
             json.dump(str(history.history), history_file)
 
-        self._SaveWeightsKratosFormat(network, str(model_path)+"/model_weights.npy")
+        self._SaveWeightsKratosFormat(network, str(model_path)+f"/{self.file_prefix}model_weights.npy")
+        if self.rows is not None:
+            np.save(str(model_path)+f"/{self.file_prefix}SingularValues.npy", self.sigma_vec)
 
     def EvaluateNetwork(self):
 
         model_name, _ = self.data_base.get_hashed_file_name_for_table("Neural_Network", self.mu_train)
         model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / model_name)
 
-        with open(str(model_path)+'/train_config.json', "r") as config_file:
+        with open(str(model_path)+f'/{self.file_prefix}train_config.json', "r") as config_file:
             model_properties = json.load(config_file)
 
         n_inf = model_properties['modes'][0]
@@ -293,7 +317,7 @@ class RomNeuralNetworkTrainer(object):
         network = self._DefineNetwork(n_inf, n_sup, layers_size)
         network.summary()
 
-        network.load_weights(str(model_path)+'/model.weights.h5')
+        network.load_weights(str(model_path)+f'/{self.file_prefix}model.weights.h5')
 
         S_val, Q_inf_val, Q_sup_val, phisig_inf, phisig_sup = self._GetEvaluationData(model_properties)
 

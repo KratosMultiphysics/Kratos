@@ -85,7 +85,7 @@ public:
         pSolver = Kratos::make_shared<SolverType>(*pBuiltinMatrix);
     }
 
-    void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    bool PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         std::vector<DataType> x(rX.size());
         std::vector<DataType> b(rB.size());
@@ -95,6 +95,8 @@ public:
         (*pSolver)(b, x);
 
         std::copy(std::begin(x), std::end(x), std::begin(rX));
+
+        return true;
     }
 
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override

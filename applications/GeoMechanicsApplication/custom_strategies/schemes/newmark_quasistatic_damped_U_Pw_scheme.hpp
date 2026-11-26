@@ -129,23 +129,6 @@ protected:
         }
     }
 
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            // No accelerations of the displacement/rotation D.O.F. in this quasistatic damped scheme
-            this->UpdateVectorFirstTimeDerivative(rNode);
-
-            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
-                this->UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
-                                                 r_first_order_scalar_variable.first_time_derivative);
-            }
-        });
-
-        KRATOS_CATCH("")
-    }
-
 private:
     std::vector<Matrix> mDampingMatrix;
     std::vector<Vector> mVelocityVector;

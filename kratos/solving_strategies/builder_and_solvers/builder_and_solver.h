@@ -60,7 +60,7 @@ template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class BuilderAndSolver
+class KRATOS_API(KRATOS_CORE) BuilderAndSolver
 {
 public:
     ///@name Type Definitions

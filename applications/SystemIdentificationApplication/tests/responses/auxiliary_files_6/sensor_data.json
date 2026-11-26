@@ -14,7 +14,7 @@
             ]
         },
         {
-            "name": "strain_xx_1",
+            "name": "strain_xz_1",
             "strain_type": "strain_xz",
             "strain_variable": "GREEN_LAGRANGE_STRAIN_TENSOR",
             "type": "strain_sensor",

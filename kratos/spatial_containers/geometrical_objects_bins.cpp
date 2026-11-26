@@ -124,12 +124,13 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
     ResultType current_result;
     current_result.SetDistance(std::numeric_limits<double>::max());
 
+    const double starting_radius = *std::min_element(mCellSizes.begin(), mCellSizes.end());
     const double radius_increment = *std::max_element(mCellSizes.begin(), mCellSizes.end());
 
     array_1d<std::size_t, Dimension> min_position;
     array_1d<std::size_t, Dimension> max_position;
 
-    for(double current_radius = radius_increment ; current_radius < Radius + radius_increment ; current_radius += radius_increment){
+    for(double current_radius = starting_radius ; current_radius < Radius + radius_increment ; current_radius += radius_increment){
         current_radius = (current_radius > Radius) ? Radius : current_radius;
         for(unsigned int i = 0; i < Dimension; i++ ) {
             min_position[i] = CalculatePosition(rPoint[i] - current_radius, i);

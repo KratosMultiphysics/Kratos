@@ -21,6 +21,7 @@
 
 #include "modeler/operation/voxel_mesher_operation.h"
 #include "modeler/operation/find_contacts_in_skin_model_part.h"
+#include "modeler/operation/compute_surrogate_boundary_data.h"
 
 namespace Kratos {
 
@@ -29,6 +30,7 @@ template class KratosComponents<VoxelMesherOperationFactory::RegisteredType>;
 void RegisterVoxelMesherOperation()
 {
     VoxelMesherOperationFactory::Register<FindContactsInSkinModelPart>("find_contacts_in_skin_model_part");
+    VoxelMesherOperationFactory::Register<ComputeSurrogateBoundaryData>("compute_surrogate_boundary_data");
 }
 
 }

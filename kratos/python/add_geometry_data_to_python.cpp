@@ -31,11 +31,7 @@ void AddGeometryDataToPython(pybind11::module& m)
         .value("GI_GAUSS_3", GeometryData::IntegrationMethod::GI_GAUSS_3)
         .value("GI_GAUSS_4", GeometryData::IntegrationMethod::GI_GAUSS_4)
         .value("GI_GAUSS_5", GeometryData::IntegrationMethod::GI_GAUSS_5)
-        .value("GI_EXTENDED_GAUSS_1", GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1)
-        .value("GI_EXTENDED_GAUSS_2", GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2)
-        .value("GI_EXTENDED_GAUSS_3", GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3)
-        .value("GI_EXTENDED_GAUSS_4", GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4)
-        .value("GI_EXTENDED_GAUSS_5", GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5);
+        .value("GI_LOBATTO_1", GeometryData::IntegrationMethod::GI_LOBATTO_1);
 
     auto geometry_family = py::enum_<GeometryData::KratosGeometryFamily>(m, "GeometryData_KratosGeometryFamily")
         .value("Kratos_NoElement", GeometryData::KratosGeometryFamily::Kratos_NoElement)
@@ -95,6 +91,7 @@ void AddGeometryDataToPython(pybind11::module& m)
         .value("Kratos_Brep_Curve_On_Surface", GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface)
         .value("Kratos_Quadrature_Point_Geometry", GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry)
         .value("Kratos_Coupling_Geometry", GeometryData::KratosGeometryType::Kratos_Coupling_Geometry)
+        .value("Kratos_Quadrature_Point_Curve_Geometry", GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_Geometry)
         .value("Kratos_Quadrature_Point_Curve_On_Surface_Geometry", GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry)
         .value("Kratos_Quadrature_Point_Surface_In_Volume_Geometry", GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry);
 

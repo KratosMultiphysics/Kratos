@@ -405,7 +405,7 @@ bool MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateAe(
     const IntegrationMethod ThisIntegrationMethod
     )
 {
-    // We initilize the Ae components
+    // We initialize the Ae components
     AeData rAeData;
     rAeData.Initialize();
 
@@ -476,20 +476,25 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateKinemat
     const PointType& rLocalPointDecomp,
     const PointType& rLocalPointParent,
     const GeometryPointType& rGeometryDecomp,
-    const bool DualLM
+    const bool DualLM,
+    const ProcessInfo::Pointer pCurrentProcessInfo
     )
 {
-    /// SLAVE CONDITION ///
-    /* SHAPE FUNCTIONS */
+    // Slave condition
+    // Shape functions
     GetParentGeometry().ShapeFunctionsValues( rVariables.NSlave, rLocalPointParent.Coordinates() );
     rVariables.PhiLagrangeMultipliers = (DualLM == true) ? prod(rAe, rVariables.NSlave) : rVariables.NSlave;
 
-    /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
+    // Calculate Jacobian and determinant
     rVariables.DetjSlave = rGeometryDecomp.DeterminantOfJacobian( rLocalPointDecomp );
 
-    KRATOS_ERROR_IF(rVariables.DetjSlave < 0.0) << "WARNING:: CONDITION ID: " << this->Id() << " INVERTED. DETJ: " << rVariables.DetjSlave << std::endl;
+    if (pCurrentProcessInfo != nullptr) {
+        const double ref_length = pCurrentProcessInfo->Has(PROBLEM_REFERENCE_LENGTH) ? pCurrentProcessInfo->GetValue(PROBLEM_REFERENCE_LENGTH) : 1.0;
 
-    /// MASTER CONDITION ///
+        KRATOS_ERROR_IF(rVariables.DetjSlave <= 1.0e-18 * ref_length) << "WARNING:: CONDITION ID: " << this->Id() << " INVERTED. DETJ: " << rVariables.DetjSlave << std::endl;
+    }
+
+    // Master condition
     this->MasterShapeFunctionValue( rVariables, rNormalMaster, rLocalPointParent);
 }
 
@@ -560,7 +565,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalLH
         }
     }
     
-    // Update intial index
+    // Update initial index
     initial_row_index = dof_size * TNumNodesMaster;
 
     // Iterate over the number of dofs on slave side

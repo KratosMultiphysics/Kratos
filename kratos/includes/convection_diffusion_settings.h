@@ -11,8 +11,7 @@
 //                   Pablo Becker
 //
 
-#if !defined(KRATOS_CONVECTION_DIFFUSION_SETTINGS_INCLUDED )
-#define  KRATOS_CONVECTION_DIFFUSION_SETTINGS_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -539,5 +538,3 @@ KRATOS_DEFINE_VARIABLE(ConvectionDiffusionSettings::Pointer, CONVECTION_DIFFUSIO
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 }  // namespace Kratos.
-
-#endif // KRATOS_CONVECTION_DIFFUSION_SETTINGS_INCLUDED  defined

@@ -69,7 +69,7 @@ Matrix& HelmholtzJacobianStiffened3D::CalculateValue(
 
     // TODO: The following code block is not the perfect way to do this
     //       But I cannot come up with a better solution for the time being.
-    //       Setting material proeprties (such as POSISSON_RATIOm YOUNGS_MODULUST)
+    //       Setting material properties (such as POISSON_RATIO, YOUNGS_MODULUS)
     //       from the Elements introduce race conditions and dangerous.
 
     // ---------------------------------------------------------------------------

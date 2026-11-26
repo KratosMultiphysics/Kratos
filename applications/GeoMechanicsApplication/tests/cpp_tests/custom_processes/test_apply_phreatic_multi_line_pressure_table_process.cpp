@@ -77,4 +77,26 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyPhreaticMultiLinePressureTableProcessDoesNotThrow
         r_model_part, test_parameters))
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyPhreaticMultiLinePressureTableProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto       model              = Model{};
+    auto&      r_empty_model_part = model.CreateModelPart("foo");
+    const auto test_parameters    = Parameters{R"(
+            {
+                "model_part_name": "foo",
+                "variable_name": "WATER_PRESSURE",
+                "x_coordinates": [0.0, 1.0, 2.0],
+                "y_coordinates": [0.0, 1.0, 2.0],
+                "z_coordinates": [0.0, 0.0, 0.0],
+                "gravity_direction": 1,
+                "out_of_plane_direction": 2,
+                "table": [0, 0, 3]
+            }  )"};
+    const ApplyPhreaticMultiLinePressureTableProcess process{r_empty_model_part, test_parameters};
+
+    // Act & assert
+    KRATOS_EXPECT_EQ(process.Info(), "ApplyPhreaticMultiLinePressureTableProcess");
+}
+
 } // namespace Kratos::Testing

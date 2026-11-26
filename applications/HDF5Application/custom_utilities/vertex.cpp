@@ -13,7 +13,6 @@
 // Internal includes
 #include "vertex.h"
 
-
 // STL includes
 #include <limits>
 
@@ -25,29 +24,14 @@ namespace HDF5
 namespace Detail
 {
 
-
-const NodalVariableGetter::UniquePointer Vertex::mpHistoricalVariableGetter(new HistoricalVariableGetter);
-
-
-const NodalVariableGetter::UniquePointer Vertex::mpNonHistoricalVariableGetter(new NonHistoricalVariableGetter);
-
-
 Vertex::Vertex(const array_1d<double,3>& rPosition,
                const PointLocatorAdaptor& rLocator,
-               std::size_t id,
-               bool isHistorical)
+               std::size_t id)
     : Point(rPosition),
       mID(id),
       mpContainingElement(rLocator.FindElement(*this))
 {
     KRATOS_TRY
-
-    if (isHistorical) {
-        mpVariableGetter = &*mpHistoricalVariableGetter;
-    }
-    else {
-        mpVariableGetter = &*mpNonHistoricalVariableGetter;
-    }
 
     // Get shape function values if the containing element was found
     if (mpContainingElement.get()) {
@@ -72,10 +56,9 @@ Vertex::Vertex()
 
 Vertex::Pointer Vertex::MakeShared(const array_1d<double,3>& rPosition,
                                    const PointLocatorAdaptor& rLocator,
-                                   std::size_t id,
-                                   bool isHistorical)
+                                   std::size_t id)
 {
-    return Vertex::Pointer(new Vertex(rPosition, rLocator, id, isHistorical));
+    return Vertex::Pointer(new Vertex(rPosition, rLocator, id));
 }
 
 

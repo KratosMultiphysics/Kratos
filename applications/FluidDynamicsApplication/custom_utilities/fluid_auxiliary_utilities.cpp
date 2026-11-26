@@ -227,7 +227,7 @@ double FluidAuxiliaryUtilities::CalculateFluidNegativeVolume(const ModelPart& rM
     }
 
     // Synchronize among processors
-    r_communicator.GetDataCommunicator().SumAll(fluid_volume);
+    fluid_volume = r_communicator.GetDataCommunicator().SumAll(fluid_volume);
 
     return fluid_volume;
 }

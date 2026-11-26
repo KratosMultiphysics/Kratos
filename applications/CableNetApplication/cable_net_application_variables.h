@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 
 namespace Kratos
 {

@@ -334,7 +334,7 @@ void HelmholtzSurfShapeCondition::CalculateNormal(VectorType & r_n) const
     v2[1] = r_cond_geom[2].Y0() - r_cond_geom[0].Y0();
     v2[2] = r_cond_geom[2].Z0() - r_cond_geom[0].Z0();
 
-    r_n.resize(3);
+    r_n.resize(3, false);
     MathUtils<double>::CrossProduct(r_n,v1,v2);
     double norm = MathUtils<double>::Norm3(r_n);
     r_n /= norm;
@@ -479,7 +479,7 @@ void HelmholtzSurfShapeCondition::CalculateSurfaceStiffnessMatrix(
         noalias(A_dirc) += integration_weight * r_helmholtz * r_helmholtz * prod(DN_DX_t, trans(DN_DX_t));
     }
 
-    //contruct the stifness matrix in all dims
+    //construct the stiffness matrix in all dims
     for(IndexType i=0;i<number_of_nodes;i++)
         for(IndexType j=0;j<dimension;j++)
             for(IndexType k=0;k<number_of_nodes;k++)

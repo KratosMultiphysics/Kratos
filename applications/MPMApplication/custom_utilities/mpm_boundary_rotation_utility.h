@@ -65,6 +65,9 @@ public:
 	using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::Rotate;
     using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::RevertRotate;
 
+	using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::WriteBlockMatrix;
+	using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::ReadBlockMatrix;
+
 	typedef Node NodeType;
 
 	typedef Geometry< Node > GeometryType;
@@ -109,10 +112,21 @@ public:
 		TLocalVectorType& rLocalVector,
 		GeometryType& rGeometry) const override
 	{
-		if (this->GetBlockSize() == this->GetDomainSize()) // irreducible case
+		const unsigned int num_nodes = rGeometry.PointsNumber();
+		const unsigned int dimension = this->GetDomainSize();
+		const unsigned int local_size = num_nodes * dimension;
+
+		if (rLocalVector.size() == local_size) // irreducible case
 		{
 			if (this->GetDomainSize() == 2) this->template RotateAuxPure<2>(rLocalMatrix,rLocalVector,rGeometry);
 			else if (this->GetDomainSize() == 3) this->template RotateAuxPure<3>(rLocalMatrix,rLocalVector,rGeometry);
+		}
+		else if (rLocalVector.size() == dimension + local_size) // lagrange multiplier condition
+		{
+			if (this->GetDomainSize() == 2)
+				RotateLagrangeCondition<2>(rLocalMatrix,rLocalVector,rGeometry);
+			else if (this->GetDomainSize() == 3)
+				RotateLagrangeCondition<3>(rLocalMatrix,rLocalVector,rGeometry);
 		}
 		else // mixed formulation case
 		{
@@ -127,11 +141,22 @@ public:
         TLocalVectorType& rLocalVector,
         GeometryType& rGeometry) const
     {
-        if (this->GetBlockSize() == this->GetDomainSize()) // irreducible case
+        const unsigned int num_nodes = rGeometry.PointsNumber();
+		const unsigned int dimension = this->GetDomainSize();
+		const unsigned int local_size = num_nodes * dimension;
+
+		if (rLocalVector.size() == local_size) // irreducible case
         {
             if (this->GetDomainSize() == 2) this->template RotateAuxPure<2,true>(rLocalMatrix,rLocalVector,rGeometry);
             else if (this->GetDomainSize() == 3) this->template RotateAuxPure<3,true>(rLocalMatrix,rLocalVector,rGeometry);
         }
+		else if (rLocalVector.size() == dimension + local_size) // lagrange multiplier condition
+		{
+			if (this->GetDomainSize() == 2)
+				RotateLagrangeCondition<2, true>(rLocalMatrix,rLocalVector,rGeometry);
+			else if (this->GetDomainSize() == 3)
+				RotateLagrangeCondition<3, true>(rLocalMatrix,rLocalVector,rGeometry);
+		}
         else // mixed formulation case
         {
             if (this->GetDomainSize() == 2) this->template RotateAux<2,3,true>(rLocalMatrix,rLocalVector,rGeometry);
@@ -184,9 +209,9 @@ public:
 
                     // Modifications to introduce friction force
                     const double mu = rGeometry[itNode].GetValue(FRICTION_COEFFICIENT);
-                    const double tangential_penalty_factor = rGeometry[itNode].GetValue(TANGENTIAL_PENALTY_FACTOR);
+                    const double tangential_penalty_coefficient = rGeometry[itNode].GetValue(TANGENTIAL_PENALTY_COEFFICIENT);
 
-                    if (mu > 0 && tangential_penalty_factor > 0) { // Friction active
+                    if (mu > 0 && tangential_penalty_coefficient > 0) { // Friction active
                         array_1d<double,3> & r_stick_force = rGeometry[itNode].FastGetSolutionStepValue(STICK_FORCE);
 
                         // accumulate normal forces (RHS vector) for subsequent re-determination of friction state
@@ -207,7 +232,7 @@ public:
                             // [ displacement in MPM is the displacement update -> penalize any and all displacement
                             //   updates in the tangential direction [this assumes a stationary background grid]
                             for( unsigned int i = 1; i < this->GetDomainSize(); ++i) {
-                                r_stick_force[i] = -tangential_penalty_factor * displacement_copy[i];
+                                r_stick_force[i] = -tangential_penalty_coefficient * displacement_copy[i];
                             }
 
                             const int friction_state = rGeometry[itNode].FastGetSolutionStepValue(FRICTION_STATE);
@@ -215,7 +240,7 @@ public:
                             if(friction_state == STICK) {
                                 if (rLocalMatrix.size1() != 0) {
                                     for (unsigned int i = 1; i < this->GetDomainSize(); ++i)
-                                        rLocalMatrix(j + i, j + i) += tangential_penalty_factor;
+                                        rLocalMatrix(j + i, j + i) += tangential_penalty_coefficient;
                                 }
                             } // else, sliding: nothing needed for LHS
 
@@ -357,60 +382,6 @@ public:
 		}
 	}
 
-	void CalculateReactionForces(ModelPart& rModelPart) const
-	{
-		TLocalVectorType global_reaction(this->GetDomainSize());
-		TLocalVectorType local_reaction(this->GetDomainSize());
-		TLocalVectorType reaction(this->GetDomainSize());
-
-		ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
-		#pragma omp parallel for firstprivate(reaction,local_reaction,global_reaction)
-		for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
-		{
-			ModelPart::NodeIterator itNode = it_begin+iii;
-			const double nodal_mass = itNode->FastGetSolutionStepValue(NODAL_MASS, 0);
-
-			if( this->IsConformingSlip(*itNode) && nodal_mass > std::numeric_limits<double>::epsilon())
-			{
-				if(this->GetDomainSize() == 3)
-				{
-					BoundedMatrix<double,3,3> rRot;
-					this->LocalRotationOperatorPure(rRot,*itNode);
-
-					array_1d<double,3>& rReaction = itNode->FastGetSolutionStepValue(REACTION);
-					// rotate reaction to local frame
-					for(unsigned int i = 0; i < 3; i++) reaction[i] = rReaction[i];
-					noalias(local_reaction) = prod(rRot,reaction);
-
-					// remove tangential directions
-					local_reaction[1]=0.0;
-					local_reaction[2]=0.0;
-					// rotate reaction to global frame
-					noalias(global_reaction) = prod(trans(rRot),local_reaction);
-					// save values
-					for(unsigned int i = 0; i < 3; i++) rReaction[i] = global_reaction[i];
-				}
-				else
-				{
-					BoundedMatrix<double,2,2> rRot;
-					this->LocalRotationOperatorPure(rRot,*itNode);
-
-					array_1d<double,3>& rReaction = itNode->FastGetSolutionStepValue(REACTION);
-					// rotate reaction to local frame
-					for(unsigned int i = 0; i < 2; i++) reaction[i] = rReaction[i];
-					noalias(local_reaction) = prod(rRot,reaction);
-
-					// remove tangential direction
-					local_reaction[1]=0.0;
-					// rotate reaction to global frame
-					noalias(global_reaction) = prod(trans(rRot),local_reaction);
-					// save values
-					for(unsigned int i = 0; i < 2; i++) rReaction[i] = global_reaction[i];
-				}
-			}
-		}
-	}
-
 
     /// Helper function to rotate a 3-vector to and from the coordinate system defined by the NORMAL defined at rNode
     /**
@@ -510,10 +481,9 @@ public:
                     r_friction_force[1] = tangent_force1;
                     r_friction_force[2] = tangent_force2;
                 }
-
-                // reset friction-related flags/variables
-                rNode.SetValue(FRICTION_ASSIGNED, false);
-                rNode.FastGetSolutionStepValue(STICK_FORCE).clear();
+				
+				// reset flag as this function is called in InitializeNonLinearIteration
+				rNode.SetValue(FRICTION_ASSIGNED, false);
             }
         });
     }
@@ -555,6 +525,92 @@ public:
 	///@{
 
 	///@}
+
+template<unsigned int TDim, bool TRevertRotation = false>
+void RotateLagrangeCondition(TLocalMatrixType& rLocalMatrix,
+			TLocalVectorType& rLocalVector,
+			GeometryType& rGeometry) const
+{
+	const unsigned int num_nodes = rGeometry.PointsNumber();
+	const unsigned int NumBlocks = num_nodes + 1;
+	DenseVector<bool> NeedRotation( NumBlocks, false);
+	int rotations_needed = 0;
+
+	std::vector< BoundedMatrix<double,TDim,TDim> > rRot(NumBlocks);
+	BoundedMatrix<double,TDim,TDim> tmp;
+	for(unsigned int i = 0; i < NumBlocks; ++i)
+	{
+		if (i<num_nodes){
+			if( this->IsSlip(rGeometry[i]) )
+			{
+				NeedRotation[i] = true;
+				rotations_needed++;
+				this->LocalRotationOperatorPure(rRot[i],rGeometry[i]);
+				if constexpr (TRevertRotation)
+				{
+					noalias(tmp) = trans(rRot[i]);
+					rRot[i] = tmp;
+				}
+			}
+		}
+		else{
+			auto pLagrangeNode = rGeometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+			
+			if( this->IsSlip(*pLagrangeNode) )
+			{
+				NeedRotation[i] = true;
+				rotations_needed++;
+				this->LocalRotationOperatorPure(rRot[i],*pLagrangeNode);
+				if constexpr (TRevertRotation)
+				{
+					noalias(tmp) = trans(rRot[i]);
+					rRot[i] = tmp;
+				}
+			}
+		}
+	}
+	
+	BoundedMatrix<double,TDim,TDim> mat_block;
+	array_1d<double,TDim> aux, aux1;
+
+	if(rotations_needed > 0)
+	{
+		for(unsigned int i=0; i<NumBlocks; i++)
+		{
+			if(NeedRotation[i] == true)
+			{	
+				for(unsigned int j=0; j<NumBlocks; j++)
+				{
+					if(NeedRotation[j] == true)
+					{	
+						this->template ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*TDim, j*TDim);
+						noalias(tmp) = prod(mat_block,trans(rRot[j]));
+						noalias(mat_block) = prod(rRot[i],tmp);
+						
+						// avoid numerical instabilities
+						for(unsigned int k=0; k<TDim; k++)
+						{
+							for(unsigned int l=0; l<TDim; l++)
+							{
+								if (std::abs(mat_block(k,l))<std::numeric_limits<double>::epsilon())
+									mat_block(k,l) = 0.0;
+							}
+						}
+						this->template WriteBlockMatrix<TDim>(mat_block, rLocalMatrix, i*TDim, j*TDim);
+					}
+				}
+
+				for(unsigned int k=0; k<TDim; k++)
+					aux[k] = rLocalVector[i*TDim+k];
+
+				noalias(aux1) = prod(rRot[i],aux);
+
+				for(unsigned int k=0; k<TDim; k++)
+					rLocalVector[i*TDim+k] = aux1[k];
+			}
+		}
+	}
+}
 
 protected:
 	///@name Protected static Member Variables

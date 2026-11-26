@@ -73,7 +73,7 @@
 #include "processes/check_same_modelpart_using_skin_distance_process.h"
 #include "processes/calculate_nodal_distance_to_skin_process.h"
 
-#include "spaces/ublas_space.h"
+#include "spaces/default_spaces.h"
 #include "linear_solvers/linear_solver.h"
 
 namespace Kratos::Python
@@ -117,8 +117,8 @@ void CalculateEmbeddedVariableFromSkinArray(
     rDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
 }
 
-using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using SparseSpaceType = DefaultSparseSpaceType;
+using LocalSpaceType = DefaultLocalSpaceType;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 
 template <std::size_t TDim, std::size_t TNumNodes, class TVariableType, const SizeType TNumNodesMaster = TNumNodes>
@@ -130,10 +130,10 @@ void DefineSimpleMortarMapperProcess(pybind11::module& m, const std::string& cla
     .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&>())
     .def(pybind11::init<ModelPart&, ModelPart&, Parameters>())
     .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, Parameters>())
-    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, Parameters, LinearSolverType::Pointer>())
+    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, Parameters, typename ProcessType::LinearSolverType::Pointer>())
     .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, TVariableType&>())
     .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, TVariableType&, Parameters>())
-    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, TVariableType&, Parameters, LinearSolverType::Pointer>())
+    .def(pybind11::init<ModelPart&, ModelPart&, TVariableType&, TVariableType&, Parameters, typename ProcessType::LinearSolverType::Pointer>())
     .def("Map", &ProcessType::Map)
     ;
 }
@@ -302,14 +302,19 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     auto orientation_check_interface = py::class_<TetrahedralMeshOrientationCheck, TetrahedralMeshOrientationCheck::Pointer, Process>(m,"TetrahedralMeshOrientationCheck")
-            .def(py::init<ModelPart&, bool>())
-            .def(py::init<ModelPart&, bool, Kratos::Flags>())
+            .def(py::init<ModelPart&, const bool>()) // NOTE: LEGACY CONSTRUCTOR
+            .def(py::init<ModelPart&, const bool, Kratos::Flags>()) // NOTE: LEGACY CONSTRUCTOR
+            .def(py::init<Model&, Parameters>())
     .def("SwapAll",&TetrahedralMeshOrientationCheck::SwapAll)
     .def("SwapNegativeElements",&TetrahedralMeshOrientationCheck::SwapNegativeElements)
     ;
+    orientation_check_interface.attr("THROW_ERRORS") = &TetrahedralMeshOrientationCheck::THROW_ERRORS;
     orientation_check_interface.attr("ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS") = &TetrahedralMeshOrientationCheck::ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS;
     orientation_check_interface.attr("COMPUTE_NODAL_NORMALS") = &TetrahedralMeshOrientationCheck::COMPUTE_NODAL_NORMALS;
     orientation_check_interface.attr("COMPUTE_CONDITION_NORMALS") = &TetrahedralMeshOrientationCheck::COMPUTE_CONDITION_NORMALS;
+    orientation_check_interface.attr("MAKE_VOLUMES_POSITIVE") = &TetrahedralMeshOrientationCheck::MAKE_VOLUMES_POSITIVE;
+    orientation_check_interface.attr("ALLOW_REPEATED_CONDITIONS") = &TetrahedralMeshOrientationCheck::ALLOW_REPEATED_CONDITIONS;
+    orientation_check_interface.attr("DETAILED_INVERTED_ENTITIES_MESSAGE") = &TetrahedralMeshOrientationCheck::DETAILED_INVERTED_ENTITIES_MESSAGE;
 
     py::class_<VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"VariationalDistanceCalculationProcess2D")
             .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
@@ -599,7 +604,7 @@ void  AddProcessesToPython(pybind11::module& m)
     // Wrapper
     py::class_<SimpleMortarMapperProcessWrapper, SimpleMortarMapperProcessWrapper::Pointer, Process>(m, "SimpleMortarMapperProcess")
     .def(py::init<ModelPart&, ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ModelPart&, Parameters, LinearSolverType::Pointer>())
+    .def(py::init<ModelPart&, ModelPart&, Parameters, SimpleMortarMapperProcessWrapper::LinearSolverType::Pointer>())
     ;
 
     // 2D

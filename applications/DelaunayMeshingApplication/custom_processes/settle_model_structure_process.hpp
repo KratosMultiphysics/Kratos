@@ -304,10 +304,6 @@ class SettleModelStructureProcess
     NodalNeighboursSearchProcess FindNeighbours(mrMainModelPart);
     FindNeighbours.Execute();
 
-    //NODAL_H SEARCH
-    //FindNodalHProcess FindNodalH(mrMainModelPart);
-    //FindNodalH.Execute();
-
     //CONDITIONS MASTER_ELEMENTS and MASTER_NODES SEARCH
     BuildModelPartBoundaryProcess BuildBoundaryProcess(mrMainModelPart, mrMainModelPart.Name(), mEchoLevel);
     BuildBoundaryProcess.SearchConditionMasters();
@@ -740,7 +736,7 @@ class SettleModelStructureProcess
     //Add Contact modelparts to main modelpart  flags: ( CONTACT ) in contact model parts keep only nodes and contact conditions // after that a contact search will be needed
 
     //if contact condition has the same geometry size as an elements printing ids will coincide,
-    //renumber conditions with rElemId instead of rCondId :: in order to ensure it check maximun and apply it
+    //renumber conditions with rElemId instead of rCondId :: in order to ensure it check maximum and apply it
     unsigned int rContactId = rCondId;
     if( rElemId > rCondId )
       rContactId = rElemId;

@@ -284,7 +284,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 
         self.KratosPrintInfo("[STEP: " + str(self.step) + "  ///  TIME: " +  "{0:.4e}".format(self.time).rjust(11) +  "  ///  TIME_STEP: " + str(self.delta_time) + "]")
 
-        # processes to be executed at the begining of the solution step
+        # processes to be executed at the beginning of the solution step
         self.model_processes.ExecuteInitializeSolutionStep()
         self.GraphicalOutputExecuteInitializeSolutionStep()
         self.solver.InitializeSolutionStep()

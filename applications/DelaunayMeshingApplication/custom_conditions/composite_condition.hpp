@@ -281,7 +281,7 @@ public:
     void InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;
 
     /**
-     * Called at the end of eahc solution step
+     * Called at the end of each solution step
      */
     void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 

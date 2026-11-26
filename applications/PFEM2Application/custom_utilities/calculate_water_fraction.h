@@ -7,11 +7,10 @@
 #include <algorithm>
 
 // Project includes
-#include "includes/define.h"
 #include "pfem_2_application_variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "includes/ublas_interface.h"
+#include "includes/default_interface.h"
 #include "includes/variables.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
@@ -419,7 +418,7 @@ namespace Kratos
 						double plane_point_distance=1.0;
 						double fixed_face_area_or_lenght=0.0;
 						array_1d<double, 3 > boundary_stress;
-						if (number_of_fixed_nodes==TDim) //it means we have cutted elements!
+						if (number_of_fixed_nodes==TDim) //it means we have cut elements!
 						{
 							//boundary_element=true;
 							array_1d<double, 3 > normal;

@@ -18,6 +18,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 struct FirstOrderScalarVariable {
     Variable<double> instance;
     Variable<double> first_time_derivative;
@@ -75,24 +77,6 @@ public:
         return 0;
 
         KRATOS_CATCH("")
-    }
-
-    void InitializeElements(ModelPart& rModelPart) override
-    {
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        block_for_each(rModelPart.Elements(), [&r_current_process_info](auto& rElement) {
-            rElement.Initialize(r_current_process_info);
-        });
-        this->SetElementsAreInitialized();
-    }
-
-    void InitializeConditions(ModelPart& rModelPart) override
-    {
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        block_for_each(rModelPart.Conditions(), [r_current_process_info](auto& rCondition) {
-            rCondition.Initialize(r_current_process_info);
-        });
-        this->SetConditionsAreInitialized();
     }
 
     void Predict(ModelPart& rModelPart, DofsArrayType&, TSystemMatrixType&, TSystemVectorType&, TSystemVectorType&) override
@@ -194,11 +178,11 @@ public:
     }
 
     template <typename T>
-    void CalculateSystemContributionsImpl(T&                                rCurrentComponent,
-                                          LocalSystemMatrixType&            LHS_Contribution,
-                                          LocalSystemVectorType&            RHS_Contribution,
-                                          typename T::EquationIdVectorType& EquationId,
-                                          const ProcessInfo&                CurrentProcessInfo)
+    static void CalculateSystemContributionsImpl(T&                     rCurrentComponent,
+                                                 LocalSystemMatrixType& LHS_Contribution,
+                                                 LocalSystemVectorType& RHS_Contribution,
+                                                 typename T::EquationIdVectorType& EquationId,
+                                                 const ProcessInfo& CurrentProcessInfo)
 
     {
         KRATOS_TRY
@@ -226,10 +210,10 @@ public:
     }
 
     template <typename T>
-    void CalculateRHSContributionImpl(T&                                rCurrentComponent,
-                                      LocalSystemVectorType&            RHS_Contribution,
-                                      typename T::EquationIdVectorType& EquationId,
-                                      const ProcessInfo&                CurrentProcessInfo)
+    static void CalculateRHSContributionImpl(T&                                rCurrentComponent,
+                                             LocalSystemVectorType&            RHS_Contribution,
+                                             typename T::EquationIdVectorType& EquationId,
+                                             const ProcessInfo&                CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -256,10 +240,10 @@ public:
     }
 
     template <typename T>
-    void CalculateLHSContributionImpl(T&                                rCurrentComponent,
-                                      LocalSystemMatrixType&            LHS_Contribution,
-                                      typename T::EquationIdVectorType& EquationId,
-                                      const ProcessInfo&                CurrentProcessInfo)
+    static void CalculateLHSContributionImpl(T&                                rCurrentComponent,
+                                             LocalSystemMatrixType&            LHS_Contribution,
+                                             typename T::EquationIdVectorType& EquationId,
+                                             const ProcessInfo&                CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -324,9 +308,16 @@ private:
                 this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.first_time_derivative);
                 this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.second_time_derivative);
 
-                // We don't check for "Z", since it is optional (in case of a 2D problem)
-                std::vector<std::string> components{"X", "Y"};
-                for (const auto& component : components) {
+                auto components_to_check = std::vector<std::string>{};
+                if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
+                    components_to_check = {"X", "Y", "Z"};
+                } else if (r_second_order_vector_variable.instance.Name() == "ROTATION") {
+                    components_to_check = {"Z"}; // For rotations in 2D, only the Z component is relevant
+                } else {
+                    components_to_check = {"X", "Y"};
+                }
+
+                for (const auto& component : components_to_check) {
                     const auto& variable_component = VariablesUtilities::GetComponentFromVectorVariable(
                         r_second_order_vector_variable.instance.Name(), component);
                     this->CheckDof(r_node, variable_component);
@@ -335,7 +326,7 @@ private:
         }
     }
 
-    void CheckBufferSize(const ModelPart& rModelPart) const
+    static void CheckBufferSize(const ModelPart& rModelPart)
     {
         constexpr auto minimum_buffer_size = ModelPart::IndexType{2};
         KRATOS_ERROR_IF(rModelPart.GetBufferSize() < minimum_buffer_size)
@@ -345,14 +336,14 @@ private:
     }
 
     template <class T>
-    void CheckSolutionStepsData(const Node& rNode, const Variable<T>& rVariable) const
+    static void CheckSolutionStepsData(const Node& rNode, const Variable<T>& rVariable)
     {
         KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(rVariable))
             << rVariable.Name() << " variable is not allocated for node " << rNode.Id() << std::endl;
     }
 
     template <class T>
-    void CheckDof(const Node& rNode, const Variable<T>& rVariable) const
+    static void CheckDof(const Node& rNode, const Variable<T>& rVariable)
     {
         KRATOS_ERROR_IF_NOT(rNode.HasDofFor(rVariable))
             << "missing " << rVariable.Name() << " dof on node " << rNode.Id() << std::endl;
@@ -361,6 +352,12 @@ private:
     double                                 mDeltaTime = 1.0;
     std::vector<FirstOrderScalarVariable>  mFirstOrderScalarVariables;
     std::vector<SecondOrderVectorVariable> mSecondOrderVectorVariables;
+
+    friend Serializer;
+
+    void save(Serializer& rSerializer) const { rSerializer.save("DeltaTime", mDeltaTime); }
+
+    void load(Serializer& rSerializer) { rSerializer.load("DeltaTime", mDeltaTime); }
 };
 
 } // namespace Kratos
