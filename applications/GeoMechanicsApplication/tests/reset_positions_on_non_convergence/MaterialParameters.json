@@ -8,7 +8,7 @@
                     "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
-                    "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "YOUNG_MODULUS": 100.0,
                     "POISSON_RATIO": 0.0,
                     "DENSITY_SOLID": 2650,
@@ -16,13 +16,6 @@
                     "POROSITY": 0.0,
                     "BULK_MODULUS_SOLID": 1.0e+09,
                     "BULK_MODULUS_FLUID": 2.0e+06,
-                    "PERMEABILITY_XX": 1.157e-12,
-                    "PERMEABILITY_YY": 1.157e-12,
-                    "PERMEABILITY_XY": 0.0,
-                    "DYNAMIC_VISCOSITY": 1.0e-03,
-                    "BIOT_COEFFICIENT": 1.0,
-                    "RETENTION_LAW": "SaturatedLaw",
-                    "SATURATED_SATURATION": 1.0,
                     "GEO_COHESION": 6,
                     "GEO_FRICTION_ANGLE": 30.0,
                     "GEO_DILATANCY_ANGLE": 0.0

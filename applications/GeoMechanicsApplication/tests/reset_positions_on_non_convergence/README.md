@@ -18,7 +18,7 @@ Both elements are in the sub model part `soil` and use the `GeoMohrCoulombLawPla
 | Friction angle  | $`30^\circ`$        |
 | Dilatancy angle | $`0^\circ`$         |
 
-The water pressure is fixed to $`0.0 \mathrm{Pa}`$ at all nodes. The left edge (`SideLeft`) is fixed horizontally, and the bottom edge (`SideBottom`) is fixed vertically. The model is loaded by prescribing the horizontal displacement of the right edge (`SideRight`) with a table:
+The water pressure is fixed to $`0.0 \mathrm{Pa}`$ at all nodes and the drainage type is set to `CONSTANT_PW_FIELD`. The left edge (`SideLeft`) is fixed horizontally, and the bottom edge (`SideBottom`) is fixed vertically. The model is loaded by prescribing the horizontal displacement of the right edge (`SideRight`) with a table:
 
 | Time [s] | Displacement [m] |
 |----------|------------------|
