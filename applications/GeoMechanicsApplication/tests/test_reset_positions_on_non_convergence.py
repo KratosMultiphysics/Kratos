@@ -105,7 +105,7 @@ class KratosGeoMechanicsResetPositionsOnNonConvergenceCppRoute(
         )
         self.assertEqual(status, 0)
 
-        # self.check_results()
+        self.check_results()
 
 
 if __name__ == "__main__":
