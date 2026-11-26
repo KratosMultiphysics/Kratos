@@ -927,53 +927,66 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetMatrix, KratosCoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetInt, KratosCoreFastSuite)
 {
     Parameters parameters(R"({"value":null})");
+    
     parameters["value"].SetInt(10);
+    
     KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":10})");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetDouble, KratosCoreFastSuite)
 {
     Parameters parameters(R"({"value":null})");
+    
     parameters["value"].SetDouble(2.0);
+    
     KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":2.0})");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetBool, KratosCoreFastSuite)
 {
     Parameters parameters(R"({"value":null})");
+    
     parameters["value"].SetBool(true);
+    
     KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":true})");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetString, KratosCoreFastSuite)
 {
     Parameters parameters(R"({"value":null})");
+    
     parameters["value"].SetString("hello");
+
     KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":"hello"})");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetPath, KratosCoreFastSuite)
 {
     Parameters parameters(R"({"value":null})");
+    
     const auto path = std::filesystem::path("mesh.mdpa");
     parameters["value"].SetPath(path);
+
     KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":"mesh.mdpa"})");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetVector, KratosCoreFastSuite)
 {
     Parameters parameters(R"({"value":null})");
+    
     Vector vector(3);
     vector[0] = 5.2;
     vector[1] = -3.1;
     vector[2] = 4.33;
     parameters["value"].SetVector(vector);
+
     KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":[5.2,-3.1,4.33]})");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetMatrix, KratosCoreFastSuite)
 {
     Parameters parameters(R"({"value":null})");
+    
     Matrix matrix(3, 2);
     matrix(0, 0) = 1.0;
     matrix(0, 1) = 2.0;
@@ -982,6 +995,86 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetMatrix, KratosCoreFastSuite)
     matrix(2, 0) = 5.0;
     matrix(2, 1) = 6.0;
     parameters["value"].SetMatrix(matrix);
+    
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":[[1.0,2.0],[3.0,4.0],[5.0,6.0]]})");
+}
+
+//////////////////////////////////////////////////////////////////////
+// Setter Override                                                  //
+//////////////////////////////////////////////////////////////////////
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersOverrideInt, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":5})");
+    
+    parameters["value"].SetInt(10);
+    
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":10})");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersOverrideDouble, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":1.0})");
+    
+    parameters["value"].SetDouble(2.0);
+    
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":2.0})");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersOverrideBool, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":false})");
+    
+    parameters["value"].SetBool(true);
+    
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":true})");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersOverrideString, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":"bye"})");
+    
+    parameters["value"].SetString("hello");
+
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":"hello"})");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersOverridePath, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":"mosh.mpda"})");
+    
+    const auto path = std::filesystem::path("mesh.mdpa");
+    parameters["value"].SetPath(path);
+
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":"mesh.mdpa"})");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersOverrideVector, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":["-2.5","1.3","-33.4"]})");
+    
+    Vector vector(3);
+    vector[0] = 5.2;
+    vector[1] = -3.1;
+    vector[2] = 4.33;
+    parameters["value"].SetVector(vector);
+
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":[5.2,-3.1,4.33]})");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersOverrideMatrix, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":[[0.1,0.2],[0.3,0.4],[0.5,0.6]]})");
+    
+    Matrix matrix(3, 2);
+    matrix(0, 0) = 1.0;
+    matrix(0, 1) = 2.0;
+    matrix(1, 0) = 3.0;
+    matrix(1, 1) = 4.0;
+    matrix(2, 0) = 5.0;
+    matrix(2, 1) = 6.0;
+    parameters["value"].SetMatrix(matrix);
+    
     KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":[[1.0,2.0],[3.0,4.0],[5.0,6.0]]})");
 }
 
