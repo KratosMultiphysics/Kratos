@@ -41,7 +41,7 @@ class KratosGeoMechanicsResetPositionsOnNonConvergence(KratosUnittest.TestCase):
                 os.path.join(self.test_path, filename),
             )
 
-    def get_test_dir_name(self):
+    def get_test_dir_name(self) -> str:
         raise RuntimeError(
             "This base class does not provide a generic test directory name"
         )
@@ -80,7 +80,7 @@ class KratosGeoMechanicsResetPositionsOnNonConvergence(KratosUnittest.TestCase):
 class KratosGeoMechanicsResetPositionsOnNonConvergencePyRoute(
     KratosGeoMechanicsResetPositionsOnNonConvergence
 ):
-    def get_test_dir_name(self):
+    def get_test_dir_name(self) -> str:
         return "python"
 
     def test_non_converged_step_does_not_move_mesh(self):
@@ -96,7 +96,7 @@ class KratosGeoMechanicsResetPositionsOnNonConvergencePyRoute(
 class KratosGeoMechanicsResetPositionsOnNonConvergenceCppRoute(
     KratosGeoMechanicsResetPositionsOnNonConvergence
 ):
-    def get_test_dir_name(self):
+    def get_test_dir_name(self) -> str:
         return "cpp"
 
     def test_non_converged_step_does_not_move_mesh(self):
