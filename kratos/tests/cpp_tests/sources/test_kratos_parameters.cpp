@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <filesystem>
 
 // External includes
 
@@ -301,6 +302,59 @@ std::string GetCircularIncludeJSONString(int FileIndex, int IncludeIndex)
     return stream.str();
 }
 
+Parameters MakeParameters()
+{
+    return Parameters(R"({
+        "int_value" : 10,               /* Block comments. */
+        "double_value": 2.0,            // Line comments.
+        "bool_value" : true,            /* Nihilistic comment for historical reasons */
+        "string_value" : "hello",
+        "string_array" : ["hello", "world"],
+        "vector_value" : [5.2,-3.1,4.33],
+        "matrix_value" : [[1,2],[3,4],[5,6]]
+    })");
+}
+
+Parameters MakeParametersVectorInterface()
+{
+    return Parameters(R"({
+        "valid_vectors" : [
+            []
+        ],
+        "false_vectors" : [ 
+            [[]],
+            [[2,3],2],
+            [2,3,[2]],
+            [2,3,[]],
+            [{"key":3},2],
+            [2,3,{"key":3}],
+            [true,2],
+            [2,3,true],
+            [5,"string",2]
+        ]
+    })");
+}
+
+Parameters MakeMatrixShapeParameters()
+{
+    return Parameters(R"({
+        "valid_matrices" : [ 
+            [[]],
+            [[],[]],
+            [[-9.81,8, 5.47]]
+        ],
+        "false_matrices" : [ 
+            [],
+            [[[]]],
+            [[3.3] , [1,2]],
+            [[2,1.5,3.3] , [3,{"key":3},2]],
+            [[2,1.5,3.3] , [5,false,2]],
+            [[2,1.5,3.3] , [[2,3],1,2]],
+            [[2,1.5,3.3] , ["string",2,9]]
+        ]
+    })");
+}
+
 KRATOS_TEST_CASE_IN_SUITE(KratosParameters, KratosCoreFastSuite)
 {
     Parameters kp = Parameters(GetJSONString());
@@ -551,269 +605,98 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIterators, KratosCoreFastSuite)
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
+//////////////////////////////////////////////////////////////////////
+// Query                                                            //
+//////////////////////////////////////////////////////////////////////
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsInt, KratosCoreFastSuite)
 {
-    // This method checks all the "IsXXX" Methods
-    Parameters tmp = Parameters(R"({
-        "int_value" : 10, /* This is comment to check that comments work */
-        "double_value": 2.0, // This is comment too, but using another comment
-        "bool_value" : true, // This is another comment being meta as realizing that all the possibilities are already check
-        "string_value" : "hello",/* This is a nihilist comment about the futile existence of the previous comment as a metacomment */
-        "s_array_value" : ["hello", "world"],
-        "vector_value" : [5,3,4],
-        "matrix_value" : [[1,2],[3,6]]
-    })"); // if you add more values to this, make sure to add the corresponding in the loop
-
-    for(auto it=tmp.begin(); it!=tmp.end(); ++it) {
-        const std::string key = it.name();
-
-        if (key.find("int") != std::string::npos) {
-            KRATOS_EXPECT_TRUE(tmp[key].IsInt());
-        } else {
-            KRATOS_EXPECT_FALSE(tmp[key].IsInt());
-        }
-
-        if (key.find("double") != std::string::npos) {
-            KRATOS_EXPECT_TRUE(tmp[key].IsDouble());
-        } else {
-            KRATOS_EXPECT_FALSE(tmp[key].IsDouble());
-        }
-
-        if (key.find("bool") != std::string::npos) {
-            KRATOS_EXPECT_TRUE(tmp[key].IsBool());
-        } else {
-            KRATOS_EXPECT_FALSE(tmp[key].IsBool());
-        }
-
-        if (key.find("string") != std::string::npos) {
-            KRATOS_EXPECT_TRUE(tmp[key].IsString());
-        } else {
-            KRATOS_EXPECT_FALSE(tmp[key].IsString());
-        }
-
-        if (key.find("s_array") != std::string::npos) {
-            KRATOS_EXPECT_TRUE(tmp[key].IsStringArray());
-        } else {
-            KRATOS_EXPECT_FALSE(tmp[key].IsStringArray());
-        }
-
-        if (key.find("vector") != std::string::npos) {
-            KRATOS_EXPECT_TRUE(tmp[key].IsVector());
-        } else {
-            KRATOS_EXPECT_FALSE(tmp[key].IsVector());
-        }
-
-        if (key.find("matrix") != std::string::npos) {
-            KRATOS_EXPECT_TRUE(tmp[key].IsMatrix());
-        } else {
-            KRATOS_EXPECT_FALSE(tmp[key].IsMatrix());
-        }
-    }
+    const auto parameters = MakeParameters();
+    KRATOS_EXPECT_TRUE(parameters["int_value"].IsInt());
+    KRATOS_EXPECT_FALSE(parameters["double_value"].IsInt());
+    KRATOS_EXPECT_FALSE(parameters["bool_value"].IsInt());
+    KRATOS_EXPECT_FALSE(parameters["string_value"].IsInt());
+    KRATOS_EXPECT_FALSE(parameters["string_array"].IsInt());
+    KRATOS_EXPECT_FALSE(parameters["vector_value"].IsInt());
+    KRATOS_EXPECT_FALSE(parameters["matrix_value"].IsInt());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetMethods, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsDouble, KratosCoreFastSuite)
 {
-    // This method checks all the "GetXXX" Methods if they throw an error
-    Parameters tmp = Parameters(R"({
-        "int_value" : 10,
-        "double_value": 2.0,
-        "bool_value" : true,
-        "string_value" : "hello",
-        "vector_value" : [5.2,-3.1,4.33],
-        "matrix_value" : [[1,2],[3,4],[5,6]]
-    })"); // if you add more values to this, make sure to add the corresponding in the loop
+    const auto parameters = MakeParameters();
 
-    for(auto it=tmp.begin(); it!=tmp.end(); ++it) {
-        const std::string key = it.name();
-
-        // Int and Double are checked tgth bcs both internally call "IsNumber"
-        if (key.find("double") != std::string::npos || key.find("int") != std::string::npos) {
-            if (key.find("int") != std::string::npos) {
-                KRATOS_EXPECT_EQ(tmp[key].GetInt(),10);
-            }
-        } else {
-            KRATOS_EXPECT_EXCEPTION_IS_THROWN(tmp[key].GetInt(), "");
-        }
-
-        if (key.find("double") != std::string::npos || key.find("int") != std::string::npos) {
-            if (key.find("double") != std::string::npos) {
-                KRATOS_EXPECT_DOUBLE_EQ(tmp[key].GetDouble(),2.0);
-            }
-        } else {
-            KRATOS_EXPECT_EXCEPTION_IS_THROWN(tmp[key].GetDouble(), "");
-        }
-
-        if (key.find("bool") != std::string::npos) {
-            KRATOS_EXPECT_EQ(tmp[key].GetBool(), true);
-        } else {
-            KRATOS_EXPECT_EXCEPTION_IS_THROWN(tmp[key].GetBool(), "");
-        }
-
-        if (key.find("string") != std::string::npos) {
-            KRATOS_EXPECT_EQ(tmp[key].GetString(),"hello");
-        } else {
-            KRATOS_EXPECT_EXCEPTION_IS_THROWN(tmp[key].GetString(), "");
-        }
-
-        if (key.find("vector") != std::string::npos) {
-            const auto& V = tmp[key].GetVector();
-            KRATOS_EXPECT_DOUBLE_EQ(V[0],5.2);
-            KRATOS_EXPECT_DOUBLE_EQ(V[1],-3.1);
-            KRATOS_EXPECT_DOUBLE_EQ(V[2],4.33);
-        } else {
-            KRATOS_EXPECT_EXCEPTION_IS_THROWN(tmp[key].GetVector(), "");
-        }
-
-        if (key.find("matrix") != std::string::npos) {
-            const auto& A = tmp[key].GetMatrix();
-            KRATOS_EXPECT_DOUBLE_EQ(A(0,0), 1.0);
-            KRATOS_EXPECT_DOUBLE_EQ(A(0,1), 2.0);
-            KRATOS_EXPECT_DOUBLE_EQ(A(1,0), 3.0);
-            KRATOS_EXPECT_DOUBLE_EQ(A(1,1), 4.0);
-            KRATOS_EXPECT_DOUBLE_EQ(A(2,0), 5.0);
-            KRATOS_EXPECT_DOUBLE_EQ(A(2,1), 6.0);
-        } else {
-            KRATOS_EXPECT_EXCEPTION_IS_THROWN(tmp[key].GetMatrix(), "");
-        }
-    }
+    KRATOS_EXPECT_FALSE(parameters["int_value"].IsDouble());
+    KRATOS_EXPECT_TRUE(parameters["double_value"].IsDouble());
+    KRATOS_EXPECT_FALSE(parameters["bool_value"].IsDouble());
+    KRATOS_EXPECT_FALSE(parameters["string_value"].IsDouble());
+    KRATOS_EXPECT_FALSE(parameters["string_array"].IsDouble());
+    KRATOS_EXPECT_FALSE(parameters["vector_value"].IsDouble());
+    KRATOS_EXPECT_FALSE(parameters["matrix_value"].IsDouble());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetMethods, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsBool, KratosCoreFastSuite)
 {
-    // This method checks all the "GetXXX" Methods if they throw an error
-    Parameters tmp = Parameters(R"({
-        "int_value" : 0,
-        "double_value": 0.0,
-        "bool_value" : false,
-        "string_value" : "",
-        "vector_value" : [],
-        "matrix_value" : [[0]]
-    })"); // if you add more values to this, make sure to add the corresponding in the loop
-
-    for(auto it=tmp.begin(); it!=tmp.end(); ++it) {
-        const std::string key = it.name();
-
-        // Int and Double are checked tgth bcs both internally call "IsNumber"
-        if (key.find("double") != std::string::npos || key.find("int") != std::string::npos) {
-            if (key.find("int") != std::string::npos) {
-                tmp[key].SetInt(10);
-                KRATOS_EXPECT_EQ(tmp[key].GetInt(),10);
-            }
-        } else {
-            KRATOS_EXPECT_EXCEPTION_IS_THROWN(tmp[key].GetInt(), "");
-        }
-
-        if (key.find("double") != std::string::npos || key.find("int") != std::string::npos) {
-            if (key.find("double") != std::string::npos) {
-                tmp[key].SetDouble(2.0);
-                KRATOS_EXPECT_EQ(tmp[key].GetDouble(),2.0);
-            }
-        } else {
-            KRATOS_EXPECT_EXCEPTION_IS_THROWN(tmp[key].GetDouble(), "");
-        }
-
-        if (key.find("bool") != std::string::npos) {
-            tmp[key].SetBool(true);
-            KRATOS_EXPECT_EQ(tmp[key].GetBool(),true);
-        } else {
-            KRATOS_EXPECT_EXCEPTION_IS_THROWN(tmp[key].GetBool(), "");
-        }
-
-        if (key.find("string") != std::string::npos) {
-            tmp[key].SetString("hello");
-            KRATOS_EXPECT_EQ(tmp[key].GetString(),"hello");
-        } else {
-            KRATOS_EXPECT_EXCEPTION_IS_THROWN(tmp[key].GetString(), "");
-        }
-
-        if (key.find("vector") != std::string::npos) {
-            Vector vector = ZeroVector(3);
-            vector[0] = 5.2;
-            vector[1] = -3.1;
-            vector[2] = 4.33;
-            tmp[key].SetVector(vector);
-            const auto& V = tmp[key].GetVector();
-            KRATOS_EXPECT_VECTOR_EQ(V,vector);
-        } else {
-            KRATOS_EXPECT_EXCEPTION_IS_THROWN(tmp[key].GetVector(), "");
-        }
-
-        if (key.find("matrix") != std::string::npos) {
-            Matrix matrix = ZeroMatrix(3,2);
-            matrix(0,0) = 1.0;
-            matrix(0,1) = 2.0;
-            matrix(1,0) = 3.0;
-            matrix(1,1) = 4.0;
-            matrix(2,0) = 5.0;
-            matrix(2,1) = 6.0;
-            tmp[key].SetMatrix(matrix);
-            const auto& A = tmp[key].GetMatrix();
-            KRATOS_EXPECT_MATRIX_EQ(A,matrix);
-        } else {
-            KRATOS_EXPECT_EXCEPTION_IS_THROWN(tmp[key].GetMatrix(), "");
-        }
-    }
+    const auto parameters = MakeParameters();
+    KRATOS_EXPECT_FALSE(parameters["int_value"].IsBool());
+    KRATOS_EXPECT_FALSE(parameters["double_value"].IsBool());
+    KRATOS_EXPECT_TRUE(parameters["bool_value"].IsBool());
+    KRATOS_EXPECT_FALSE(parameters["string_value"].IsBool());
+    KRATOS_EXPECT_FALSE(parameters["string_array"].IsBool());
+    KRATOS_EXPECT_FALSE(parameters["vector_value"].IsBool());
+    KRATOS_EXPECT_FALSE(parameters["matrix_value"].IsBool());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMethods, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsString, KratosCoreFastSuite)
 {
-    // This method checks all the "GetXXX" Methods if they throw an error
-    Parameters tmp = Parameters(R"({})");
+    const auto parameters = MakeParameters();
+    KRATOS_EXPECT_FALSE(parameters["int_value"].IsString());
+    KRATOS_EXPECT_FALSE(parameters["double_value"].IsString());
+    KRATOS_EXPECT_FALSE(parameters["bool_value"].IsString());
+    KRATOS_EXPECT_TRUE(parameters["string_value"].IsString());
+    KRATOS_EXPECT_FALSE(parameters["string_array"].IsString());
+    KRATOS_EXPECT_FALSE(parameters["vector_value"].IsString());
+    KRATOS_EXPECT_FALSE(parameters["matrix_value"].IsString());
+}
 
-    std::string key = "int";
-    tmp.AddInt(key, 10);
-    KRATOS_EXPECT_EQ(tmp[key].GetInt(),10);
-
-    key = "double";
-    tmp.AddDouble(key, 2.0);
-    KRATOS_EXPECT_DOUBLE_EQ(tmp[key].GetDouble(),2.0);
-
-    key = "bool";
-    tmp.AddBool(key, true);
-    KRATOS_EXPECT_EQ(tmp[key].GetBool(),true);
-
-    key = "string";
-    tmp.AddString(key, "hello");
-    KRATOS_EXPECT_EQ(tmp[key].GetString(),"hello");
-
-    key = "vector";
-    Vector vector = ZeroVector(3);
-    vector[0] = 5.2;
-    vector[1] = -3.1;
-    vector[2] = 4.33;
-    tmp.AddVector(key, vector);
-    const auto& V = tmp[key].GetVector();
-    KRATOS_EXPECT_VECTOR_EQ(V,vector);
-
-    key = "matrix";
-    Matrix matrix = ZeroMatrix(3,2);
-    matrix(0,0) = 1.0;
-    matrix(0,1) = 2.0;
-    matrix(1,0) = 3.0;
-    matrix(1,1) = 4.0;
-    matrix(2,0) = 5.0;
-    matrix(2,1) = 6.0;
-    tmp.AddMatrix(key, matrix);
-    const auto& A = tmp[key].GetMatrix();
-    KRATOS_EXPECT_MATRIX_EQ(A,matrix);
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsPath, KratosCoreFastSuite)
+{
+    const auto parameters = MakeParameters();
+    KRATOS_EXPECT_FALSE(parameters["int_value"].IsPath());
+    KRATOS_EXPECT_FALSE(parameters["double_value"].IsPath());
+    KRATOS_EXPECT_FALSE(parameters["bool_value"].IsPath());
+    KRATOS_EXPECT_TRUE(parameters["string_value"].IsPath());
+    KRATOS_EXPECT_FALSE(parameters["string_array"].IsPath());
+    KRATOS_EXPECT_FALSE(parameters["vector_value"].IsPath());
+    KRATOS_EXPECT_FALSE(parameters["matrix_value"].IsPath());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsStringArray, KratosCoreFastSuite)
 {
-    // Read and check string arrays from a Parameters-Object
+    const auto parameters = MakeParameters();
+    KRATOS_EXPECT_FALSE(parameters["int_value"].IsStringArray());
+    KRATOS_EXPECT_FALSE(parameters["double_value"].IsStringArray());
+    KRATOS_EXPECT_FALSE(parameters["bool_value"].IsStringArray());
+    KRATOS_EXPECT_FALSE(parameters["string_value"].IsStringArray());
+    KRATOS_EXPECT_TRUE(parameters["string_array"].IsStringArray());
+    KRATOS_EXPECT_FALSE(parameters["vector_value"].IsStringArray());
+    KRATOS_EXPECT_FALSE(parameters["matrix_value"].IsStringArray());
+
+    // Extended Cases of Valid String Arrays
     Parameters tmp = Parameters(R"({
-        "valid_string_arrays" : [ ["hello", "world"],
-                                ["array", "string"],
-                                ["true","2","string"]
+        "valid_string_arrays" : [ 
+            ["hello", "world"],
+            ["array", "string"],
+            ["true","2","string"]
         ],
-        "false_string_arrays" : [ [[]],
-                                [[2,3],2],
-                                [2,3,[2]],
-                                ["string",[]],
-                                [{"key":3},"2"],
-                                [2,3,{"key":3}],
-                                [true,"string"],
-                                ["5","string",2]
+        "false_string_arrays" : [ 
+            [[]],
+            [[2,3],2],
+            [2,3,[2]],
+            ["string",[]],
+            [{"key":3},"2"],
+            [2,3,{"key":3}],
+            [true,"string"],
+            ["5","string",2]
         ]
     })");
 
@@ -828,23 +711,414 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsStringArray, KratosCoreFastSuite)
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(KratosParametersVectorInterface, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsPathArray, KratosCoreFastSuite)
 {
-    // Read and check Vectors from a Parameters-Object
+    const auto parameters = MakeParameters();
+    KRATOS_EXPECT_FALSE(parameters["int_value"].IsPathArray());
+    KRATOS_EXPECT_FALSE(parameters["double_value"].IsPathArray());
+    KRATOS_EXPECT_FALSE(parameters["bool_value"].IsPathArray());
+    KRATOS_EXPECT_FALSE(parameters["string_value"].IsPathArray());
+    KRATOS_EXPECT_TRUE(parameters["string_array"].IsPathArray());
+    KRATOS_EXPECT_FALSE(parameters["vector_value"].IsPathArray());
+    KRATOS_EXPECT_FALSE(parameters["matrix_value"].IsPathArray());
+
+    // Extended Cases of Valid String Arrays
     Parameters tmp = Parameters(R"({
-        "valid_vectors" : [ []
+        "valid_string_arrays" : [ 
+            ["hello", "world"],
+            ["array", "string"],
+            ["true","2","string"]
         ],
-        "false_vectors" : [ [[]],
-                            [[2,3],2],
-                            [2,3,[2]],
-                            [2,3,[]],
-                            [{"key":3},2],
-                            [2,3,{"key":3}],
-                            [true,2],
-                            [2,3,true],
-                            [5,"string",2]
+        "false_string_arrays" : [ 
+            [[]],
+            [[2,3],2],
+            [2,3,[2]],
+            ["string",[]],
+            [{"key":3},"2"],
+            [2,3,{"key":3}],
+            [true,"string"],
+            ["5","string",2]
         ]
     })");
+
+    for (std::size_t i = 0;  i < tmp["valid_string_arrays"].size(); ++i) {
+        const auto& valid_vector = tmp["valid_string_arrays"][i];
+        KRATOS_EXPECT_TRUE(valid_vector.IsPathArray());
+    }
+
+    for (std::size_t i = 0;  i < tmp["false_string_arrays"].size(); ++i) {
+        const auto& false_vector = tmp["false_string_arrays"][i];
+        KRATOS_EXPECT_FALSE(false_vector.IsPathArray());
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsVector, KratosCoreFastSuite)
+{
+    const auto parameters = MakeParameters();
+    KRATOS_EXPECT_FALSE(parameters["int_value"].IsVector());
+    KRATOS_EXPECT_FALSE(parameters["double_value"].IsVector());
+    KRATOS_EXPECT_FALSE(parameters["bool_value"].IsVector());
+    KRATOS_EXPECT_FALSE(parameters["string_value"].IsVector());
+    KRATOS_EXPECT_FALSE(parameters["string_array"].IsVector());
+    KRATOS_EXPECT_TRUE(parameters["vector_value"].IsVector());
+    KRATOS_EXPECT_FALSE(parameters["matrix_value"].IsVector());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMatrix, KratosCoreFastSuite)
+{
+    const auto parameters = MakeParameters();
+    KRATOS_EXPECT_FALSE(parameters["int_value"].IsMatrix());
+    KRATOS_EXPECT_FALSE(parameters["double_value"].IsMatrix());
+    KRATOS_EXPECT_FALSE(parameters["bool_value"].IsMatrix());
+    KRATOS_EXPECT_FALSE(parameters["string_value"].IsMatrix());
+    KRATOS_EXPECT_FALSE(parameters["string_array"].IsMatrix());
+    KRATOS_EXPECT_FALSE(parameters["vector_value"].IsMatrix());
+    KRATOS_EXPECT_TRUE(parameters["matrix_value"].IsMatrix());
+}
+
+//////////////////////////////////////////////////////////////////////
+// Getter                                                           //
+//////////////////////////////////////////////////////////////////////
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetInt, KratosCoreFastSuite)
+{
+    const auto parameters = MakeParameters();
+
+    KRATOS_EXPECT_EQ(parameters["int_value"].GetInt(), 10);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["bool_value"].GetInt(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_value"].GetInt(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_array"].GetInt(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["vector_value"].GetInt(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["matrix_value"].GetInt(), "");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetDouble, KratosCoreFastSuite)
+{
+    const auto parameters = MakeParameters();
+
+    KRATOS_EXPECT_DOUBLE_EQ(parameters["double_value"].GetDouble(), 2.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["bool_value"].GetDouble(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_value"].GetDouble(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_array"].GetDouble(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["vector_value"].GetDouble(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["matrix_value"].GetDouble(), "");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetBool, KratosCoreFastSuite)
+{
+    const auto parameters = MakeParameters();
+
+    KRATOS_EXPECT_TRUE(parameters["bool_value"].GetBool());
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["int_value"].GetBool(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["double_value"].GetBool(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_value"].GetBool(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_array"].GetBool(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["vector_value"].GetBool(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["matrix_value"].GetBool(), "");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetString, KratosCoreFastSuite)
+{
+    const auto parameters = MakeParameters();
+
+    KRATOS_EXPECT_EQ(parameters["string_value"].GetString(), "hello");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["int_value"].GetString(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["double_value"].GetString(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["bool_value"].GetString(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_array"].GetString(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["vector_value"].GetString(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["matrix_value"].GetString(), "");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetPath, KratosCoreFastSuite)
+{
+    const auto parameters = MakeParameters();
+
+    KRATOS_EXPECT_EQ(parameters["string_value"].GetPath(), "hello");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["int_value"].GetPath(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["double_value"].GetPath(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["bool_value"].GetPath(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_array"].GetPath(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["vector_value"].GetPath(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["matrix_value"].GetPath(), "");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetStringArray, KratosCoreFastSuite)
+{
+    const auto parameters = MakeParameters();
+
+    auto values = parameters["string_array"].GetStringArray();
+
+    KRATOS_EXPECT_EQ(values[0], "hello");
+    KRATOS_EXPECT_EQ(values[1], "world");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["int_value"].GetStringArray(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["double_value"].GetStringArray(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["bool_value"].GetStringArray(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_value"].GetStringArray(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["vector_value"].GetStringArray(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["matrix_value"].GetStringArray(), "");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetPathArray, KratosCoreFastSuite)
+{
+    const auto parameters = MakeParameters();
+
+    auto values = parameters["string_array"].GetPathArray();
+
+    KRATOS_EXPECT_EQ(values[0], "hello");
+    KRATOS_EXPECT_EQ(values[1], "world");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["int_value"].GetPathArray(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["double_value"].GetPathArray(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["bool_value"].GetPathArray(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_value"].GetPathArray(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["vector_value"].GetPathArray(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["matrix_value"].GetPathArray(), "");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetVector, KratosCoreFastSuite)
+{
+    const auto parameters = MakeParameters();
+    const auto vector = parameters["vector_value"].GetVector();
+    KRATOS_EXPECT_EQ(vector.size(), 3);
+    KRATOS_EXPECT_DOUBLE_EQ(vector[0], 5.2);
+    KRATOS_EXPECT_DOUBLE_EQ(vector[1], -3.1);
+    KRATOS_EXPECT_DOUBLE_EQ(vector[2], 4.33);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["int_value"].GetVector(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["double_value"].GetVector(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["bool_value"].GetVector(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_value"].GetVector(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_array"].GetVector(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["matrix_value"].GetVector(), "");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetMatrix, KratosCoreFastSuite)
+{
+    const auto parameters = MakeParameters();
+    const auto matrix = parameters["matrix_value"].GetMatrix();
+    KRATOS_EXPECT_EQ(matrix.size1(), 3);
+    KRATOS_EXPECT_EQ(matrix.size2(), 2);
+    KRATOS_EXPECT_DOUBLE_EQ(matrix(0, 0), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(matrix(0, 1), 2.0);
+    KRATOS_EXPECT_DOUBLE_EQ(matrix(1, 0), 3.0);
+    KRATOS_EXPECT_DOUBLE_EQ(matrix(1, 1), 4.0);
+    KRATOS_EXPECT_DOUBLE_EQ(matrix(2, 0), 5.0);
+    KRATOS_EXPECT_DOUBLE_EQ(matrix(2, 1), 6.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["int_value"].GetMatrix(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["double_value"].GetMatrix(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["bool_value"].GetMatrix(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_value"].GetMatrix(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["string_array"].GetMatrix(), "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(parameters["vector_value"].GetMatrix(), "");
+}
+
+//////////////////////////////////////////////////////////////////////
+// Setter                                                           //
+//////////////////////////////////////////////////////////////////////
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetInt, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":null})");
+    parameters["value"].SetInt(10);
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":10})");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetDouble, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":null})");
+    parameters["value"].SetDouble(2.0);
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":2.0})");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetBool, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":null})");
+    parameters["value"].SetBool(true);
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":true})");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetString, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":null})");
+    parameters["value"].SetString("hello");
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":"hello"})");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetPath, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":null})");
+    const auto path = std::filesystem::path("mesh.mdpa");
+    parameters["value"].SetPath(path);
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":"mesh.mdpa"})");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetVector, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":null})");
+    Vector vector(3);
+    vector[0] = 5.2;
+    vector[1] = -3.1;
+    vector[2] = 4.33;
+    parameters["value"].SetVector(vector);
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":[5.2,-3.1,4.33]})");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetMatrix, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":null})");
+    Matrix matrix(3, 2);
+    matrix(0, 0) = 1.0;
+    matrix(0, 1) = 2.0;
+    matrix(1, 0) = 3.0;
+    matrix(1, 1) = 4.0;
+    matrix(2, 0) = 5.0;
+    matrix(2, 1) = 6.0;
+    parameters["value"].SetMatrix(matrix);
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":[[1.0,2.0],[3.0,4.0],[5.0,6.0]]})");
+}
+
+//////////////////////////////////////////////////////////////////////
+// Adder                                                            //
+//////////////////////////////////////////////////////////////////////
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddInt, KratosCoreFastSuite)
+{
+    Parameters tmp = Parameters(R"({})");
+    
+    std::string key = "int";
+    tmp.AddInt(key, 10);
+    
+    KRATOS_EXPECT_EQ(tmp[key].GetInt(),10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddDuble, KratosCoreFastSuite)
+{
+    Parameters tmp = Parameters(R"({})");
+    
+    std::string key = "double";
+    tmp.AddDouble(key, 2.0);
+
+    KRATOS_EXPECT_DOUBLE_EQ(tmp[key].GetDouble(),2.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddBool, KratosCoreFastSuite)
+{
+    Parameters tmp = Parameters(R"({})");
+    
+    std::string key = "bool";
+    tmp.AddBool(key, true);
+
+    KRATOS_EXPECT_EQ(tmp[key].GetBool(),true);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddString, KratosCoreFastSuite)
+{
+    Parameters tmp = Parameters(R"({})");
+
+    std::string key = "string";
+    tmp.AddString(key, "hello");
+
+    KRATOS_EXPECT_EQ(tmp[key].GetString(),"hello");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddVector, KratosCoreFastSuite)
+{
+    Parameters tmp = Parameters(R"({})");
+    
+    std::string key = "vector";
+    Vector vector = ZeroVector(3);
+    vector[0] = 5.2;
+    vector[1] = -3.1;
+    vector[2] = 4.33;
+    tmp.AddVector(key, vector);
+    const auto& V = tmp[key].GetVector();
+
+    KRATOS_EXPECT_VECTOR_EQ(V,vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMatrix, KratosCoreFastSuite)
+{
+    Parameters tmp = Parameters(R"({})");
+    
+    std::string key = "matrix";
+    Matrix matrix = ZeroMatrix(3,2);
+    matrix(0,0) = 1.0;
+    matrix(0,1) = 2.0;
+    matrix(1,0) = 3.0;
+    matrix(1,1) = 4.0;
+    matrix(2,0) = 5.0;
+    matrix(2,1) = 6.0;
+    tmp.AddMatrix(key, matrix);
+    const auto& A = tmp[key].GetMatrix();
+    
+    KRATOS_EXPECT_MATRIX_EQ(A,matrix);
+}
+
+//////////////////////////////////////////////////////////////////////
+// Corner Cases                                                     //
+//////////////////////////////////////////////////////////////////////
+
+// Unicode specific tests
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetUnicodeString, KratosCoreFastSuite)
+{
+    const Parameters parameters(R"({"value":"\u548c\u8c10"})"); // 和谐
+    KRATOS_EXPECT_EQ(parameters["value"].GetString(), "\xE5\x92\x8C\xE8\xB0\x90");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetUnicodeString, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"value":null})");
+    const std::string value = "\xE4\xBC\xA0\xE7\xBB\x9F"; // 传统
+    parameters["value"].SetString(value);
+
+    const Parameters serialized(parameters.WriteJsonString());
+    KRATOS_EXPECT_EQ(serialized["value"].GetString(), value);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsUnicodeString, KratosCoreFastSuite)
+{
+    const Parameters parameters(R"({"value":"\u548c\u8c10"})"); // 和谐
+    KRATOS_EXPECT_TRUE(parameters["value"].IsString());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetUnicodePath, KratosCoreFastSuite)
+{
+    const Parameters parameters(R"({"input_filename":"\u548c\u8c10/\u4f20\u7edf.mdpa"})"); // 和谐/传统.mdpa
+    const auto expected = std::filesystem::path(u"\u548c\u8c10") / u"\u4f20\u7edf.mdpa";
+
+    KRATOS_EXPECT_EQ(parameters["input_filename"].GetPath(), expected);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetUnicodePath, KratosCoreFastSuite)
+{
+    Parameters parameters(R"({"input_filename":null})");
+    const auto filename = std::filesystem::path(u"\u4f20\u7edf.mdpa"); // 传统.mdpa
+    parameters["input_filename"].SetPath(filename);
+
+    const Parameters serialized(parameters.WriteJsonString());
+    KRATOS_EXPECT_EQ(serialized["input_filename"].GetString(), "\xE4\xBC\xA0\xE7\xBB\x9F.mdpa");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsUnicodePath, KratosCoreFastSuite)
+{
+    const Parameters parameters(R"({"input_filename":"\u548c\u8c10/\u4f20\u7edf.mdpa"})"); // 和谐/传统.mdpa
+    KRATOS_EXPECT_TRUE(parameters["input_filename"].IsPath());
+}
+
+// Vectros with different shapes
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsVectorWithDifferentShapes, KratosCoreFastSuite)
+{
+    const auto tmp = MakeParametersVectorInterface();
 
     // Check the IsVector Method
     for (std::size_t i = 0;  i < tmp["valid_vectors"].size(); ++i) {
@@ -856,8 +1130,13 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersVectorInterface, KratosCoreFastSuite)
         const auto& false_vector = tmp["false_vectors"][i];
         KRATOS_EXPECT_FALSE(false_vector.IsVector());
     }
+}
 
-    // Check the GetVector Method also on the valid Matrices
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetVectorWithDifferentShapes, KratosCoreFastSuite)
+{
+    const auto tmp = MakeParametersVectorInterface();
+
+    // Check the GetVector Method on the valid Matrices
     for (std::size_t i = 0;  i < tmp["valid_vectors"].size(); ++i) {
         const auto& valid_vector = tmp["valid_vectors"][i];
         valid_vector.GetVector();
@@ -868,8 +1147,15 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersVectorInterface, KratosCoreFastSuite)
         const auto& false_vector = tmp["false_vectors"][i];
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(false_vector.GetVector(), "");
     }
+}
 
+// Set on empty
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetVectorOnEmptyValue, KratosCoreFastSuite)
+{
     // Manually assign and check a Vector
+    Parameters tmp(R"({})");
+
     Vector vec = ZeroVector(3);
     vec[0] = 1.32;
     vec[1] = -2.22;
@@ -877,8 +1163,6 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersVectorInterface, KratosCoreFastSuite)
 
     tmp.AddEmptyValue("vector_value");
     tmp["vector_value"].SetVector(vec);
-
-    KRATOS_EXPECT_TRUE(tmp["vector_value"].IsVector());
 
     const auto V2 = tmp["vector_value"].GetVector();
     KRATOS_EXPECT_VECTOR_EQ(V2,vec);
@@ -941,9 +1225,9 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetVectorArrayInterface, KratosCoreFas
     );
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-    tmp["not_vectors"].GetVectorArray(),
-    "Argument must be an array of arrays"
-);
+        tmp["not_vectors"].GetVectorArray(),
+        "Argument must be an array of arrays"
+    );
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         tmp["first_not_array"].GetVectorArray(),
@@ -966,25 +1250,10 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetVectorArrayInterface, KratosCoreFas
     );
 }
 
-KRATOS_TEST_CASE_IN_SUITE(KratosParametersMatrixInterface, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMatrixWithDifferentShapes, KratosCoreFastSuite)
 {
-    // Read and check Matrices from a Parameters-Object
-    Parameters tmp = Parameters(R"({
-        "valid_matrices" : [ [[]],
-                              [[],[]],
-                              [[-9.81,8, 5.47]]
-        ],
-        "false_matrices" : [ [],
-                              [[[]]],
-                              [[3.3] , [1,2]],
-                              [[2,1.5,3.3] , [3,{"key":3},2]],
-                              [[2,1.5,3.3] , [5,false,2]],
-                              [[2,1.5,3.3] , [[2,3],1,2]],
-                              [[2,1.5,3.3] , ["string",2,9]]
-        ]
-    })");
+    const auto tmp = MakeMatrixShapeParameters();
 
-    // Check the IsMatrix Method
     for (std::size_t i = 0;  i < tmp["valid_matrices"].size(); ++i) {
         const auto& valid_matrix = tmp["valid_matrices"][i];
         KRATOS_EXPECT_TRUE(valid_matrix.IsMatrix());
@@ -994,8 +1263,12 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersMatrixInterface, KratosCoreFastSuite)
         const auto& false_matrix = tmp["false_matrices"][i];
         KRATOS_EXPECT_FALSE(false_matrix.IsMatrix());
     }
+}
 
-    // Check the GetMatrix Method also on the valid Matrices
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetMatrixWithDifferentShapes, KratosCoreFastSuite)
+{
+    const auto tmp = MakeMatrixShapeParameters();
+
     for (std::size_t i = 0;  i < tmp["valid_matrices"].size(); ++i) {
         const auto& valid_matrix = tmp["valid_matrices"][i];
         valid_matrix.GetMatrix();
@@ -1006,8 +1279,12 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersMatrixInterface, KratosCoreFastSuite)
         const auto& false_matrix = tmp["false_matrices"][i];
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(false_matrix.GetMatrix(), "");
     }
+}
 
-    // Manually assign and check a Matrix
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetMatrixOnEmptyValue, KratosCoreFastSuite)
+{
+    Parameters tmp(R"({})");
+
     Matrix mat = ZeroMatrix(3,2);
     mat(0,0) = 1.0;
     mat(0,1) = 2.0;
@@ -1018,8 +1295,6 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersMatrixInterface, KratosCoreFastSuite)
 
     tmp.AddEmptyValue("matrix_value");
     tmp["matrix_value"].SetMatrix(mat);
-
-    KRATOS_EXPECT_TRUE(tmp["matrix_value"].IsMatrix());
 
     const auto& A2 = tmp["matrix_value"].GetMatrix();
     KRATOS_EXPECT_MATRIX_EQ(A2, mat);
@@ -1056,7 +1331,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersDoublevsNullValidation, KratosCoreFast
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(double_custom.ValidateAndAssignDefaults(null_default), "");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(KratosParametersGeStringArrayValid, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetStringArrayValid, KratosCoreFastSuite)
 {
     Parameters tmp = Parameters(R"({
         "parameter": ["foo", "bar"]
@@ -1069,22 +1344,10 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersGeStringArrayValid, KratosCoreFastSuit
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetStringArrayValid, KratosCoreFastSuite)
 {
-    Parameters initial = Parameters(R"({
-        "parameter": ["foo", "bar"]
-    })");
-    auto string_array = initial["parameter"].GetStringArray();
+    Parameters parameters(R"({"value":null})");
+    parameters["value"].SetStringArray({"foo", "bar"});
 
-    Parameters new_param = Parameters();
-    new_param.AddEmptyValue("new_parameter");
-    new_param["new_parameter"].SetStringArray(string_array);
-
-    auto new_string_array = initial["parameter"].GetStringArray();
-
-    int counter = 0;
-    for (auto& r_string : string_array) {
-        KRATOS_EXPECT_EQ(new_string_array[counter], r_string);
-        ++counter;
-    }
+    KRATOS_EXPECT_EQ(parameters.WriteJsonString(), R"({"value":["foo","bar"]})");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersWithIncludes, KratosCoreFastSuite)
