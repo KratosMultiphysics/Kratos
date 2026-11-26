@@ -36,7 +36,7 @@ public:
     [[nodiscard]] virtual Flags       GetSpatialType() const                              = 0;
 
 private:
-    friend class Serializer;
+    friend Serializer;
     virtual void save(Serializer& rSerializer) const = 0;
     virtual void load(Serializer& rSerializer)       = 0;
 };

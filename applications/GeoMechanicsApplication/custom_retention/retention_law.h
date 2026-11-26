@@ -21,6 +21,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 /**
  * Base class of retention laws.
  */
@@ -110,7 +112,7 @@ public:
     virtual void PrintData(std::ostream& rOStream) const;
 
 private:
-    friend class Serializer;
+    friend Serializer;
 
     virtual void save(Serializer& rSerializer) const;
 

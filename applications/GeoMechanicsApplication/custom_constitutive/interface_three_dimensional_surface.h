@@ -18,6 +18,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceThreeDimensionalSurface : public ConstitutiveLawDimension
 {
 public:
@@ -29,7 +31,7 @@ public:
     [[nodiscard]] Flags       GetSpatialType() const override;
 
 private:
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer&) const override;
     void load(Serializer&) override;
 };

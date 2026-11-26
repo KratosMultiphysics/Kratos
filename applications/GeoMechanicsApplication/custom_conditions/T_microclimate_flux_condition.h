@@ -24,6 +24,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 struct WaterFluxes {
     double precipitation = 0.0;
     double evaporation   = 0.0;
@@ -102,7 +104,7 @@ private:
                                            double FrictionDragCoefficient) const;
 
     // Serialization
-    friend class Serializer;
+    friend Serializer;
 
     void save(Serializer& rSerializer) const override;
 
