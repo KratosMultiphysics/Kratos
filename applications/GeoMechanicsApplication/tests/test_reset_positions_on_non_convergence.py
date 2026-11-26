@@ -16,10 +16,10 @@ import test_helper
 
 class KratosGeoMechanicsResetPositionsOnNonConvergence(KratosUnittest.TestCase):
     """
-    Two elements in series are stretched: a linear elastic element and a Mohr-Coulomb element with a
-    tension cut-off. The second time step does not converge in its first cycle, so the state is reverted
-    to the start of that step. Since the mesh is not moved, the nodal positions must not be changed by
-    that revert (see issue #15007).
+    Test which checks if resetting the state of the run to the start of the previous step
+    does not impact the node positions when move_mesh is false. This is done by compressing
+    Two side-by-side elements to a point where a cycling step is needed to get the problem
+    to converge
     """
 
     def setUp(self):
