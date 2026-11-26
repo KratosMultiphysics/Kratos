@@ -605,8 +605,15 @@ class TestBeam4pElementNonlinear(BeamTestCase):
 
     def test_large_deflection_elastica(self):
         # Cantilever with a tip load perpendicular to the undeformed axis, P L^2 / EI = 0.5.
-        # Reference: inextensible elastica (shooting method). The linear solution would be uy = -0.6667, ux = 0.
-        # The cantilever is stocky, so the axial stiffness is increased to match the inextensibility of the reference.
+        # Reference: inextensible elastica EI theta'' + P cos(theta) = 0, theta(0) = 0, theta'(L) = 0, solved in closed
+        # form with elliptic integrals (Bisshopp & Drucker 1945, Q. Appl. Math. 3; Mattiasson 1981, IJNME 17).
+        # With alpha = P L^2 / EI, k = sqrt((1 + sin(theta_0)) / 2) and sin(phi_1) = 1 / (k sqrt(2)):
+        #   sqrt(alpha) = K(k) - F(phi_1, k)                            -> tip rotation theta_0 = 0.24453
+        #   ux / L = sqrt(2 sin(theta_0) / alpha) - 1                   -> ux = -0.0636758499
+        #   uy / L = -(1 - 2 / sqrt(alpha) * (E(k) - E(phi_1, k)))      -> uy = -0.6485743026
+        # K, F and E are the complete/incomplete elliptic integrals of the first and second kind.
+        # The linear solution would be uy = -0.6667, ux = 0.
+        # The cantilever is thick, so the axial stiffness is increased to match the inextensibility of the reference.
         ux_exact, uy_exact = -0.0636758499, -0.6485743026
         load = 0.5 * E_MOD * I22_ / LENGTH ** 2
 
