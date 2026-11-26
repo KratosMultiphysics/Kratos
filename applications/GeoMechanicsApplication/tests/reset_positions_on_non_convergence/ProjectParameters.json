@@ -45,8 +45,8 @@
             "solver_type": "LinearSolversApplication.sparse_lu",
             "scaling": true
         },
-        "problem_domain_sub_model_part_list": ["strong_soil", "weak_soil"],
-        "body_domain_sub_model_part_list": ["strong_soil", "weak_soil"]
+        "problem_domain_sub_model_part_list": ["soil"],
+        "body_domain_sub_model_part_list": ["soil"]
     },
     "output_processes": {
         "gid_output": [

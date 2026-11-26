@@ -1,7 +1,7 @@
 {
     "properties": [
         {
-            "model_part_name_list": ["PorousDomain.strong_soil", "PorousDomain.weak_soil"],
+            "model_part_name_list": ["PorousDomain.soil"],
             "properties_id": 1,
             "Material": {
                 "constitutive_law": {
