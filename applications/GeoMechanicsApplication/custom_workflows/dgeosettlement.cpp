@@ -120,6 +120,7 @@ bool GetResetTotalsFrom(const Parameters& rProjectParameters)
 
 bool GetMoveMeshFlagFrom(const Parameters& rProjectParameters)
 {
+    if (!rProjectParameters["solver_settings"].Has("move_mesh_flag")) return false;
     return rProjectParameters["solver_settings"]["move_mesh_flag"].GetBool();
 }
 
