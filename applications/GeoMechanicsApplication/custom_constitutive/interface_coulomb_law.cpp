@@ -97,7 +97,7 @@ int InterfaceCoulombLaw::Check(const Properties&   rMaterialProperties,
     constexpr auto max_value_angle = 90.0;
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(GEO_FRICTION_ANGLE, 0.0, max_value_angle);
     check_properties.Check(GEO_DILATANCY_ANGLE, rMaterialProperties[GEO_FRICTION_ANGLE]);
-    if (ConstitutiveLawUtilities::WantTensionCutOff(rMaterialProperties)) {
+    if (GeoMechanicsConstitutiveLawUtilities::WantTensionCutOff(rMaterialProperties)) {
         check_properties.Check(
             GEO_TENSILE_STRENGTH,
             rMaterialProperties[GEO_COHESION] /
@@ -205,7 +205,7 @@ void InterfaceCoulombLaw::CalculateMaterialResponseCauchy(Parameters& rConstitut
         rConstitutiveLawParameters.GetStrainVector() - mRelativeDisplacementVectorFinalized;
 
     constexpr auto number_of_normal_components = std::size_t{1};
-    const auto elastic_tensor = ConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(
+    const auto elastic_tensor = GeoMechanicsConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(
         normal_stiffness, shear_stiffness, GetStrainSize(), number_of_normal_components);
 
     for (std::size_t sub = 1; sub <= number_of_sub_steps; ++sub) {
@@ -261,7 +261,7 @@ Geo::SigmaTau InterfaceCoulombLaw::CalculateTrialTractionVector(const Vector& rR
 {
     constexpr auto number_of_normal_components = std::size_t{1};
     return Geo::SigmaTau{mTractionVectorFinalized +
-                         prod(ConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(
+                         prod(GeoMechanicsConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(
                                   NormalStiffness, ShearStiffness, GetStrainSize(), number_of_normal_components),
                               rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized)};
 }
@@ -280,7 +280,7 @@ Matrix& InterfaceCoulombLaw::CalculateValue(Parameters&             rConstitutiv
     if (rVariable == CONSTITUTIVE_MATRIX) {
         const auto&    r_properties = rConstitutiveLawParameters.GetMaterialProperties();
         constexpr auto number_of_normal_components = std::size_t{1};
-        rValue = ConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(
+        rValue = GeoMechanicsConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(
             r_properties[INTERFACE_NORMAL_STIFFNESS], r_properties[INTERFACE_SHEAR_STIFFNESS],
             GetStrainSize(), number_of_normal_components);
     } else {

@@ -36,7 +36,7 @@ KRATOS_TEST_CASE_IN_SUITE(SetSixConstitutiveParametersCorrectResults, KratosGeoM
     const Matrix     shape_functions_derivatives = ScalarMatrix(3, 3, 5.0);
     const Matrix     deformation_gradient_F      = ScalarMatrix(3, 3, 10.0);
     constexpr double determinant_of_F            = 10.0;
-    ConstitutiveLawUtilities::SetConstitutiveParameters(
+    GeoMechanicsConstitutiveLawUtilities::SetConstitutiveParameters(
         ConstitutiveParameters, strain_vector, constitutive_matrix, N, shape_functions_derivatives,
         deformation_gradient_F, determinant_of_F);
 
@@ -59,7 +59,7 @@ KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromGeoCohesionProperty, KratosGeo
     auto properties = Properties{};
     properties.SetValue(GEO_COHESION, 2.0);
 
-    KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetCohesion(properties), 2.0);
+    KRATOS_EXPECT_DOUBLE_EQ(GeoMechanicsConstitutiveLawUtilities::GetCohesion(properties), 2.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromUMatParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -69,11 +69,11 @@ KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromUMatParameters, KratosGeoMecha
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 1);
 
-    KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetCohesion(properties), 2.0);
+    KRATOS_EXPECT_DOUBLE_EQ(GeoMechanicsConstitutiveLawUtilities::GetCohesion(properties), 2.0);
 
     properties.Erase(INDEX_OF_UMAT_C_PARAMETER);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ConstitutiveLawUtilities::GetCohesion(properties),
+        GeoMechanicsConstitutiveLawUtilities::GetCohesion(properties),
         "Error: ConstitutiveLawUtilities::GetCohesion failed. There is no GEO_COHESION available "
         "and attempting to get the cohesion from UMAT parameters resulted in the following Error: "
         "There is no INDEX_OF_UMAT_C_PARAMETER for material 0.");
@@ -81,7 +81,7 @@ KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromUMatParameters, KratosGeoMecha
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 1);
     properties.Erase(UMAT_PARAMETERS);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ConstitutiveLawUtilities::GetCohesion(properties),
+        GeoMechanicsConstitutiveLawUtilities::GetCohesion(properties),
         "ConstitutiveLawUtilities::GetCohesion failed. There is no GEO_COHESION available and "
         "attempting to get the cohesion from UMAT parameters resulted in the following Error: "
         "There is no UMAT_PARAMETERS for material 0.");
@@ -92,7 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromGeoFrictionAngleProperty,
     auto properties = Properties{};
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
 
-    KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), 30.0);
+    KRATOS_EXPECT_DOUBLE_EQ(GeoMechanicsConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), 30.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -102,14 +102,14 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeo
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
 
-    KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), 30.0);
+    KRATOS_EXPECT_DOUBLE_EQ(GeoMechanicsConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), 30.0);
 
     properties.Erase(INDEX_OF_UMAT_PHI_PARAMETER);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE available and attempting to get the friction angle from UMAT parameters resulted in the following Error: There is no INDEX_OF_UMAT_PHI_PARAMETER for material 0.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoMechanicsConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE available and attempting to get the friction angle from UMAT parameters resulted in the following Error: There is no INDEX_OF_UMAT_PHI_PARAMETER for material 0.");
 
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
     properties.Erase(UMAT_PARAMETERS);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE available and attempting to get the friction angle from UMAT parameters resulted in the following Error: There is no UMAT_PARAMETERS for material 0.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoMechanicsConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE available and attempting to get the friction angle from UMAT parameters resulted in the following Error: There is no UMAT_PARAMETERS for material 0.");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -124,14 +124,14 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 0); // 1-based index
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ConstitutiveLawUtilities::GetCohesion(properties),
+        GeoMechanicsConstitutiveLawUtilities::GetCohesion(properties),
         "ConstitutiveLawUtilities::GetCohesion failed. There is no GEO_COHESION available and "
         "attempting to get the cohesion from UMAT parameters resulted in the following Error: Got "
         "out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 0 is not in range [1, 2].");
 
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 3); // 1-based index
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ConstitutiveLawUtilities::GetCohesion(properties),
+        GeoMechanicsConstitutiveLawUtilities::GetCohesion(properties),
         "ConstitutiveLawUtilities::GetCohesion failed. There is no GEO_COHESION available and "
         "attempting to get the cohesion from UMAT parameters resulted in the following Error: Got "
         "out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 3 is not in range [1, 2].");
@@ -141,7 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetStateVariableIndex, Kratos
 {
     // Act and Assert
     constexpr auto expected_index = 1;
-    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::GetStateVariableIndex(STATE_VARIABLE_2), expected_index);
+    KRATOS_EXPECT_EQ(GeoMechanicsConstitutiveLawUtilities::GetStateVariableIndex(STATE_VARIABLE_2), expected_index);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -153,10 +153,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainSize, KratosGeoMec
     // Act and Assert
     std::size_t           expected_size = 2;
     constexpr std::size_t element_id    = 1;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::CheckStrainSize(properties, expected_size, element_id), "Wrong constitutive law is used: strain size is 4 when it is expected to be 2 at element Id = 1.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoMechanicsConstitutiveLawUtilities::CheckStrainSize(properties, expected_size, element_id), "Wrong constitutive law is used: strain size is 4 when it is expected to be 2 at element Id = 1.");
 
     expected_size = properties[CONSTITUTIVE_LAW]->GetStrainSize();
-    EXPECT_NO_THROW(ConstitutiveLawUtilities::CheckStrainSize(properties, expected_size, element_id));
+    EXPECT_NO_THROW(GeoMechanicsConstitutiveLawUtilities::CheckStrainSize(properties, expected_size, element_id));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainMeasures, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -169,18 +169,18 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainMeasures, KratosGe
     // Act and Assert
     constexpr std::size_t element_id = 1;
     constitutive_law->AddStrainMeasure_Infinitesimal(false);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(properties, element_id), " Constitutive law is not compatible with the strain type StrainMeasure_Infinitesimal at element 1.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoMechanicsConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(properties, element_id), " Constitutive law is not compatible with the strain type StrainMeasure_Infinitesimal at element 1.");
 
     constitutive_law->AddStrainMeasure_Infinitesimal(true);
-    EXPECT_NO_THROW(ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(properties, element_id));
+    EXPECT_NO_THROW(GeoMechanicsConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(properties, element_id));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateK0NCFromFrictionAngleInDegrees,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    EXPECT_NEAR(ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(MathUtils<>::DegreesToRadians(30.0)),
+    EXPECT_NEAR(GeoMechanicsConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(MathUtils<>::DegreesToRadians(30.0)),
                 0.5, Defaults::absolute_tolerance);
-    EXPECT_NEAR(ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(MathUtils<>::DegreesToRadians(60.0)),
+    EXPECT_NEAR(GeoMechanicsConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(MathUtils<>::DegreesToRadians(60.0)),
                 1.0 - 0.5 * std::numbers::sqrt3, Defaults::absolute_tolerance);
 }
 
@@ -189,29 +189,29 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_HasFrictionAngle, KratosGeoMe
     // 1) GEO_FRICTION_ANGLE provided
     auto properties = Properties{};
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
-    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), true);
+    KRATOS_EXPECT_EQ(GeoMechanicsConstitutiveLawUtilities::HasFrictionAngle(properties), true);
 
     // 2) UMAT_PARAMETERS + INDEX_OF_UMAT_PHI_PARAMETER provided
     properties           = Properties{};
     auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
-    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), true);
+    KRATOS_EXPECT_EQ(GeoMechanicsConstitutiveLawUtilities::HasFrictionAngle(properties), true);
 
     // 3) only INDEX_OF_UMAT_PHI_PARAMETER provided -> should be false
     properties = Properties{};
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 1);
-    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), false);
+    KRATOS_EXPECT_EQ(GeoMechanicsConstitutiveLawUtilities::HasFrictionAngle(properties), false);
 
     // 4) only UMAT_PARAMETERS provided -> should be false
     properties      = Properties{};
     umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), false);
+    KRATOS_EXPECT_EQ(GeoMechanicsConstitutiveLawUtilities::HasFrictionAngle(properties), false);
 
     // 5) neither provided -> false
     properties = Properties{};
-    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), false);
+    KRATOS_EXPECT_EQ(GeoMechanicsConstitutiveLawUtilities::HasFrictionAngle(properties), false);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ValidateFrictionAngle, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -221,23 +221,23 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ValidateFrictionAngle, Kratos
     // Valid: GEO_FRICTION_ANGLE provided
     auto properties = Properties{};
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
-    EXPECT_NO_THROW(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id));
+    EXPECT_NO_THROW(GeoMechanicsConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id));
 
     // Valid: UMAT_PARAMETERS + INDEX_OF_UMAT_PHI_PARAMETER provided
     properties           = Properties{};
     auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
-    EXPECT_NO_THROW(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id));
+    EXPECT_NO_THROW(GeoMechanicsConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id));
 
     // Missing both -> error
     properties = Properties{};
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "Properties ( 0) of element ( 1) does not have GEO_FRICTION_ANGLE nor INDEX_OF_UMAT_PHI_PARAMETER.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoMechanicsConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "Properties ( 0) of element ( 1) does not have GEO_FRICTION_ANGLE nor INDEX_OF_UMAT_PHI_PARAMETER.");
 
     // GEO_FRICTION_ANGLE out of range -> error
     properties = Properties{};
     properties.SetValue(GEO_FRICTION_ANGLE, -1.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), " Properties ( 0) of element ( 1): GEO_FRICTION_ANGLE (-1 degrees) should be between 0 and 90 degrees.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoMechanicsConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), " Properties ( 0) of element ( 1): GEO_FRICTION_ANGLE (-1 degrees) should be between 0 and 90 degrees.");
 
     // UMAT phi value out of range -> error
     properties      = Properties{};
@@ -245,7 +245,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ValidateFrictionAngle, Kratos
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id),
+        GeoMechanicsConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id),
         " Properties ( 0) of element ( 1): Phi (-5 degrees) should be between 0 and 90 degrees.");
 
     // INDEX_OF_UMAT_PHI_PARAMETER out of bounds -> error
@@ -253,7 +253,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ValidateFrictionAngle, Kratos
     umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 3);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "Properties ( 0) of element ( 1): INDEX_OF_UMAT_PHI_PARAMETER (3) is not in range [1, size of UMAT_PARAMETERS].");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoMechanicsConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "Properties ( 0) of element ( 1): INDEX_OF_UMAT_PHI_PARAMETER (3) is not in range [1, size of UMAT_PARAMETERS].");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateUndrainedYoungsModulus_ReturnsExpectedValue,
@@ -266,7 +266,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateUndrainedYoungsModu
 
     // Act
     const auto undrained_youngs_modulus =
-        ConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(properties, 0.4);
+        GeoMechanicsConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(properties, 0.4);
 
     // Assert
     KRATOS_EXPECT_EQ(undrained_youngs_modulus, 7.0 / 6.0);
@@ -281,7 +281,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateElasticProperties, K
     properties.SetValue(POISSON_RATIO, 0.25);
 
     // Act
-    const auto [E_plain, nu_plain] = ConstitutiveLawUtilities::GetOrCalculateElasticProperties(properties);
+    const auto [E_plain, nu_plain] = GeoMechanicsConstitutiveLawUtilities::GetOrCalculateElasticProperties(properties);
 
     // Assert
     KRATOS_EXPECT_EQ(E_plain, 2.5);
@@ -299,7 +299,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateElasticProperties, K
 
     // Act: undrained
     const auto [E_undrained, nu_undrained] =
-        ConstitutiveLawUtilities::GetOrCalculateElasticProperties(properties);
+        GeoMechanicsConstitutiveLawUtilities::GetOrCalculateElasticProperties(properties);
 
     // Assert
     const auto expected_E  = 10.0 / 9.0;
@@ -321,7 +321,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetOrCalculatedSkemptonB_Ret
     properties.SetValue(POROSITY, 0.5);
 
     // Act
-    auto skempton_b = ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties);
+    auto skempton_b = GeoMechanicsConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties);
 
     // Assert
     KRATOS_EXPECT_EQ(skempton_b, 0.5);
@@ -331,7 +331,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetOrCalculatedSkemptonB_Ret
     properties.SetValue(POROSITY, 1.0e-8);
 
     // Act
-    skempton_b = ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties);
+    skempton_b = GeoMechanicsConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties);
 
     // Assert
     constexpr auto tolerance = 1.0e6 * Defaults::absolute_tolerance;
@@ -341,7 +341,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetOrCalculatedSkemptonB_Ret
     properties.SetValue(BIOT_COEFFICIENT, 0.0);
 
     // Act
-    skempton_b = ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties);
+    skempton_b = GeoMechanicsConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties);
 
     // Assert
     KRATOS_EXPECT_EQ(skempton_b, 0.0);
@@ -349,7 +349,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetOrCalculatedSkemptonB_Ret
     // Arrange
     properties.SetValue(GEO_SKEMPTON_B, 0.8);
     // Act
-    skempton_b = ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties);
+    skempton_b = GeoMechanicsConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties);
 
     // Assert
     KRATOS_EXPECT_EQ(skempton_b, 0.8);
@@ -366,7 +366,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetOrCalculatedSkemptonB_Thr
     properties.SetValue(POROSITY, 0.0);
 
     // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)GeoMechanicsConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties),
                                       "Non-physical values: denominator < epsilon.");
 
     // Arrange
@@ -374,7 +374,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetOrCalculatedSkemptonB_Thr
     properties.SetValue(BULK_MODULUS_SOLID, 1.E2);
     properties.SetValue(POROSITY, 0.1);
     // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)GeoMechanicsConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties),
                                       "Calculated Skempton B (1.08696) is out of range [0,1].");
 
     // Arrange
@@ -383,7 +383,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetOrCalculatedSkemptonB_Thr
     properties.SetValue(POROSITY, 0.1);
 
     // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)GeoMechanicsConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties),
                                       "Calculated Skempton B (-0.0010011) is out of range [0,1].");
 }
 
@@ -399,7 +399,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateUndrainedPoissonsRa
     properties.SetValue(POROSITY, 0.5);
 
     // Act
-    auto undrained_poissons_ratio = ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
+    auto undrained_poissons_ratio = GeoMechanicsConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
 
     // Assert
     KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 1.0 / 3.0, Defaults::absolute_tolerance);
@@ -408,7 +408,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateUndrainedPoissonsRa
     properties.SetValue(GEO_SKEMPTON_B, 0.2);
 
     // Act
-    undrained_poissons_ratio = ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
+    undrained_poissons_ratio = GeoMechanicsConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
 
     // Assert
     KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.25, Defaults::absolute_tolerance);
@@ -418,7 +418,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateUndrainedPoissonsRa
     properties.SetValue(GEO_SKEMPTON_B, 1.0);
 
     // Act
-    undrained_poissons_ratio = ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
+    undrained_poissons_ratio = GeoMechanicsConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
 
     // Assert
     KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.5, Defaults::absolute_tolerance);
@@ -427,7 +427,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateUndrainedPoissonsRa
     properties.SetValue(BIOT_COEFFICIENT, 0.0);
 
     // Act
-    undrained_poissons_ratio = ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
+    undrained_poissons_ratio = GeoMechanicsConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
 
     // Assert
     KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.3, Defaults::absolute_tolerance);
@@ -445,7 +445,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetOrCalculateUndrainedPoiss
     properties.SetValue(POROSITY, 0.5);
 
     // Act
-    auto undrained_poissons_ratio = ConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(properties);
+    auto undrained_poissons_ratio = GeoMechanicsConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(properties);
 
     // Assert
     const auto expected_undrained_poissons_ratio = 1.0 / 3.0;
@@ -453,11 +453,11 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetOrCalculateUndrainedPoiss
 
     // When explicit GEO_POISSON_UNDRAINED is provided it should be returned (and clamped if needed)
     properties.SetValue(GEO_POISSON_UNDRAINED, 0.4);
-    undrained_poissons_ratio = ConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(properties);
+    undrained_poissons_ratio = GeoMechanicsConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(properties);
     KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.4, Defaults::absolute_tolerance);
 
     properties.SetValue(GEO_POISSON_UNDRAINED, 0.6);
-    undrained_poissons_ratio = ConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(properties);
+    undrained_poissons_ratio = GeoMechanicsConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(properties);
     KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.495, Defaults::absolute_tolerance);
 }
 
@@ -471,7 +471,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateUndrainedPoissonsRa
     properties.SetValue(GEO_SKEMPTON_B, 1.0);
 
     // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)GeoMechanicsConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties),
                                       "Non-physical values: denominator < epsilon.");
 }
 
@@ -483,7 +483,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitilties_MakeContinuumConstitutiveTen
     constexpr auto poissons_ratio              = 0.25;
     constexpr auto strain_size                 = 4;
     constexpr auto number_of_normal_components = 2;
-    const auto constitutive_tensor = ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
+    const auto constitutive_tensor = GeoMechanicsConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
         youngs_modulus, poissons_ratio, strain_size, number_of_normal_components);
 
     // Assert
@@ -500,7 +500,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_MakeInterfaceElasticConstitu
     constexpr auto poissons_ratio              = 1.0;
     constexpr auto strain_size                 = 4;
     constexpr auto number_of_normal_components = 2;
-    const auto constitutive_tensor = ConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(
+    const auto constitutive_tensor = GeoMechanicsConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(
         youngs_modulus, poissons_ratio, strain_size, number_of_normal_components);
 
     // Assert
@@ -514,7 +514,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateK0NCFromFrictionAng
 {
     // Arrange & Act
     const auto calculated_k0_nc =
-        ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(30.0 * Globals::Pi / 180.0);
+        GeoMechanicsConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(30.0 * Globals::Pi / 180.0);
 
     // Assert
     KRATOS_EXPECT_EQ(calculated_k0_nc, 0.5);
@@ -529,22 +529,22 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
     Properties::Pointer p_properties  = my_model_part.CreateNewProperties(0);
     p_properties->SetValue(IGNORE_UNDRAINED, true);
     // Act
-    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(*p_properties);
+    GeoMechanicsConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(*p_properties);
     // Assert
     EXPECT_FALSE(p_properties->Has(IGNORE_UNDRAINED));
     EXPECT_TRUE(p_properties->Has(GEO_DRAINAGE_TYPE));
-    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType(p_properties->GetValue(GEO_DRAINAGE_TYPE)),
+    KRATOS_EXPECT_EQ(GeoMechanicsConstitutiveLawUtilities::StringToDrainageType(p_properties->GetValue(GEO_DRAINAGE_TYPE)),
                      DrainageType::CONSTANT_WATER_PRESSURE);
 
     // Arrange
     p_properties->Erase(GEO_DRAINAGE_TYPE);
     p_properties->SetValue(IGNORE_UNDRAINED, false);
     // Act
-    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(*p_properties);
+    GeoMechanicsConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(*p_properties);
     // Assert
     EXPECT_FALSE(p_properties->Has(IGNORE_UNDRAINED));
     EXPECT_TRUE(p_properties->Has(GEO_DRAINAGE_TYPE));
-    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType(p_properties->GetValue(GEO_DRAINAGE_TYPE)),
+    KRATOS_EXPECT_EQ(GeoMechanicsConstitutiveLawUtilities::StringToDrainageType(p_properties->GetValue(GEO_DRAINAGE_TYPE)),
                      DrainageType::FULLY_COUPLED);
 }
 
@@ -560,7 +560,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureI
     constexpr auto volumetric_strain_increment = 1.0;
 
     // Act
-    auto excess_pore_pressure_increment = ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(
+    auto excess_pore_pressure_increment = GeoMechanicsConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(
         properties, volumetric_strain_increment);
 
     // Assert
@@ -570,7 +570,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureI
     properties.SetValue(POROSITY, 0.0);
 
     // Act
-    excess_pore_pressure_increment = ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(
+    excess_pore_pressure_increment = GeoMechanicsConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(
         properties, volumetric_strain_increment);
 
     // Assert
@@ -582,7 +582,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureI
     properties.SetValue(POROSITY, 0.5);
 
     // Act
-    excess_pore_pressure_increment = ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(
+    excess_pore_pressure_increment = GeoMechanicsConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(
         properties, volumetric_strain_increment);
 
     // Assert
@@ -593,7 +593,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureI
     properties.SetValue(POROSITY, 1.0);
 
     // Act
-    excess_pore_pressure_increment = ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(
+    excess_pore_pressure_increment = GeoMechanicsConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(
         properties, volumetric_strain_increment);
 
     // Assert
@@ -614,7 +614,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureI
 
     // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (void)ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(properties, volumetric_strain_increment),
+        (void)GeoMechanicsConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(properties, volumetric_strain_increment),
         "Non-physical values: denominator < epsilon for property Id of 0.");
 }
 
@@ -625,12 +625,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
     auto properties = Properties{};
 
     // Act
-    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties);
+    GeoMechanicsConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties);
 
     // Assert
     EXPECT_FALSE(properties.Has(IGNORE_UNDRAINED));
     ASSERT_TRUE(properties.Has(GEO_DRAINAGE_TYPE));
-    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType(properties.GetValue(GEO_DRAINAGE_TYPE)),
+    KRATOS_EXPECT_EQ(GeoMechanicsConstitutiveLawUtilities::StringToDrainageType(properties.GetValue(GEO_DRAINAGE_TYPE)),
                      DrainageType::FULLY_COUPLED);
 }
 
@@ -642,12 +642,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
     properties.SetValue(GEO_DRAINAGE_TYPE, "CONSTANT_PW_FIELD"s);
 
     // Act
-    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties);
+    GeoMechanicsConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties);
 
     // Assert
     EXPECT_FALSE(properties.Has(IGNORE_UNDRAINED));
     ASSERT_TRUE(properties.Has(GEO_DRAINAGE_TYPE));
-    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType(properties.GetValue(GEO_DRAINAGE_TYPE)),
+    KRATOS_EXPECT_EQ(GeoMechanicsConstitutiveLawUtilities::StringToDrainageType(properties.GetValue(GEO_DRAINAGE_TYPE)),
                      DrainageType::CONSTANT_WATER_PRESSURE);
 }
 
@@ -661,7 +661,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
 
     // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties),
+        GeoMechanicsConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties),
         "Both IGNORE_UNDRAINED and GEO_DRAINAGE_TYPE are used. Choose the latter only.");
 }
 

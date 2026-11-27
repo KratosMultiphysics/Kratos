@@ -86,7 +86,7 @@ int ApplyK0ProcedureProcess::Check()
             CheckK0(r_properties, rElement.Id());
             if (!(r_properties.Has(K0_NC) || (r_properties.Has(K0_VALUE_XX) && r_properties.Has(K0_VALUE_YY) &&
                                               r_properties.Has(K0_VALUE_ZZ))))
-                ConstitutiveLawUtilities::ValidateFrictionAngle(r_properties, rElement.Id());
+                GeoMechanicsConstitutiveLawUtilities::ValidateFrictionAngle(r_properties, rElement.Id());
         });
     }
 
@@ -130,7 +130,7 @@ void ApplyK0ProcedureProcess::CheckK0(const Properties& rProperties, IndexType E
 
 void ApplyK0ProcedureProcess::CheckOCRorPOP(const Properties& rProperties, IndexType ElementId)
 {
-    if (rProperties.Has(K0_NC) || ConstitutiveLawUtilities::HasFrictionAngle(rProperties)) {
+    if (rProperties.Has(K0_NC) || GeoMechanicsConstitutiveLawUtilities::HasFrictionAngle(rProperties)) {
         if (rProperties.Has(OCR)) {
             const auto ocr = rProperties[OCR];
             KRATOS_ERROR_IF(ocr < 1.0)
@@ -169,7 +169,7 @@ void ApplyK0ProcedureProcess::CheckPoissonUnloadingReloading(const Properties& r
 void ApplyK0ProcedureProcess::CheckSufficientMaterialParameters(const Properties& rProperties, IndexType ElementId)
 {
     KRATOS_ERROR_IF_NOT(
-        rProperties.Has(K0_NC) || ConstitutiveLawUtilities::HasFrictionAngle(rProperties) ||
+        rProperties.Has(K0_NC) || GeoMechanicsConstitutiveLawUtilities::HasFrictionAngle(rProperties) ||
         (rProperties.Has(K0_VALUE_XX) && rProperties.Has(K0_VALUE_YY) && rProperties.Has(K0_VALUE_ZZ)))
         << "Insufficient material data for K0 procedure process for property Id of "
         << rProperties.Id() << " for element " << ElementId << ". No K0_NC, "
@@ -204,9 +204,9 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
     array_1d<double, 3> k0_vector;
     if (rProperties.Has(K0_NC)) {
         std::ranges::fill(k0_vector, rProperties[K0_NC]);
-    } else if (ConstitutiveLawUtilities::HasFrictionAngle(rProperties)) {
-        std::ranges::fill(k0_vector, ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(
-                                         ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties)));
+    } else if (GeoMechanicsConstitutiveLawUtilities::HasFrictionAngle(rProperties)) {
+        std::ranges::fill(k0_vector, GeoMechanicsConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(
+                                         GeoMechanicsConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties)));
     } else {
         k0_vector[0] = rProperties[K0_VALUE_XX];
         k0_vector[1] = rProperties[K0_VALUE_YY];
@@ -230,7 +230,7 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement, const Proce
     const auto poisson_u_r_factor = poisson_u_r / (1. - poisson_u_r);
 
     double POP_value = 0.0;
-    if (r_properties.Has(K0_NC) || ConstitutiveLawUtilities::HasFrictionAngle(r_properties)) {
+    if (r_properties.Has(K0_NC) || GeoMechanicsConstitutiveLawUtilities::HasFrictionAngle(r_properties)) {
         if (r_properties.Has(OCR)) {
             // Determine OCR dependent K0 values ( constant per element! )
             k0_vector *= r_properties[OCR];

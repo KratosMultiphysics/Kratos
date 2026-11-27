@@ -886,7 +886,7 @@ Vector& SmallStrainUDSMLaw::GetValue(const Variable<Vector>& rVariable, Vector& 
 
 double& SmallStrainUDSMLaw::GetValue(const Variable<double>& rVariable, double& rValue)
 {
-    const int index = ConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
+    const int index = GeoMechanicsConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
 
     KRATOS_DEBUG_ERROR_IF(index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1))
         << "GetValue: Variable: " << rVariable
@@ -899,7 +899,7 @@ double& SmallStrainUDSMLaw::GetValue(const Variable<double>& rVariable, double& 
 
 void SmallStrainUDSMLaw::SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
 {
-    const int index = ConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
+    const int index = GeoMechanicsConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
 
     KRATOS_DEBUG_ERROR_IF(index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1))
         << "GetValue: Variable: " << rVariable

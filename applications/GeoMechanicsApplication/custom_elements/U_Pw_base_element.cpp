@@ -96,7 +96,7 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_TRY
 
     // IGNORE_UNDRAINED is deprecated.
-    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(GetProperties());
+    GeoMechanicsConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(GetProperties());
 
     const auto& r_properties = this->GetProperties();
     const auto& r_geometry   = this->GetGeometry();

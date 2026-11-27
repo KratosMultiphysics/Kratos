@@ -492,6 +492,52 @@ double ConstitutiveLawUtilities<TVoigtSize>::CalculateShearModulus(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template <SizeType TVoigtSize>
+BoundedMatrix<double, 3, 3> ConstitutiveLawUtilities<TVoigtSize>::CalculateSpinMatrix(
+    const array_1d<double, 3> &rRotationsVector
+)
+{
+    BoundedMatrix<double, 3, 3> W;
+    W.clear();
+
+    W(0, 1) = -rRotationsVector[2];
+    W(0, 2) = rRotationsVector[1];
+    W(1, 0) = rRotationsVector[2];
+    W(1, 2) = -rRotationsVector[0];
+    W(2, 0) = -rRotationsVector[1];
+    W(2, 1) = rRotationsVector[0];
+
+    return W;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TVoigtSize>
+BoundedMatrix<double, 3, 3> ConstitutiveLawUtilities<TVoigtSize>::
+CalculateRotationMatrixFromRotationVectorRodrigues(
+    const array_1d<double, 3> &rRotationsVector
+    )
+{
+    const double theta = norm_2(rRotationsVector);
+    BoundedMatrix<double, 3, 3> rotation_matrix;
+    noalias(rotation_matrix) = IdentityMatrix(Dimension);
+
+    if (theta > tolerance) {
+        const double cos_theta = std::cos(theta);
+        const double sin_theta = std::sin(theta);
+        BoundedMatrix<double, 3, 3> spin_matrix;
+        noalias(spin_matrix) = CalculateSpinMatrix(rRotationsVector);
+
+        noalias(rotation_matrix) += (sin_theta / theta) * spin_matrix;
+        noalias(rotation_matrix) += ((1.0 - cos_theta) / (theta * theta)) * prod(spin_matrix, spin_matrix);
+    }
+
+    return rotation_matrix;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;

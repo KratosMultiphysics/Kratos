@@ -134,7 +134,7 @@ int UPwSmallStrainFICElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
     int ierr = UPwSmallStrainElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    KRATOS_ERROR_IF(ConstitutiveLawUtilities::IsConstantWaterPressure(this->GetProperties()))
+    KRATOS_ERROR_IF(GeoMechanicsConstitutiveLawUtilities::IsConstantWaterPressure(this->GetProperties()))
         << "Constant water pressure fields cannot be used in FIC elements. "
            "Use Non FIC elements instead"
         << this->Id() << std::endl;

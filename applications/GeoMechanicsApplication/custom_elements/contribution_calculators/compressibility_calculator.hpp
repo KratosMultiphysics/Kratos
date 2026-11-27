@@ -107,7 +107,7 @@ private:
         const auto& r_properties     = mInputProvider.GetElementProperties();
         const auto  biot_coefficient = r_properties[BIOT_COEFFICIENT];
 
-        const auto bulk_fluid = ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)
+        const auto bulk_fluid = GeoMechanicsConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)
                                     ? TINY
                                     : r_properties[BULK_MODULUS_FLUID];
 

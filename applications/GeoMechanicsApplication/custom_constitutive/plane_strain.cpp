@@ -20,8 +20,8 @@ namespace Kratos
 
 Matrix PlaneStrain::CalculateElasticConstitutiveTensor(const Properties& rProperties) const
 {
-    const auto [E, nu] = ConstitutiveLawUtilities::GetOrCalculateElasticProperties(rProperties);
-    return ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
+    const auto [E, nu] = GeoMechanicsConstitutiveLawUtilities::GetOrCalculateElasticProperties(rProperties);
+    return GeoMechanicsConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
         E, nu, PlaneStrain::GetStrainSize(), PlaneStrain::GetNumberOfNormalComponents());
 }
 

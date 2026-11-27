@@ -20,7 +20,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) ConstitutiveLawUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoMechanicsConstitutiveLawUtilities
 {
 public:
     static int GetStateVariableIndex(const Variable<double>& rThisVariable);
@@ -76,6 +76,6 @@ public:
 
     [[nodiscard]] static bool WantTensionCutOff(const Properties& rMaterialProperties);
 
-}; /* Class ConstitutiveLawUtilities*/
+}; /* Class GeoMechanicsConstitutiveLawUtilities*/
 
 } // namespace Kratos

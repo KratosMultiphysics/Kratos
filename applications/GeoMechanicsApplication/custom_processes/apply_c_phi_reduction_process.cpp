@@ -142,7 +142,7 @@ double ApplyCPhiReductionProcess::GetAndCheckPhi(const Properties& rModelPartPro
     // properties object with reduced c and phi for each and every element. Those reduced
     // properties objects are not linked to the original ones.
 
-    const auto phi = ConstitutiveLawUtilities::GetFrictionAngleInDegrees(rModelPartProperties);
+    const auto phi = GeoMechanicsConstitutiveLawUtilities::GetFrictionAngleInDegrees(rModelPartProperties);
     KRATOS_ERROR_IF(phi < 0. || phi > 90.)
         << "Friction angle Phi in the model part property with Id " << ElementPropertyId
         << " has an invalid value: " << phi << " is out of range [0,90] (degrees)." << std::endl;
@@ -163,7 +163,7 @@ double ApplyCPhiReductionProcess::GetAndCheckC(const Properties& rModelPartPrope
     // properties object with reduced c and phi for each and every element. Those reduced
     // properties objects are not linked to the original ones.
 
-    const auto c = ConstitutiveLawUtilities::GetCohesion(rModelPartProperties);
+    const auto c = GeoMechanicsConstitutiveLawUtilities::GetCohesion(rModelPartProperties);
     KRATOS_ERROR_IF(c < 0.) << "Cohesion C out of range: " << c << std::endl;
     return c;
 }

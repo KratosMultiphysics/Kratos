@@ -166,7 +166,7 @@ public:
      * @param rGlobalSizeVector The global size vector including only the axial u terms
      * @param rLocalSizeVector The 3 local components of u
      */
-    void GlobalSizeAxialVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) override
+    void GlobalSizeAxialVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const override
     {
         // The ordering of the local vector nodes is different from global
         rGlobalSizeVector.clear();
