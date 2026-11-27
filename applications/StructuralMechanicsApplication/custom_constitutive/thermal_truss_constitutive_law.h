@@ -46,19 +46,29 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) const override;
 
+    void InitializeMaterial(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const Vector& rShapeFunctionsValues
+    ) override;
+
     double CalculateStressElastic(ConstitutiveLaw::Parameters& rParameterValues) override;
 
 private:
+    double mReferenceTemperature = 0.0;
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw);
+        rSerializer.save("ReferenceTemperature", mReferenceTemperature);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw);
+        rSerializer.load("ReferenceTemperature", mReferenceTemperature);
     }
 };
 
