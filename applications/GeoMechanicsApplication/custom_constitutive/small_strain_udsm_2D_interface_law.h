@@ -18,6 +18,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUDSM2DInterfaceLaw : public SmallStrainUDSMLaw
 {
 public:
@@ -48,7 +50,7 @@ protected:
     void CopyConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix) override;
 
 private:
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 };

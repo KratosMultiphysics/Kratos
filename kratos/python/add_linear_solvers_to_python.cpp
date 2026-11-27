@@ -23,6 +23,7 @@
 #include "linear_solvers/bicgstab_solver.h"
 #include "linear_solvers/tfqmr_solver.h"
 #include "includes/dof.h"
+#include "includes/model_part.h"
 #include "includes/ublas_complex_interface.h"
 
 #include "linear_solvers/linear_solver.h"
@@ -122,6 +123,12 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("Solve",pointer_to_solve)
     .def("Solve",pointer_to_solve_eigen)
     .def("Solve",pointer_to_multi_solve)
+    .def("ProvideAdditionalData", [](LinearSolverType& rLinearSolver, LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB, ModelPart::DofsArrayType& rdof_set, ModelPart& r_model_part){
+            rLinearSolver.ProvideAdditionalData(rA, rX, rB, rdof_set, r_model_part);
+        })
+    .def("InitializeSolutionStep",&LinearSolverType::InitializeSolutionStep)
+    .def("PerformSolutionStep",&LinearSolverType::PerformSolutionStep)
+    .def("FinalizeSolutionStep",&LinearSolverType::FinalizeSolutionStep)
     .def("Clear",&LinearSolverType::Clear)
     .def("__str__", PrintObject<LinearSolverType>)
     .def( "GetIterationsNumber",&LinearSolverType::GetIterationsNumber)

@@ -12,6 +12,8 @@ from iga_test_factory import SinglePatchTest as SinglePatchTest
 from truss_element_tests import TrussElementTests as TTrussElementTests
 # Beam Elements tests - python based
 from test_beam_IGA_element import BeamIGAElementTests as TBeamIGAElementTests
+from test_isogeometric_non_linear_bernoulli_beam_element import TestBeam4pElement as TTestBeam4pElement
+from test_isogeometric_non_linear_bernoulli_beam_element import TestBeam4pElementNonlinear as TTestBeam4pElementNonlinear
 # Structural Elements test - python based
 from test_solid_IGA_element import SolidIGAElementTests as TSolidIGAElementTests
 # Sbm Structural Elements test
@@ -92,6 +94,8 @@ def AssembleTestSuites():
         TTrussElementTests,
         # Beam Elements tests
         TBeamIGAElementTests,
+        TTestBeam4pElement,
+        TTestBeam4pElementNonlinear,
         # Structural Elements tests
         TSolidIGAElementTests,
         # Sbm Elements tests

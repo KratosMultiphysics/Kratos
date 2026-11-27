@@ -557,6 +557,13 @@ Begin ElementalData MESH_VELOCITY
 214 [3] (215.5, 191, 428)
 End ElementalData
 
+Begin ElementalData STRAIN_VECTOR
+5 [6] (6, -18, 10, 7.5, 25, 2)
+64 [6] (65, 41, 128, 96.0, 4096, 25.6)
+33 [6] (34, 10, 66, 49.5, 1089, 13.2)
+214 [6] (215, 191, 428, 321.0, 45796, 85.6)
+End ElementalData
+
 // Vector variable
 Begin ElementalData INITIAL_STRAIN
 5 [3] (6, -18, 10)

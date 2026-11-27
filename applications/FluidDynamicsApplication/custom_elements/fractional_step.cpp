@@ -514,7 +514,7 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != LocalSize )
-        rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+        rLeftHandSideMatrix.resize(LocalSize,LocalSize, false);
 
     rLeftHandSideMatrix = ZeroMatrix(LocalSize,LocalSize);
 
@@ -614,7 +614,7 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != NumNodes )
-        rLeftHandSideMatrix.resize(NumNodes,NumNodes);
+        rLeftHandSideMatrix.resize(NumNodes,NumNodes, false);
 
     rLeftHandSideMatrix = ZeroMatrix(NumNodes,NumNodes);
 
@@ -729,7 +729,7 @@ void FractionalStep<TDim>::CalculateEndOfStepSystem(MatrixType& rLeftHandSideMat
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != LocalSize )
-        rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+        rLeftHandSideMatrix.resize(LocalSize,LocalSize, false);
 
     rLeftHandSideMatrix = ZeroMatrix(LocalSize,LocalSize);
 

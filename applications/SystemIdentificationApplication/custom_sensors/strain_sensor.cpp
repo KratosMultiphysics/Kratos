@@ -16,7 +16,6 @@
 
 // Project includes
 #include "includes/kratos_components.h"
-#include "utilities/brute_force_point_locator.h"
 
 // Application includes
 #include "custom_utilities/sensor_utils.h"
@@ -41,7 +40,8 @@ StrainSensor::StrainSensor(
       mStrainType(rStrainType),
       mrStrainVariable(rStrainVariable)
 {
-    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(*(this->GetNode()), mLocalPoint))
+    // same local coordinate tolerance as the domain bins used to find rElement
+    KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(*(this->GetNode()), mLocalPoint, 1e-6))
         << "The point " << this->GetNode()->Coordinates() << " is not inside or on the boundary of the geometry of element with id "
         << mElementId << ".";
 
@@ -75,7 +75,8 @@ Sensor::Pointer StrainSensor::Create(
     ModelPart& rDomainModelPart,
     ModelPart& rSensorModelPart,
     const IndexType Id,
-    Parameters SensorParameters)
+    Parameters SensorParameters,
+    GeometricalObjectsBins& rDomainBins)
 {
     KRATOS_TRY
 
@@ -86,12 +87,13 @@ Sensor::Pointer StrainSensor::Create(
         << "Location of the sensor \"" << SensorParameters["name"].GetString()
         << "\" should have 3 components. [ location = " << location << " ].\n";
 
-    Point loc(location[0], location[1], location[2]);
+    const auto search_result = rDomainBins.SearchIsInside(Point(location[0], location[1], location[2]));
+    KRATOS_ERROR_IF_NOT(search_result.GetIsObjectFound())
+        << "Location of the sensor \"" << SensorParameters["name"].GetString()
+        << "\" is not inside any element of " << rDomainModelPart.FullName()
+        << ". [ location = " << location << " ].\n";
 
-    Vector dummy_shape_functions;
-
-    const auto element_id = BruteForcePointLocator(rDomainModelPart).FindElement(loc, dummy_shape_functions);
-    const auto& r_element = rDomainModelPart.GetElement(element_id);
+    const auto& r_element = rDomainModelPart.GetElement(search_result.Get()->Id());
 
     auto p_node = rSensorModelPart.CreateNewNode(Id, location[0], location[1], location[2]);
 

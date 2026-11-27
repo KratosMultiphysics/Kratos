@@ -1,0 +1,13 @@
+{
+    "refinements": [
+        {
+            "brep_ids": [ 2 ],
+            "geometry_type": "NurbsCurve",
+            "model_part_name": "IgaModelPart",
+            "parameters": {
+                "increase_degree": 2,
+                "insert_nb_per_span": 15
+            }
+        }
+    ]
+}

@@ -24,6 +24,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwLysmerAbsorbingCondition
     : public UPwFaceLoadCondition<TDim, TNumNodes>
@@ -203,7 +205,7 @@ private:
     void CalculateConditionStiffnessMatrix(ElementMatrixType& rStiffnessMatrix,
                                            const ProcessInfo& rCurrentProcessInfo);
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
