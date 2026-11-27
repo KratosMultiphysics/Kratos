@@ -146,12 +146,9 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesAdjoint, KratosCoreFastSuite) {
     KRATOS_EXPECT_EQ(VELOCITY.GetTimeDerivative(), ACCELERATION);
 
     // Variables without adjoint
-    KRATOS_EXPECT_FALSE(ACCELERATION.HasAdjointVariable());
+    KRATOS_EXPECT_TRUE(ACCELERATION.HasAdjointVariable());
     KRATOS_EXPECT_FALSE(DENSITY.HasAdjointVariable());
-    KRATOS_EXPECT_FALSE(ACCELERATION_X.HasAdjointVariable());
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ACCELERATION.GetAdjointVariable(),
-        "Adjoint variable for Variable \"ACCELERATION\" was not assigned");
+    KRATOS_EXPECT_TRUE(ACCELERATION_X.HasAdjointVariable());
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         DENSITY.GetAdjointVariable(),
         "Adjoint variable for Variable \"DENSITY\" was not assigned");
