@@ -154,7 +154,7 @@ public:
         for (ModelPart::ElementsContainerType::iterator iii = mr_model_part.ElementsBegin(); iii != mr_model_part.ElementsEnd(); iii++)
         {
             Properties::Pointer properties = iii->pGetProperties();
-            Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry(), properties);
+            Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry().Points(), properties);
             mrSpalartModelPart.Elements().push_back(p_element);
         }
 

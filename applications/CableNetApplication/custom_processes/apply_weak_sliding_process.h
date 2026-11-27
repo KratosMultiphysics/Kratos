@@ -132,7 +132,7 @@ class ApplyWeakSlidingProcess
 
             const Element& rElem = KratosComponents<Element>::Get("WeakSlidingElement3D3N");
             Properties::Pointer p_elem_prop = slave_model_part.pGetProperties(mParameters["property_id"].GetInt());
-            Element::Pointer pElem = rElem.Create(mCurrentElementId++, triangle_t, p_elem_prop);
+            Element::Pointer pElem = rElem.Create(mCurrentElementId++, triangle_t.Points(), p_elem_prop);
             mrModelPart.AddElement(pElem);
         }
 

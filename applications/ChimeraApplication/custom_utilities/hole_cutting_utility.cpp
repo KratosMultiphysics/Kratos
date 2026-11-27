@@ -270,7 +270,7 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
                 // Skin edges are added as conditions
                 Line2D2<Node> line1(pnode1, pnode2);
                 Condition::Pointer p_condition1 =
-                    r_ref_line_condition.Create(id_condition++, line1, properties);
+                    r_ref_line_condition.Create(id_condition++, line1.Points(), properties);
                 rExtractedBoundaryModelPart.Conditions().push_back(p_condition1);
             }
             // If skin face is a triangle store triangle in with its original
@@ -296,7 +296,7 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
                 // Skin faces are added as conditions
                 Triangle3D3<Node> triangle1(pnode1, pnode2, pnode3);
                 Condition::Pointer p_condition1 = r_ref_triangle_condition.Create(
-                    id_condition++, triangle1, properties);
+                    id_condition++, triangle1.Points(), properties);
                 rExtractedBoundaryModelPart.Conditions().push_back(p_condition1);
             }
             // If skin face is a quadrilateral then divide in two triangles and
@@ -326,13 +326,13 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
                 // Add triangle one as condition
                 Triangle3D3<Node> triangle1(pnode1, pnode2, pnode3);
                 Condition::Pointer p_condition1 = r_ref_triangle_condition.Create(
-                    id_condition++, triangle1, properties);
+                    id_condition++, triangle1.Points(), properties);
                 rExtractedBoundaryModelPart.Conditions().push_back(p_condition1);
 
                 // Add triangle two as condition
                 Triangle3D3<Node> triangle2(pnode1, pnode3, pnode4);
                 Condition::Pointer p_condition2 = r_ref_triangle_condition.Create(
-                    id_condition++, triangle2, properties);
+                    id_condition++, triangle2.Points(), properties);
                 rExtractedBoundaryModelPart.Conditions().push_back(p_condition2);
             }
         }
