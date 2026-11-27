@@ -25,6 +25,7 @@
 #include <future>
 #include <thread>
 #include <mutex>
+#include <atomic>
 
 // External includes
 #ifdef KRATOS_SMP_OPENMP
@@ -108,9 +109,9 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static LockObject* mspGlobalLock;
+    static std::atomic<LockObject*> mspGlobalLock;
 
-    static int* mspNumThreads;
+    static std::atomic<int*> mspNumThreads;
 
     ///@}
     ///@name Private Operations
@@ -160,6 +161,12 @@ public:
         KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
 
         const std::ptrdiff_t size_container = it_end-it_begin;
+
+        // mBlockPartition is a std::array of MaxThreads entries and the sentinel is
+        // written at index mNchunks, so we need mNchunks <= MaxThreads-1.
+        const int max_chunks = MaxThreads - 1;
+        KRATOS_ERROR_IF(Nchunks > max_chunks)
+            << "Number of chunks (" << Nchunks << ") exceeds the maximum number of threads allowed by this partition (" << max_chunks << ")." << std::endl;
 
         if (size_container == 0) {
             mNchunks = Nchunks;
@@ -463,6 +470,12 @@ public:
                    int Nchunks = ParallelUtilities::GetNumThreads())
     {
         KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
+
+        // mBlockPartition is a std::array of TMaxThreads entries and the sentinel is
+        // written at index mNchunks, so we need mNchunks <= TMaxThreads-1.
+        const int max_chunks = TMaxThreads - 1;
+        KRATOS_ERROR_IF(Nchunks > max_chunks)
+            << "Number of chunks (" << Nchunks << ") exceeds the maximum number of threads allowed by this partition (" << max_chunks << ")." << std::endl;
 
         if (Size == 0) {
             mNchunks = Nchunks;

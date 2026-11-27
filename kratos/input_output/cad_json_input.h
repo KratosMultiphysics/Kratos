@@ -946,9 +946,10 @@ private:
         SizeType EchoLevel = 0)
     {
         // Check if rDataFileName ends with ".cad.json" and add it if needed.
-        const std::string data_file_name = (rDataFileName.compare(rDataFileName.size() - 9, 9, ".cad.json") != 0)
-            ? rDataFileName + ".cad.json"
-            : rDataFileName;
+        const std::string suffix = ".cad.json";
+        const bool has_suffix = rDataFileName.size() >= suffix.size()
+            && rDataFileName.compare(rDataFileName.size() - suffix.size(), suffix.size(), suffix) == 0;
+        const std::string data_file_name = has_suffix ? rDataFileName : rDataFileName + suffix;
 
         std::ifstream infile(data_file_name);
         KRATOS_ERROR_IF_NOT(infile.good()) << "CAD geometry file: "

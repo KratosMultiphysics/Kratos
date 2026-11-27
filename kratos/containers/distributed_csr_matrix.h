@@ -1066,11 +1066,11 @@ private:
                 const auto& send_ij = mSendCachedIJ[color];
                 const auto& recv_ij = mRecvCachedIJ[color];
 
-                auto& direct_senddata_access = mPointersToRecvValues[color];
+                auto& direct_senddata_access = mPointersToSendValues[color];
                 for(TIndexType i=0; i<send_ij.size(); i+=2)
                 {
-                    TIndexType I = recv_ij[i];
-                    TIndexType J = recv_ij[i+1];
+                    TIndexType I = send_ij[i];
+                    TIndexType J = send_ij[i+1];
                     auto& value = GetNonLocalCachedDataByGlobalId(I,J);
                     direct_senddata_access.push_back(&value);
                 }

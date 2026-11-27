@@ -151,8 +151,8 @@ namespace Kratos
 	  }
 
 	  void Release() {
+		  mNumberOfReleasedChunks += mChunks.size(); // read the size BEFORE clearing
 		  mChunks.clear();
-		  mNumberOfReleasedChunks += mChunks.size();
 		  Chunk* p_dummy;
 		  while(mAvailableChunks.try_dequeue(p_dummy));
 	  }

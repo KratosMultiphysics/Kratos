@@ -189,7 +189,7 @@ protected:
     ///@{
 
     // Level of echo for the convergence accelerator
-    int mEchoLevel;
+    int mEchoLevel = 0;
 
     ///@}
     ///@name Protected  Access

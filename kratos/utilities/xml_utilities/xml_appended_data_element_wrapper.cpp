@@ -72,12 +72,14 @@ XmlElement::Pointer XmlAppendedDataElementWrapper::Get(
                     uLongf compressed_length = compressBound(chunk_size);
                     std::vector<Bytef> compressed_data(compressed_length);
 
-                    int offset = 0;
-                    int remainder = uncompressed_length;
+                    // offset/remainder must be wide types: uncompressed_length is
+                    // std::size_t and truncating it to int wraps negative above 2 GB.
+                    std::size_t offset = 0;
+                    std::size_t remainder = uncompressed_length;
 
                     for (IndexType i_chunk = 0; i_chunk < number_of_chunks; ++i_chunk) {
 
-                        const auto current_chunk_size = std::min(chunk_size, remainder);
+                        const auto current_chunk_size = std::min(static_cast<std::size_t>(chunk_size), remainder);
                         uLongf current_compressed_length = compressed_length;
 
                         // now compress the data using zlib

@@ -40,22 +40,22 @@ void ProcessInfo::SetAsTimeStepInfo(double NewTime)
 
 ProcessInfo::Pointer ProcessInfo::pGetPreviousTimeStepInfo(IndexType StepsBefore)
 {
-    if(StepsBefore > 1)
-        return mpPreviousTimeStepInfo->pGetPreviousTimeStepInfo(--StepsBefore);
-
     KRATOS_ERROR_IF(StepsBefore == 0) << "Steps before = 0" << std::endl;
     KRATOS_ERROR_IF_NOT(mpPreviousTimeStepInfo) << "No previous time step exists." << std::endl;
+
+    if(StepsBefore > 1)
+        return mpPreviousTimeStepInfo->pGetPreviousTimeStepInfo(--StepsBefore);
 
     return mpPreviousTimeStepInfo;
 }
 
 const ProcessInfo::Pointer ProcessInfo::pGetPreviousTimeStepInfo(IndexType StepsBefore) const
 {
-    if(StepsBefore > 1)
-        return mpPreviousTimeStepInfo->pGetPreviousTimeStepInfo(--StepsBefore);
-
     KRATOS_ERROR_IF(StepsBefore == 0) << "Steps before = 0" << std::endl;
     KRATOS_ERROR_IF_NOT(mpPreviousTimeStepInfo) << "No previous time step exists." << std::endl;
+
+    if(StepsBefore > 1)
+        return mpPreviousTimeStepInfo->pGetPreviousTimeStepInfo(--StepsBefore);
 
     return mpPreviousTimeStepInfo;
 }
@@ -128,6 +128,12 @@ ProcessInfo& ProcessInfo::FindSolutionStepInfo(IndexType ThisIndex)
         return *this;
 
     if(!mpPreviousSolutionStepInfo)
+        return *this;
+
+    // The step-info chain may exist without a time-step chain (see
+    // CreateSolutionStepInfo, which only sets mpPreviousTimeStepInfo when
+    // mIsTimeStep was true), in which case this pointer is null.
+    if(!mpPreviousTimeStepInfo)
         return *this;
 
     return mpPreviousTimeStepInfo->FindSolutionStepInfo(ThisIndex);

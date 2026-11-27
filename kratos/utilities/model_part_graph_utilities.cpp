@@ -193,7 +193,15 @@ void ModelPartGraphUtilities::BreadthFirstSearch(
         q.pop();
         for (ModelPartGraphUtilities::IndexType i = rRowIndices[currVertex]; i != rRowIndices[currVertex+1]; ++i) {
             int adjVertex = rColIndices[i];
-            auto& item = visited.find(adjVertex)->second;
+            // 'visited' is keyed only by the nodes of the model part whose components are
+            // being computed, while the CSR graph is built from all element/condition
+            // connectivities. A neighbour outside that node set is not part of the
+            // returned components (colors are only reported for those nodes), so it is
+            // skipped. Previously it was dereferenced via find()->second on end().
+            auto it_adj = visited.find(adjVertex);
+            if (it_adj == visited.end())
+                continue;
+            auto& item = it_adj->second;
             if (item==-1) {
                 item=color;
                 q.push(adjVertex);
@@ -220,8 +228,15 @@ void ModelPartGraphUtilities::BreadthFirstSearchWithActiveNodesCheck(
         q.pop();
         for (ModelPartGraphUtilities::IndexType i = rRowIndices[currVertex]; i != rRowIndices[currVertex+1]; ++i) {
             int adjVertex = rColIndices[i];
-            auto& item = visited.find(adjVertex)->second;
-            if (item==-1 && active_nodes.find(adjVertex)->second) {
+            // See BreadthFirstSearch: adjVertex may not be present in these maps.
+            auto it_adj = visited.find(adjVertex);
+            if (it_adj == visited.end())
+                continue;
+            auto it_active = active_nodes.find(adjVertex);
+            if (it_active == active_nodes.end())
+                continue;
+            auto& item = it_adj->second;
+            if (item==-1 && it_active->second) {
                 item = color;
                 q.push(adjVertex);
             }

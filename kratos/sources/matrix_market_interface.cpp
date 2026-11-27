@@ -137,6 +137,11 @@ bool ReadMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M)
     {
         printf("ReadMatrixMarketMatrix(): MatrixMarket type, \"%s\" does not match provided matrix type.\n",  mm_typecode_to_str(mm_code));
         fclose(f);
+
+        delete[] I;
+        delete[] J;
+        delete[] V;
+
         return false;
     }
 
@@ -185,6 +190,21 @@ bool ReadMatrixMarketMatrix(const char *FileName, CompressedMatrixType &M)
         }
 
     fclose(f);
+
+    // Validate the (untrusted) file indices before using them to address nz/CSR arrays
+    for (int i = 0; i < nnz; i++)
+    {
+        if (I[i] < 0 || I[i] >= size1 || J[i] < 0 || J[i] >= size2)
+        {
+            printf("ReadMatrixMarketMatrix(): index out of range in file: entry (%d, %d) [matrix size = %d x %d].\n", I[i], J[i], size1, size2);
+
+            delete[] I;
+            delete[] J;
+            delete[] V;
+
+            return false;
+        }
+    }
 
     // Second stage
     int *nz = new int[size1];

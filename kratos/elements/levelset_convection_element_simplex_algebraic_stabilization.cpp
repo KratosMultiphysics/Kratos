@@ -202,7 +202,7 @@ namespace Kratos
                 for (unsigned int i = 0; i < TNumNodes; ++i){
                     S_vector[i] += (  (1.0 - theta)*(phi_gauss - phi_mean ) - inner_prod( ( (1.0 - theta)*grad_phi_mean ), (x_gauss - x_mean) ) )*N[i];
                     for (unsigned int j = 0; j < TNumNodes; ++j){
-                        S_vector_LHS(i, j) = (aux_weight - N[j] + dx_dot_grad_N[j]) * N[i];
+                        S_vector_LHS(i, j) += (aux_weight - N[j] + dx_dot_grad_N[j]) * N[i];
                     }
                 }
             }

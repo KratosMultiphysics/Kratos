@@ -301,8 +301,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    int mmax_reduced_size;
-    bool massume_constant_structure;
+    int mmax_reduced_size = 0;
+    bool massume_constant_structure = false;
     std::vector<int> mw;
     SparseMatrixType mAdeflated;
 

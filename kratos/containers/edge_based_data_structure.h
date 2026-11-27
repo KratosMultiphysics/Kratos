@@ -656,15 +656,14 @@ private:
         const IndexType I,
         const IndexType J) const
     {
-        IndexType j_col_index = 0;
         const IndexType i_row_index = mRowIndices[I];
-        for (auto it = mColIndices.begin() + i_row_index; it != mColIndices.end(); ++it) {
-            if (*it == J) {
-                j_col_index = std::distance(mColIndices.begin(), it);
-                break;
-            }
-        }
-        return j_col_index;
+        const IndexType i_row_end = mRowIndices[I + 1];
+        // Search only within the entries of row I (stopping at the row boundary):
+        // scanning to the end of mColIndices could match a J belonging to a later row.
+        auto it = std::find(mColIndices.begin() + i_row_index, mColIndices.begin() + i_row_end, J);
+        KRATOS_ERROR_IF(it == mColIndices.begin() + i_row_end)
+            << "EdgeBasedDataStructure: no entry found for the pair (" << I << ", " << J << ")." << std::endl;
+        return std::distance(mColIndices.begin(), it);
     }
 
     EdgeDataPointerType& pGetEdgeData(

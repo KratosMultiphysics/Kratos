@@ -76,16 +76,18 @@ public:
         ///@{
 
         /**
-        * @brief Constructor.
+        * @brief Constructor with the end of the underlying sequence.
         * @param it The underlying iterator representing the current position in the sequence.
-        * @details This constructor initializes a ByteIterator object with the specified underlying iterator.
-        * The current byte is determined from the value pointed to by the underlying iterator.
-        * The byte index is set to the first byte (index 0).
+        * @param it_end The underlying iterator representing the end of the sequence.
+        * @details Used to avoid dereferencing one element past the end of the sequence
+        * when the final byte is advanced past (the consumer never reads that state).
         */
-        ByteIterator(TIteratorType it)
+        ByteIterator(TIteratorType it, TIteratorType it_end)
             : mIt(it),
+            mItEnd(it_end),
             mValue(*it),
-            mByteIndex(0u)
+            mByteIndex(0u),
+            mIsLastElement(it + 1 == it_end)
         {}
 
         ///@}
@@ -116,8 +118,17 @@ public:
             using value_type = typename std::iterator_traits<TIteratorType>::value_type;
             constexpr IndexType value_size = sizeof(value_type);
             if ((++mByteIndex) == value_size) {
+                // Do not advance the underlying iterator past the end of the sequence:
+                // consumers read exactly the total number of bytes, so an extra advance
+                // after the final byte would dereference one element past the end (UB).
+                // Clamping the byte index keeps the (never dereferenced again) state valid.
+                if (mIsLastElement) {
+                    mByteIndex = value_size - 1;
+                    return *this;
+                }
                 mValue = *++mIt;
                 mByteIndex = 0;
+                mIsLastElement = (mIt + 1 == mItEnd);
             }
             return *this;
         }
@@ -142,8 +153,10 @@ public:
         ///@{
 
         TIteratorType mIt;                                               /// The underlying iterator representing the current position in the sequence.
+        TIteratorType mItEnd;                                            /// The underlying iterator representing the end of the sequence.
         typename std::iterator_traits<TIteratorType>::value_type mValue; /// The value pointed to by the underlying iterator.
         IndexType mByteIndex = 0u;                                       /// The index of the current byte being processed.
+        bool mIsLastElement = false;                                     /// Whether mIt points to the last element of the sequence.
 
         ///@}
     };
@@ -197,7 +210,7 @@ public:
 
         using value_type = typename std::iterator_traits<TIteratorType>::value_type;
 
-        ByteIterator itr_byte_triplet(Begin);
+        ByteIterator itr_byte_triplet(Begin, Begin + N);
 
         const IndexType raw_bytes = N * sizeof(value_type);
 

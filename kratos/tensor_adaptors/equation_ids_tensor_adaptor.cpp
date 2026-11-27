@@ -104,6 +104,34 @@ TensorAdaptor<int>::Pointer EquationIdsTensorAdaptor::Clone() const
     return Kratos::make_shared<EquationIdsTensorAdaptor>(*this);
 }
 
+void EquationIdsTensorAdaptor::Check() const
+{
+    KRATOS_TRY
+
+    TensorAdaptor<int>::Check();
+
+    // Validate the equation-id stride once for all entities. This lives here (not in
+    // CollectData) because the per-entity check is too costly on the collection hot path.
+    std::visit([this](auto pContainer) {
+        using container_type = BareType<decltype(*pContainer)>;
+
+        if constexpr(IsInList<container_type, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
+            const unsigned int stride = this->Shape()[1];
+            std::vector<IndexType> equation_ids;
+            for (const auto& r_entity : *pContainer) {
+                r_entity.EquationIdVector(equation_ids, *(this->mpProcessInfo));
+                KRATOS_ERROR_IF_NOT(equation_ids.size() == stride)
+                    << "Non-uniform equation id vectors are found in container having " << pContainer->size()
+                    << " " << ModelPart::Container<container_type>::GetEntityName() << "(s)"
+                    << " [ Required size of equation ids = " << stride << ", found EquationIds = "
+                    << equation_ids.size() << " ].\n";
+            }
+        }
+    }, this->GetContainer());
+
+    KRATOS_CATCH("");
+}
+
 void EquationIdsTensorAdaptor::CollectData()
 {
     KRATOS_TRY

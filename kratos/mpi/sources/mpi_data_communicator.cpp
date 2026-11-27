@@ -794,7 +794,7 @@ template<class TDataType> TDataType MPIDataCommunicator::ScanDetail(
     const TDataType LocalValues, MPI_Op Operation) const
 {
     TDataType global_value;
-    ScanDetail(LocalValues, global_value, MPI_SUM);
+    ScanDetail(LocalValues, global_value, Operation);
     return global_value;
 }
 
@@ -809,7 +809,7 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScanDetail
     SynchronizeShape(temp);
 
     std::vector<TDataType> global_values(rLocalValues.size(), temp);
-    ScanDetail(rLocalValues, global_values, MPI_SUM);
+    ScanDetail(rLocalValues, global_values, Operation);
     return global_values;
 }
 
@@ -1002,12 +1002,25 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScatterDet
 {
     const int send_size = rSendValues.size();
     const int world_size = Size();
-    KRATOS_ERROR_IF_NOT( send_size % world_size == 0 )
-    << "In call to MPI_Scatter: A message of size " << send_size
-    << " cannot be evenly distributed amongst " << world_size << " ranks." << std::endl;
-    int message_size = send_size / world_size;
+    // Broadcast the source rank's send size first. Checking divisibility before
+    // this point would let only the SourceRank throw (non-source ranks pass empty
+    // buffers, so their local send_size is always divisible), deadlocking the
+    // other ranks inside the collective; the broadcast is a collective itself, so
+    // every rank participates before anybody validates.
+    int source_send_size = 0;
+    if (Rank() == SourceRank) {
+        source_send_size = send_size;
+    }
 
-    Broadcast(message_size, SourceRank);
+    Broadcast(source_send_size, SourceRank);
+
+    // Every rank now knows the true message size and can raise the same error
+    // without leaving anybody stuck in a collective.
+    KRATOS_ERROR_IF(source_send_size < 0 || source_send_size % world_size != 0)
+    << "In call to MPI_Scatter: A message of size " << source_send_size
+    << " cannot be evenly distributed amongst " << world_size << " ranks." << std::endl;
+
+    const int message_size = source_send_size / world_size;
 
     std::vector<TDataType> message;
     if (message_size > 0) {

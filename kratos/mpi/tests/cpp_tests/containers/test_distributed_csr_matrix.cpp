@@ -67,6 +67,77 @@ KRATOS_TEST_CASE_IN_SUITE(DistributedCSRMatrixConstruction, KratosMPICoreFastSui
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DistributedCSRMatrixCopyReconstructsAccessPointers, KratosMPICoreFastSuite)
+{
+    //A copy of a DistributedCsrMatrix does not copy its direct-access (send/recv) communication
+    //pointers: they are rebuilt from the IJ index lists in ReconstructDirectAccessVectors().
+    //Those pointers are only consumed by FinalizeAssemble(), so we check that a copied matrix
+    //communicates exactly like the original one in a subsequent assembly cycle.
+    using IndexType = DistributedSparseContainersTestUtilities::IndexType;
+    const auto& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    int world_size = r_comm.Size();
+    int my_rank = r_comm.Rank();
+
+    auto dofs_bounds = DistributedSparseContainersTestUtilities::ComputeBounds<IndexType>(40, world_size, my_rank);
+    auto reference_A_map = DistributedSparseContainersTestUtilities::GetReferenceMatrixAsMap(dofs_bounds);
+
+    auto el_bounds = DistributedSparseContainersTestUtilities::ComputeBounds<IndexType>(31, world_size, my_rank);
+    const auto connectivities = DistributedSparseContainersTestUtilities::ElementConnectivities(el_bounds);
+
+    DistributedSparseGraph<IndexType> A_graph(dofs_bounds[1]-dofs_bounds[0], r_comm);
+    IndexPartition<IndexType>(connectivities.size()).for_each([&](IndexType i) {
+        A_graph.AddEntries(connectivities[i]);
+    });
+    A_graph.Finalize();
+
+    //First assembly on the original matrix
+    DistributedCsrMatrix<double, IndexType> A(A_graph);
+    A.BeginAssemble();
+    for(const auto& c : connectivities) {
+        Matrix data(c.size(),c.size(),1.0);
+        A.Assemble(data,c);
+    }
+    A.FinalizeAssemble();
+
+    //Sanity check the original against the serial reference
+    for(const auto& item : reference_A_map) {
+        auto global_i = item.first.first;
+        auto global_j = item.first.second;
+        KRATOS_EXPECT_NEAR(A.GetLocalDataByGlobalId(global_i, global_j), item.second, 1e-14);
+    }
+
+    //Copy ctor triggers ReconstructDirectAccessVectors()
+    DistributedCsrMatrix<double, IndexType> B(A);
+
+    //Right after copying, B must hold the same values as A
+    for(const auto& item : reference_A_map) {
+        auto global_i = item.first.first;
+        auto global_j = item.first.second;
+        KRATOS_EXPECT_NEAR(B.GetLocalDataByGlobalId(global_i, global_j), item.second, 1e-14);
+    }
+
+    //Second identical assembly pass on both matrices. On B this exercises the communication
+    //pointers rebuilt by the copy: if they are wrong, B silently loses the neighbor contributions.
+    A.BeginAssemble();
+    B.BeginAssemble();
+    for(const auto& c : connectivities) {
+        Matrix data(c.size(),c.size(),1.0);
+        A.Assemble(data,c);
+        B.Assemble(data,c);
+    }
+    A.FinalizeAssemble();
+    B.FinalizeAssemble();
+
+    //After two identical passes every entry must be exactly twice the reference (A guards the
+    //expectation itself, B must match it too)
+    for(const auto& item : reference_A_map) {
+        auto global_i = item.first.first;
+        auto global_j = item.first.second;
+        KRATOS_EXPECT_NEAR(A.GetLocalDataByGlobalId(global_i, global_j), 2.0*item.second, 1e-14);
+        KRATOS_EXPECT_NEAR(B.GetLocalDataByGlobalId(global_i, global_j), 2.0*item.second, 1e-14);
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(DistributedCSRMatrixSpMV, KratosMPICoreFastSuite)
 {
     using IndexType = DistributedSparseContainersTestUtilities::IndexType;

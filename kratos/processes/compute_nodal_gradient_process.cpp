@@ -252,11 +252,24 @@ void ComputeNodalGradientProcess<TOutputHistorical>::PrepareMemberVariablesFromS
     // Setting the non-historical flag
     mNonHistoricalVariable = ThisParameters["non_historical_origin_variable"].GetBool();
 
-    ComputeNodalGradientProcess<TOutputHistorical>(mrModelPart,
-        *mpOriginVariable,
-        *mpGradientVariable,
-        *mpAreaVariable,
-        mNonHistoricalVariable);
+    // Note: this used to be a call to the 5-argument constructor, which does NOT
+    // delegate (delegation is only possible in a ctor initializer list): it built
+    // a temporary and discarded it, leaving this object partially initialized.
+    // Perform the same checks/initialization as that constructor instead.
+    CheckOriginAndAreaVariables();
+
+    if constexpr (TOutputHistorical) {
+        // Checking historical gradient variable
+        VariableUtils().CheckVariableExists(*mpGradientVariable, mrModelPart.Nodes());
+    } else {
+        // In case the area or gradient variable is not initialized we initialize it
+        if (mrModelPart.NumberOfNodes() != 0) {
+            if (!mrModelPart.Nodes().begin()->Has( *mpGradientVariable )) {
+                const array_1d<double,3> zero_vector = ZeroVector(3);
+                VariableUtils().SetNonHistoricalVariable(*mpGradientVariable, zero_vector, mrModelPart.Nodes());
+            }
+        }
+    }
 
     KRATOS_CATCH("")
 }

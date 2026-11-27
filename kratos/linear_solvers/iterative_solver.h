@@ -398,7 +398,7 @@ protected:
 
     double mResidualNorm;
 
-    double mFirstResidualNorm;
+    double mFirstResidualNorm = 0.0;
 
     IndexType mIterationsNumber;
 

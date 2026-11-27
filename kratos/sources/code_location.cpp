@@ -98,11 +98,15 @@ void CodeLocation::ReduceTemplateArgumentsToFirstN(std::string& FunctionName, co
         //if (FunctionName[template_position] == '<') // It is not a template
         //    continue;
         std::string::iterator arguments_iterator = FunctionName.begin() + template_position;
+        // A match at the very end of the string leaves no character past the
+        // template name: bail out instead of dereferencing end() below.
+        if (arguments_iterator == FunctionName.end())
+            continue;
         std::size_t number_of_open_parenthesis = 0;
         std::size_t number_of_open_templates = 1;
         arguments_iterator++;
         std::size_t number_of_arguments = 0;
-        if (*arguments_iterator != '>')
+        if (arguments_iterator != FunctionName.end() && *arguments_iterator != '>')
             number_of_arguments = 1;
         std::size_t replace_position = std::string::npos;
         if ((number_of_arguments > NumberOfArgumentsToKeep))

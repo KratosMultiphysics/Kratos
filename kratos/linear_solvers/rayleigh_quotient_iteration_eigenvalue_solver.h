@@ -166,7 +166,13 @@ public:
     /// Assignment operator.
     RayleighQuotientIterationEigenvalueSolver& operator=(const RayleighQuotientIterationEigenvalueSolver& Other)
     {
-        BaseType::operator=(Other);
+        if (this != &Other) {
+            BaseType::operator=(Other);
+            mRequiredEigenvalueNumber = Other.mRequiredEigenvalueNumber;
+            mEchoLevel              = Other.mEchoLevel;
+            mShiftingConvergence    = Other.mShiftingConvergence;
+            mpLinearSolver          = Other.mpLinearSolver;
+        }
         return *this;
     }
 
@@ -461,13 +467,13 @@ private:
     ///@name Member Variables
     ///@{
 
-    unsigned int mRequiredEigenvalueNumber;             /// The number of required eigenvalues
+    unsigned int mRequiredEigenvalueNumber = 1;       /// The number of required eigenvalues
 
-    unsigned int mEchoLevel;                            /// The level of echo for the solver 
+    unsigned int mEchoLevel = 0;                          /// The level of echo for the solver 
 
     typename TLinearSolverType::Pointer mpLinearSolver; /// The linear solver considered
 
-    double mShiftingConvergence;                        /// The convergence parameter of shifting
+    double mShiftingConvergence = 0.25;                 /// The convergence parameter of shifting
 
     std::vector<DenseVectorType> mQVector;              /// The vector containing the orthonormalized eigenvectors
     std::vector<DenseVectorType> mPVector;              /// The vector containing the orthonormalized eigenvectors

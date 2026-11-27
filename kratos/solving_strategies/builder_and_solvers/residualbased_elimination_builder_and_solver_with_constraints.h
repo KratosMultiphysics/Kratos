@@ -999,8 +999,15 @@ protected:
                         if (it_slave == solvable_dof_reorder.end()) {
                             for (auto& master_id : second_ids) {
                                 if (master_id < BaseType::mEquationSystemSize) {
+                                    // Chained constraints: a master DOF may itself be a slave of another
+                                    // constraint and thus be absent from solvable_dof_reorder. Using
+                                    // operator[] here would silently insert and yield row 0.
+                                    auto it_master = solvable_dof_reorder.find(master_id);
+                                    KRATOS_ERROR_IF(it_master == solvable_dof_reorder.end())
+                                        << "Master equation " << master_id
+                                        << " is not present in the solvable DOF ordering (chained master-slave constraints are not supported)." << std::endl;
                                     auto& master_row_indices = master_indices[slave_id];
-                                    master_row_indices.insert(solvable_dof_reorder[master_id]);
+                                    master_row_indices.insert(it_master->second);
                                 }
                             }
                         }

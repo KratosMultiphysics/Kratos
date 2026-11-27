@@ -153,8 +153,8 @@ namespace Kratos
         SizeType PointsInU,
         double U0, double U1)
     {
-        KRATOS_DEBUG_ERROR_IF(PointsInU < 1)
-            << "PointsInU need to be bigger than 0, but is: " << PointsInU << std::endl;
+        KRATOS_ERROR_IF(PointsInU < 1 || PointsInU > s_gauss_legendre.size())
+            << "PointsInU need to be between 1 and " << s_gauss_legendre.size() << ", but is: " << PointsInU << std::endl;
 
         const double distance_u = U1 - U0;
         const double length_u = std::abs(U1 - U0);
@@ -176,8 +176,9 @@ namespace Kratos
         SizeType PointsInU, SizeType PointsInV,
         double U0, double U1, double V0, double V1)
     {
-        KRATOS_DEBUG_ERROR_IF(PointsInU < 1 || PointsInV < 1)
-            << "PointsInU and ~V need to be bigger than 0, but are PointsInU:"
+        KRATOS_ERROR_IF(PointsInU < 1 || PointsInU > s_gauss_legendre.size() || PointsInV < 1 || PointsInV > s_gauss_legendre.size())
+            << "PointsInU and ~V need to be between 1 and " << s_gauss_legendre.size()
+            << ", but are PointsInU: "
             << PointsInU << " and PointsInV: " << PointsInV << std::endl;
 
         const double distance_u = U1 - U0;
@@ -208,8 +209,8 @@ namespace Kratos
         SizeType PointsInU, SizeType PointsInV, SizeType PointsInW,
         double U0, double U1, double V0, double V1, double W0, double W1)
     {
-        KRATOS_DEBUG_ERROR_IF(PointsInU < 1 || PointsInV < 1 || PointsInW < 1)
-            << "PointsInU, -V and -W need to be bigger than 0 - PointsInU:"
+        KRATOS_ERROR_IF(PointsInU < 1 || PointsInU > s_gauss_legendre.size() || PointsInV < 1 || PointsInV > s_gauss_legendre.size() || PointsInW < 1 || PointsInW > s_gauss_legendre.size())
+            << "PointsInU, -V and -W need to be between 1 and " << s_gauss_legendre.size() << " - PointsInU:"
             << PointsInU << ", PointsInV:" << PointsInV << " and PointsInW:" << PointsInW << std::endl;
 
         const double distance_u = U1 - U0;
@@ -245,8 +246,8 @@ namespace Kratos
         SizeType PointsIndex,
         double U0, double U1, double U2, double V0, double V1, double V2)
     {
-        KRATOS_DEBUG_ERROR_IF(PointsIndex < 1)
-            << "PointsIndex need to be bigger than 0, but is: " << PointsIndex << std::endl;
+        KRATOS_ERROR_IF(PointsIndex < 1 || PointsIndex >= s_gauss_triangle.size())
+            << "PointsIndex need to be between 1 and " << s_gauss_triangle.size() - 1 << ", but is: " << PointsIndex << std::endl;
 
         const double area = (U0 * (V1 - V2) + U1 * (V2 - V0) + U2 * (V0 - V1)) / 2;
 

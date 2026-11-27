@@ -175,7 +175,7 @@ void SplitInternalInterfacesProcess::SplitBoundary(
                 auto& r_cond_geom = mrModelPart.GetCondition(it_conds->second).GetGeometry();
                 SizeType n_nodes_cond = r_cond_geom.PointsNumber();
                 for (SizeType i_cond_node = 0; i_cond_node < n_nodes_cond; ++i_cond_node) {
-                    auto it_new_nodes = new_nodes_map.find(r_geom[i_cond_node].Id());
+                    auto it_new_nodes = new_nodes_map.find(r_cond_geom[i_cond_node].Id());
                     if (it_new_nodes != new_nodes_map.end()) {
                         r_cond_geom(i_cond_node) = it_new_nodes->second;
                     }

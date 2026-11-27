@@ -172,11 +172,11 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Calcul
     const double penalty = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT];
     std::array<double, 2> aux_penalty{{penalty, -penalty}};
     for (unsigned int i = 0; i < 2; ++i) {
-        const auto &r_aux = r_geom[i].FastGetSolutionStepValue(NODAL_VAUX);
         for (unsigned int k = 0; k < 3; ++k) {
             rRigthHandSideVector(i * 3 + k) = rN[i] * rData(k);
             for (unsigned int j = 0; j < 2; ++j) {
-                rRigthHandSideVector(i * 3 + k) -= (rN[i] * rN[j] + aux_penalty[i] * aux_penalty[j]) * r_aux[k];
+                const auto &r_aux_j = r_geom[j].FastGetSolutionStepValue(NODAL_VAUX);
+                rRigthHandSideVector(i * 3 + k) -= (rN[i] * rN[j] + aux_penalty[i] * aux_penalty[j]) * r_aux_j[k];
             }
         }
     }

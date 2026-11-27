@@ -339,7 +339,7 @@ private:
 
     unsigned int mRequiredEigenvalueNumber;             /// The requiered eigenvalue number @todo Currently not used, check if remove
 
-    unsigned int mEchoLevel;                            /// The verbosity level considered
+    unsigned int mEchoLevel = 0;                            /// The verbosity level considered
 
     typename TLinearSolverType::Pointer mpLinearSolver; /// The pointer to the linear solver considered
 
