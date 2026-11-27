@@ -171,6 +171,70 @@ namespace Kratos
         return flow_force_center;
     }
 
+    std::tuple<array_1d<double,3>, array_1d<double,3>> FlowForcesAndMomentsUtilities::CalculateShiftedBoundaryFlowForcesAndMoments(ModelPart &rModelPart, const array_1d<double, 3>& rReferencePoint) {
+
+        // Initialize total flow force
+        array_1d<double, 3> flow_force = ZeroVector(3);
+        double& flow_force_x = flow_force[0];
+        double& flow_force_y = flow_force[1];
+        double& flow_force_z = flow_force[2];
+
+        // Initialize total flow moment
+        array_1d<double, 3> flow_moment = ZeroVector(3);
+        double& flow_moment_x = flow_moment[0];
+        double& flow_moment_y = flow_moment[1];
+        double& flow_moment_z = flow_moment[2];
+
+        // Iterate the model part nodes to compute the flow force
+        array_1d<double, 3> node_force;
+
+        // Auxiliary var to make the reduction
+        double force_x_red = 0.0;
+        double force_y_red = 0.0;
+        double force_z_red = 0.0;
+
+        double moment_x_red = 0.0;
+        double moment_y_red = 0.0;
+        double moment_z_red = 0.0;
+
+        #pragma omp parallel for reduction(+:force_x_red,force_y_red,force_z_red,moment_x_red,moment_y_red,moment_z_red) private(node_force) schedule(dynamic)
+        for(int i = 0; i < static_cast<int>(rModelPart.Nodes().size()); ++i){
+            auto it_node = rModelPart.NodesBegin() + i;
+            node_force = it_node->GetSolutionStepValue(DRAG_FORCE);
+
+            // ---- Lever arm ----
+            array_1d<double,3> lever_arm;
+            noalias(lever_arm) = it_node->Coordinates() - rReferencePoint;
+
+            // ---- Moment contribution ----
+            array_1d<double,3> node_moment;
+            MathUtils<double>::CrossProduct(node_moment, lever_arm, node_force);
+
+            // ---- Reductions ----
+            force_x_red  += node_force[0];
+            force_y_red  += node_force[1];
+            force_z_red  += node_force[2];
+
+            moment_x_red += node_moment[0];
+            moment_y_red += node_moment[1];
+            moment_z_red += node_moment[2];
+        }
+
+        flow_force_x  += force_x_red;
+        flow_force_y  += force_y_red;
+        flow_force_z  += force_z_red;
+
+        flow_moment_x += moment_x_red;
+        flow_moment_y += moment_y_red;
+        flow_moment_z += moment_z_red;
+
+        // Perform MPI synchronization
+        flow_force = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(flow_force);
+        flow_moment = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(flow_moment);
+
+        return std::make_tuple(flow_force, flow_moment);
+    }
+
     /* External functions *****************************************************/
 
     /// output stream function
