@@ -255,7 +255,7 @@ Geo::PrincipalStresses StressStrainUtilities::TransformPQThetaToPrincipalStresse
         rPQTheta.P() + (2.0 / 3.0) * rPQTheta.Q() * std::sin(rPQTheta.Theta() - (2.0 / 3.0) * Globals::Pi)};
     auto& principal_stress_values = principal_stresses.Values();
     std::sort(principal_stress_values.begin(), principal_stress_values.end(),
-              [](auto lhs, auto rhs) { return rhs < lhs; });
+              [](auto a, auto b) { return a > b; });
     return principal_stresses;
 }
 
