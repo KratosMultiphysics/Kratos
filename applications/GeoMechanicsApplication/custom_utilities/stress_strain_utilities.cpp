@@ -64,6 +64,12 @@ double StressStrainUtilities::CalculateMeanStress(const Vector& rStressVector)
     return CalculateTrace(rStressVector) / (rStressVector.size() == 3 ? 2.0 : 3.0);
 }
 
+double StressStrainUtilities::CalculateMeanStress(const Geo::PrincipalStresses& rPrincipalStresses)
+{
+    const auto& r_principal_stress_values = rPrincipalStresses.Values();
+    return std::accumulate(r_principal_stress_values.begin(), r_principal_stress_values.end(), 0.0) / 3.0;
+}
+
 double StressStrainUtilities::CalculateLodeAngle(const Vector& rStressVector)
 {
     KRATOS_ERROR_IF(rStressVector.size() < 4);
@@ -243,8 +249,8 @@ Geo::PQTheta StressStrainUtilities::TransformPrincipalStressesToPQTheta(const Ge
     auto stress_vector = Vector(6, 0.0);
     std::ranges::copy(rPrincipalStresses.Values(), stress_vector.begin());
     // this does principal computation again ( at least twice again ) maybe reformulate
-    return Geo::PQTheta{CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector),
-                        CalculateLodeAngle(stress_vector)};
+    return Geo::PQTheta{CalculateMeanStress(rPrincipalStresses),
+                        CalculateVonMisesStress(stress_vector), CalculateLodeAngle(stress_vector)};
 }
 
 Geo::PrincipalStresses StressStrainUtilities::TransformPQThetaToPrincipalStresses(const Geo::PQTheta& rPQTheta)

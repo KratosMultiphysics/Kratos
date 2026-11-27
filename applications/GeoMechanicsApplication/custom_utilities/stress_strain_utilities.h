@@ -35,6 +35,7 @@ public:
     static double CalculateVonMisesStress(const Vector& rStressVector);
     static double CalculateTrace(const Vector& rStressVector);
     static double CalculateMeanStress(const Vector& rStressVector);
+    static double CalculateMeanStress(const Geo::PrincipalStresses& rPrincipalStresses);
     static double CalculateLodeAngle(const Vector& rStressVector);
     static double CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double PhiInRadians);
     static double CalculateMohrCoulombPressureCapacity(const Vector& rStressVector, double C, double PhiInRadians);

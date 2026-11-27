@@ -33,6 +33,9 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMeanStress, KratosGeoMechanicsFastSuiteW
 {
     const Vector eye = MathUtils<double>::StressTensorToVector(IdentityMatrix(3));
     KRATOS_EXPECT_DOUBLE_EQ(1.0, StressStrainUtilities::CalculateMeanStress(eye));
+
+    const Geo::PrincipalStresses principal_stress{1.0, 1.0, 1.0};
+    KRATOS_EXPECT_DOUBLE_EQ(1.0, StressStrainUtilities::CalculateMeanStress(principal_stress));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckGreenLagrangeStrainTensor, KratosGeoMechanicsFastSuiteWithoutKernel)
