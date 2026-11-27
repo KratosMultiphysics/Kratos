@@ -85,8 +85,7 @@ public:
     constexpr explicit Variable(
         const std::string_view& NewName,
         const VariableType* pTimeDerivativeVariable = nullptr)
-        : VariableData(NewName, sizeof(TDataType)),
-          mpTimeDerivativeVariable(pTimeDerivativeVariable)
+        : VariableData(NewName, sizeof(TDataType), pTimeDerivativeVariable)
     {}
 
     /**
@@ -99,9 +98,7 @@ public:
         const std::string_view& NewName,
         const VariableType* pTimeDerivativeVariable,
         const VariableType* pAdjointVariable)
-        : VariableData(NewName, sizeof(TDataType)),
-          mpTimeDerivativeVariable(pTimeDerivativeVariable),
-          mpAdjointVariable(pAdjointVariable)
+        : VariableData(NewName, sizeof(TDataType), pTimeDerivativeVariable, pAdjointVariable)
     {}
 
     /**
@@ -128,8 +125,7 @@ public:
         TSourceVariableType* pSourceVariable,
         char ComponentIndex,
         const VariableType* pTimeDerivativeVariable)
-        : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
-          mpTimeDerivativeVariable(pTimeDerivativeVariable)
+        : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex, pTimeDerivativeVariable)
     {}
 
     /**
@@ -145,9 +141,7 @@ public:
         char ComponentIndex,
         const VariableType* pTimeDerivativeVariable,
         const VariableType* pAdjointVariable)
-        : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
-          mpTimeDerivativeVariable(pTimeDerivativeVariable),
-          mpAdjointVariable(pAdjointVariable)
+        : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex, pTimeDerivativeVariable, pAdjointVariable)
     {}
 
     /**
@@ -157,9 +151,7 @@ public:
      */
     constexpr explicit Variable(
         const VariableType& rOtherVariable)
-        : VariableData(rOtherVariable),
-          mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable),
-          mpAdjointVariable(rOtherVariable.mpAdjointVariable)
+        : VariableData(rOtherVariable)
     {
         // Here we don't register as we asume that the origin is already registered
     }
@@ -341,31 +333,12 @@ public:
     ///@{
 
     /**
-     * @brief This method checks if a time derivative variable was assigned
-     * @return True if the variable has a time derivative variable
-     */
-    constexpr bool HasTimeDerivative() const noexcept
-    {
-        return mpTimeDerivativeVariable != nullptr;
-    }
-
-    /**
      * @brief This method returns the time derivative variable
      * @return The reference of the time derivative variable (if any)
      */
     constexpr const VariableType& GetTimeDerivative() const
     {
-        KRATOS_DEBUG_ERROR_IF(mpTimeDerivativeVariable == nullptr) << "Time derivative for Variable \"" << Name() << "\" was not assigned" << std::endl;
-        return *mpTimeDerivativeVariable;
-    }
-
-    /**
-     * @brief This method checks if an adjoint variable was assigned
-     * @return True if the variable has an adjoint variable
-     */
-    constexpr bool HasAdjointVariable() const noexcept
-    {
-        return mpAdjointVariable != nullptr;
+        return static_cast<const VariableType&>(VariableData::GetTimeDerivative());
     }
 
     /**
@@ -375,8 +348,7 @@ public:
      */
     constexpr const VariableType& GetAdjointVariable() const
     {
-        KRATOS_ERROR_IF(mpAdjointVariable == nullptr) << "Adjoint variable for Variable \"" << Name() << "\" was not assigned" << std::endl;
-        return *mpAdjointVariable;
+        return static_cast<const VariableType&>(VariableData::GetAdjointVariable());
     }
 
     /**
@@ -478,14 +450,6 @@ private:
     ///@{
 
     static const inline TDataType mZero = TDataType{};      /// The zero type contains the null value of the current variable type
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    const VariableType* mpTimeDerivativeVariable = nullptr; /// Definition of the pointer to the variable for the time derivative
-
-    const VariableType* mpAdjointVariable = nullptr; /// Definition of the pointer to the adjoint variable (primal to adjoint link only)
 
     ///@}
     ///@name Private Operators
