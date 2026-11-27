@@ -1,3 +1,5 @@
+import json
+
 import KratosMultiphysics as KM 
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
