@@ -234,31 +234,31 @@ KRATOS_TEST_CASE_IN_SUITE(TestCompressionCapYieldSurface, KratosGeoMechanicsFast
     material_properties[GEO_PRECONSOLIDATION_STRESS] = 20.0;
 
     auto principal_stress = Geo::PrincipalStresses{30.0, 20.0, 10.0};
-    auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
-    KRATOS_EXPECT_NEAR(CompressionCapYieldSurface{material_properties}.YieldFunctionValue(p_q),
+    auto p_q_theta = StressStrainUtilities::TransformPrincipalStressesToPQTheta(principal_stress);
+    KRATOS_EXPECT_NEAR(CompressionCapYieldSurface{material_properties}.YieldFunctionValue(p_q_theta),
                        18.75, Defaults::absolute_tolerance);
 
     material_properties[K0_NC] = 1.0 / 25.0; // overrule the compression cap size calculated from the friction angle
     principal_stress = Geo::PrincipalStresses{20.0, 15.0, 10.0};
-    p_q              = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
-    KRATOS_EXPECT_NEAR(CompressionCapYieldSurface{material_properties}.YieldFunctionValue(p_q),
+    p_q_theta        = StressStrainUtilities::TransformPrincipalStressesToPQTheta(principal_stress);
+    KRATOS_EXPECT_NEAR(CompressionCapYieldSurface{material_properties}.YieldFunctionValue(p_q_theta),
                        -170.3125, Defaults::absolute_tolerance);
 
     material_properties[GEO_COMPRESSION_CAP_SIZE] = 4.0; // overrule the compression cap size calculated from K0_NC
     const auto cap_yield_surface = CompressionCapYieldSurface{material_properties};
     principal_stress = Geo::PrincipalStresses{46.1880215351700611607, 0.0, -46.1880215351700611607};
-    p_q              = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
-    KRATOS_EXPECT_NEAR(cap_yield_surface.YieldFunctionValue(p_q), 0.0, Defaults::absolute_tolerance);
+    p_q_theta        = StressStrainUtilities::TransformPrincipalStressesToPQTheta(principal_stress);
+    KRATOS_EXPECT_NEAR(cap_yield_surface.YieldFunctionValue(p_q_theta), 0.0, Defaults::absolute_tolerance);
 
-    auto expected_derivative = UblasUtilities::CreateVector({0.0, 10.0});
-    KRATOS_EXPECT_VECTOR_NEAR(cap_yield_surface.DerivativeOfFlowFunction(p_q), expected_derivative,
-                              Defaults::absolute_tolerance);
+    auto expected_derivative = UblasUtilities::CreateVector({0.0, 10.0, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(cap_yield_surface.DerivativeOfFlowFunction(p_q_theta),
+                              expected_derivative, Defaults::absolute_tolerance);
 
     principal_stress = Geo::PrincipalStresses{51.9615242270663, 0.0, -51.9615242270663};
-    p_q              = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
-    expected_derivative = UblasUtilities::CreateVector({0.0, 11.25});
-    KRATOS_EXPECT_VECTOR_NEAR(cap_yield_surface.DerivativeOfFlowFunction(p_q), expected_derivative,
-                              Defaults::absolute_tolerance);
+    p_q_theta        = StressStrainUtilities::TransformPrincipalStressesToPQTheta(principal_stress);
+    expected_derivative = UblasUtilities::CreateVector({0.0, 11.25, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(cap_yield_surface.DerivativeOfFlowFunction(p_q_theta),
+                              expected_derivative, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CompressionCapYieldSurface_CanBeSavedAndLoadedThroughInterface,
@@ -281,12 +281,12 @@ KRATOS_TEST_CASE_IN_SUITE(CompressionCapYieldSurface_CanBeSavedAndLoadedThroughI
 
     // Assert
     ASSERT_NE(p_loaded_cap_yield_surface, nullptr);
-    auto       principal_stresses = Geo::PrincipalStresses{30.0, 20.0, 10.0};
-    const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stresses);
-    KRATOS_EXPECT_NEAR(p_loaded_cap_yield_surface->YieldFunctionValue(p_q), 18.75, Defaults::absolute_tolerance);
+    auto principal_stresses = Geo::PrincipalStresses{30.0, 20.0, 10.0};
+    const auto p_q_theta = StressStrainUtilities::TransformPrincipalStressesToPQTheta(principal_stresses);
+    KRATOS_EXPECT_NEAR(p_loaded_cap_yield_surface->YieldFunctionValue(p_q_theta), 18.75, Defaults::absolute_tolerance);
 
-    const auto expected_derivative = UblasUtilities::CreateVector({40.0, 2.1650635094610966169});
-    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_cap_yield_surface->DerivativeOfFlowFunction(p_q),
+    const auto expected_derivative = UblasUtilities::CreateVector({40.0, 2.1650635094610966169, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_cap_yield_surface->DerivativeOfFlowFunction(p_q_theta),
                               expected_derivative, Defaults::absolute_tolerance);
 }
 

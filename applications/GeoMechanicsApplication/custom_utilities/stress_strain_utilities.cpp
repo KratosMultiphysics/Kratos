@@ -46,6 +46,16 @@ double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVecto
     return std::sqrt(std::max(SigmaEquivalent, 0.));
 }
 
+double StressStrainUtilities::CalculateVonMisesStress(const Geo::PrincipalStresses& rPrincipalStresses)
+{
+    const auto& r_principal_stress_values = rPrincipalStresses.Values();
+    const auto  sigma_equivalent =
+        0.5 * (std::pow(r_principal_stress_values[0] - r_principal_stress_values[1], 2) +
+               std::pow(r_principal_stress_values[1] - r_principal_stress_values[2], 2) +
+               std::pow(r_principal_stress_values[2] - r_principal_stress_values[0], 2));
+    return std::sqrt(std::max(sigma_equivalent, 0.));
+}
+
 double StressStrainUtilities::CalculateTrace(const Vector& rStressVector)
 {
     const Matrix StressTensor =
@@ -64,23 +74,46 @@ double StressStrainUtilities::CalculateMeanStress(const Vector& rStressVector)
     return CalculateTrace(rStressVector) / (rStressVector.size() == 3 ? 2.0 : 3.0);
 }
 
+double StressStrainUtilities::CalculateMeanStress(const Geo::PrincipalStresses& rPrincipalStresses)
+{
+    const auto& r_principal_stress_values = rPrincipalStresses.Values();
+    return std::accumulate(r_principal_stress_values.begin(), r_principal_stress_values.end(), 0.0) / 3.0;
+}
+
 double StressStrainUtilities::CalculateLodeAngle(const Vector& rStressVector)
 {
     KRATOS_ERROR_IF(rStressVector.size() < 4);
 
     const auto q = CalculateVonMisesStress(rStressVector);
-    if (constexpr auto tolerance = 1.0E-12; q < tolerance) return 0.0;
+    if (q > 0.0) {
+        Matrix sigma_princi;
+        Matrix eigen_vectors;
+        MathUtils<>::GaussSeidelEigenSystem(MathUtils<>::StressVectorToTensor(rStressVector),
+                                            eigen_vectors, sigma_princi, 1.0e-16, 20);
+        const auto p = CalculateMeanStress(rStressVector);
+        const auto numerator =
+            (sigma_princi(0, 0) - p) * (sigma_princi(1, 1) - p) * (sigma_princi(2, 2) - p);
+        // Avoid a domain error when computing the arc sine (which results in a NaN value)
+        const auto arg_to_asin = std::clamp((-27. / 2.) * numerator / std::pow(q, 3), -1.0, 1.0);
 
-    Matrix sigma_princi;
-    Matrix eigen_vectors;
-    MathUtils<>::GaussSeidelEigenSystem(MathUtils<>::StressVectorToTensor(rStressVector),
-                                        eigen_vectors, sigma_princi, 1.0e-16, 20);
-    const auto p = CalculateMeanStress(rStressVector);
-    const auto numerator = (sigma_princi(0, 0) - p) * (sigma_princi(1, 1) - p) * (sigma_princi(2, 2) - p);
-    // Avoid a domain error when computing the arc sine (which results in a NaN value)
-    const auto arg_to_asin = std::clamp((-27. / 2.) * numerator / (q * q * q), -1.0, 1.0);
+        return std::asin(arg_to_asin) / 3.0;
+    }
+    return 0.0;
+}
 
-    return std::asin(arg_to_asin) / 3.0;
+double StressStrainUtilities::CalculateLodeAngle(const Geo::PrincipalStresses& rPrincipalStresses)
+{
+    const auto q = CalculateVonMisesStress(rPrincipalStresses);
+    if (q > 0.0) {
+        const auto p         = CalculateMeanStress(rPrincipalStresses);
+        const auto numerator = (rPrincipalStresses.Values()[0] - p) *
+                               (rPrincipalStresses.Values()[1] - p) * (rPrincipalStresses.Values()[2] - p);
+        // Avoid a domain error when computing the arc sine (which results in a NaN value)
+        const auto arg_to_asin = std::clamp((-27. / 2.) * numerator / std::pow(q, 3), -1.0, 1.0);
+
+        return std::asin(arg_to_asin) / 3.0;
+    }
+    return 0.0;
 }
 
 double StressStrainUtilities::CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double PhiInRadians)
@@ -236,11 +269,22 @@ Geo::PrincipalStresses StressStrainUtilities::TransformSigmaTauToPrincipalStress
                                   rSigmaTau.Sigma() - rSigmaTau.Tau()};
 }
 
-Geo::PQ StressStrainUtilities::TransformPrincipalStressesToPandQ(const Geo::PrincipalStresses& rPrincipalStresses)
+Geo::PQTheta StressStrainUtilities::TransformPrincipalStressesToPQTheta(const Geo::PrincipalStresses& rPrincipalStresses)
 {
-    auto stress_vector = Vector(6, 0.0);
-    std::ranges::copy(rPrincipalStresses.Values(), stress_vector.begin());
-    return Geo::PQ{CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector)};
+    return Geo::PQTheta{CalculateMeanStress(rPrincipalStresses), CalculateVonMisesStress(rPrincipalStresses),
+                        CalculateLodeAngle(rPrincipalStresses)};
+}
+
+Geo::PrincipalStresses StressStrainUtilities::TransformPQThetaToPrincipalStresses(const Geo::PQTheta& rPQTheta)
+{
+    auto principal_stresses = Geo::PrincipalStresses{
+        rPQTheta.P() + (2.0 / 3.0) * rPQTheta.Q() * std::sin(rPQTheta.Theta() + (2.0 / 3.0) * Globals::Pi),
+        rPQTheta.P() + (2.0 / 3.0) * rPQTheta.Q() * std::sin(rPQTheta.Theta()),
+        rPQTheta.P() + (2.0 / 3.0) * rPQTheta.Q() * std::sin(rPQTheta.Theta() - (2.0 / 3.0) * Globals::Pi)};
+    auto& principal_stress_values = principal_stresses.Values();
+    std::sort(principal_stress_values.begin(), principal_stress_values.end(),
+              [](auto a, auto b) { return a > b; });
+    return principal_stresses;
 }
 
 std::vector<Vector> StressStrainUtilities::CalculateStressVectorsFromStrainVectors(

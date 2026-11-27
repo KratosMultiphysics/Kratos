@@ -33,6 +33,9 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMeanStress, KratosGeoMechanicsFastSuiteW
 {
     const Vector eye = MathUtils<double>::StressTensorToVector(IdentityMatrix(3));
     KRATOS_EXPECT_DOUBLE_EQ(1.0, StressStrainUtilities::CalculateMeanStress(eye));
+
+    const Geo::PrincipalStresses principal_stress{1.0, 1.0, 1.0};
+    KRATOS_EXPECT_DOUBLE_EQ(1.0, StressStrainUtilities::CalculateMeanStress(principal_stress));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckGreenLagrangeStrainTensor, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -46,12 +49,25 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateVonMisesStressHydrostatic, KratosGeoMech
 {
     const auto stress_vector = UblasUtilities::CreateVector({-2.0, -2.0, -2.0, 0.0});
     KRATOS_EXPECT_DOUBLE_EQ(0.0, StressStrainUtilities::CalculateVonMisesStress(stress_vector));
+    Vector principal_stress_vector{};
+    Matrix principal_direction_matrix{};
+    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, principal_stress_vector,
+                                                      principal_direction_matrix);
+    const Geo::PrincipalStresses principal_stresses{principal_stress_vector};
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, StressStrainUtilities::CalculateVonMisesStress(principal_stresses));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateVonMisesStressPureShear, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_vector = UblasUtilities::CreateVector({0.0, 0.0, 0.0, 2.0});
     KRATOS_EXPECT_DOUBLE_EQ(2.0 * std::sqrt(3.0), StressStrainUtilities::CalculateVonMisesStress(stress_vector));
+    Vector principal_stress_vector{};
+    Matrix principal_direction_matrix{};
+    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, principal_stress_vector,
+                                                      principal_direction_matrix);
+    const Geo::PrincipalStresses principal_stresses{principal_stress_vector};
+    KRATOS_EXPECT_DOUBLE_EQ(2.0 * std::sqrt(3.0),
+                            StressStrainUtilities::CalculateVonMisesStress(principal_stresses));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateLodeAngle, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -60,21 +76,46 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateLodeAngle, KratosGeoMechanicsFastSuiteWi
     auto stress_vector = UblasUtilities::CreateVector({0.5, -1.0, 0.5, 0.0});
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(30.0),
                             StressStrainUtilities::CalculateLodeAngle(stress_vector));
+    Vector principal_stresses;
+    Matrix rotation_matrix;
+    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, principal_stresses, rotation_matrix);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        MathUtils<>::DegreesToRadians(30.0),
+        StressStrainUtilities::CalculateLodeAngle(Geo::PrincipalStresses(principal_stresses)));
+
     // Validate Triaxial Compression (TXC)
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(-30.0),
                             StressStrainUtilities::CalculateLodeAngle(-1.0 * stress_vector));
+    StressStrainUtilities::CalculatePrincipalStresses(-1.0 * stress_vector, principal_stresses, rotation_matrix);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        MathUtils<>::DegreesToRadians(-30.0),
+        StressStrainUtilities::CalculateLodeAngle(Geo::PrincipalStresses(principal_stresses)));
+
     // Validate Shear (SHR)
     stress_vector = UblasUtilities::CreateVector({-1.0, 0.0, 1.0, 0.0});
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(0.0),
                             StressStrainUtilities::CalculateLodeAngle(stress_vector));
+    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, principal_stresses, rotation_matrix);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        MathUtils<>::DegreesToRadians(0.0),
+        StressStrainUtilities::CalculateLodeAngle(Geo::PrincipalStresses(principal_stresses)));
 
     // Regression tests with a small perturbation
     constexpr auto perturbation = 1.0e-8;
     stress_vector = UblasUtilities::CreateVector({0.5 + perturbation, -1.0, 0.5 + perturbation, 0.0});
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(30.0),
                             StressStrainUtilities::CalculateLodeAngle(stress_vector));
+    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, principal_stresses, rotation_matrix);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        MathUtils<>::DegreesToRadians(30.0),
+        StressStrainUtilities::CalculateLodeAngle(Geo::PrincipalStresses(principal_stresses)));
+
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(-30.0),
                             StressStrainUtilities::CalculateLodeAngle(-1.0 * stress_vector));
+    StressStrainUtilities::CalculatePrincipalStresses(-1.0 * stress_vector, principal_stresses, rotation_matrix);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        MathUtils<>::DegreesToRadians(-30.0),
+        StressStrainUtilities::CalculateLodeAngle(Geo::PrincipalStresses(principal_stresses)));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityZeroStress, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -251,12 +292,72 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculatePrincipalStressesAndRotationMatrix, Krat
     KRATOS_EXPECT_MATRIX_NEAR(actual_rotation_matrix, expected_rotation_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckTransformPrincipalStressesToPandQ, KratosGeoMechanicsFastSuiteWithoutKernel)
+struct PrincipalStressesToPQThetaTestData {
+    Geo::PrincipalStresses PrincipalStresses;
+    Geo::PQTheta           ExpectedPQTheta;
+};
+
+class ParameterizedPrincipalStressesToPQThetaTest : public ::testing::TestWithParam<PrincipalStressesToPQThetaTestData>
 {
-    const auto principal_stresses = Geo::PrincipalStresses{30.0, 20.0, 10.0};
-    const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stresses);
-    const auto expected_solution_pq = Geo::PQ{20.0, std::sqrt(300.0)};
-    KRATOS_EXPECT_VECTOR_NEAR(p_q.Values(), expected_solution_pq.Values(), Defaults::absolute_tolerance)
+};
+
+TEST_P(ParameterizedPrincipalStressesToPQThetaTest, CheckTransformPrincipalStressesToPQThetaAndBack)
+{
+    const auto& [principal_stresses, expected_p_q_theta] = GetParam();
+
+    const auto p_q_theta = StressStrainUtilities::TransformPrincipalStressesToPQTheta(principal_stresses);
+
+    KRATOS_EXPECT_VECTOR_NEAR(p_q_theta.Values(), expected_p_q_theta.Values(), Defaults::absolute_tolerance)
+
+    const auto back_computed_principal_stresses =
+        StressStrainUtilities::TransformPQThetaToPrincipalStresses(p_q_theta);
+
+    KRATOS_EXPECT_VECTOR_NEAR(back_computed_principal_stresses.Values(),
+                              principal_stresses.Values(), Defaults::absolute_tolerance)
+
+    // Independently check the inverse against the prescribed PQTheta state.
+    const auto expected_state_principal_stresses =
+        StressStrainUtilities::TransformPQThetaToPrincipalStresses(expected_p_q_theta);
+
+    KRATOS_EXPECT_VECTOR_NEAR(expected_state_principal_stresses.Values(),
+                              principal_stresses.Values(), Defaults::absolute_tolerance)
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    KratosGeoMechanicsFastSuiteWithoutKernel,
+    ParameterizedPrincipalStressesToPQThetaTest,
+    ::testing::Values(
+        // Original regression case.
+        PrincipalStressesToPQThetaTestData{{30.0, 20.0, 10.0}, {20.0, std::sqrt(300.0), 0.0}},
+
+        // Sigma1 > sigma2 = sigma3: theta = -30 degrees.
+        PrincipalStressesToPQThetaTestData{{40.0, 10.0, 10.0}, {20.0, 30.0, MathUtils<>::DegreesToRadians(-30.0)}},
+        PrincipalStressesToPQThetaTestData{{-10.0, -40.0, -40.0},
+                                           {-30.0, 30.0, MathUtils<>::DegreesToRadians(-30.0)}},
+        PrincipalStressesToPQThetaTestData{{20.0, -10.0, -10.0}, {0.0, 30.0, MathUtils<>::DegreesToRadians(-30.0)}},
+
+        // Sigma1 = sigma2 > sigma3: theta = +30 degrees.
+        PrincipalStressesToPQThetaTestData{{40.0, 40.0, 10.0}, {30.0, 30.0, MathUtils<>::DegreesToRadians(30.0)}},
+        PrincipalStressesToPQThetaTestData{{-10.0, -10.0, -40.0},
+                                           {-20.0, 30.0, MathUtils<>::DegreesToRadians(30.0)}},
+        PrincipalStressesToPQThetaTestData{{10.0, 10.0, -20.0}, {0.0, 30.0, MathUtils<>::DegreesToRadians(30.0)}},
+
+        // Theta = 15 degrees, Q = 30: positive, negative, and mixed stresses.
+        PrincipalStressesToPQThetaTestData{
+            {30.0 + 10.0 * std::sqrt(2.0), 30.0 + 5.0 * (std::sqrt(6.0) - std::sqrt(2.0)),
+             30.0 - 5.0 * (std::sqrt(6.0) + std::sqrt(2.0))},
+            {30.0, 30.0, MathUtils<>::DegreesToRadians(15.0)}},
+        PrincipalStressesToPQThetaTestData{
+            {-30.0 + 10.0 * std::sqrt(2.0), -30.0 + 5.0 * (std::sqrt(6.0) - std::sqrt(2.0)),
+             -30.0 - 5.0 * (std::sqrt(6.0) + std::sqrt(2.0))},
+            {-30.0, 30.0, MathUtils<>::DegreesToRadians(15.0)}},
+        PrincipalStressesToPQThetaTestData{{10.0 * std::sqrt(2.0), 5.0 * (std::sqrt(6.0) - std::sqrt(2.0)),
+                                            -5.0 * (std::sqrt(6.0) + std::sqrt(2.0))},
+                                           {0.0, 30.0, MathUtils<>::DegreesToRadians(15.0)}},
+
+        // Hydrostatic: positive, negative, and zero.
+        PrincipalStressesToPQThetaTestData{{10.0, 10.0, 10.0}, {10.0, 0.0, 0.0}},
+        PrincipalStressesToPQThetaTestData{{-10.0, -10.0, -10.0}, {-10.0, 0.0, 0.0}},
+        PrincipalStressesToPQThetaTestData{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}));
 
 } // namespace Kratos::Testing
