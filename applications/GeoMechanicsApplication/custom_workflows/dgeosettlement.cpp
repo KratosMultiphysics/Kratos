@@ -118,6 +118,12 @@ bool GetResetTotalsFrom(const Parameters& rProjectParameters)
     return rProjectParameters["solver_settings"]["reset_totals"].GetBool();
 }
 
+bool GetMoveMeshFlagFrom(const Parameters& rProjectParameters)
+{
+    if (!rProjectParameters["solver_settings"].Has("move_mesh_flag")) return false;
+    return rProjectParameters["solver_settings"]["move_mesh_flag"].GetBool();
+}
+
 } // namespace
 
 namespace Kratos
@@ -382,9 +388,9 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
 
     // For now, we can create solving strategy wrappers only
     using SolvingStrategyWrapperType = SolvingStrategyWrapper<GeoSparseSpaceType, GeoDenseSpaceType>;
-    return std::make_shared<SolvingStrategyWrapperType>(std::move(solving_strategy),
-                                                        GetResetTotalsFrom(rProjectParameters),
-                                                        rWorkingDirectory, rProjectParameters);
+    return std::make_shared<SolvingStrategyWrapperType>(
+        std::move(solving_strategy), GetResetTotalsFrom(rProjectParameters),
+        GetMoveMeshFlagFrom(rProjectParameters), rWorkingDirectory, rProjectParameters);
 }
 
 void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)

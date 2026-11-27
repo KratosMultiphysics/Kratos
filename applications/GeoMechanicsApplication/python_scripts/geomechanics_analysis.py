@@ -55,6 +55,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self.solution_type       = solver_settings["solution_type"].GetString()
         self.reset_totals        = solver_settings["reset_totals"].GetBool()
         self.rebuild_level       = solver_settings["rebuild_level"].GetInt()
+        self.move_mesh_flag      = solver_settings["move_mesh_flag"].GetBool()
 
     def Initialize(self):
         super().Initialize()
@@ -99,7 +100,8 @@ class GeoMechanicsAnalysis(AnalysisStage):
         # Note that this function does NOT revert the fixity of the nodal variables, which may lead to incorrect results
         # when a seepage analysis attempts another cycle when the solution step did not converge. This still needs to be
         # fixed.
-        KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT,1)
+        if self.move_mesh_flag:
+            KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT, 1)
         copy_nodal_solution_step_values(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT, 1, 0)
         copy_nodal_solution_step_values(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.ROTATION, 1, 0)
         copy_nodal_solution_step_values(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.WATER_PRESSURE, 1, 0)

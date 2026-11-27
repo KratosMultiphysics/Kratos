@@ -116,11 +116,11 @@ ModelPart& CreateDummyModelPart(Model& rModel)
     return r_model_part;
 }
 
-SolvingStrategyWrapperType CreateWrapperWithEmptyProcessInfo(ModelPart& rModelPart)
+SolvingStrategyWrapperType CreateWrapperWithEmptyProcessInfo(ModelPart& rModelPart, bool MoveMesh = true)
 {
     const auto reset_totals = true;
     return SolvingStrategyWrapperType{
-        SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart), reset_totals};
+        SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart), reset_totals, MoveMesh};
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
@@ -298,6 +298,43 @@ KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndRotationsOnRequest, Kratos
 
     KRATOS_EXPECT_VECTOR_EQ(p_node->GetSolutionStepValue(DISPLACEMENT, 0), old_displacement)
     KRATOS_EXPECT_VECTOR_EQ(p_node->GetSolutionStepValue(ROTATION, 0), old_rotation)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndRotationsUpdatesNodePositionsWhenMoveMeshIsTrue,
+                          KratosGeoMechanicsFastSuite)
+{
+    Model          model;
+    auto&          r_model_part     = CreateDummyModelPart(model);
+    constexpr auto move_mesh        = true;
+    auto           strategy_wrapper = CreateWrapperWithEmptyProcessInfo(r_model_part, move_mesh);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    auto p_node                                   = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    p_node->GetSolutionStepValue(DISPLACEMENT, 1) = array_1d<double, 3>{1.0, 2.0, 3.0};
+    p_node->GetSolutionStepValue(DISPLACEMENT, 0) = array_1d<double, 3>{10.0, 20.0, 30.0};
+
+    strategy_wrapper.RestorePositionsAndDOFVectorToStartOfStep();
+
+    const auto updated_position = std::vector<double>{1.0, 2.0, 3.0};
+    KRATOS_EXPECT_VECTOR_EQ(p_node->Coordinates(), updated_position);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndRotationsDoesNotUpdateNodePositionsWhenMoveMeshIsFalse,
+                          KratosGeoMechanicsFastSuite)
+{
+    Model          model;
+    auto&          r_model_part     = CreateDummyModelPart(model);
+    constexpr auto move_mesh        = false;
+    auto           strategy_wrapper = CreateWrapperWithEmptyProcessInfo(r_model_part, move_mesh);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    auto p_node                                   = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    p_node->GetSolutionStepValue(DISPLACEMENT, 1) = array_1d<double, 3>{1.0, 2.0, 3.0};
+    p_node->GetSolutionStepValue(DISPLACEMENT, 0) = array_1d<double, 3>{10.0, 20.0, 30.0};
+    strategy_wrapper.RestorePositionsAndDOFVectorToStartOfStep();
+
+    const auto original_position = std::vector<double>{0.0, 0.0, 0.0};
+    KRATOS_EXPECT_VECTOR_EQ(p_node->Coordinates(), original_position);
 }
 
 } // namespace Kratos::Testing

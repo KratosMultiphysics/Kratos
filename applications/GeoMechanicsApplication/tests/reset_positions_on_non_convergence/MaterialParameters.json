@@ -1,0 +1,26 @@
+{
+    "properties": [
+        {
+            "model_part_name_list": ["PorousDomain.soil"],
+            "properties_id": 0,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoMohrCoulombLawPlaneStrain"
+                },
+                "Variables": {
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
+                    "YOUNG_MODULUS": 100.0,
+                    "POISSON_RATIO": 0.0,
+                    "DENSITY_SOLID": 2650,
+                    "DENSITY_WATER": 1000,
+                    "POROSITY": 0.0,
+                    "BULK_MODULUS_SOLID": 1.0e+09,
+                    "BULK_MODULUS_FLUID": 2.0e+06,
+                    "GEO_COHESION": 6,
+                    "GEO_FRICTION_ANGLE": 30.0,
+                    "GEO_DILATANCY_ANGLE": 0.0
+                }
+            }
+        }
+    ]
+}
