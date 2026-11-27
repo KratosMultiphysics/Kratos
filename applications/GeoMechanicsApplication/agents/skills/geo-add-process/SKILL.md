@@ -23,7 +23,7 @@ If a core Kratos process with the same name exists, prefix the new name with `Ge
 
 Create `custom_processes/<name>.h` and `custom_processes/<name>.cpp`:
 
-- GeoMechanics header block with the real author names, `#pragma once`.
+- GeoMechanics header block (see `geo-cpp.instructions.md`), `#pragma once`.
 - `class KRATOS_API(GEO_MECHANICS_APPLICATION) <Name> : public Process` with
   `KRATOS_CLASS_POINTER_DEFINITION(<Name>);`.
 - Inspect the process requirements and nearby implementations to choose the constructor
@@ -36,7 +36,7 @@ Create `custom_processes/<name>.h` and `custom_processes/<name>.cpp`:
   input to validate and `[[nodiscard]] std::string Info() const override`.
 - Validate input with `KRATOS_ERROR_IF` / `CheckProperties` and messages that name the
   parameter and the model part.
-- Format both files with `.clang-format`.
+- Format both files as described in `agents/skills/geo-format/SKILL.md`.
 
 No CMake change is needed; `custom_processes/*.cpp` is globbed.
 
@@ -50,8 +50,14 @@ No CMake change is needed; `custom_processes/*.cpp` is globbed.
       .def(py::init<Model&, Parameters>());
   ```
 
-- Create `python_scripts/<name>.py` with only a `Factory(settings, model)` function, as in
-  `python_scripts/apply_k0_procedure_process.py`.
+  The docstring follows the root rule in `/agents/instructions/python-conventions.instructions.md`
+  (docstrings on newly introduced bindings). The existing GeoMechanics bindings have none.
+
+  Replace the example constructor signature with the actual C++ constructor used by the
+  wrapper; `Model&` and `Parameters` are common, but not universal.
+
+- Create a thin module in `python_scripts/<name>.py` with the expected
+  `Factory(settings, model)` entry point, as in `python_scripts/apply_k0_procedure_process.py`.
 
 ## 4. C++ settlement workflow (only if needed)
 
@@ -68,7 +74,8 @@ extend a `*CppRoute` Python test.
   `KratosGeoMechanicsFastSuiteWithoutKernel` unless the kernel is needed.
 - Python: reuse existing case data where suitable. Otherwise add a case folder
   `tests/<case_name>/` with `ProjectParameters.json` (4-space indent),
-  `MaterialParameters.json`, the mesh and a `README.md`. Add a test class in
+  `MaterialParameters.json`, the mesh and a `README.md` (content as listed in
+  `geo-testing.instructions.md`). Add a test class in
   `tests/test_<topic>.py` and an entry in the right list of `tests/test_GeoMechanicsApplication.py`.
 
 ## 6. Documentation

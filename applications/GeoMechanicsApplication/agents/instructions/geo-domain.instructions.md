@@ -23,10 +23,10 @@ pressure DOFs (`custom_elements/README.md`). For a 6-noded diff-order triangle:
 
 ## Sign conventions and units
 
-- Mechanics: tension positive for stress and strain (`PORE_PRESSURE_SIGN_FACTOR = 1.0` in
-  `geo_mechanics_application_constants.h`, "mechanical sign convention").
-- Water pressure: tension positive (`custom_retention/README.md`). `p > 0` is suction (above
-  the phreatic level, unsaturated); `p <= 0` is compressive pore water pressure (saturated).
+- We adopt a sign convention that is common in mechanical engineering: tensile stresses are
+  positive, and compressive ones are negative. This applies to stresses in soil and structures,
+  as well as to water pressures. Note that this sign convention deviates from what some
+  geotechnical software packages use.
 - In axisymmetric elements the radial coordinate is `x` (`custom_elements/Policies.md`).
 - The application does not convert units. All values in `ProjectParameters.json` and
   `MaterialParameters.json` must use one consistent unit system (most tests use SI; some use
@@ -80,5 +80,5 @@ Time integration schemes derive from `GeoMechanicsTimeIntegrationScheme`
   scheme.
 - In load stepping (`LoadSteppingScheme`), time represents load progression rather than
   physical transient evolution. Do not combine the load-stepping scheme with time-dependent
-  processes.
+  processes. If you think you do need to combine them, ask the user what to do.
 

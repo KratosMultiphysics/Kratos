@@ -54,12 +54,17 @@ Read the README of the folder you change, and update it when you change document
 | `agents/reviewers/geo-reviewer.agent.md` | Reviewing a change in this application |
 | `agents/skills/geo-build-and-test/SKILL.md` | Building the application and running its tests |
 | `agents/skills/geo-add-process/SKILL.md` | Adding a new process |
+| `agents/skills/geo-format/SKILL.md` | Formatting C++ and JSON files |
 | `agents/prompts/geo-scaffold-test.prompt.md` | Creating a new C++ or Python test |
+
+## Git branches
+
+Any Git branch that aims at modifying or extending the GeoMechanicsApplication has a name that
+starts with `geo/`.
 
 ## Change checklist
 
-1. Run `clang-format` with `applications/GeoMechanicsApplication/.clang-format` on every C++
-   file you change.
+1. Format the C++ and JSON files you change as described in `agents/skills/geo-format/SKILL.md`.
 2. Add a unit test in `tests/cpp_tests/<same sub-folder as the source>/` for new C++ code.
 3. New source files in an existing `custom_*` folder are picked up by `GLOB_RECURSE` in
    `CMakeLists.txt`; a new top-level folder must be added to that glob.
@@ -67,6 +72,5 @@ Read the README of the folder you change, and update it when you change document
    `geo_mechanics_application.h/.cpp`, and new variables in
    `geo_mechanics_application_variables.h/.cpp` and `custom_python/geo_mechanics_python_application.cpp`.
 5. Add new Python test classes to the right suite in `tests/test_GeoMechanicsApplication.py`.
-6. Do not add new JSON files to `exceptions_for_json_formatting.txt` (see `geo-testing.instructions.md`).
 
 

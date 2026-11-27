@@ -25,15 +25,19 @@ Choose the suite (fixture):
 |-------|--------|----------|
 | `KratosGeoMechanicsFastSuiteWithoutKernel` | `tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h` | Default. The test builds its own objects and only needs the variables registered in `geo_mechanics_fast_suite_without_kernel.cpp` |
 | `KratosGeoMechanicsFastSuite` | `tests/cpp_tests/geo_mechanics_fast_suite.h` | The test needs the Kratos kernel with the GeoMechanics and LinearSolvers applications loaded (registered elements, conditions, laws, processes, Python-free model setup through the registry) |
-| `KratosGeoMechanicsIntegrationSuite` | `tests/cpp_tests/geo_mechanics_fast_suite.h` | Slow tests that run a whole analysis. Excluded by `run_cpp_unit_tests.py --onlyFastSuite` |
+| `KratosGeoMechanicsIntegrationSuite` | `tests/cpp_tests/geo_mechanics_fast_suite.h` | Legacy only: do not add new tests. Slow tests that run a whole analysis. Excluded by `run_cpp_unit_tests.py --onlyFastSuite` |
 
 If a test in the without-kernel suite needs a variable that is not registered there, add it to
 `geo_mechanics_fast_suite_without_kernel.cpp` instead of moving the test to the kernel suite.
 
+Do not add any new tests to `KratosGeoMechanicsIntegrationSuite`. It contains legacy C++ unit
+tests. When a unit test becomes this big, use a Python test instead.
+
 Macros and names:
 
-- Use `KRATOS_TEST_CASE_IN_SUITE(TestName, Suite)` or `TEST_F(Suite, TestName)`; both are used.
-  Use `TEST_P` with `INSTANTIATE_TEST_SUITE_P` for the same check over a table of inputs (see
+- When creating a new unit test, use `KRATOS_TEST_CASE_IN_SUITE(TestName, Suite)`. Existing
+  tests also use `TEST_F(Suite, TestName)`; do not convert them. Use `TEST_P` with
+  `INSTANTIATE_TEST_SUITE_P` only for the same check over a table of inputs (see
   `custom_retention/test_van_genuchten_law.cpp`).
 - Test names are `PascalCase` and say the subject and the expected behaviour, often as
   `ClassName_Behaviour`, for example `VanGenuchtenLawChecksInputParameters` or
@@ -75,18 +79,22 @@ a documented reference run), not from copying the current output of the code und
 - Input data of a case lives in `tests/<case_name>/` with `ProjectParameters*.json`,
   `MaterialParameters*.json`, the `.mdpa` mesh, and a `README.md` that describes the case.
   Shared files between variants go in a `common/` (or `Common/`) sub-folder.
+- The `README.md` of a Python test has a brief description of the geometry, the applied
+  boundary conditions (supports and loads), the phreatic surface (if any), and a table that
+  lists the material properties. In addition, it has a schematic (in SVG format) that shows
+  the model under test. The description lists the assertions that are checked and explains how
+  the reference values have been obtained.
 - Register every new test class in `tests/test_GeoMechanicsApplication.py`:
   `small_test_cases` for short regression tests, `night_test_cases` for tests that take minutes,
   `valid_test_cases` for long validation runs. The nightly suite also runs all small tests.
+  If you are not sure which list fits, ask the user.
 - Plots: some tests write plots when the environment variable `KRATOS_GEO_MAKE_TEST_PLOTS` is
   `ON` (see `tests/README.md`). Plot code must not run otherwise.
 
 ## JSON input files
 
-`exceptions_for_json_formatting.txt` lists the JSON files that are exempt from the JSON
-formatting check. The checker itself is not in this repository. Write new JSON files with a
-consistent 4-space indentation and do not add them to the exceptions list. When you reformat a
-listed file, remove it from the list.
+Format JSON files as described in `agents/skills/geo-format/SKILL.md`. Do not add new JSON files
+to `exceptions_for_json_formatting.txt`.
 
 ## Benchmarks
 

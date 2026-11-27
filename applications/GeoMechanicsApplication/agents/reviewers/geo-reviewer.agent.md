@@ -18,6 +18,9 @@ Before reviewing, read:
 
 Where a GeoMechanics rule and a general Kratos rule disagree, the GeoMechanics rule wins.
 
+The checklist below only names the rules. The details are in the files listed above. If the
+checklist and those files disagree, the files win.
+
 ## Constraints
 
 - Review only the changed lines and the code they directly affect. Do not report style issues
@@ -31,10 +34,15 @@ Where a GeoMechanics rule and a general Kratos rule disagree, the GeoMechanics r
 
 ### C++ (sources and tests)
 
-- [ ] GeoMechanics header block present with real author names; `#pragma once` in headers
-- [ ] Formatting matches `.clang-format` (100 columns, Linux braces, left pointer alignment,
-      aligned consecutive declarations); no unrelated reformatting
-- [ ] Kratos naming: `m`/`r`/`p` prefixes, `PascalCase` methods, `snake_case` locals and files
+- [ ] New files start with the GeoMechanics header block (see `geo-cpp.instructions.md`);
+      `#pragma once` in headers
+- [ ] Formatting matches `.clang-format`; no unrelated reformatting
+- [ ] Kratos naming: `m`/`r`/`p` prefixes (`mr`/`mp` for reference and pointer members),
+      `PascalCase` methods, `snake_case` locals and files
+- [ ] The code follows the
+      [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines),
+      if possible
+- [ ] If a raw `for` loop can be replaced by an algorithm from the STL, suggest that
 - [ ] Exported classes use `KRATOS_API(GEO_MECHANICS_APPLICATION)`
 - [ ] Shared types come from `geo_aliases.h`; sizes and dimensions use the constants in
       `geo_mechanics_application_constants.h`, not literal numbers
@@ -51,9 +59,13 @@ Where a GeoMechanics rule and a general Kratos rule disagree, the GeoMechanics r
 
 ### Tests
 
-- [ ] New C++ code has unit tests in `tests/cpp_tests/<mirrored folder>/test_<name>.cpp`
+- [ ] New C++ code has unit tests in `tests/cpp_tests/<mirrored folder>/test_<name>.cpp`.
+      Check that new or changed behaviour has appropriate coverage. Existing tests may be
+      sufficient when they demonstrably cover the change; do not require a separate test for
+      every code edit.
 - [ ] Suite choice is right: `KratosGeoMechanicsFastSuiteWithoutKernel` unless the kernel is
-      needed; `KratosGeoMechanicsIntegrationSuite` only for full-analysis tests
+      needed; no new tests in the legacy `KratosGeoMechanicsIntegrationSuite` (use a Python
+      test for a full analysis)
 - [ ] Expected values have an independent source; error paths are tested with
       `KRATOS_EXPECT_EXCEPTION_IS_THROWN` and the full message
 - [ ] Tolerances come from `Defaults::absolute_tolerance` / `relative_tolerance` or are
@@ -61,12 +73,14 @@ Where a GeoMechanics rule and a general Kratos rule disagree, the GeoMechanics r
 - [ ] Existing helpers (`test_utilities.h`, `test_setup_utilities/`, stubs, `test_helper.py`)
       are used instead of new copies
 - [ ] New Python test classes are added to the right list in `test_GeoMechanicsApplication.py`
-- [ ] New test case folders have a `README.md`; new JSON files use 4-space indentation and are
+- [ ] New test case folders have a `README.md` with the content listed in
+      `geo-testing.instructions.md`; new JSON files use 4-space indentation and are
       not added to `exceptions_for_json_formatting.txt`
 
 ### Python and bindings
 
-- [ ] Process wrapper in `python_scripts/` has only a `Factory(settings, model)` function
+- [ ] Process wrapper in `python_scripts/` is a thin module with the expected
+      `Factory(settings, model)` entry point
 - [ ] Binding uses `py::class_<Derived, Derived::Pointer, Base>` and the constructor the
       wrapper calls; new bindings have a docstring
 - [ ] Import aliases match the rest of the file
@@ -87,7 +101,7 @@ Return one markdown report:
 ### Issues
 | Severity | File:Line | Rule | Description |
 |----------|-----------|------|-------------|
-| ERROR    | custom_processes/foo_process.cpp:42 | geo/check-message | Error message does not name the property Id |
+| ERROR    | custom_processes/foo_process.cpp:42 | geo/check-message | Error message does not name the model part, so the user cannot tell which input is wrong |
 | WARNING  | tests/cpp_tests/custom_processes/test_foo_process.cpp:10 | geo/test-suite | Test needs no kernel; use KratosGeoMechanicsFastSuiteWithoutKernel |
 
 ### Summary
@@ -99,4 +113,10 @@ Verdict: APPROVED | APPROVED WITH COMMENTS | CHANGES REQUESTED
 Use ERROR for violations of a written rule or a physics or registration mistake, and WARNING
 for style and best-practice points. In the Description, explain the concrete issue and its
 consequence.
+
+Choose the verdict from the issues:
+
+- `CHANGES REQUESTED`: at least one ERROR.
+- `APPROVED WITH COMMENTS`: no ERRORs, at least one WARNING.
+- `APPROVED`: no issues.
 

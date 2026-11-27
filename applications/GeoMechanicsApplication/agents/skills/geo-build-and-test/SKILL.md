@@ -48,15 +48,18 @@ Windows). The `PATH` (Windows) or `LD_LIBRARY_PATH` (Linux) must contain `bin/<B
 
 Run the narrowest filter first:
 
+Set `$root` to your own Kratos checkout folder first (for example `C:\Kratos`):
+
 ```powershell
-$env:PATH = "C:\Checkouts\KratosProjects\yek\bin\Release\libs;$env:PATH"
-& C:\Checkouts\KratosProjects\yek\bin\Release\test\KratosGeoMechanicsCoreTest.exe --gtest_filter="*VanGenuchten*"
+$root = "C:\Kratos"
+$env:PATH = "$root\bin\Release\libs;$env:PATH"
+& "$root\bin\Release\test\KratosGeoMechanicsCoreTest.exe" --gtest_filter="*VanGenuchten*"
 ```
 
 Then the whole fast set (both fast suites, no integration tests):
 
 ```powershell
-& ...\KratosGeoMechanicsCoreTest.exe --gtest_filter="KratosGeoMechanicsFastSuite*"
+& "$root\bin\Release\test\KratosGeoMechanicsCoreTest.exe" --gtest_filter="KratosGeoMechanicsFastSuite*"
 ```
 
 `tests/run_cpp_unit_tests.py --onlyFastSuite` does the same when started from `bin/<BuildType>`.
@@ -67,9 +70,10 @@ The Python test commands need this environment; without it, `import KratosMultip
 If you use your own shell aliases or wrapper scripts that set it up, those work too.
 
 ```powershell
-$env:PYTHONPATH = "<kratos_root>\bin\Release"
-$env:PATH = "<kratos_root>\bin\Release\libs;$env:PATH"
-Set-Location <kratos_root>\applications\GeoMechanicsApplication\tests
+$root = "C:\Kratos"   # your own Kratos checkout folder
+$env:PYTHONPATH = "$root\bin\Release"
+$env:PATH = "$root\bin\Release\libs;$env:PATH"
+Set-Location "$root\applications\GeoMechanicsApplication\tests"
 ```
 
 On Linux, set `PYTHONPATH` and `LD_LIBRARY_PATH` in the same way. Run from
@@ -80,11 +84,12 @@ On Linux, set `PYTHONPATH` and `LD_LIBRARY_PATH` in the same way. Run from
 - One suite: `python test_GeoMechanicsApplication.py -l small` (also `nightly`, `validation`,
   `all`).
 
-Set `KRATOS_GEO_MAKE_TEST_PLOTS=ON` only when you want the result plots that some tests make.
+Do not set `KRATOS_GEO_MAKE_TEST_PLOTS=ON` when you run the tests. The plots are for people to
+look at, and an agent cannot use them.
 
 ## Before you report success
 
-1. The changed C++ files are formatted with `applications/GeoMechanicsApplication/.clang-format`.
+1. The changed C++ and JSON files are formatted (see `agents/skills/geo-format/SKILL.md`).
 2. The new or changed C++ tests pass with a filter that selects them.
 3. The full fast C++ set passes.
 4. The Python tests that use the changed code pass; for a change in a shared element, law or

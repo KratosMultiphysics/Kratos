@@ -12,8 +12,8 @@ where this application differs.
 
 ## File header
 
-Every new `.h`, `.hpp` and `.cpp` file (sources and tests) starts with this block. Put the real
-author names on the `Main authors` lines, one per line.
+Every new `.h`, `.hpp` and `.cpp` file (sources and tests) starts with this block. Put the result
+of `git config user.name` on the `Main authors` line.
 
 ```cpp
 // KRATOS___
@@ -25,8 +25,7 @@ author names on the `Main authors` lines, one per line.
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    First Author
-//                   Second Author
+//  Main authors:    <result of `git config user.name` goes here>
 //
 ```
 
@@ -34,15 +33,15 @@ Then `#pragma once` for headers. Two legacy headers still use `#if !defined` gua
 
 ## Formatting
 
-- Format every changed C++ file with `clang-format` using
-  `applications/GeoMechanicsApplication/.clang-format`. Main settings: 4-space indent, no tabs,
-  column limit 100, `BreakBeforeBraces: Linux` (function and class braces on a new line,
-  control-statement braces on the same line), `PointerAlignment: Left`, consecutive assignments
-  and declarations aligned, `SeparateDefinitionBlocks: Always`, no namespace indentation.
-- Reformat only the code you touch. Whole-file reformat commits are listed in
-  `.git-blame-ignore-revs`; add the hash there if you make one.
-- Use `// clang-format off` / `// clang-format on` only for tables that must stay aligned
-  (for example variable registration lists).
+Format changed C++ code as described in `agents/skills/geo-format/SKILL.md`. The settings are
+in `.clang-format`.
+
+## Comments
+
+- Comment only to explain non-obvious intent, constraints or reasoning; do not restate the code.
+- Do not annotate obvious standard-library includes, such as
+  `#include <vector> // Required for std::vector`. Use `#include <vector>` without a comment.
+  Add an include comment only when it explains a non-obvious dependency or requirement.
 
 ## Language level
 
@@ -50,10 +49,39 @@ The targets are built with `CXX_STANDARD 20` (see `CMakeLists.txt`). C++20 featu
 and welcome: `std::ranges` algorithms, `requires` clauses, `using enum`, designated initializers.
 The `.clang-format` file says `Standard: c++17`; that only affects formatting.
 
+## String literals
+
+- Prefer `std::string_literals` (`"text"s`) when explicitly constructing a `std::string`
+  improves clarity or follows nearby code. Do not flag implicit conversion from a string
+  literal as a defect solely for style, and do not add the suffix where a string object is
+  unnecessary.
+
+## Move semantics
+
+- Use `std::move` when intentionally transferring a value or ownership to a destination that
+  supports moving, and the source's previous value is no longer needed. A typical case is
+  moving a by-value string, container or smart-pointer parameter into a member or base class.
+- Check the destination's parameter type: passing `std::move(value)` to a `const T&` parameter
+  does not move the value. Moving a const object usually copies; do not add `std::move` when
+  it has no effect.
+- Do not move from caller-owned objects unless the interface explicitly permits consumption.
+  After a move, do not rely on the source's previous value; only use operations allowed by
+  that type's moved-from contract.
+- Return local values and by-value parameters directly (`return result;`), without
+  `std::move`, so copy elision or implicit move can apply. Do not wrap temporaries in
+  `std::move`.
+- Include `<utility>` when using `std::move`. In reviews, suggest a move only when the transfer
+  is safe and avoids an identifiable copy or is required for move-only ownership, not as a
+  blanket style rule.
+
 ## Naming and files
 
-- File names are `snake_case` and match the main class. New headers in this application use
-  `.hpp` or `.h`; follow the neighbouring files of the folder.
+- File names are `snake_case` and match the main class. Use the `.h` extension when the header
+  contains the interface only (so no function bodies). When it does contain function bodies
+  (which may be the case for member template functions), use the `.hpp` extension, to signal
+  that there is code in the file.
+- Data members that are references or pointers combine the prefixes: `mr` for a reference
+  (`mrModelPart`) and `mp` for a pointer (`mpElement`), as in the Kratos Core.
 - Exported classes use `KRATOS_API(GEO_MECHANICS_APPLICATION)`. Test helper classes in
   `test_setup_utilities/` use `KRATOS_API(KRATOS_GEO_TEST_UTILS)`.
 - Application-specific variables and material parameters added for new features use the
