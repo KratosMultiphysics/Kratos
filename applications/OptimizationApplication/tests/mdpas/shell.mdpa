@@ -64,7 +64,7 @@ Begin Nodes
    57   0.5000000000   0.5000000000   0.0000000000
 End Nodes
 
-Begin Elements ShellThinElement3D3N// GUI group identifier: shell
+Begin Elements LegacyShellThinElement3D3N// GUI group identifier: shell
         1          0    57    56    53
         2          0    48    46    41
         3          0    38    36    27

@@ -1871,7 +1871,7 @@ Begin Nodes
  1861       10.00000        0.00000       10.00000
 End Nodes
 
-Begin Elements ShellThinElement3D3N// GUI group identifier: solid
+Begin Elements LegacyShellThinElement3D3N// GUI group identifier: solid
          1          1       1284       1272       1280
          2          1       1259       1249       1252
          3          1       1701       1714       1695

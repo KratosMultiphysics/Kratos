@@ -134,7 +134,7 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
         self.model_part.CreateNewElement("AdjointFiniteDifferenceTrussLinearElement3D2N", 1, [1, 2], prop)
         self.adjoint_truss_element = self.model_part.GetElement(1)
 
-        self.model_part.CreateNewElement("TrussLinearElement3D2N", 2, [1, 2], prop)
+        self.model_part.CreateNewElement("LegacyTrussLinearElement3D2N", 2, [1, 2], prop)
         self.truss_element = self.model_part.GetElement(2)
 
         self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0, 0.014725)
@@ -155,7 +155,7 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
         delta = A_initial * h
 
         # Create perturbed elements
-        perturbed_model_part = create_property_perturbed_elements(self.model_part,delta, "TrussLinearElement3D2N")
+        perturbed_model_part = create_property_perturbed_elements(self.model_part,delta, "LegacyTrussLinearElement3D2N")
 
         # Derive RHS by finite differences
         FDPseudoLoadMatrix = FD_calculate_sensitivity_matrix(self.truss_element, self.model_part, perturbed_model_part, delta)
@@ -174,7 +174,7 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
         corr_factor = shape_perturbation_correction_factor(self.model_part.Nodes[1], self.model_part.Nodes[2])
         delta = corr_factor * h
 
-        perturbed_model_part = create_shape_perturbed_elements(self.model_part,delta, "TrussLinearElement3D2N")
+        perturbed_model_part = create_shape_perturbed_elements(self.model_part,delta, "LegacyTrussLinearElement3D2N")
 
         # Derive RHS by finite differences
         FDPseudoLoadMatrix = FD_calculate_sensitivity_matrix(self.truss_element, self.model_part, perturbed_model_part, delta)
@@ -206,7 +206,7 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
         self.model_part.CreateNewElement("AdjointFiniteDifferenceTrussElement3D2N", 1, [1, 2], prop)
         self.adjoint_truss_element = self.model_part.GetElement(1)
 
-        self.model_part.CreateNewElement("TrussElement3D2N", 2, [1, 2], prop)
+        self.model_part.CreateNewElement("LegacyTrussElement3D2N", 2, [1, 2], prop)
         self.truss_element = self.model_part.GetElement(2)
 
         self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0, 0.14725)
@@ -227,7 +227,7 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
         delta = A_initial * h
 
         # Create perturbed elements
-        perturbed_model_part = create_property_perturbed_elements(self.model_part,delta, "TrussElement3D2N")
+        perturbed_model_part = create_property_perturbed_elements(self.model_part,delta, "LegacyTrussElement3D2N")
 
         # Derive RHS by finite differences
         FDPseudoLoadMatrix = FD_calculate_sensitivity_matrix(self.truss_element, self.model_part, perturbed_model_part, delta)
@@ -248,7 +248,7 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
         delta = corr_factor * h
 
         # Create perturbed elements
-        perturbed_model_part = create_shape_perturbed_elements(self.model_part,delta, "TrussElement3D2N")
+        perturbed_model_part = create_shape_perturbed_elements(self.model_part,delta, "LegacyTrussElement3D2N")
 
         # Derive RHS by finite differences
         FDPseudoLoadMatrix = FD_calculate_sensitivity_matrix(self.truss_element, self.model_part, perturbed_model_part, delta)

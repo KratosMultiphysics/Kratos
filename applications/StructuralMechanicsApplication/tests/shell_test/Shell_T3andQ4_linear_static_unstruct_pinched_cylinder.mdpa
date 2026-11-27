@@ -545,7 +545,7 @@ Begin Elements MITCThickShellCorotationalElement3D4N// GUI group identifier: Sur
         90          0         32         44         54         40
 End Elements
 
-Begin Elements ShellThickElementCorotational3D3N// GUI group identifier: Surface_T3_thick
+Begin Elements LegacyShellThickElementCorotational3D3N// GUI group identifier: Surface_T3_thick
         91          0        178        198        168
         92          0        198        220        196
         93          0        160        142        153
@@ -758,7 +758,7 @@ Begin Elements ShellThickElementCorotational3D3N// GUI group identifier: Surface
        300          0        401        398        369
 End Elements
 
-Begin Elements ShellThinElementCorotational3D4N// GUI group identifier: Surface_Q4_thin
+Begin Elements LegacyShellThinElementCorotational3D4N// GUI group identifier: Surface_Q4_thin
        511          0        198        178        190        213
        512          0        325        340        321        306
        513          0        220        198        213        232
@@ -862,7 +862,7 @@ Begin Elements ShellThinElementCorotational3D4N// GUI group identifier: Surface_
        611          0        327        346        335        307
 End Elements
 
-Begin Elements ShellThinElementCorotational3D3N// GUI group identifier: Surface_T3_thin
+Begin Elements LegacyShellThinElementCorotational3D3N// GUI group identifier: Surface_T3_thin
        301          0        302        317        291
        302          0        317        325        306
        303          0        178        161        190

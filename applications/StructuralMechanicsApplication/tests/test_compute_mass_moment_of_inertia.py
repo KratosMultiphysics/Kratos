@@ -90,7 +90,7 @@ class TestComputeMassMomentOfInertia(KratosUnittest.TestCase):
         mp.CreateNewNode(15,0.2,0.5,0.0)
         mp.CreateNewNode(16,0.0,0.5,0.0)
 
-    def _create_shell_elements(self,mp,element_name = "ShellThinElementCorotational3D4N"):
+    def _create_shell_elements(self,mp,element_name = "LegacyShellThinElementCorotational3D4N"):
         mp.CreateNewElement(element_name, 1, [1,2,3,4], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 2, [2,5,6,3], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 3, [5,7,8,6], mp.GetProperties()[1])
@@ -153,7 +153,7 @@ class TestComputeMassMomentOfInertia(KratosUnittest.TestCase):
 
         # create elements
         for i in range(nr_elements):
-            elem = mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2], mp.GetProperties()[0])
+            elem = mp.CreateNewElement("LegacyCrLinearBeamElement3D2N", i+1, [i+1,i+2], mp.GetProperties()[0])
         p1 = KratosMultiphysics.Point(0.6, 0.0, 0.0)
         p2 = KratosMultiphysics.Point(0.6, 2.0, 0.0)
         moi_process = StructuralMechanicsApplication.ComputeMassMomentOfInertiaProcess(mp, p1, p2)

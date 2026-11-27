@@ -333,13 +333,13 @@ class SlidingVertexMorphingMapper():
                 if condition_dim != 2:
                     raise Exception("SlidingVertexMorphingMapper: Design model part can only be a surface!")
                 if number_of_nodes == 3:
-                    main_part.CreateNewElement("ShellThinElement3D3N", ele_id, ele_node_ids, material_properties)
+                    main_part.CreateNewElement("LegacyShellThinElement3D3N", ele_id, ele_node_ids, material_properties)
                 elif number_of_nodes == 4:
                     main_part.CreateNewElement("ShellThinElement3D4N", ele_id, ele_node_ids, material_properties)
                 elif number_of_nodes == 6:
                     edge_nodes = ele_node_ids[:3]
                     node_ids_to_remove.extend(ele_node_ids[3:])
-                    main_part.CreateNewElement("ShellThinElement3D3N", ele_id, edge_nodes, material_properties)
+                    main_part.CreateNewElement("LegacyShellThinElement3D3N", ele_id, edge_nodes, material_properties)
                 elif number_of_nodes == 8 or number_of_nodes == 9:
                     edge_nodes = ele_node_ids[:4]
                     node_ids_to_remove.extend(ele_node_ids[4:])

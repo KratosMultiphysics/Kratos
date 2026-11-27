@@ -961,7 +961,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements ShellThinElementCorotational3D3N// GUI group identifier: Surface_T3_thin
+Begin Elements LegacyShellThinElementCorotational3D3N// GUI group identifier: Surface_T3_thin
        888          0        886        882        870
        889          0        882        874        861
        890          0        382        397        409
@@ -1384,7 +1384,7 @@ Begin Elements ShellThinElementCorotational3D3N// GUI group identifier: Surface_
       1307          0        650        585        637
 End Elements
 
-Begin Elements ShellThinElementCorotational3D4N// GUI group identifier: Surface_Q4_thin
+Begin Elements LegacyShellThinElementCorotational3D4N// GUI group identifier: Surface_Q4_thin
        427          0        119        130        131        118
        428          0        412        397        374        388
        429          0        109        119        118        107
@@ -1617,7 +1617,7 @@ Begin Elements ShellThinElementCorotational3D4N// GUI group identifier: Surface_
        656          0        162        127        129        148
 End Elements
 
-Begin Elements ShellThickElementCorotational3D3N// GUI group identifier: Surface_T3_thick
+Begin Elements LegacyShellThickElementCorotational3D3N// GUI group identifier: Surface_T3_thick
          1          0        441        428        418
          2          0        428        412        388
          3          0        130        144        131

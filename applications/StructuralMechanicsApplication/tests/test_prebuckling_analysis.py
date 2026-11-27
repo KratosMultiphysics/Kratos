@@ -42,7 +42,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
 
 
     def _create_elements(self,mp,NumOfNodes):
-        element_name = "ShellThinElementCorotational3D4N"
+        element_name = "LegacyShellThinElementCorotational3D4N"
         counter = 0
         for y in range( NumOfNodes-1 ):
             for x in range(NumOfNodes - 1):

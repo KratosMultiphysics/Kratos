@@ -158,7 +158,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
 
     def test_thin_shell_triangle(self):
-        element_name = "ShellThinElementCorotational3D3N"
+        element_name = "LegacyShellThinElementCorotational3D3N"
         displacement_results = [0.0002324779832 , -0.0002233435997 , 0.0002567143455]
         rotation_results     = [0.0003627433341 , -0.0001926662603 , -0.0004682681704]
 
@@ -171,7 +171,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
 
     def test_thick_shell_triangle(self):
-        element_name = "ShellThickElementCorotational3D3N"
+        element_name = "LegacyShellThickElementCorotational3D3N"
         displacement_results = [7.18997182e-05 , -0.0001572802804 , 0.0005263940488]
         rotation_results     = [0.0003316612014 , -0.0002798472414 , 5.141506e-07]
 
@@ -184,7 +184,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
 
     def test_thin_shell_quadrilateral(self):
-        element_name = "ShellThinElementCorotational3D4N"
+        element_name = "LegacyShellThinElementCorotational3D4N"
         displacement_results = [0.0021909310921 , -0.0021683746759 , 0.0007191338749]
         rotation_results     = [0.0028191154606 , 0.0008171818407 , -0.0069146010725]
 

@@ -49,7 +49,7 @@ namespace Kratos
             element_nodes_1[1] = p_node_3;
             element_nodes_1[2] = p_node_1;
             Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{element_nodes_1} );
-            ThisModelPart.CreateNewElement("ShellThinElement3D3N", 2, triangle_1, p_prop);
+            ThisModelPart.CreateNewElement("LegacyShellThinElement3D3N", 2, triangle_1, p_prop);
 
             ThisModelPart.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_0, p_prop);
             ThisModelPart.CreateNewCondition("SurfaceLoadCondition3D3N", 2, triangle_1, p_prop);
@@ -66,8 +66,8 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "element_name_table"    : {
-                    "Element3D3N" : "ShellThinElement3D3N",
-                    "ShellThinElement3D3N": "ShellThinElement3D3N"
+                    "Element3D3N" : "LegacyShellThinElement3D3N",
+                    "LegacyShellThinElement3D3N": "LegacyShellThinElement3D3N"
                 },
                 "condition_name_table"    : {
                     "SurfaceCondition3D3N" : "SurfaceLoadCondition3D3N",
@@ -81,10 +81,10 @@ namespace Kratos
             std::string component_name;
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(1), component_name);
-            KRATOS_EXPECT_EQ(component_name, "ShellThinElement3D3N");
+            KRATOS_EXPECT_EQ(component_name, "LegacyShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(2), component_name);
-            KRATOS_EXPECT_EQ(component_name, "ShellThinElement3D3N");
+            KRATOS_EXPECT_EQ(component_name, "LegacyShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetCondition(1), component_name);
             KRATOS_EXPECT_EQ(component_name, "SurfaceLoadCondition3D3N");
@@ -104,7 +104,7 @@ namespace Kratos
         //     Parameters parameters = Parameters(R"(
         //     {
         //         "element_name_table"    : {
-        //             "ShellThinElement3D3N" : "ShellThinElement3D3N"
+        //             "LegacyShellThinElement3D3N" : "LegacyShellThinElement3D3N"
         //         }
         //     })" );
 
@@ -128,7 +128,7 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "element_name_table"    : {
-                    "Element3D3N" : "ShellThinElement3D3N"
+                    "Element3D3N" : "LegacyShellThinElement3D3N"
                 },
                 "condition_name_table"    : {
                     "SurfaceCondition3D3N" : "SurfaceLoadCondition3D3N"
@@ -142,10 +142,10 @@ namespace Kratos
             std::string component_name;
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(1), component_name);
-            KRATOS_EXPECT_EQ(component_name, "ShellThinElement3D3N");
+            KRATOS_EXPECT_EQ(component_name, "LegacyShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(2), component_name);
-            KRATOS_EXPECT_EQ(component_name, "ShellThinElement3D3N");
+            KRATOS_EXPECT_EQ(component_name, "LegacyShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetCondition(1), component_name);
             KRATOS_EXPECT_EQ(component_name, "SurfaceLoadCondition3D3N");
@@ -166,13 +166,13 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "element_name_table"    : {
-                    "Element3D3N" : "ShellThinElement3D3N"
+                    "Element3D3N" : "LegacyShellThinElement3D3N"
                 },
                 "condition_name_table"    : {
                     "SurfaceCondition3D3N" : "SurfaceLoadCondition3D3N"
                 },
                 "ignore_elements" : [
-                    "ShellThinElement3D3N"
+                    "LegacyShellThinElement3D3N"
                 ],
                 "ignore_conditions" : [
                     "SurfaceLoadCondition3D3N"
@@ -185,10 +185,10 @@ namespace Kratos
             std::string component_name;
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(1), component_name);
-            KRATOS_EXPECT_EQ(component_name, "ShellThinElement3D3N");
+            KRATOS_EXPECT_EQ(component_name, "LegacyShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetElement(2), component_name);
-            KRATOS_EXPECT_EQ(component_name, "ShellThinElement3D3N");
+            KRATOS_EXPECT_EQ(component_name, "LegacyShellThinElement3D3N");
 
             CompareElementsAndConditionsUtility::GetRegisteredName(this_model_part.GetCondition(1), component_name);
             KRATOS_EXPECT_EQ(component_name, "SurfaceLoadCondition3D3N");

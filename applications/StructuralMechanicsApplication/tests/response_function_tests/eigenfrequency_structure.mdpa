@@ -31,7 +31,7 @@ Begin Nodes
    23   0.0000000000   1.0000000000   0.0000000000
 End Nodes
 
-Begin Elements ShellThinElement3D3N
+Begin Elements LegacyShellThinElement3D3N
          1          0         23         21         22
          2          0         15         11         17
          3          0          9         13         14

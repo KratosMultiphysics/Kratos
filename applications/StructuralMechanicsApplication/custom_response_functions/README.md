@@ -6,7 +6,7 @@
 This feature provides the framework to compute sensitivities of structural responses (e.g. displacements, strain energy or stresses) with respect to different types of design variables (e.g. nodal coordinates, material or cross-sectional properties or load intensity) with the adjoint approach. An adjoint system has to be solved for each responsefunction. The sensitivities are then computed in a post-processing step.
 
 *Please note:*
-- This feature currently only works for linear problems (exception: geometric nonlinear problems exclusively modeled with TrussElement3D2N)
+- This feature currently only works for linear problems (exception: geometric nonlinear problems exclusively modeled with LegacyTrussElement3D2N)
 - This feature makes use of the HDF5Application
 
 ### Features:
@@ -38,13 +38,13 @@ Provided is a **scheme** to solve the adjoint problem and a **replacement proces
 
 | Structural Element | Adjoint Element | Design Variables | Semi-analytic | Analytic | Static | Transient |
 | -------------------- | ----------------- | ------------------- |  ---------------- | -------- | ------- | ----------|
-| ShellThinElement3D3N | AdjointFiniteDifferencingShellElement¹ | THICKNESS² |    x   |          |      x   |         |
+| LegacyShellThinElement3D3N | AdjointFiniteDifferencingShellElement¹ | THICKNESS² |    x   |          |      x   |         |
 |                      |                             | SHAPE_SENSITIVITY     |    x   |          |      x    |
 | CrBeamElementLinear3D2N | AdjointFiniteDifferenceCrBeamElement¹ | I22²|    x   |          |      x   |         |
 |                      |                             | SHAPE_SENSITIVITY     |    x   |          |      x   |          |
-| TrussElement3D2N | AdjointFiniteDifferenceTrussElement¹ | CROSS_AREA²|    x   |   x³       |      x   |         |
+| LegacyTrussElement3D2N | AdjointFiniteDifferenceTrussElement¹ | CROSS_AREA²|    x   |   x³       |      x   |         |
 |                      |                             | SHAPE_SENSITIVITY     |    x   |          |      x   |          |
-| TrussLinearElement3D2N | AdjointFiniteDifferenceTrussLinearElement¹ | CROSS_AREA²|    x   |         |      x   |         |
+| LegacyTrussLinearElement3D2N | AdjointFiniteDifferenceTrussLinearElement¹ | CROSS_AREA²|    x   |         |      x   |         |
 |                      |                             | SHAPE_SENSITIVITY     |    x   |          |      x   |          |
 
 ¹ The adjoint elements and conditions wrap elements/conditions of the Structural Mechanics Application and can call its public functions.  The main task of the adjoint elements/conditions is to derive different quantities (e.g. the right hand side or post-processing results like stresses) with respect to the design variable or state.

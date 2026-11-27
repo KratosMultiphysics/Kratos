@@ -29,7 +29,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TrussElement3D2N// GUI group identifier: wall_fem
+Begin Elements LegacyTrussElement3D2N// GUI group identifier: wall_fem
         1          0    21    20
         2          0    20    19
         3          0    19    18

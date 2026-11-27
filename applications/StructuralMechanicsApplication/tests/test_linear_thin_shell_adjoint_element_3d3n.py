@@ -59,7 +59,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.model_part.CreateNewElement("AdjointFiniteDifferencingShellThinElement3D3N", 1, [1, 2, 3], prop)
         self.adjoint_shell_element = self.model_part.GetElement(1)
 
-        self.model_part.CreateNewElement("ShellThinElement3D3N", 2, [1, 2, 3], prop)
+        self.model_part.CreateNewElement("LegacyShellThinElement3D3N", 2, [1, 2, 3], prop)
         self.shell_element = self.model_part.GetElement(2)
 
         self._assign_solution_step_data(0)
@@ -97,15 +97,15 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         apply_material_properties(self.model_part_1,dim)
         prop = self.model_part_1.GetProperties()[0]
 
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 1, [2, 5, 9], prop)
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 2, [3, 5, 9], prop)
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 3, [4, 5, 9], prop)
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 4, [1, 6, 9], prop)
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 5, [1, 7, 9], prop)
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 6, [1, 8, 9], prop)
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 7, [1, 5, 10], prop)
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 8, [1, 5, 11], prop)
-        self.model_part_1.CreateNewElement("ShellThinElement3D3N", 9, [1, 5, 12], prop)
+        self.model_part_1.CreateNewElement("LegacyShellThinElement3D3N", 1, [2, 5, 9], prop)
+        self.model_part_1.CreateNewElement("LegacyShellThinElement3D3N", 2, [3, 5, 9], prop)
+        self.model_part_1.CreateNewElement("LegacyShellThinElement3D3N", 3, [4, 5, 9], prop)
+        self.model_part_1.CreateNewElement("LegacyShellThinElement3D3N", 4, [1, 6, 9], prop)
+        self.model_part_1.CreateNewElement("LegacyShellThinElement3D3N", 5, [1, 7, 9], prop)
+        self.model_part_1.CreateNewElement("LegacyShellThinElement3D3N", 6, [1, 8, 9], prop)
+        self.model_part_1.CreateNewElement("LegacyShellThinElement3D3N", 7, [1, 5, 10], prop)
+        self.model_part_1.CreateNewElement("LegacyShellThinElement3D3N", 8, [1, 5, 11], prop)
+        self.model_part_1.CreateNewElement("LegacyShellThinElement3D3N", 9, [1, 5, 12], prop)
 
         for element in self.model_part_1.Elements:
             element.Initialize(self.model_part.ProcessInfo)
@@ -129,7 +129,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.model_part_2.GetProperties()[0].SetValue(KratosMultiphysics.THICKNESS, THICKNESS_initial + delta)
         prop = self.model_part_2.GetProperties()[0]
 
-        self.model_part_2.CreateNewElement("ShellThinElement3D3N", 1, [1, 2, 3], prop)
+        self.model_part_2.CreateNewElement("LegacyShellThinElement3D3N", 1, [1, 2, 3], prop)
         self.property_perturbed_shell_element = self.model_part_2.GetElement(1)
 
         for i in range(3):

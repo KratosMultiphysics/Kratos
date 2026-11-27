@@ -17,7 +17,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements ShellThinElement3D3N// GUI group identifier: volume
+Begin Elements LegacyShellThinElement3D3N// GUI group identifier: volume
         1          0     1     2     3 
         2          0     5     7     2 
         3          0     9     8     7 

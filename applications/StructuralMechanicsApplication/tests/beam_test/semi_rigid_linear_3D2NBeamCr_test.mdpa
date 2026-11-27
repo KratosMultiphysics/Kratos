@@ -17,7 +17,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements CrLinearBeamElement3D2N// GUI group identifier: structure
+Begin Elements LegacyCrLinearBeamElement3D2N// GUI group identifier: structure
          1          0         1 			2
          2          0         2 			3
          3          0         3 			4

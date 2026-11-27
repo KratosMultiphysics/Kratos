@@ -113,7 +113,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements ShellThinElementCorotational3D3N// GUI group identifier: structure
+Begin Elements LegacyShellThinElementCorotational3D3N// GUI group identifier: structure
         1          0    17    19    12 
         2          0    84    89    86 
         3          0    62    57    59 

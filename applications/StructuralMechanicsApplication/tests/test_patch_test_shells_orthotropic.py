@@ -212,7 +212,7 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
 
     def test_thin_shell_triangle(self):
-        element_name = "ShellThinElementCorotational3D3N"
+        element_name = "LegacyShellThinElementCorotational3D3N"
         displacement_results = [0.0028456068244 , -0.0021804536526 , 0.0014855251225]
         rotation_results     = [0.0028315743508 , -0.000450044246 , -0.0055701845132]
         shell_stress_top_surface_results    = [0.9088110489672 , -0.0570461205561 , 0.0 , 1.7678124328652 , 0.0 , 0.0]
@@ -231,7 +231,7 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
 
     def test_thick_shell_triangle(self):
-        element_name = "ShellThickElementCorotational3D3N"
+        element_name = "LegacyShellThickElementCorotational3D3N"
         displacement_results = [0.0004043490308 , -0.0016074440019 , 0.0092911008314]
         rotation_results     = [0.0021176894774 , -0.0005954288823 , -0.0015930914838]
         shell_stress_top_surface_results    = [3.4555559859345 , 3.6328430864296 , 0.2347447591457 , 0.1945591765769 , -1.5033148859134 , 0.0]
@@ -250,7 +250,7 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
 
     def test_thin_shell_quadrilateral(self):
-        element_name = "ShellThinElementCorotational3D4N"
+        element_name = "LegacyShellThinElementCorotational3D4N"
         displacement_results = [0.0225804891311 , -0.0233155244988 , 0.0048050841112]
         rotation_results     = [0.0248341724156 , 0.0105468617083 , -0.0691658930497]
         shell_stress_top_surface_results    = [0.284184788186 , -12.2844786822622 , 0.0 , 4.3796427631839 , 0.0 , 0.0]

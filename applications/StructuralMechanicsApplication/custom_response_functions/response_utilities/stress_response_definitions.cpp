@@ -102,13 +102,13 @@ void StressCalculation::CalculateStressOnNode(Element& rElement,
     std::string name_current_element;
     CompareElementsAndConditionsUtility::GetRegisteredName(rElement, name_current_element);
 
-    if(name_current_element == "CrLinearBeamElement3D2N")
+    if(name_current_element == "LegacyCrLinearBeamElement3D2N")
         StressCalculation::CalculateStressOnNodeBeam(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
-    else if(name_current_element == "ShellThinElement3D3N")
+    else if(name_current_element == "LegacyShellThinElement3D3N")
         KRATOS_ERROR << "Stress calculation on node not yet implemented for " << name_current_element << std::endl;
-    else if(name_current_element == "TrussElement3D2N")
+    else if(name_current_element == "LegacyTrussElement3D2N")
         KRATOS_ERROR << "Stress calculation on node not yet implemented for " << name_current_element << std::endl;
-    else if(name_current_element == "TrussLinearElement3D2N")
+    else if(name_current_element == "LegacyTrussLinearElement3D2N")
         KRATOS_ERROR << "Stress calculation on node not yet implemented for " << name_current_element << std::endl;
     else
         KRATOS_ERROR << "Stress calculation on node not yet implemented for " << name_current_element << std::endl;
@@ -126,13 +126,13 @@ void StressCalculation::CalculateStressOnGP(Element& rElement,
     std::string name_current_element;
     CompareElementsAndConditionsUtility::GetRegisteredName(rElement, name_current_element);
 
-    if(name_current_element == "CrLinearBeamElement3D2N")
+    if(name_current_element == "LegacyCrLinearBeamElement3D2N")
         StressCalculation::CalculateStressOnGPBeam(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
-    else if(name_current_element == "ShellThinElement3D3N")
+    else if(name_current_element == "LegacyShellThinElement3D3N")
         StressCalculation::CalculateStressOnGPShell(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
-    else if(name_current_element == "TrussElement3D2N")
+    else if(name_current_element == "LegacyTrussElement3D2N")
         StressCalculation::CalculateStressOnGPTruss(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
-    else if(name_current_element == "TrussLinearElement3D2N")
+    else if(name_current_element == "LegacyTrussLinearElement3D2N")
         StressCalculation::CalculateStressOnGPLinearTruss(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
     else if((name_current_element == "SmallDisplacementElement3D4N") || (name_current_element == "SmallDisplacementElement3D6N" ) || (name_current_element == "SmallDisplacementElement3D8N" ))
         StressCalculation::CalculateStressOnGPSmallDisplacement(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);

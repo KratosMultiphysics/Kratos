@@ -5,7 +5,7 @@ when that option is switched on.
 
 ## Setup
 
-This test consists of a single 4-noded element (using the ShellThinElementCorotational3D4N class) of 2000mm x 2000mm . A
+This test consists of a single 4-noded element (using the LegacyShellThinElementCorotational3D4N class) of 2000mm x 2000mm . A
 schematic representation can be found in the figure below:
 
 ![MeshStructure](MeshStructure.svg)

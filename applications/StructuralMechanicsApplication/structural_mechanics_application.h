@@ -31,17 +31,17 @@
 #include "custom_elements/nodal_elements/mass_element.h"
 
 /* Adding truss element */
-#include "custom_elements/truss_elements/truss_element_3D2N.hpp"
-#include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
+#include "custom_elements/legacy/truss_element_3D2N.hpp"
+#include "custom_elements/legacy/truss_element_linear_3D2N.hpp"
 #include "custom_elements/truss_elements/cable_element_3D2N.hpp"
 #include "custom_elements/truss_elements/linear_truss_element.h"
 #include "custom_elements/truss_elements/total_lagrangian_truss_element.h"
 
 /* Adding beam element */
-#include "custom_elements/beam_elements/cr_beam_element_3D2N.hpp"
-#include "custom_elements/beam_elements/cr_beam_element_linear_3D2N.hpp"
-#include "custom_elements/beam_elements/cr_beam_element_2D2N.hpp"
-#include "custom_elements/beam_elements/cr_beam_element_linear_2D2N.hpp"
+#include "custom_elements/legacy/cr_beam_element_3D2N.hpp"
+#include "custom_elements/legacy/cr_beam_element_linear_3D2N.hpp"
+#include "custom_elements/legacy/cr_beam_element_2D2N.hpp"
+#include "custom_elements/legacy/cr_beam_element_linear_2D2N.hpp"
 
 /* Adding the adjoint elements */
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
@@ -53,14 +53,14 @@
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_spring_damper_element_3D2N.h"
 
 /* Adding shells and membranes elements */
-#include "custom_elements/shell_elements/isotropic_shell_element.hpp"
+#include "custom_elements/legacy/isotropic_shell_element.hpp"
 #include "custom_elements/membrane_elements/membrane_element.hpp"
 #include "custom_elements/membrane_elements/membrane_element_2D2N.h"
 #include "custom_elements/shell_elements/mitc_thick_shell_element_3D4N.hpp"
-#include "custom_elements/shell_elements/shell_thick_element_3D4N.hpp"
-#include "custom_elements/shell_elements/shell_thin_element_3D4N.hpp"
-#include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
-#include "custom_elements/shell_elements/shell_thick_element_3D3N.hpp"
+#include "custom_elements/legacy/shell_thick_element_3D4N.hpp"
+#include "custom_elements/legacy/shell_thin_element_3D4N.hpp"
+#include "custom_elements/legacy/shell_thin_element_3D3N.hpp"
+#include "custom_elements/legacy/shell_thick_element_3D3N.hpp"
 #include "custom_elements/shell_elements/cs_dsg3_thick_shell_element_3D3N.h"
 
 /* Adding the bushing element */

@@ -170,7 +170,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
             prop.SetValue(StructuralMechanicsApplication.CROSS_AREA, 1.0)
             prop.SetValue(KratosMultiphysics.YOUNG_MODULUS, 1.0)
             prop.SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2, 0.0)
-            element = mp.CreateNewElement("TrussElement3D2N", 1, [1, 2], prop)
+            element = mp.CreateNewElement("LegacyTrussElement3D2N", 1, [1, 2], prop)
             gravity = -9.81
             node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION_Y,0,gravity)
             second_node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION_Y,0,gravity)

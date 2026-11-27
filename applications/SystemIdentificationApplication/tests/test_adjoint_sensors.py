@@ -234,8 +234,8 @@ class TestStrainSensorShell(UnitTest.TestCase):
 
         prop = cls.model_part.CreateNewProperties(1)
 
-        cls.model_part.CreateNewElement("ShellThinElement3D3N", 1, [1, 2, 4], prop)
-        cls.model_part.CreateNewElement("ShellThinElement3D3N", 2, [2, 3, 4], prop)
+        cls.model_part.CreateNewElement("LegacyShellThinElement3D3N", 1, [1, 2, 4], prop)
+        cls.model_part.CreateNewElement("LegacyShellThinElement3D3N", 2, [2, 3, 4], prop)
 
         # set the constitutive laws
         material_settings = Kratos.Parameters("""{"Parameters": {"materials_filename": "auxiliary_files/shell_material_properties.json"}}""")

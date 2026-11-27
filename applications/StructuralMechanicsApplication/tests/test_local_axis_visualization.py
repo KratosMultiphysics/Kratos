@@ -97,23 +97,23 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
     #     self.__ExecuteShellTest()
 
     def test_ThinQuadShellElement(self):
-        self.element_name = "ShellThinElementCorotational3D4N"
+        self.element_name = "LegacyShellThinElementCorotational3D4N"
         self.__ExecuteShellTest()
 
     def test_ThickTriShellElement(self):
-        self.element_name = "ShellThickElementCorotational3D3N"
+        self.element_name = "LegacyShellThickElementCorotational3D3N"
         self.__ExecuteShellTest()
 
     def test_ThinTriShellElement(self):
-        self.element_name = "ShellThinElementCorotational3D3N"
+        self.element_name = "LegacyShellThinElementCorotational3D3N"
         self.__ExecuteShellTest()
 
     def test_3DBeamElement(self):
-        self.element_name = "CrBeamElement3D2N"
+        self.element_name = "LegacyCrBeamElement3D2N"
         self.__ExecuteBeamTest()
 
     def test_3DLinearBeamElement(self):
-        self.element_name = "CrLinearBeamElement3D2N"
+        self.element_name = "LegacyCrLinearBeamElement3D2N"
         self.__ExecuteBeamTest()
 
     def __ExecuteShellTest(self):
