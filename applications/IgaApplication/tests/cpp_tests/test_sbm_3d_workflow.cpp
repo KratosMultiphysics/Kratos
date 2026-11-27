@@ -167,7 +167,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessCubeOuter3D, KratosIgaFastSuite)
 
     const double tolerance = 1.0e-10;
     KRATOS_EXPECT_EQ(r_surrogate_outer.NumberOfConditions(), 12);
-    KRATOS_EXPECT_EQ(r_surrogate_outer.NumberOfNodes(), 27);
+    KRATOS_EXPECT_EQ(r_surrogate_outer.NumberOfNodes(), 19);
 
     for (const auto& r_condition : r_surrogate_outer.Conditions()) {
         KRATOS_EXPECT_EQ(r_condition.GetGeometry().PointsNumber(), 4);
@@ -212,7 +212,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessOctahedronInner3D, KratosIgaFastSuite)
 
     const double tolerance = 1.0e-10;
     KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfConditions(), 48);
-    KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfNodes(), 125);
+    KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfNodes(), 61);
     KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfElements(), 1);
 
     IndexType boundary_true_count = 0;
