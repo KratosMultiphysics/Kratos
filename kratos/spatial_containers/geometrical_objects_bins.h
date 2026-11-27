@@ -223,6 +223,47 @@ public:
     }
 
     /**
+     * @brief This method takes a point and finds all of the objects in the given bounding box to it.
+     * @details The result contains the object and also its distance to the point.
+     * @param rPoint The point to be checked
+     * @param rMinPoint The minimum point of the bounding box
+     * @param rMaxPoint The maximum point of the bounding box
+     * @param rResults The results of the search
+     */
+    void SearchInBoundingBox(
+        const PointType& rPoint,
+        const array_1d<double, 3>& rMinPoint,
+        const array_1d<double, 3>& rMaxPoint,
+        std::vector<ResultType>& rResults
+        );
+
+    /**
+     * @brief This method takes a point and finds all of the objects in the given bounding box to it (iterative version).
+     * @details The result contains the object and also its distance to the point.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @param rMinPoint The minimum point of the bounding box
+     * @param rMaxPoint The maximum point of the bounding box
+     * @param rResults The results of the search
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    void SearchInBoundingBox(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const array_1d<double, 3>& rMinPoint,
+        const array_1d<double, 3>& rMaxPoint,
+        std::vector<std::vector<ResultType>>& rResults
+        )
+    {
+        const std::size_t number_of_points = std::distance(itPointBegin, itPointEnd);
+        rResults.resize(number_of_points);
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
+            SearchInBoundingBox(*it_point, rMinPoint, rMaxPoint, rResults[it_point - itPointBegin]);
+        }
+    }
+
+    /**
      * @brief This method takes a point and finds the nearest object to it.
      * @details If there are more than one object in the same minimum distance only one is returned
      * Result contains a flag is the object has been found or not.
@@ -385,6 +426,24 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief Checks if a 3D bounding box is fully inside a given bounding box from a point.
+     * @details This function determines if a 3D bounding box, defined by the indices of the cell studied, is fully within a specified bounding box from a given point. It calculates the farthest point in the bounding box from the reference point and checks if the distance from this point to the reference point is within the specified bounding box.
+     * @param I The index in x direction
+     * @param J The index in y direction
+     * @param K The index in z direction
+     * @param rPoint The reference point from which the distance is measured.
+     * @param rBoundingBox The bounding box within which the bounding box should be.
+     * @return True if the bounding box is fully inside the bounding box, false otherwise.
+     */
+    bool IsCellInsideBoundingBox(
+        const std::size_t I,
+        const std::size_t J,
+        const std::size_t K,
+        const Point& rPoint,
+        const BoundingBox<PointType>& rBoundingBox
+        );
 
     /**
      * @brief This method checks if a point is inside any bounding box of the global bounding boxes
