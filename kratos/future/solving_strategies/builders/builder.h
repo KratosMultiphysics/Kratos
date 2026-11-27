@@ -341,7 +341,7 @@ public:
      * Returns the echo level member variable
      * @return const std::size_t Level of information that is output
      */
-    const std::size_t GetEchoLevel() const
+    std::size_t GetEchoLevel() const
     {
         return mEchoLevel;
     }

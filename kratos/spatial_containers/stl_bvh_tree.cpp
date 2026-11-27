@@ -15,7 +15,7 @@
 #include <cfloat>     // FLT_MAX
 
 #if defined(KRATOS_USE_TBB) || !defined(__GNUC__)
-#include <execution>  // std::execution::par for parallel sorting (GCC needs TBB to use parallel execution policy)
+    #include <execution>  // std::execution::par for parallel sorting (GCC needs TBB to use parallel execution policy)
 #endif
 
 // Project includes

@@ -137,7 +137,7 @@ public:
 
         // Assemble data from matrix map
         this->BeginAssemble();
-        for (const auto item : rMatrixMap) {
+        for (const auto& item : rMatrixMap) {
             IndexType I = item.first.first;
             IndexType J = item.first.second;
             TDataType value = item.second;

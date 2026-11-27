@@ -16,8 +16,10 @@
 // System includes
 
 // External includes
-#include <algorithm>
-#include <execution>
+#if defined(KRATOS_USE_TBB)
+    #include <algorithm>
+    #include <execution>
+#endif
 
 // Project includes
 #include "includes/kratos_parameters.h"
@@ -376,7 +378,7 @@ public:
 
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < n_elems; ++k) {
+            for (int k = 0; k < static_cast<int>(n_elems); ++k) {
                 // Calculate local LHS and RHS contributions
                 auto it_elem = elems_begin + k;
                 const bool assemble = CalculateLocalSystemContribution(*it_elem, aux_tls, r_process_info);
@@ -390,7 +392,7 @@ public:
 
             // Assemble conditions
             # pragma omp for schedule(guided, 512)
-            for (int k = 0; k < n_conds; ++k) {
+            for (int k = 0; k < static_cast<int>(n_conds); ++k) {
                 // Calculate local LHS and RHS contributions
                 auto it_cond = conds_begin + k;
                 const bool assemble = CalculateLocalSystemContribution(*it_cond, aux_tls, r_process_info);
@@ -443,7 +445,7 @@ public:
 
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < n_elems; ++k) {
+            for (int k = 0; k < static_cast<int>(n_elems); ++k) {
                 // Calculate local LHS and RHS contributions
                 auto it_elem = elems_begin + k;
                 const bool assemble = CalculateLocalSystemContribution(*it_elem, aux_tls, r_process_info);
@@ -457,7 +459,7 @@ public:
 
             // Assemble conditions
             # pragma omp for schedule(guided, 512)
-            for (int k = 0; k < n_conds; ++k) {
+            for (int k = 0; k < static_cast<int>(n_conds); ++k) {
                 // Calculate local LHS and RHS contributions
                 auto it_cond = conds_begin + k;
                 const bool assemble = CalculateLocalSystemContribution(*it_cond, aux_tls, r_process_info);
@@ -674,7 +676,7 @@ public:
 
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < n_elems; ++k) {
+            for (int k = 0; k < static_cast<int>(n_elems); ++k) {
                 // Calculate local RHS contribution
                 auto it_elem = elems_begin + k;
                 const bool assemble = CalculateRightHandSideContribution(*it_elem, aux_tls, r_process_info);
@@ -687,7 +689,7 @@ public:
 
             // Assemble conditions
             # pragma omp for schedule(guided, 512)
-            for (int k = 0; k < n_conds; ++k) {
+            for (int k = 0; k < static_cast<int>(n_conds); ++k) {
                 // Calculate local RHS contribution
                 auto it_cond = conds_begin + k;
                 const bool assemble = CalculateRightHandSideContribution(*it_cond, aux_tls, r_process_info);
@@ -735,7 +737,7 @@ public:
 
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < n_elems; ++k) {
+            for (int k = 0; k < static_cast<int>(n_elems); ++k) {
                 // Calculate local LHS contribution
                 auto it_elem = elems_begin + k;
                 const bool assemble = CalculateLeftHandSideContribution(*it_elem, aux_tls, r_process_info);
@@ -748,7 +750,7 @@ public:
 
             // Assemble conditions
             # pragma omp for schedule(guided, 512)
-            for (int k = 0; k < n_conds; ++k) {
+            for (int k = 0; k < static_cast<int>(n_conds); ++k) {
                 // Calculate local LHS contribution
                 auto it_cond = conds_begin + k;
                 const bool assemble = CalculateLeftHandSideContribution(*it_cond, aux_tls, r_process_info);
@@ -796,7 +798,7 @@ public:
 
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < n_elems; ++k) {
+            for (int k = 0; k < static_cast<int>(n_elems); ++k) {
                 // Calculate local LHS contribution
                 auto it_elem = elems_begin + k;
                 const bool assemble = CalculateMassMatrixContribution(*it_elem, aux_tls, r_process_info);
@@ -809,7 +811,7 @@ public:
 
             // Assemble conditions
             # pragma omp for schedule(guided, 512)
-            for (int k = 0; k < n_conds; ++k) {
+            for (int k = 0; k < static_cast<int>(n_conds); ++k) {
                 // Calculate local LHS contribution
                 auto it_cond = conds_begin + k;
                 const bool assemble = CalculateMassMatrixContribution(*it_cond, aux_tls, r_process_info);
@@ -857,7 +859,7 @@ public:
 
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < n_elems; ++k) {
+            for (int k = 0; k < static_cast<int>(n_elems); ++k) {
                 // Calculate local LHS contribution
                 auto it_elem = elems_begin + k;
                 const bool assemble = CalculateDampingMatrixContribution(*it_elem, aux_tls, r_process_info);
@@ -870,7 +872,7 @@ public:
 
             // Assemble conditions
             # pragma omp for schedule(guided, 512)
-            for (int k = 0; k < n_conds; ++k) {
+            for (int k = 0; k < static_cast<int>(n_conds); ++k) {
                 // Calculate local LHS contribution
                 auto it_cond = conds_begin + k;
                 const bool assemble = CalculateDampingMatrixContribution(*it_cond, aux_tls, r_process_info);
@@ -930,7 +932,7 @@ public:
 
                 // Assemble constraints
                 # pragma omp for schedule(guided, 512) nowait
-                for (int k = 0; k < n_consts; ++k) {
+                for (int k = 0; k < static_cast<int>(n_consts); ++k) {
                     // Calculate local contributions
                     auto it_const = consts_begin + k;
                     const bool assemble_const = CalculateConstraintContribution(*it_const, aux_tls, r_process_info);

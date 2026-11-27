@@ -10,6 +10,8 @@
 //  Main authors:    Ruben Zorrilla
 //
 
+#pragma once
+
 // System includes
 #include <limits>
 

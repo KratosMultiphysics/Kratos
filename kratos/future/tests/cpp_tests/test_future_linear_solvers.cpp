@@ -130,8 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversRigidBodyModePinningParameters, Kra
         "solver_type" : "rigid_body_mode_pinning",
         "inner_solver_settings" : {
             "solver_type" : "eigen_sparse_lu"
-        },
-        "tolerance" : 1.0e-4
+        }
     })");
     Future::RigidBodyModePinningSolver<Future::SerialLinearAlgebraTraits> parameter_solver(pinning_settings);
 
