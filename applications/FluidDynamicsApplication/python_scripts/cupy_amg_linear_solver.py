@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import cupy as xp
 import scipy.sparse as sp
@@ -179,9 +180,22 @@ class GraphBasedSA_AMG:
             # base_dict['A_dense_inv'] = A_inv_64.astype(self.dtype)
 
             A_dense = A_current.todense()
-            # Use pseudo-inverse to survive singular coarse grids
-            #Safe threshold: machine epsilon * max dimension * 100
-            A_inv = xp.linalg.pinv(A_dense, rcond=A_dense.shape[0] * xp.finfo(self.dtype).eps * 10)
+            # Original (kept for reference): SVD pseudo-inverse, which is expensive (~10-25x the cost of an LU inverse
+            # for the sizes used here) and is recomputed at every substep:
+            # A_inv = xp.linalg.pinv(A_dense, rcond=A_dense.shape[0] * xp.finfo(self.dtype).eps * 10)
+            # Now the explicit inverse is formed by LU (applying it stays a single GEMV). If the matrix is singular
+            # (or the inverse is not finite), fall back to the pseudo-inverse, which survives singular coarse grids.
+            # The inverse is accepted only if it is finite AND A @ inv(A) is close to the identity. The residual
+            # test also catches nearly singular matrices, for which the inverse is large but finite.
+            try:
+                A_inv = xp.linalg.inv(A_dense)
+                n_coarse = A_dense.shape[0]
+                inv_residual = float(xp.linalg.norm(A_dense @ A_inv - xp.eye(n_coarse, dtype=A_dense.dtype))) / math.sqrt(n_coarse)
+                inv_accepted = bool(xp.all(xp.isfinite(A_inv))) and inv_residual <= 1e3 * float(xp.finfo(self.dtype).eps)
+            except xp.linalg.LinAlgError:
+                inv_accepted = False
+            if not inv_accepted:
+                A_inv = xp.linalg.pinv(A_dense, rcond=A_dense.shape[0] * xp.finfo(self.dtype).eps * 10)
             #enforce symmetry
             A_inv = (A_inv + A_inv.T) / 2.
             base_dict['A_dense_inv'] = A_inv

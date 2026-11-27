@@ -1,5 +1,6 @@
 #import cupy
 #import pyamg
+import math
 import numpy as np
 import scipy.sparse as sp
 import KratosMultiphysics as KM
@@ -97,23 +98,454 @@ def reset():
     PRECISION = None
     _configured = False # Auxiliary flag to ensure that backend is configured once
 
+def _host_scalars(xp, *scalars):
+    """
+    Read several 0-d device (or host) scalars back to Python floats with ONE blocking
+    device->host transfer. Each value is converted to float64 first; float32 -> float64
+    is exact, so the values (and their finiteness) are unchanged.
+    """
+    stacked = xp.stack([xp.asarray(s, dtype=np.float64).reshape(()) for s in scalars])
+    return [float(v) for v in asnumpy(stacked)]
+
+
+def _require_contiguous(*arrays):
+    """
+    Validate that arrays can be indexed as packed C buffers by a RawKernel.
+
+    CuPy's matmul honours arbitrary strides, but the fused kernels below use flat
+    indices, so a strided view would silently produce wrong results.
+    """
+    for array in arrays:
+        flags = getattr(array, "flags", None)
+        if flags is not None and not flags.c_contiguous:
+            raise ValueError(
+                "Fused GPU kernels require C-contiguous arrays, got shape "
+                f"{array.shape} with strides {array.strides}.")
+
+
+_MASS_MATRIX_KERNELS = {}
+
+
+def _get_mass_matrix_kernel(dtype_name, n_node, n_comp):
+    """
+    Compile (once per dtype/shape combination) the element-local mass-matrix GPU kernel.
+
+    One thread handles one (element, component) pair and performs the small
+    (n_node x n_node) contraction in registers, replacing a cuBLAS batched GEMM
+    that would otherwise serialize all elements in a single CUDA block.
+
+    n_node and n_comp are baked into the source so that the division and the
+    inner loops are resolved at compile time.
+    """
+    key = (dtype_name, n_node, n_comp)
+    if key not in _MASS_MATRIX_KERNELS:
+        import cupy as cp
+        source = r"""
+extern "C" __global__ void apply_mass_matrix(
+    const DTYPE* __restrict__ x,
+    DTYPE* __restrict__ y,
+    const DTYPE* __restrict__ M,
+    int n_elem)
+{
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int e = idx / N_COMP;
+    if (e >= n_elem) return;
+    const int l = idx - e * N_COMP;
+    #pragma unroll
+    for (int i = 0; i < N_NODE; ++i) {
+        DTYPE value = 0;
+        #pragma unroll
+        for (int j = 0; j < N_NODE; ++j) {
+            value += M[i * N_NODE + j] * x[(e * N_NODE + j) * N_COMP + l];
+        }
+        y[(e * N_NODE + i) * N_COMP + l] = value;
+    }
+}
+"""
+        source = (source.replace("DTYPE", dtype_name)
+                        .replace("N_NODE", str(n_node))
+                        .replace("N_COMP", str(n_comp)))
+        _MASS_MATRIX_KERNELS[key] = cp.RawKernel(source, "apply_mass_matrix")
+    return _MASS_MATRIX_KERNELS[key]
+
+
+def _apply_mass_matrix_gpu(x, mass_matrix, out):
+    """Compute out[e,i,l] = sum_j M[i,j] * x[e,j,l] with a fused GPU kernel."""
+    _require_contiguous(x, mass_matrix, out)
+    n_elem, n_node = x.shape[0], x.shape[1]
+    n_comp = x.size // (n_elem * n_node)
+    dtype_name = "float" if x.dtype.itemsize == 4 else "double"
+    kernel = _get_mass_matrix_kernel(dtype_name, n_node, n_comp)
+    n_threads = n_elem * n_comp
+    kernel(((n_threads + 255) // 256,), (256,), (x, out, mass_matrix, n_elem))
+
+
+_MOMENTUM_STABILIZATION_KERNELS = {}
+
+
+def _get_momentum_stabilization_kernel(dtype_name, n_node, n_dim):
+    """
+    Compile (once per dtype/shape combination) the fused momentum-stabilization kernel.
+
+    One thread computes one output entry directly:
+
+        out[e,i,l] = sum_{k,j,m} DN[e,i,k] * a[e,j,k] * M[j,m] * (conv[e,m,l] - pi[e,m,l])
+
+    This replaces the subtract + three batched GEMMs and their two scratch buffers
+    with a single launch. n_node and n_dim are compile-time constants.
+    """
+    key = (dtype_name, n_node, n_dim)
+    if key not in _MOMENTUM_STABILIZATION_KERNELS:
+        import cupy as cp
+        source = r"""
+extern "C" __global__ void momentum_stabilization(
+    const DTYPE* __restrict__ DN,
+    const DTYPE* __restrict__ a,
+    const DTYPE* __restrict__ conv,
+    const DTYPE* __restrict__ pi,
+    const DTYPE* __restrict__ M,
+    DTYPE* __restrict__ out,
+    int n_elem)
+{
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int l = idx % N_DIM;
+    const int i = (idx / N_DIM) % N_NODE;
+    const int e = idx / (N_DIM * N_NODE);
+    if (e >= n_elem) return;
+    DTYPE value = 0;
+    #pragma unroll
+    for (int k = 0; k < N_DIM; ++k) {
+        DTYPE s = 0;
+        #pragma unroll
+        for (int j = 0; j < N_NODE; ++j) {
+            DTYPE t = 0;
+            #pragma unroll
+            for (int m = 0; m < N_NODE; ++m) {
+                t += M[j * N_NODE + m] *
+                     (conv[(e * N_NODE + m) * N_DIM + l] - pi[(e * N_NODE + m) * N_DIM + l]);
+            }
+            s += a[(e * N_NODE + j) * N_DIM + k] * t;
+        }
+        value += DN[(e * N_NODE + i) * N_DIM + k] * s;
+    }
+    out[(e * N_NODE + i) * N_DIM + l] = value;
+}
+"""
+        source = (source.replace("DTYPE", dtype_name)
+                        .replace("N_NODE", str(n_node))
+                        .replace("N_DIM", str(n_dim)))
+        _MOMENTUM_STABILIZATION_KERNELS[key] = cp.RawKernel(
+            source, "momentum_stabilization")
+    return _MOMENTUM_STABILIZATION_KERNELS[key]
+
+
+def _apply_momentum_stabilization_gpu(dn, a_elemental, conv_elemental, pi_elemental,
+                                      mass_matrix, out):
+    """Fused GPU implementation of the momentum stabilization term."""
+    _require_contiguous(dn, a_elemental, conv_elemental, pi_elemental, mass_matrix, out)
+    n_elem, n_node, n_dim = conv_elemental.shape
+    dtype_name = "float" if conv_elemental.dtype.itemsize == 4 else "double"
+    kernel = _get_momentum_stabilization_kernel(dtype_name, n_node, n_dim)
+    n_threads = n_elem * n_node * n_dim
+    kernel(((n_threads + 255) // 256,), (256,),
+           (dn, a_elemental, conv_elemental, pi_elemental, mass_matrix, out, n_elem))
+
+
+_LAPLACIAN_KERNELS = {}
+
+
+def _apply_laplacian_gpu(dn, field, out):
+    """Fused out[e,i,l] = sum_{j,k} DN[e,i,k] * DN[e,j,k] * field[e,j,l]."""
+    _require_contiguous(dn, field, out)
+    n_elem, n_node, n_dim = dn.shape
+    n_comp = 1 if field.ndim == 2 else field.shape[2]
+    dtype_name = "float" if field.dtype.itemsize == 4 else "double"
+    key = (dtype_name, n_node, n_dim, n_comp)
+    if key not in _LAPLACIAN_KERNELS:
+        import cupy as cp
+        source = r"""
+extern "C" __global__ void laplacian_apply(
+    const DTYPE* __restrict__ DN,
+    const DTYPE* __restrict__ field,
+    DTYPE* __restrict__ out,
+    int n_elem)
+{
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int l = idx % N_COMP;
+    const int rest = idx / N_COMP;
+    const int i = rest % N_NODE;
+    const int e = rest / N_NODE;
+    if (e >= n_elem) return;
+    DTYPE value = 0;
+    const DTYPE* dn_i = DN + (e * N_NODE + i) * N_DIM;
+    #pragma unroll
+    for (int j = 0; j < N_NODE; ++j) {
+        const DTYPE* dn_j = DN + (e * N_NODE + j) * N_DIM;
+        DTYPE s = 0;
+        #pragma unroll
+        for (int k = 0; k < N_DIM; ++k) s += dn_i[k] * dn_j[k];
+        value += field[(e * N_NODE + j) * N_COMP + l] * s;
+    }
+    out[(e * N_NODE + i) * N_COMP + l] = value;
+}
+"""
+        source = (source.replace("DTYPE", dtype_name)
+                        .replace("N_NODE", str(n_node))
+                        .replace("N_DIM", str(n_dim))
+                        .replace("N_COMP", str(n_comp)))
+        _LAPLACIAN_KERNELS[key] = cp.RawKernel(source, "laplacian_apply")
+    n_threads = n_elem * n_node * n_comp
+    _LAPLACIAN_KERNELS[key](((n_threads + 255) // 256,), (256,),
+                            (dn, field, out, n_elem))
+
+
+_ELEMENTAL_GRADIENT_KERNELS = {}
+
+
+def _apply_elemental_gradient_gpu(dn, field, out):
+    """Fused grad[e,c,k] = sum_i field[e,i,c] * DN[e,i,k]."""
+    _require_contiguous(dn, field, out)
+    n_elem, n_node, n_dim = dn.shape
+    n_comp = 1 if field.ndim == 2 else field.shape[2]
+    dtype_name = "float" if field.dtype.itemsize == 4 else "double"
+    key = (dtype_name, n_node, n_dim, n_comp)
+    if key not in _ELEMENTAL_GRADIENT_KERNELS:
+        import cupy as cp
+        source = r"""
+extern "C" __global__ void elemental_gradient(
+    const DTYPE* __restrict__ DN,
+    const DTYPE* __restrict__ field,
+    DTYPE* __restrict__ out,
+    int n_elem)
+{
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int k = idx % N_DIM;
+    const int rest = idx / N_DIM;
+    const int c = rest % N_COMP;
+    const int e = rest / N_COMP;
+    if (e >= n_elem) return;
+    DTYPE value = 0;
+    #pragma unroll
+    for (int i = 0; i < N_NODE; ++i) {
+        value += field[(e * N_NODE + i) * N_COMP + c] * DN[(e * N_NODE + i) * N_DIM + k];
+    }
+    out[(e * N_COMP + c) * N_DIM + k] = value;
+}
+"""
+        source = (source.replace("DTYPE", dtype_name)
+                        .replace("N_NODE", str(n_node))
+                        .replace("N_DIM", str(n_dim))
+                        .replace("N_COMP", str(n_comp)))
+        _ELEMENTAL_GRADIENT_KERNELS[key] = cp.RawKernel(source, "elemental_gradient")
+    n_threads = n_elem * n_comp * n_dim
+    _ELEMENTAL_GRADIENT_KERNELS[key](((n_threads + 255) // 256,), (256,),
+                                     (dn, field, out, n_elem))
+
+
+_CONVECTIVE_OPERATOR_KERNELS = {}
+
+
+def _apply_convective_operator_gpu(a_elemental, grad_u, out):
+    """Fused conv[e,i,j] = sum_m a[e,i,m] * grad[e,j,m]."""
+    _require_contiguous(a_elemental, grad_u, out)
+    n_elem, n_node, n_dim = a_elemental.shape
+    if grad_u.ndim == 3:
+        n_comp = grad_u.shape[1]
+        grad_stride = n_dim
+    else:
+        n_comp = 1
+        grad_stride = 1
+    dtype_name = "float" if a_elemental.dtype.itemsize == 4 else "double"
+    key = (dtype_name, n_node, n_dim, n_comp, grad_stride)
+    if key not in _CONVECTIVE_OPERATOR_KERNELS:
+        import cupy as cp
+        source = r"""
+extern "C" __global__ void convective_operator(
+    const DTYPE* __restrict__ a,
+    const DTYPE* __restrict__ grad,
+    DTYPE* __restrict__ out,
+    int n_elem)
+{
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int j = idx % N_COMP;
+    const int rest = idx / N_COMP;
+    const int i = rest % N_NODE;
+    const int e = rest / N_NODE;
+    if (e >= n_elem) return;
+    DTYPE value = 0;
+    #pragma unroll
+    for (int m = 0; m < N_DIM; ++m) {
+        value += a[(e * N_NODE + i) * N_DIM + m] * grad[(e * GRAD_STRIDE + j) * N_DIM + m];
+    }
+    out[(e * N_NODE + i) * N_COMP + j] = value;
+}
+"""
+        source = (source.replace("DTYPE", dtype_name)
+                        .replace("N_NODE", str(n_node))
+                        .replace("N_DIM", str(n_dim))
+                        .replace("N_COMP", str(n_comp))
+                        .replace("GRAD_STRIDE", str(grad_stride)))
+        _CONVECTIVE_OPERATOR_KERNELS[key] = cp.RawKernel(source, "convective_operator")
+    n_threads = n_elem * n_node * n_comp
+    _CONVECTIVE_OPERATOR_KERNELS[key](((n_threads + 255) // 256,), (256,),
+                                      (a_elemental, grad_u, out, n_elem))
+
+
+_NODAL_DIVERGENCE_KERNELS = {}
+
+
+def _apply_elementwise_nodal_divergence_gpu(dn, uel, shape_functions, out):
+    """Fused out[e,I] = N[I] * sum_{j,k} DN[e,j,k] * uel[e,j,k]."""
+    _require_contiguous(dn, uel, shape_functions, out)
+    n_elem, n_node, n_dim = dn.shape
+    dtype_name = "float" if dn.dtype.itemsize == 4 else "double"
+    key = (dtype_name, n_node, n_dim)
+    if key not in _NODAL_DIVERGENCE_KERNELS:
+        import cupy as cp
+        source = r"""
+extern "C" __global__ void nodal_divergence(
+    const DTYPE* __restrict__ DN,
+    const DTYPE* __restrict__ uel,
+    const DTYPE* __restrict__ N,
+    DTYPE* __restrict__ out,
+    int n_elem)
+{
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int I = idx % N_NODE;
+    const int e = idx / N_NODE;
+    if (e >= n_elem) return;
+    DTYPE div = 0;
+    #pragma unroll
+    for (int j = 0; j < N_NODE; ++j) {
+        #pragma unroll
+        for (int k = 0; k < N_DIM; ++k) {
+            const int p = (e * N_NODE + j) * N_DIM + k;
+            div += DN[p] * uel[p];
+        }
+    }
+    out[e * N_NODE + I] = N[I] * div;
+}
+"""
+        source = (source.replace("DTYPE", dtype_name)
+                        .replace("N_NODE", str(n_node))
+                        .replace("N_DIM", str(n_dim)))
+        _NODAL_DIVERGENCE_KERNELS[key] = cp.RawKernel(source, "nodal_divergence")
+    n_threads = n_elem * n_node
+    _NODAL_DIVERGENCE_KERNELS[key](((n_threads + 255) // 256,), (256,),
+                                   (dn, uel, shape_functions, out, n_elem))
+
+
+_PRESSURE_PROJECTION_KERNELS = {}
+
+
+def _apply_pressure_stabilization_projection_gpu(dn, pi_elemental, shape_functions, out):
+    """Fused out[e,I] = sum_k DN[e,I,k] * (sum_J N[J] * Pi[e,J,k])."""
+    _require_contiguous(dn, pi_elemental, shape_functions, out)
+    n_elem, n_node, n_dim = dn.shape
+    dtype_name = "float" if dn.dtype.itemsize == 4 else "double"
+    key = (dtype_name, n_node, n_dim)
+    if key not in _PRESSURE_PROJECTION_KERNELS:
+        import cupy as cp
+        source = r"""
+extern "C" __global__ void pressure_projection(
+    const DTYPE* __restrict__ DN,
+    const DTYPE* __restrict__ Pi,
+    const DTYPE* __restrict__ N,
+    DTYPE* __restrict__ out,
+    int n_elem)
+{
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int I = idx % N_NODE;
+    const int e = idx / N_NODE;
+    if (e >= n_elem) return;
+    DTYPE value = 0;
+    #pragma unroll
+    for (int k = 0; k < N_DIM; ++k) {
+        DTYPE t = 0;
+        #pragma unroll
+        for (int J = 0; J < N_NODE; ++J) {
+            t += N[J] * Pi[(e * N_NODE + J) * N_DIM + k];
+        }
+        value += DN[(e * N_NODE + I) * N_DIM + k] * t;
+    }
+    out[e * N_NODE + I] = value;
+}
+"""
+        source = (source.replace("DTYPE", dtype_name)
+                        .replace("N_NODE", str(n_node))
+                        .replace("N_DIM", str(n_dim)))
+        _PRESSURE_PROJECTION_KERNELS[key] = cp.RawKernel(source, "pressure_projection")
+    n_threads = n_elem * n_node
+    _PRESSURE_PROJECTION_KERNELS[key](((n_threads + 255) // 256,), (256,),
+                                      (dn, pi_elemental, shape_functions, out, n_elem))
+
+
+_ELEMENTAL_MEAN_KERNELS = {}
+
+
+def _apply_elemental_mean_gpu(x, out, inv_n_node):
+    """Fused out[e,k] = inv_n_node * sum_i x[e,i,k]."""
+    _require_contiguous(x, out)
+    n_elem, n_node, n_dim = x.shape
+    dtype_name = "float" if x.dtype.itemsize == 4 else "double"
+    key = (dtype_name, n_node, n_dim)
+    if key not in _ELEMENTAL_MEAN_KERNELS:
+        import cupy as cp
+        source = r"""
+extern "C" __global__ void elemental_mean(
+    const DTYPE* __restrict__ x,
+    DTYPE* __restrict__ out,
+    DTYPE inv_n_node,
+    int n_elem)
+{
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int k = idx % N_DIM;
+    const int e = idx / N_DIM;
+    if (e >= n_elem) return;
+    DTYPE value = 0;
+    #pragma unroll
+    for (int i = 0; i < N_NODE; ++i) {
+        value += x[(e * N_NODE + i) * N_DIM + k];
+    }
+    out[e * N_DIM + k] = value * inv_n_node;
+}
+"""
+        source = (source.replace("DTYPE", dtype_name)
+                        .replace("N_NODE", str(n_node))
+                        .replace("N_DIM", str(n_dim)))
+        _ELEMENTAL_MEAN_KERNELS[key] = cp.RawKernel(source, "elemental_mean")
+    n_threads = n_elem * n_dim
+    _ELEMENTAL_MEAN_KERNELS[key](((n_threads + 255) // 256,), (256,),
+                                 (x, out, x.dtype.type(inv_n_node), n_elem))
+
+
 class CFDUtils:
 
     def __init__(self):
         if not _configured:
             raise RuntimeError("Backend not set. Call 'configure()' first.")
-        self._tmp_nelem = 0
-        self._tmp_n_in_el = 0
-        self._tmp_dim = 0
+        self._pool = None
+
+    # Scratch buffer indices within the internal pool (see allocate_temporaries).
+    # Only two buffers exist: every kernel needs at most two live temporaries at
+    # once (an element-product tensor plus a small per-element/per-node aux), so
+    # each kernel just Get()s the shape slice it needs from one of the two.
+    TMP_A = 0  # primary product scratch — sized nelem * max(n_in_el * dim, dim * dim)
+    TMP_B = 1  # auxiliary scratch       — sized nelem * dim * dim
 
     def allocate_temporaries(self, nelem, n_in_el, dim):
         """
-        Pre-allocate shared temporary buffers used by compute methods.
+        Pre-allocate the two shared temporary buffers used by compute methods.
 
-        These buffers are reused across calls under the assumption that
-        only one compute method executes at a time.  The returned arrays
-        from compute methods are views into these buffers and remain
-        valid only until the next call.
+        The buffers live in a BufferPool with exactly two slots; memory cost is
+        nelem * (max(n_in_el * dim, dim * dim) + dim * dim) values, versus one
+        buffer per scratch shape before. Compute methods acquire their scratch
+        through self._pool.Get() (requesting the shape they need, the pool
+        returns a front-slice view) and release it via self._pool.Release()
+        before returning, so the pool's in-use tracking makes overlapping or
+        nested use fail loudly instead of silently corrupting data. Results are always written to the
+        caller-provided (or freshly allocated) 'out' arrays and never alias the
+        pool storage.
 
         Parameters
         ----------
@@ -124,38 +556,32 @@ class CFDUtils:
         dim : int
             Spatial dimension.
         """
-        self._tmp_nelem = nelem
-        self._tmp_n_in_el = n_in_el
-        self._tmp_dim = dim
-
         nd = n_in_el * dim
+        dim2 = dim * dim
 
-        # Scalar per element — shape (nelem,)
-        self._tmp_e = xp.empty(nelem, dtype=PRECISION)
-
-        # Flat node×dim per element — shape (nelem, n_in_el*dim)
-        self._tmp_e_nd = xp.empty((nelem, nd), dtype=PRECISION)
-
-        # Per-element dim vector — shape (nelem, dim)
-        self._tmp_ed = xp.empty((nelem, dim), dtype=PRECISION)
-
-        # Per-element node×dim — shape (nelem, n_in_el, dim)
-        self._tmp_eik = xp.empty((nelem, n_in_el, dim), dtype=PRECISION)
-
-        # Per-element node scalar — shape (nelem, n_in_el)
-        self._tmp_en = xp.empty((nelem, n_in_el), dtype=PRECISION)
-
-        # Per-element dim×dim — shape (nelem, dim, dim)
-        self._tmp_edd = xp.empty((nelem, dim, dim), dtype=PRECISION)
+        # Only two scratch slots are ever live simultaneously (TMP_A product
+        # tensor + TMP_B auxiliary); every kernel request fits in these two.
+        sizes = [
+            nelem * max(nd, dim2),  # TMP_A
+            nelem * dim2            # TMP_B
+        ]
+        self._pool = python_pool.BufferPool(sizes, xp, PRECISION)
 
     def _ensure_temporaries(self, nelem, n_in_el, dim):
-        """Lazily allocate temporaries on first use or if dimensions change."""
-        if nelem != self._tmp_nelem or n_in_el != self._tmp_n_in_el or dim != self._tmp_dim:
+        """Lazily allocate temporaries on first use or if dimensions change.
+
+        The pool's own max_sizes are the single source of truth: if they no
+        longer match what (nelem, n_in_el, dim) requires, re-allocate.
+        """
+        dim2 = dim * dim
+        required = [nelem * max(n_in_el * dim, dim2), nelem * dim2]
+        if self._pool is None or self._pool.max_sizes != required:
             self.allocate_temporaries(nelem, n_in_el, dim)
 
     def GetShapeFunctionsOnGaussPoints(self, dim: int, integration_order: int):
         if integration_order == 1:
-            N = xp.array([[xp.ones(dim+1) / (dim+1)]])
+            # Return shape (ngauss, n_in_el) = (1, dim+1), consistent with integration_order == 2
+            N = xp.array([xp.ones(dim+1, dtype=PRECISION) / (dim+1)], dtype=PRECISION)
         elif integration_order == 2:
             if dim == 2:
                 N = xp.array([
@@ -272,11 +698,11 @@ class CFDUtils:
         DN_flat = DN.reshape(nelem, nd)
         uel_flat = uel.reshape(nelem, nd)
 
-        # Element-wise product into pre-allocated buffer
-        xp.multiply(DN_flat, uel_flat, out=self._tmp_e_nd)
-
-        # Sum rows into caller-provided (or freshly allocated) output
-        xp.sum(self._tmp_e_nd, axis=1, out=out)
+        # Element-wise product into scratch buffer, sum rows into caller-provided output
+        t_end = self._pool.Get(self.TMP_A, (nelem, nd))
+        xp.multiply(DN_flat, uel_flat, out=t_end)
+        xp.sum(t_end, axis=1, out=out)
+        self._pool.Release(self.TMP_A)
 
         return out
 
@@ -308,20 +734,37 @@ class CFDUtils:
             raise Exception("wrong size of uel")
 
         nelem, n_in_el, dim = DN.shape
-        self._ensure_temporaries(nelem, n_in_el, dim)
-        nd = n_in_el * dim
 
         if out is None:
             out = xp.empty((nelem, n_in_el), dtype=DN.dtype)
 
-        # Step 1: divergence div[e] = sum_{J,k} DN[e,J,k] * uel[e,J,k]
-        DN_flat = DN.reshape(nelem, nd)
-        uel_flat = uel.reshape(nelem, nd)
-        xp.multiply(DN_flat, uel_flat, out=self._tmp_e_nd)
-        xp.sum(self._tmp_e_nd, axis=1, out=self._tmp_e)
+        # Original implementation (kept for reference / CPU fallback):
+        # self._ensure_temporaries(nelem, n_in_el, dim)
+        # nd = n_in_el * dim
+        # DN_flat = DN.reshape(nelem, nd)
+        # uel_flat = uel.reshape(nelem, nd)
+        # t_end = self._pool.Get(self.TMP_A, (nelem, nd))
+        # t_e = self._pool.Get(self.TMP_B, (nelem,))
+        # xp.multiply(DN_flat, uel_flat, out=t_end)
+        # xp.sum(t_end, axis=1, out=t_e)
+        # xp.multiply(t_e[:, None], N[None, :], out=out)
+        # self._pool.Release(self.TMP_A)
+        # self._pool.Release(self.TMP_B)
 
-        # Step 2: out[e,I] = N[I] * div[e]
-        xp.multiply(self._tmp_e[:, None], N[None, :], out=out)
+        if USE_CUPY:
+            _apply_elementwise_nodal_divergence_gpu(DN, uel, N, out)
+        else:
+            self._ensure_temporaries(nelem, n_in_el, dim)
+            nd = n_in_el * dim
+            DN_flat = DN.reshape(nelem, nd)
+            uel_flat = uel.reshape(nelem, nd)
+            t_end = self._pool.Get(self.TMP_A, (nelem, nd))
+            t_e = self._pool.Get(self.TMP_B, (nelem,))
+            xp.multiply(DN_flat, uel_flat, out=t_end)
+            xp.sum(t_end, axis=1, out=t_e)
+            xp.multiply(t_e[:, None], N[None, :], out=out)
+            self._pool.Release(self.TMP_A)
+            self._pool.Release(self.TMP_B)
 
         return out
 
@@ -342,7 +785,12 @@ class CFDUtils:
                 out = xp.empty((nelem, n_in_el, dim), dtype=PRECISION)
 
             # (E, I, L) @ (E, L, K) -> (E, I, K)
-            xp.matmul(a_elemental, grad_u.swapaxes(1, 2), out=out)
+            # Original implementation (kept for reference / CPU fallback):
+            # xp.matmul(a_elemental, grad_u.swapaxes(1, 2), out=out)
+            if USE_CUPY:
+                _apply_convective_operator_gpu(a_elemental, grad_u, out)
+            else:
+                xp.matmul(a_elemental, grad_u.swapaxes(1, 2), out=out)
             return out
 
         elif grad_u.ndim == 2: # scalar field
@@ -350,11 +798,33 @@ class CFDUtils:
                 out = xp.empty((nelem, n_in_el), dtype=PRECISION)
 
             # (E, I, L) @ (E, L, 1) -> (E, I, 1) -> squeeze to (E, I)
-            xp.matmul(a_elemental, grad_u[:, :, None], out=out[:, :, None])
+            # Original implementation (kept for reference / CPU fallback):
+            # xp.matmul(a_elemental, grad_u[:, :, None], out=out[:, :, None])
+            if USE_CUPY:
+                _apply_convective_operator_gpu(a_elemental, grad_u, out)
+            else:
+                xp.matmul(a_elemental, grad_u[:, :, None], out=out[:, :, None])
             return out
 
         else:
             raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
+
+    def ComputeElementalMean(self, v_elemental, out=None):
+        """Compute out[e,k] = (1/nnode) * sum_i v_elemental[e,i,k]."""
+        nelem, nnode, ndim = v_elemental.shape
+        if out is None:
+            out = xp.empty((nelem, ndim), dtype=v_elemental.dtype)
+
+        if USE_CUPY:
+            _apply_elemental_mean_gpu(v_elemental, out, 1.0 / nnode)
+        else:
+            # Original implementation (kept for reference / CPU fallback):
+            # xp.sum(v_elemental, axis=1, out=out)
+            # out /= nnode
+            xp.sum(v_elemental, axis=1, out=out)
+            out /= nnode
+
+        return out
 
     def ComputeNDN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out=None):
         """
@@ -379,7 +849,7 @@ class CFDUtils:
         dim = DN.shape[2]
 
         if pel.shape != (nelem, n_in_el):
-            raise ValueError("pel must have shape (nelem, n_in_el) for scalar case. Current shape is:",field.shape)
+            raise ValueError("pel must have shape (nelem, n_in_el) for scalar case. Current shape is:",pel.shape)
 
         self._ensure_temporaries(nelem, n_in_el, dim)
 
@@ -387,10 +857,12 @@ class CFDUtils:
             out = xp.empty((nelem, n_in_el, dim), dtype=DN.dtype)
 
         # Step 1: grad_p[e,k] = sum_J DN[e,J,k] * pel[e,J]
-        xp.matmul(DN.swapaxes(1, 2), pel[:, :, None], out=self._tmp_ed[:, :, None])
+        t_ed = self._pool.Get(self.TMP_B, (nelem, dim))
+        xp.matmul(DN.swapaxes(1, 2), pel[:, :, None], out=t_ed[:, :, None])
 
         # Step 2: out[e,I,k] = N[I] * grad_p[e,k]
-        xp.multiply(N[None, :, None], self._tmp_ed[:, None, :], out=out)
+        xp.multiply(N[None, :, None], t_ed[:, None, :], out=out)
+        self._pool.Release(self.TMP_B)
 
         return out
 
@@ -420,10 +892,12 @@ class CFDUtils:
             out = xp.empty((nelem, n_in_el, dim), dtype=DN.dtype)
 
         # Step 1: s[e] = sum_J pel[e,J] * N[J]  — dot product per element
-        xp.dot(pel, N, out=self._tmp_e)
+        t_e = self._pool.Get(self.TMP_B, (nelem,))
+        xp.dot(pel, N, out=t_e)
 
         # Step 2: out[e,I,k] = DN[e,I,k] * s[e]
-        xp.multiply(DN, self._tmp_e[:, None, None], out=out)
+        xp.multiply(DN, t_e[:, None, None], out=out)
+        self._pool.Release(self.TMP_B)
 
         return out
 
@@ -492,42 +966,54 @@ class CFDUtils:
         """
 
         nelem, nnode, dim = DN.shape
-        self._ensure_temporaries(nelem, nnode, dim)
 
-        # Scalar field
         if field.ndim == 2:
-            if out is None:
-                out = xp.empty((nelem, nnode), dtype=field.dtype)
-
-            # Use _tmp_eik for intermediate (shape: nelem, nnode, dim)
-            # grad[:, m] = sum_node DN[:, :, m] * field
-            xp.multiply(DN, field[:, :, None], out=self._tmp_eik)
-            xp.sum(self._tmp_eik, axis=1, out=self._tmp_ed)  # (nelem, dim)
-
-            # Accumulate: out[e, i] = sum_m DN[e, i, m] * grad[e, m]
-            # This is: out = DN @ grad[:, :, None] → (nelem, nnode, 1)
-            xp.matmul(DN, self._tmp_ed[:, :, None], out=out[:, :, None])
-
-            return out
-
-        # Vector field
+            out_shape = (nelem, nnode)
         elif field.ndim == 3:
-            _, _, ncomp = field.shape
-            if out is None:
-                out = xp.empty((nelem, nnode, ncomp), dtype=field.dtype)
+            out_shape = (nelem, nnode, field.shape[2])
+        else:
+            raise ValueError("Field must have shape (E,nnode) or (E,nnode,dim)")
 
-            # Use _tmp_edd for grad (shape: nelem, dim, dim) — slice to (nelem, dim, ncomp)
-            grad_view = self._tmp_edd[:, :, :ncomp]
+        if out is None:
+            out = xp.empty(out_shape, dtype=field.dtype)
 
-            # grad = DN^T @ field → (nelem, dim, ncomp)
-            xp.matmul(DN.swapaxes(1, 2), field, out=grad_view)
+        # Original implementation (kept for reference / CPU fallback):
+        # self._ensure_temporaries(nelem, nnode, dim)
+        # t_eik = self._pool.Get(self.TMP_A, (nelem, nnode, dim))
+        # t_ed = self._pool.Get(self.TMP_B, (nelem, dim))
+        # xp.multiply(DN, field[:, :, None], out=t_eik)
+        # xp.sum(t_eik, axis=1, out=t_ed)
+        # xp.matmul(DN, t_ed[:, :, None], out=out[:, :, None])
+        # self._pool.Release(self.TMP_A)
+        # self._pool.Release(self.TMP_B)
+        # t_edd = self._pool.Get(self.TMP_A, (nelem, dim, dim))
+        # grad_view = t_edd[:, :, :ncomp]
+        # xp.matmul(DN.swapaxes(1, 2), field, out=grad_view)
+        # xp.matmul(DN, grad_view, out=out)
+        # self._pool.Release(self.TMP_A)
 
-            # out = DN @ grad → (nelem, nnode, ncomp)
-            xp.matmul(DN, grad_view, out=out)
-
+        if USE_CUPY:
+            _apply_laplacian_gpu(DN, field, out)
             return out
 
-        raise ValueError("Field must have shape (E,nnode) or (E,nnode,dim)")
+        self._ensure_temporaries(nelem, nnode, dim)
+        if field.ndim == 2:
+            t_eik = self._pool.Get(self.TMP_A, (nelem, nnode, dim))
+            t_ed = self._pool.Get(self.TMP_B, (nelem, dim))
+            xp.multiply(DN, field[:, :, None], out=t_eik)
+            xp.sum(t_eik, axis=1, out=t_ed)
+            xp.matmul(DN, t_ed[:, :, None], out=out[:, :, None])
+            self._pool.Release(self.TMP_A)
+            self._pool.Release(self.TMP_B)
+            return out
+
+        ncomp = field.shape[2]
+        t_edd = self._pool.Get(self.TMP_A, (nelem, dim, dim))
+        grad_view = t_edd[:, :, :ncomp]
+        xp.matmul(DN.swapaxes(1, 2), field, out=grad_view)
+        xp.matmul(DN, grad_view, out=out)
+        self._pool.Release(self.TMP_A)
+        return out
 
     def InterpolateValue(self, N, field, out=None):
         """
@@ -637,7 +1123,12 @@ class CFDUtils:
                 out = xp.empty((nelem, ndim), dtype=field.dtype)
 
             # (E, 1, nnode) @ (E, nnode, ndim) -> (E, 1, ndim) -> squeeze to (E, ndim)
-            xp.matmul(field[:, None, :], DN, out=out[:, None, :])
+            # Original implementation (kept for reference / CPU fallback):
+            # xp.matmul(field[:, None, :], DN, out=out[:, None, :])
+            if USE_CUPY:
+                _apply_elemental_gradient_gpu(DN, field, out)
+            else:
+                xp.matmul(field[:, None, :], DN, out=out[:, None, :])
             return out
 
         # ------------------------------
@@ -652,7 +1143,12 @@ class CFDUtils:
                 out = xp.empty((nelem, ncomp, ndim), dtype=field.dtype)
 
             # field^T @ DN: (E, ncomp, nnode) @ (E, nnode, ndim) -> (E, ncomp, ndim)
-            xp.matmul(field.swapaxes(1, 2), DN, out=out) #TODO: verify if this is efficient
+            # Original implementation (kept for reference / CPU fallback):
+            # xp.matmul(field.swapaxes(1, 2), DN, out=out)
+            if USE_CUPY:
+                _apply_elemental_gradient_gpu(DN, field, out)
+            else:
+                xp.matmul(field.swapaxes(1, 2), DN, out=out)
             return out
 
         # ------------------------------
@@ -680,7 +1176,13 @@ class CFDUtils:
             out = xp.empty((b_elemental.shape), dtype=b_elemental.dtype)
 
         M_e = self.GetElementalMassMatrix(b_elemental.shape[2])  # (node, node)
-        xp.matmul(M_e, b_elemental, out=out)   # (e, node, dim)
+
+        # Original implementation (kept for reference / CPU fallback):
+        # xp.matmul(M_e, b_elemental, out=out)   # (e, node, dim)
+        if USE_CUPY:
+            _apply_mass_matrix_gpu(b_elemental, M_e, out)
+        else:
+            xp.matmul(M_e, b_elemental, out=out)   # CPU fallback
 
         return out
 
@@ -786,7 +1288,12 @@ class CFDUtils:
             elif out.shape != (nelem, n_node, n_dim):
                 raise ValueError("out must have shape (n_elem, n_node, n_comp)")
 
-            xp.matmul(M_e, elem_conv, out=out)
+            # Original implementation (kept for reference / CPU fallback):
+            # xp.matmul(M_e, elem_conv, out=out)
+            if USE_CUPY:
+                _apply_mass_matrix_gpu(elem_conv, M_e, out)
+            else:
+                xp.matmul(M_e, elem_conv, out=out)   # CPU fallback
             return out
 
         elif elem_conv.ndim == 2: # scalar field
@@ -799,7 +1306,14 @@ class CFDUtils:
             elif out.shape != (nelem, n_node):
                 raise ValueError("out must have shape (n_elem, n_node)")
 
-            xp.matmul(elem_conv, M_e.T, out=out)
+            # Original implementation (kept for reference / CPU fallback):
+            # xp.matmul(elem_conv, M_e.T, out=out)
+            if USE_CUPY:
+                # The kernel computes M @ x; since M_e.T[j,i] == M_e[i,j],
+                # this is equivalent to the original elem_conv @ M_e.T.
+                _apply_mass_matrix_gpu(elem_conv, M_e, out)
+            else:
+                xp.matmul(elem_conv, M_e.T, out=out)   # CPU fallback
             return out
 
         else:
@@ -847,23 +1361,20 @@ class CFDUtils:
         - Employs out parameter to avoid implicit temporaries in matmul.
         """
 
-        beta = conv_elemental - pi_elemental
-        n_elem, n_node, n_dim = beta.shape
+        n_elem, n_node, n_dim = conv_elemental.shape
 
         if out is None:
-            out = xp.empty((n_elem, n_node, n_dim), dtype=beta.dtype)
+            out = xp.empty((n_elem, n_node, n_dim), dtype=conv_elemental.dtype)
         elif out.shape != (n_elem, n_node, n_dim):
             raise ValueError(
                 f"out must have shape (n_elem, n_node, n_dim) = ({n_elem}, {n_node}, {n_dim}), "
                 f"but got shape {out.shape}"
             )
-        # Note: out is fully overwritten by xp.matmul(DN, S, out=out) on line 828,
+        # Note: out is fully overwritten by the kernel / matmul,
         # so no zeroing is needed when reusing pre-allocated arrays.
 
-        M_e = self.GetElementalMassMatrix(n_dim)
-
         # Original computation (commented for reference):
-        # S = xp.zeros((n_elem, n_dim, n_dim), dtype=beta.dtype)
+        # S = xp.zeros((n_elem, n_dim, n_dim), dtype=conv_elemental.dtype)
         # for j in range(n_node):
         #     for m in range(n_node):
         #         w = M_e[j, m]
@@ -875,21 +1386,34 @@ class CFDUtils:
         # Factor as: S[e,k,l] = sum_{j,m} M[j,m] * a[e,j,k] * beta[e,m,l]
         # Then: out[e,i,l] = sum_k DN[e,i,k] * S[e,k,l]
 
-        self._ensure_temporaries(n_elem, n_node, n_dim)
+        # Original implementation (kept for reference / CPU fallback):
+        # beta = conv_elemental - pi_elemental
+        # n_elem, n_node, n_dim = beta.shape
+        # M_e = self.GetElementalMassMatrix(n_dim)
+        # self._ensure_temporaries(n_elem, n_node, n_dim)
+        # t_eik = self._pool.Get(self.TMP_A, (n_elem, n_node, n_dim))
+        # t_edd = self._pool.Get(self.TMP_B, (n_elem, n_dim, n_dim))
+        # xp.matmul(M_e[None, :, :], beta, out=t_eik)
+        # xp.matmul(a_elemental.swapaxes(1, 2), t_eik, out=t_edd)
+        # xp.matmul(DN, t_edd, out=out)
+        # self._pool.Release(self.TMP_A)
+        # self._pool.Release(self.TMP_B)
 
-        # Step 1: Compute temp[e,j,l] = sum_m M[j,m] * beta[e,m,l]
-        # Batched matmul: M @ beta[e] for all elements at once
-        # Use _tmp_eik as temp buffer (shape: nelem, n_node, n_dim)
-        xp.matmul(M_e[None, :, :], beta, out=self._tmp_eik)
-
-        # Step 2: Compute S[e,k,l] = sum_j a[e,j,k] * temp[e,j,l]
-        # Transpose a to (n_elem, n_dim, n_node) then matmul with temp
-        # Use _tmp_edd as S buffer (shape: nelem, dim, dim)
-        xp.matmul(a_elemental.swapaxes(1, 2), self._tmp_eik, out=self._tmp_edd)
-
-        # Step 3: Compute out[e,i,l] = sum_k DN[e,i,k] * S[e,k,l]
-        # Use out parameter to avoid implicit temporary from matmul
-        xp.matmul(DN, self._tmp_edd, out=out)
+        if USE_CUPY:
+            M_e = self.GetElementalMassMatrix(n_dim)
+            _apply_momentum_stabilization_gpu(
+                DN, a_elemental, conv_elemental, pi_elemental, M_e, out)
+        else:
+            beta = conv_elemental - pi_elemental
+            M_e = self.GetElementalMassMatrix(n_dim)
+            self._ensure_temporaries(n_elem, n_node, n_dim)
+            t_eik = self._pool.Get(self.TMP_A, (n_elem, n_node, n_dim))
+            t_edd = self._pool.Get(self.TMP_B, (n_elem, n_dim, n_dim))
+            xp.matmul(M_e[None, :, :], beta, out=t_eik)
+            xp.matmul(a_elemental.swapaxes(1, 2), t_eik, out=t_edd)
+            xp.matmul(DN, t_edd, out=out)
+            self._pool.Release(self.TMP_A)
+            self._pool.Release(self.TMP_B)
 
         return out
 
@@ -924,21 +1448,28 @@ class CFDUtils:
         if out is None:
             out = xp.empty((nelem, nnode, dim), dtype=DN.dtype)
 
+        # Two-slot layout: TMP_B column 0 holds div(u), column 1 holds div(Π);
+        # TMP_A carries the product tensors (released between the two sums).
+        t_b = self._pool.Get(self.TMP_B, (nelem, dim * dim))
+
         # Step 1: divergence of u → (E,)
-        # Use _tmp_eik as intermediate buffer for DN * u_elemental
-        xp.multiply(DN, u_elemental, out=self._tmp_eik)
-        xp.sum(self._tmp_eik, axis=(1, 2), out=self._tmp_e)
+        t_a = self._pool.Get(self.TMP_A, (nelem, nnode, dim))
+        xp.multiply(DN, u_elemental, out=t_a)
+        xp.sum(t_a, axis=(1, 2), out=t_b[:, 0])
+        self._pool.Release(self.TMP_A)
 
         # Step 2: projection of Π → (E,)
-        # Use _tmp_en as intermediate buffer for N[None, :] * Pi_div_elemental
-        xp.multiply(N[None, :], Pi_div_elemental, out=self._tmp_en)
-        xp.sum(self._tmp_en, axis=1, out=self._tmp_ed[:, 0])  # reuse _tmp_ed[:, 0] as (E,) view
+        t_a = self._pool.Get(self.TMP_A, (nelem, nnode))
+        xp.multiply(N[None, :], Pi_div_elemental, out=t_a)
+        xp.sum(t_a, axis=1, out=t_b[:, 1])
+        self._pool.Release(self.TMP_A)
 
         # Step 3: scalar residual → (E,) — in-place subtraction
-        xp.subtract(self._tmp_e, self._tmp_ed[:, 0], out=self._tmp_e)
+        xp.subtract(t_b[:, 0], t_b[:, 1], out=t_b[:, 0])
 
         # Step 4: apply DN → (E, nnode, dim)
-        xp.multiply(DN, self._tmp_e[:, None, None], out=out)
+        xp.multiply(DN, t_b[:, 0][:, None, None], out=out)
+        self._pool.Release(self.TMP_B)
 
         return out
 
@@ -967,19 +1498,31 @@ class CFDUtils:
             Scalar result per element-node pair
         """
         nelem, n_node, n_dim = DN.shape
-        self._ensure_temporaries(nelem, n_node, n_dim)
 
         if out is None:
             out = xp.empty((nelem, n_node), dtype=DN.dtype)
 
-        # Step 1: Compute temp[e,k] = sum_J N[J] * Pi_press_el[e,J,k]
-        # Using matmul: Pi_press_el.swapaxes(1,2) @ N gives (nelem, dim, n_node) @ (n_node,) -> (nelem, dim)
-        xp.matmul(Pi_press_el.swapaxes(1, 2), N, out=self._tmp_ed)
+        # Original implementation (kept for reference / CPU fallback):
+        # self._ensure_temporaries(nelem, n_node, n_dim)
+        # t_ed = self._pool.Get(self.TMP_B, (nelem, n_dim))
+        # t_eik = self._pool.Get(self.TMP_A, (nelem, n_node, n_dim))
+        # xp.matmul(Pi_press_el.swapaxes(1, 2), N, out=t_ed)
+        # xp.multiply(DN, t_ed[:, None, :], out=t_eik)
+        # xp.sum(t_eik, axis=2, out=out)
+        # self._pool.Release(self.TMP_B)
+        # self._pool.Release(self.TMP_A)
 
-        # Step 2: Compute out[e,I] = sum_k DN[e,I,k] * temp[e,k]
-        # Use _tmp_eik as intermediate buffer for DN * temp, then sum over k
-        xp.multiply(DN, self._tmp_ed[:, None, :], out=self._tmp_eik)
-        xp.sum(self._tmp_eik, axis=2, out=out)
+        if USE_CUPY:
+            _apply_pressure_stabilization_projection_gpu(DN, Pi_press_el, N, out)
+        else:
+            self._ensure_temporaries(nelem, n_node, n_dim)
+            t_ed = self._pool.Get(self.TMP_B, (nelem, n_dim))
+            t_eik = self._pool.Get(self.TMP_A, (nelem, n_node, n_dim))
+            xp.matmul(Pi_press_el.swapaxes(1, 2), N, out=t_ed)
+            xp.multiply(DN, t_ed[:, None, :], out=t_eik)
+            xp.sum(t_eik, axis=2, out=out)
+            self._pool.Release(self.TMP_B)
+            self._pool.Release(self.TMP_A)
 
         return out
 
@@ -1331,9 +1874,17 @@ class CFDUtils:
         b_norm_host = float(b_norm)
 
         if b_norm_host == 0.0:
+            # Returning 'b' itself would alias the caller's buffer (e.g., a pool slot that is
+            # released right after the solve and then re-acquired). The exact solution of
+            # A x = 0 is x = 0, so return a fresh zero vector instead.
+            # Original (kept for reference):
+            # if return_info_dict:
+            #     return b, {"converged": True, "iterations": 0, "reason": "zero rhs"}
+            # return b, 0
+            x_zero = xp.zeros_like(b)
             if return_info_dict:
-                return b, {"converged": True, "iterations": 0, "reason": "zero rhs"}
-            return b, 0
+                return x_zero, {"converged": True, "iterations": 0, "reason": "zero rhs"}
+            return x_zero, 0
 
         stop_atol = max(float(atol), float(rtol) * b_norm_host)
 
@@ -1347,7 +1898,7 @@ class CFDUtils:
         residual_gap_ratios = []
         replacement_iterations = []
 
-        if resid_host <= atol:  #stop_atol:
+        if resid_host <= stop_atol:
             if return_info_dict:
                 return x, {
                     "converged": True,
@@ -1375,28 +1926,96 @@ class CFDUtils:
             rho1 = rho
             rho = dot(xp, r, z)
 
-            rho_host = float(rho)
-            # if not bool(xp.isfinite(rho)) or rho_host <= 0.0:
+            # ORIGINAL per-scalar blocking reads and checks (kept for reference):
+            # rho_host = float(rho)
+            # # if not bool(xp.isfinite(rho)) or rho_host <= 0.0:
+            # #     print("norm of r = ",norm(xp,r))
+            # #     print("norm of z=M@r= ",norm(xp,z))
+            # #     print("bool(xp.isfinite(rho))= ",bool(xp.isfinite(rho)))
+            # #     print("rho_host= ",rho_host)
+            # #     reason = "non-positive or non-finite r^T M r"
+            # #     break
+            #
+            # if not bool(xp.isfinite(rho)):
             #     print("norm of r = ",norm(xp,r))
             #     print("norm of z=M@r= ",norm(xp,z))
             #     print("bool(xp.isfinite(rho))= ",bool(xp.isfinite(rho)))
             #     print("rho_host= ",rho_host)
-            #     reason = "non-positive or non-finite r^T M r"
+            #     reason = "non-finite r^T M r"
             #     break
+            #
+            #
+            # if rho_host < 0.0: 
+            #     print("norm of r = ",norm(xp,r))
+            #     print("norm of z=M@r= ",norm(xp,z))
+            #     print("bool(xp.isfinite(rho))= ",bool(xp.isfinite(rho)))
+            #     print("rho_host= ",rho_host)
+            #     print("rho_host < 0 - going on as without preconditioner")
+            #     reason = " r^T M r < 0"
+            #     break
+            #
+            # #just proceed as nothing in the case it is exactly 0
+            # if rho_host == 0.0:
+            #     print("rho_host == 0 - simply proceeding even though this should not happen")
+            #     pass
+            #
+            #
+            # if restart_p:
+            #     p = z.copy() if hasattr(z, "copy") else z
+            #     restart_p = False
+            # else:
+            #     beta = rho / rho1
+            #     # In-place update: bit-identical to 'p = z + beta * p' (same elementwise multiply
+            #     # then add), but avoids one vector allocation + copy per iteration.
+            #     # p = z + beta * p
+            #     p *= beta
+            #     p += z
+            #
+            # q = matvec(p)
+            # denom = dot(xp, p, q)
+            # denom_host = float(denom)
+            #
+            # if not bool(xp.isfinite(denom)) or denom_host <= 0.0:
+            #     reason = "non-positive or nstop_atolon-finite p^T A p"
+            #     break
+            #
+            # alpha = rho / denom
+            #
+            # if not bool(xp.isfinite(alpha)):
+            #     reason = "non-finite alpha"
+            #     break
+            # Note on the blocking reads: the per-scalar reads and checks that used to be here are kept
+            # below as comments. They required ~6 separate device->host transfers per iteration. Now
+            # rho, denom and alpha are read back together with ONE transfer, and all decisions use those
+            # host values in the same order. Nothing is written to x or r before these decisions, so the
+            # breakdown exits return exactly the same x as before.
+            if restart_p:
+                p = z.copy() if hasattr(z, "copy") else z
+                restart_p = False
+            else:
+                beta = rho / rho1
+                # In-place update: bit-identical to 'p = z + beta * p' (same elementwise multiply
+                # then add), but avoids one vector allocation + copy per iteration.
+                # p = z + beta * p
+                p *= beta
+                p += z
 
-            if not bool(xp.isfinite(rho)):
+            q = matvec(p)
+            denom = dot(xp, p, q)
+            alpha = rho / denom # device scalar, as before (keeps the dtype promotion of alpha * p unchanged)
+
+            rho_host, denom_host, alpha_host = _host_scalars(xp, rho, denom, alpha)
+
+            if not math.isfinite(rho_host):
                 print("norm of r = ",norm(xp,r))
                 print("norm of z=M@r= ",norm(xp,z))
-                print("bool(xp.isfinite(rho))= ",bool(xp.isfinite(rho)))
                 print("rho_host= ",rho_host)
                 reason = "non-finite r^T M r"
                 break
 
-
-            if rho_host < 0.0: 
+            if rho_host < 0.0:
                 print("norm of r = ",norm(xp,r))
                 print("norm of z=M@r= ",norm(xp,z))
-                print("bool(xp.isfinite(rho))= ",bool(xp.isfinite(rho)))
                 print("rho_host= ",rho_host)
                 print("rho_host < 0 - going on as without preconditioner")
                 reason = " r^T M r < 0"
@@ -1405,32 +2024,22 @@ class CFDUtils:
             #just proceed as nothing in the case it is exactly 0
             if rho_host == 0.0:
                 print("rho_host == 0 - simply proceeding even though this should not happen")
-                pass
-            
 
-            if restart_p:
-                p = z.copy() if hasattr(z, "copy") else z
-                restart_p = False
-            else:
-                beta = rho / rho1
-                p = z + beta * p
-
-            q = matvec(p)
-            denom = dot(xp, p, q)
-            denom_host = float(denom)
-
-            if not bool(xp.isfinite(denom)) or denom_host <= 0.0:
-                reason = "non-positive or nstop_atolon-finite p^T A p"
+            if not math.isfinite(denom_host) or denom_host <= 0.0:
+                reason = "non-positive or nonfinite p^T A p"
                 break
 
-            alpha = rho / denom
-
-            if not bool(xp.isfinite(alpha)):
+            if not math.isfinite(alpha_host):
                 reason = "non-finite alpha"
                 break
 
-            x = x + alpha * p
-            r = r - alpha * q
+            # In-place updates: bit-identical to 'x = x + alpha*p' / 'r = r - alpha*q'
+            # (same elementwise multiply then add/sub), but avoid two vector allocations
+            # + copies per iteration (x/r are owned locally, safe to mutate).
+            # x = x + alpha * p
+            # r = r - alpha * q
+            x += alpha * p
+            r -= alpha * q
 
             iters += 1
 
@@ -1442,7 +2051,8 @@ class CFDUtils:
             resid_host = float(resid)
             recursive_residual_norms.append(resid_host)
 
-            if not bool(xp.isfinite(resid)):
+            # Original (kept for reference): if not bool(xp.isfinite(resid)):
+            if not math.isfinite(resid_host): # same value as isfinite(resid), read back above
                 reason = "non-finite recursive residual"
                 break
 
@@ -1459,7 +2069,8 @@ class CFDUtils:
                 resid_exact_host = float(resid_exact)
                 true_residual_norms.append(resid_exact_host)
 
-                if not bool(xp.isfinite(resid_exact)):
+                # Original (kept for reference): if not bool(xp.isfinite(resid_exact)):
+                if not math.isfinite(resid_exact_host): # same value as isfinite(resid_exact), read back above
                     reason = "non-finite true residual"
                     break
 

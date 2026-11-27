@@ -412,5 +412,413 @@ class TestCFDUtils(UnitTest.TestCase):
          0.075757575757576]])
         np.testing.assert_allclose(stab_press, ref_stab_press, rtol=self.rtol, atol=self.atol)
 
+class TestCFDUtilsMisc(UnitTest.TestCase):
+    """Checks for shape contracts and error paths of the CFDUtils API (no mesh required)."""
+
+    def setUp(self):
+        self.cfd_utils = cfd_utils_module.CFDUtils()
+
+    def test_GetShapeFunctionsOnGaussPoints_order1_is_2d(self):
+        # Regression: order-1 used to return a 3D array of shape (1, 1, dim+1).
+        # It must be 2D with shape (ngauss, n_in_el) = (1, dim+1), consistent with order-2.
+        for dim in (2, 3):
+            N = self.cfd_utils.GetShapeFunctionsOnGaussPoints(dim, 1)
+            self.assertEqual(N.ndim, 2)
+            self.assertEqual(N.shape, (1, dim + 1))
+            np.testing.assert_allclose(N.sum(axis=1), np.ones(1), rtol=1e-12, atol=1e-14)
+
+    def test_GetShapeFunctionsOnGaussPoints_order1_order2_consistent_ndim(self):
+        for dim in (2, 3):
+            N1 = self.cfd_utils.GetShapeFunctionsOnGaussPoints(dim, 1)
+            N2 = self.cfd_utils.GetShapeFunctionsOnGaussPoints(dim, 2)
+            self.assertEqual(N1.ndim, N2.ndim)
+            self.assertEqual(N1.shape[1], N2.shape[1])  # same n_in_el
+
+    def test_ComputeNDN_rejects_wrong_pel_shape(self):
+        # Regression: the error path used to raise NameError ('field' undefined) instead of ValueError
+        nelem, n_in_el, dim = 2, 4, 3
+        DN = np.zeros((nelem, n_in_el, dim))
+        N = np.ones(n_in_el) / n_in_el
+        wrong_pel = np.zeros((nelem, n_in_el + 1))
+        with self.assertRaises(ValueError):
+            self.cfd_utils.ComputeNDN(N, DN, wrong_pel)
+
+class TestCFDUtilsKernels(UnitTest.TestCase):
+    """Granular unit tests for the cfd_utils kernels on small synthetic fixtures
+    (no mesh required). Each kernel is checked against an independent reference
+    (explicit einsum/loops), so the tests survive internal refactors (e.g. the
+    internal use of a buffer pool)."""
+
+    def setUp(self):
+        self.cfd_utils = cfd_utils_module.CFDUtils()
+        self.xp = cfd_utils_module.xp
+
+    @staticmethod
+    def _csr_to_dense(A):
+        import scipy.sparse as sp
+        return sp.csr_matrix((
+            np.asarray(A.value_data()).copy(),
+            np.asarray(A.index2_data()).copy(),
+            np.asarray(A.index1_data()).copy()
+        ), shape=(A.Size1(), A.Size2())).toarray()
+
+    # ------------------------------------------------------------------
+    # Reference-element tables
+    # ------------------------------------------------------------------
+    def test_shape_functions_partition_of_unity_and_quadrature_consistency(self):
+        # N rows sum to 1 (partition of unity); the quadrature reproduces the
+        # integral of a constant: sum_g w_g * N_g[I] = V_ref / n_in_el
+        for dim in (2, 3):
+            V_ref = 0.5 if dim == 2 else 1.0 / 6.0
+            for order in (1, 2):
+                N = self.cfd_utils.GetShapeFunctionsOnGaussPoints(dim, order)
+                w = self.cfd_utils.GetGaussIntegrationWeights(dim, order)
+                self.assertEqual(N.shape[0], w.shape[0])
+                self.assertEqual(N.shape[1], dim + 1)
+                np.testing.assert_allclose(N.sum(axis=1), np.ones(N.shape[0]), rtol=1e-12, atol=1e-14)
+                np.testing.assert_allclose(w @ N, np.full(dim + 1, V_ref / (dim + 1)), rtol=1e-12, atol=1e-14)
+                # weights integrate the reference element volume exactly
+                np.testing.assert_allclose(w.sum(), V_ref, rtol=1e-12, atol=1e-14)
+
+    def test_gauss_weights_reject_unsupported_inputs(self):
+        with self.assertRaises(Exception):
+            self.cfd_utils.GetGaussIntegrationWeights(1, 1)
+        with self.assertRaises(Exception):
+            self.cfd_utils.GetGaussIntegrationWeights(2, 3)
+        with self.assertRaises(Exception):
+            self.cfd_utils.GetShapeFunctionsOnGaussPoints(2, 4)
+
+    def test_elemental_mass_matrix_consistency(self):
+        # Consistent mass on the unit-measure reference element:
+        # M[I,J] = (delta_IJ + 1) * measure / (n*(n+1)) with measure = 1 here
+        for dim in (2, 3):
+            n = dim + 1
+            M = self.cfd_utils.GetElementalMassMatrix(dim)
+            ref = (np.eye(n) + np.ones((n, n))) / (n * (n + 1))
+            np.testing.assert_allclose(M, ref, rtol=1e-12, atol=1e-14)
+        with self.assertRaises(Exception):
+            self.cfd_utils.GetElementalMassMatrix(1)
+
+    def test_wall_mass_matrix_consistency(self):
+        # Wall mass on the unit-measure edge/face: same (delta + 1)/(n*(n+1)) rule
+        for dim, n in ((2, 2), (3, 3)):
+            M = self.cfd_utils.GetWallMassMatrix(dim)
+            ref = (np.eye(n) + np.ones((n, n))) / (n * (n + 1))
+            np.testing.assert_allclose(M, ref, rtol=1e-12, atol=1e-14)
+        with self.assertRaises(Exception):
+            self.cfd_utils.GetWallMassMatrix(1)
+
+    # ------------------------------------------------------------------
+    # ComputeLaplacianMatrix
+    # ------------------------------------------------------------------
+    def test_ComputeLaplacianMatrix_reference_and_symmetry(self):
+        rng = np.random.RandomState(31)
+        DN = rng.randn(5, 3, 2)
+        out = self.cfd_utils.ComputeLaplacianMatrix(DN)
+        ref = np.einsum("eim,ejm->eij", DN, DN)
+        np.testing.assert_allclose(out, ref, rtol=1e-12, atol=1e-13)
+        # symmetric by construction
+        np.testing.assert_allclose(out, np.swapaxes(out, 1, 2), rtol=0.0, atol=1e-13)
+
+    def test_ComputeLaplacianMatrix_writes_to_out(self):
+        rng = np.random.RandomState(32)
+        DN = rng.randn(4, 4, 3)
+        buf = np.zeros((4, 4, 4))
+        ret = self.cfd_utils.ComputeLaplacianMatrix(DN, out=buf)
+        self.assertIs(ret, buf)
+        np.testing.assert_allclose(buf, np.einsum("eim,ejm->eij", DN, DN), rtol=1e-12, atol=1e-13)
+
+    # ------------------------------------------------------------------
+    # ComputeBodyForceContribution
+    # ------------------------------------------------------------------
+    def test_ComputeBodyForceContribution_reference(self):
+        rng = np.random.RandomState(33)
+        b = rng.randn(3, 3, 2)
+        M2 = np.array([[2.0, 1.0, 1.0], [1.0, 2.0, 1.0], [1.0, 1.0, 2.0]]) / 12.0  # unit-volume 2D
+        ref = np.einsum("ij,ejd->eid", M2, b)
+        out = self.cfd_utils.ComputeBodyForceContribution(b)
+        np.testing.assert_allclose(out, ref, rtol=1e-12, atol=1e-13)
+
+    def test_ComputeBodyForceContribution_zero_input_gives_zero(self):
+        out = self.cfd_utils.ComputeBodyForceContribution(np.zeros((2, 4, 3)))
+        np.testing.assert_array_equal(out, np.zeros((2, 4, 3)))
+
+    # ------------------------------------------------------------------
+    # ComputeNavierSlipWallContribution
+    # ------------------------------------------------------------------
+    def test_ComputeNavierSlipWallContribution_reference(self):
+        # 2 wall elements of 2 nodes each (2D): projectors built from unit normals
+        rng = np.random.RandomState(34)
+        v = rng.randn(2, 2, 2)
+        normals = np.array([[1.0, 0.0], [0.0, 1.0]])
+        P = np.eye(2)[None, :, :] - normals[:, :, None] * normals[:, None, :]  # (2,2,2)
+        M_w = np.array([[1.0/3.0, 1.0/6.0], [1.0/6.0, 1.0/3.0]])
+        visc, slip = 0.7, 0.25
+        v_tang = np.einsum("eij,ekj->eki", P, v)
+        ref = np.einsum("nk,eki->eni", M_w, v_tang) * (-visc / (slip + 1e-12))
+        out = self.cfd_utils.ComputeNavierSlipWallContribution(v, P, visc, slip)
+        np.testing.assert_allclose(out, ref, rtol=1e-11, atol=1e-13)
+
+    def test_ComputeNavierSlipWallContribution_pure_normal_flow_is_unchanged(self):
+        # Velocity parallel to the wall normal has zero tangential part -> zero contribution
+        v = np.array([[[2.0, 0.0]], [[0.0, 3.0]], [[-1.0, 0.0]], [[0.0, -5.0]]]).reshape(4, 2, 1)[:, :, 0:2]
+        v = np.array([[[2.0, 0.0], [2.0, 0.0]],   # element 0: velocity along +x
+                      [[0.0, 3.0], [0.0, 3.0]]])  # element 1: velocity along +y
+        normals = np.array([[1.0, 0.0], [0.0, 1.0]])
+        P = np.eye(2)[None, :, :] - normals[:, :, None] * normals[:, None, :]
+        out = self.cfd_utils.ComputeNavierSlipWallContribution(v, P, 1.5, 0.1)
+        np.testing.assert_allclose(out, np.zeros((2, 2, 2)), rtol=0.0, atol=1e-14)
+
+    # ------------------------------------------------------------------
+    # Scalar matrix allocation / assembly / Dirichlet machinery
+    # ------------------------------------------------------------------
+    def _poisson_1d_fixture(self):
+        # Unit 1D Poisson on nodes 0..4 as "2-node 2D triangles" (edges)
+        conn = np.array([[0, 1], [1, 2], [2, 3], [3, 4]], dtype=np.int32)
+        lhs_el = np.tile(np.array([[1.0, -1.0], [-1.0, 1.0]]), (conn.shape[0], 1, 1))
+        ref = np.zeros((5, 5))
+        for e in range(conn.shape[0]):
+            for I in range(2):
+                for J in range(2):
+                    ref[conn[e, I], conn[e, J]] += lhs_el[e, I, J]
+        return conn, lhs_el, ref
+
+    def test_AllocateScalarMatrix_graph_and_indices(self):
+        conn, _, ref = self._poisson_1d_fixture()
+        A, csr_indices = self.cfd_utils.AllocateScalarMatrix(conn)
+        self.assertEqual((A.Size1(), A.Size2()), (5, 5))
+        dense = self._csr_to_dense(A)
+        # Freshly allocated matrices carry no spurious structure outside the graph
+        self.assertEqual(dense.shape, (5, 5))
+        # every assembly index addresses a real entry of the value buffer
+        self.assertEqual(csr_indices.shape, (conn.shape[0], 2, 2))
+        self.assertTrue(np.all(csr_indices >= 0))
+        self.assertTrue(np.all(csr_indices < np.asarray(A.value_data()).size))
+
+    def test_AssembleScalarMatrix_matches_dense_reference(self):
+        conn, lhs_el, ref = self._poisson_1d_fixture()
+        A, _ = self.cfd_utils.AllocateScalarMatrix(conn)
+        self.cfd_utils.AssembleScalarMatrix(lhs_el, conn, A)
+        np.testing.assert_allclose(self._csr_to_dense(A), ref, rtol=1e-12, atol=1e-14)
+
+    def test_AssembleScalarMatrixByCSRIndices_matches_dense_reference(self):
+        conn, lhs_el, ref = self._poisson_1d_fixture()
+        A, csr_indices = self.cfd_utils.AllocateScalarMatrix(conn)
+        self.cfd_utils.AssembleScalarMatrixByCSRIndices(lhs_el, csr_indices, A)
+        np.testing.assert_allclose(self._csr_to_dense(A), ref, rtol=1e-12, atol=1e-14)
+        # re-assembly must zero the buffer first (no accumulation)
+        self.cfd_utils.AssembleScalarMatrixByCSRIndices(lhs_el, csr_indices, A)
+        np.testing.assert_allclose(self._csr_to_dense(A), ref, rtol=1e-12, atol=1e-14)
+
+    def test_GetScalarMatrixDirichletIndices_matches_brute_force(self):
+        conn, lhs_el, _ = self._poisson_1d_fixture()
+        A, _ = self.cfd_utils.AllocateScalarMatrix(conn)
+        self.cfd_utils.AssembleScalarMatrix(lhs_el, conn, A)
+        fixed = np.array([1, 3], dtype=np.int32)
+        csr_data_idx, csr_diag_idx = self.cfd_utils.GetScalarMatrixDirichletIndices(fixed, A)
+
+        # Brute-force reference: walk the CSR rows
+        indptr = np.asarray(A.index1_data())
+        indices = np.asarray(A.index2_data())
+        expected_data, expected_diag = [], []
+        for row in range(A.Size1()):
+            for p in range(indptr[row], indptr[row + 1]):
+                if row in fixed or indices[p] in fixed:
+                    expected_data.append(p)
+                    if indices[p] == row:
+                        expected_diag.append(p)
+        np.testing.assert_array_equal(np.sort(csr_data_idx), np.sort(np.array(expected_data, dtype=np.int32)))
+        np.testing.assert_array_equal(np.sort(csr_diag_idx), np.sort(np.array(expected_diag, dtype=np.int32)))
+
+    def test_ApplyHomogeneousDirichlet_scalar_diag_reference(self):
+        conn, lhs_el, ref = self._poisson_1d_fixture()
+        A, _ = self.cfd_utils.AllocateScalarMatrix(conn)
+        self.cfd_utils.AssembleScalarMatrix(lhs_el, conn, A)
+        fixed = np.array([1, 3], dtype=np.int32)
+        csr_data_idx, csr_diag_idx = self.cfd_utils.GetScalarMatrixDirichletIndices(fixed, A)
+        rhs = np.arange(5, dtype=np.float64) + 1.0
+        self.cfd_utils.ApplyHomogeneousDirichlet(fixed, csr_data_idx, csr_diag_idx, A, rhs, diag_value=1.0)
+
+        ref_masked = ref.copy()
+        ref_masked[fixed, :] = 0.0
+        ref_masked[:, fixed] = 0.0
+        ref_masked[1, 1] = 1.0
+        ref_masked[3, 3] = 1.0
+        np.testing.assert_allclose(self._csr_to_dense(A), ref_masked, rtol=1e-12, atol=1e-14)
+        np.testing.assert_array_equal(rhs[fixed], np.zeros(2))
+        np.testing.assert_array_equal(rhs[[0, 2, 4]], np.array([1.0, 3.0, 5.0]))
+
+    def test_ApplyHomogeneousDirichlet_array_diag_reference(self):
+        # The stage passes diag_value as an array (one value per fixed row)
+        conn, lhs_el, ref = self._poisson_1d_fixture()
+        A, _ = self.cfd_utils.AllocateScalarMatrix(conn)
+        self.cfd_utils.AssembleScalarMatrix(lhs_el, conn, A)
+        fixed = np.array([1, 3], dtype=np.int32)
+        csr_data_idx, csr_diag_idx = self.cfd_utils.GetScalarMatrixDirichletIndices(fixed, A)
+        rhs = np.zeros(5)
+        diag_values = self.xp.asarray(np.array([2.5, 4.0]))
+        self.cfd_utils.ApplyHomogeneousDirichlet(fixed, csr_data_idx, csr_diag_idx, A, rhs, diag_value=diag_values)
+
+        dense = self._csr_to_dense(A)
+        self.assertAlmostEqual(float(dense[1, 1]), 2.5)
+        self.assertAlmostEqual(float(dense[3, 3]), 4.0)
+
+    def test_ApplyHomogeneousDirichlet_no_fixed_doea_nothing(self):
+        conn, lhs_el, ref = self._poisson_1d_fixture()
+        A, _ = self.cfd_utils.AllocateScalarMatrix(conn)
+        self.cfd_utils.AssembleScalarMatrix(lhs_el, conn, A)
+        fixed = np.zeros(0, dtype=np.int32)
+        csr_data_idx, csr_diag_idx = self.cfd_utils.GetScalarMatrixDirichletIndices(fixed, A)
+        rhs = np.ones(5)
+        self.cfd_utils.ApplyHomogeneousDirichlet(fixed, csr_data_idx, csr_diag_idx, A, rhs, diag_value=1.0)
+        np.testing.assert_allclose(self._csr_to_dense(A), ref, rtol=1e-12, atol=1e-14)
+        np.testing.assert_array_equal(rhs, np.ones(5))
+
+    # ------------------------------------------------------------------
+    # Temporary buffers lifecycle
+    # ------------------------------------------------------------------
+    def test_temporaries_reused_for_same_dimensions(self):
+        cu = self.cfd_utils
+        cu._ensure_temporaries(10, 3, 2)
+        first = cu._pool.buffers[cu.TMP_A]
+        cu._ensure_temporaries(10, 3, 2)
+        self.assertIs(cu._pool.buffers[cu.TMP_A], first)     # same dims -> no reallocation
+        cu._ensure_temporaries(12, 3, 2)
+        self.assertIsNot(cu._pool.buffers[cu.TMP_A], first)  # new dims -> reallocation
+
+    def test_pool_has_only_two_scratch_buffers(self):
+        # The point of the pool refactor: minimal memory footprint, two slots only
+        cu = self.cfd_utils
+        cu._ensure_temporaries(10, 3, 2)
+        self.assertEqual(len(cu._pool.buffers), 2)
+        # A: nelem * max(n_in_el*dim, dim*dim); B: nelem * dim*dim
+        self.assertEqual(cu._pool.max_sizes, [10 * max(3 * 2, 2 * 2), 10 * 2 * 2])
+
+    def test_pool_fully_released_after_each_kernel(self):
+        # Every kernel must release its scratch before returning (tracked by the pool)
+        rng = np.random.RandomState(41)
+        nelem, n, dim = 6, 3, 2
+        cu = self.cfd_utils
+        cu.allocate_temporaries(nelem, n, dim)
+        DN = rng.randn(nelem, n, dim)
+        uel = rng.randn(nelem, n, dim)
+        pel = rng.randn(nelem, n)
+        N = np.full(n, 1.0 / n)
+        calls = [
+            lambda: cu.ComputeElementalDivergence(DN, uel),
+            lambda: cu.ComputeElementwiseNodalDivergence(N, DN, uel),
+            lambda: cu.ComputeNDN(N, DN, pel),
+            lambda: cu.ComputeDNN(N, DN, pel),
+            lambda: cu.ApplyLaplacian(DN, pel),
+            lambda: cu.ApplyLaplacian(DN, uel),
+            lambda: cu.ComputeMomentumStabilization(DN, uel, uel, uel),
+            lambda: cu.ComputeDivDivStabilization(N, DN, uel, pel),
+            lambda: cu.ComputePressureStabilizationProjectionTerm(N, DN, uel),
+        ]
+        for call in calls:
+            call()
+            self.assertFalse(any(cu._pool.Status()),
+                             f"pool buffers left in use after {call}")
+
+
+class TestRobustCG(UnitTest.TestCase):
+    """Behavior pins for the robust_cg solver (numpy backend)."""
+
+    def setUp(self):
+        self.cfd_utils = cfd_utils_module.CFDUtils()
+        self.xp = cfd_utils_module.xp
+
+    def _make_spd(self, n, seed):
+        import scipy.sparse as sp
+        rng = np.random.RandomState(seed)
+        M = rng.rand(n, n)
+        A = M @ M.T + n * np.eye(n)  # well-conditioned SPD
+        return sp.csr_matrix(A)
+
+    def test_robust_cg_converges_matches_direct_solve(self):
+        n = 30
+        A = self._make_spd(n, seed=0)
+        rng = np.random.RandomState(1)
+        b = rng.rand(n)
+        x, info = self.cfd_utils.robust_cg(A, b, xp=self.xp, rtol=1e-10, atol=0.0, maxiter=1000)
+        self.assertEqual(info, 0)
+        x_ref = np.linalg.solve(A.toarray(), b)
+        np.testing.assert_allclose(np.asarray(x), x_ref, rtol=1e-6, atol=1e-8)
+
+    def test_robust_cg_zero_rhs_returns_zero_immediately(self):
+        A = self._make_spd(5, seed=2)
+        b = np.zeros(5)
+        x, info = self.cfd_utils.robust_cg(A, b, xp=self.xp, rtol=1e-8, atol=0.0)
+        self.assertEqual(info, 0)
+        np.testing.assert_array_equal(np.asarray(x), np.zeros(5))
+
+    def test_robust_cg_zero_rhs_does_not_alias_rhs(self):
+        # Regression: returning 'b' for a zero rhs aliased the caller's buffer (a pool slot
+        # that is released and re-acquired right after the solve). The result must be a fresh array.
+        A = self._make_spd(5, seed=2)
+        b = np.zeros(5)
+        x, info = self.cfd_utils.robust_cg(A, b, xp=self.xp, rtol=1e-8, atol=0.0, return_info_dict=True)
+        self.assertTrue(info["converged"])
+        self.assertFalse(np.shares_memory(np.asarray(x), b))
+        np.testing.assert_array_equal(np.asarray(x), np.zeros(5))
+
+    def test_host_scalars_matches_individual_reads(self):
+        # The batched readback must return exactly the values of individual float() reads,
+        # including float32 inputs and non-finite values (the finiteness decisions rely on them).
+        vals = [np.float64(1.2345678901234567), np.float32(3.1415927), np.float64(np.nan), np.float64(-np.inf)]
+        dev = [self.xp.asarray(v) for v in vals] if hasattr(self.xp, "asarray") else vals
+        out = cfd_utils_module._host_scalars(self.xp, *dev)
+        expected = [float(v) for v in vals]
+        for got, exp in zip(out, expected):
+            self.assertTrue((np.isnan(got) and np.isnan(exp)) or got == exp)
+
+    def test_robust_cg_empty_system(self):
+        A = self._make_spd(0, seed=3)
+        b = np.zeros(0)
+        x, info = self.cfd_utils.robust_cg(A, b, xp=self.xp)
+        self.assertEqual(info, 0)
+        self.assertEqual(len(np.asarray(x)), 0)
+
+    def test_robust_cg_max_iterations_returns_iteration_count(self):
+        A = self._make_spd(60, seed=4)
+        rng = np.random.RandomState(5)
+        b = rng.rand(60)
+        x, info = self.cfd_utils.robust_cg(A, b, xp=self.xp, rtol=1e-14, atol=0.0, maxiter=3)
+        self.assertEqual(info, 3)  # non-convergence reports iteration count (never 0)
+        x_dict, info_dict = self.cfd_utils.robust_cg(
+            A, b, xp=self.xp, rtol=1e-14, atol=0.0, maxiter=3, return_info_dict=True)
+        self.assertFalse(info_dict["converged"])
+        self.assertEqual(info_dict["iterations"], 3)
+        self.assertEqual(info_dict["reason"], "maximum iterations reached")
+
+    def test_robust_cg_initial_guess_shortcut_uses_full_tolerance(self):
+        # Regression: the initial-guess shortcut used to compare against 'atol' (0.0 by default)
+        # instead of the full stopping tolerance, making it dead code. An initial guess whose true
+        # residual is below rtol*||b|| but above atol must be accepted with ZERO iterations.
+        A = self._make_spd(4, seed=6)
+        rng = np.random.RandomState(7)
+        b = rng.rand(4)
+        x_ref = np.linalg.solve(A.toarray(), b)
+        x0 = x_ref + 1.0e-12  # nearly exact: residual > atol (0), well below rtol*||b||
+        x, info = self.cfd_utils.robust_cg(
+            A, b, x0=x0, xp=self.xp, rtol=1.0e-5, atol=0.0, return_info_dict=True)
+        self.assertTrue(info["converged"])
+        self.assertEqual(info["iterations"], 0)
+        self.assertEqual(info["reason"], "initial guess satisfies tolerance")
+        np.testing.assert_allclose(np.asarray(x), x0, rtol=0.0, atol=0.0)
+
+    def test_robust_cg_does_not_modify_rhs_or_initial_guess(self):
+        # The CG must treat b and x0 as read-only (b aliases assembled pool memory in the solver stage)
+        A = self._make_spd(10, seed=8)
+        rng = np.random.RandomState(9)
+        b = rng.rand(10)
+        b_copy = b.copy()
+        x0 = np.zeros(10)
+        x0_copy = x0.copy()
+        x, info = self.cfd_utils.robust_cg(A, b, x0=x0, xp=self.xp, rtol=1e-8, atol=0.0)
+        self.assertEqual(info, 0)
+        np.testing.assert_array_equal(b, b_copy)
+        np.testing.assert_array_equal(x0, x0_copy)
+
 if __name__ == '__main__':
     UnitTest.main()
