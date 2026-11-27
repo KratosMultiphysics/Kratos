@@ -6,7 +6,6 @@ from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.KratosUnittest import TestCase
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
-# from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 import os, csv
 
@@ -61,7 +60,7 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
     TestCase().assertEqual(resulting_iteration, 1)
 
 # # write json output
-# output_process = JsonOutputProcess(model, Kratos.Parameters(
+# output_process = Kratos.JsonOutputProcess(model, Kratos.Parameters(
 #     """{
 #         "output_variables" : ["GAUSSIAN_CURVATURE"],
 #         "output_file_name" : "gaussian_curvature_results.json",

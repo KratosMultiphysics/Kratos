@@ -76,10 +76,7 @@
     },
     "_json_output_process" : [
         {
-            "python_module" : "json_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "help"          : "",
-            "process_name"  : "JsonOutputProcess",
+            "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
             "Parameters"    : {
                 "output_variables" : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
                 "output_file_name" : "shape_change_results.json",
