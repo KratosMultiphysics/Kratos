@@ -4,27 +4,25 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
 //                   Philipp Bucher (https://github.com/philbucher)
+//                   Vicente Mataix Ferrandiz
 //
 
 #pragma once
 
 // System includes
-#include <iostream>
 #include <array>
 #include <iterator>
-#include <vector>
 #include <tuple>
 #include <cmath>
 #include <limits>
 #include <future>
 #include <thread>
-#include <mutex>
 
 // External includes
 #ifdef KRATOS_SMP_OPENMP
@@ -33,7 +31,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/global_variables.h"
 #include "includes/lock_object.h"
 
 #define KRATOS_CRITICAL_SECTION const std::lock_guard scope_lock(ParallelUtilities::GetGlobalLock());
@@ -63,6 +60,28 @@ KRATOS_ERROR_IF_NOT(err_msg.empty()) << "The following errors occured in a paral
 namespace Kratos
 {
 ///@addtogroup KratosCore
+
+/**
+ * @brief Strategies to determine how work is partitioned into chunks for parallel loops.
+ * @details This enumeration defines how a user-provided partitioning parameter is interpreted
+ * when splitting an iteration range for shared-memory parallel execution.
+ */
+enum class ChunkPartitioningScheme
+{
+    /**
+     * @brief Interpret the input value as the desired size of each chunk.
+     * @details The total number of chunks is computed from the iteration-space size
+     * and the requested chunk size.
+     */
+    DIVIDE_BY_CHUNK_SIZE,
+
+    /**
+     * @brief Interpret the input value as the desired number of chunks.
+     * @details The iteration space is split into approximately equal-sized chunks
+     * based on the requested chunk count.
+     */
+    DIVIDE_BY_NUMBER_OF_CHUNKS
+};
 
 /// Shared memory parallelism related helper class
 /** Provides access to functionalities for shared memory parallelism
@@ -103,14 +122,51 @@ public:
     [[nodiscard]] static LockObject& GetGlobalLock();
 
     ///@}
+    ///@name Access
+    ///@{
 
+    /** 
+     * @brief Sets the maximum size of a chunk for parallel loops
+     * @param MaxChunkSize - the maximum chunk size
+     */
+    static void SetMaxChunkSize(const int MaxChunkSize);
+
+    /** 
+     * @brief Sets the maximum number of chunks for parallel loops
+     * @param MaxNumberOfChunks - the maximum number of chunks
+     */
+    static void SetMaxNumberOfChunks(const int MaxNumberOfChunks);
+
+    /** 
+     * @brief Returns the maximum size of a chunk for parallel loops
+     * This is used to avoid creating too many chunks which can lead to overhead in the parallelization.
+     * @return maximum chunk size
+     */
+    static int GetMaxChunkSize();
+
+    /** 
+     * @brief Returns the maximum number of chunks for parallel loops
+     * This is used to avoid creating too many chunks which can lead to overhead in the parallelization.
+     * @return maximum number of chunks
+     */
+    static int GetMaxNumberOfChunks();
+    
+    ///@}
 private:
     ///@name Static Member Variables
     ///@{
 
+    /// Pointer to the global lock object. This is initialized in a thread safe way in GetGlobalLock() using the call_once mechanism.
     static LockObject* mspGlobalLock;
 
+    /// Pointer to the number of threads to be used in parallel regions. This is initialized in a thread safe way in GetNumberOfThreads() using the InitializeNumberOfThreads() function.
     static int* mspNumThreads;
+
+    /// Maximum size of a chunk for parallel loops. This is used to avoid creating too many chunks which can lead to overhead in the parallelization.
+    static int mParallelUtilitiesMaxChunkSize;
+
+    /// Maximum number of chunks for parallel loops
+    static int mParallelUtilitiesMaxNumberOfChunks;
 
     ///@}
     ///@name Private Operations
@@ -133,40 +189,65 @@ private:
     ///@}
 }; // Class ParallelUtilities
 
-
 //***********************************************************************************
 //***********************************************************************************
 //***********************************************************************************
-/** @param TIterator - type of iterator (must be a random access iterator)
- *  @param MaxThreads - maximum number of threads allowed in the partitioning.
- *                       must be known at compile time to avoid heap allocations in the partitioning
+/** @tparam TIterator - type of iterator (must be a random access iterator)
+ *  @tparam TPartitioningScheme: scheme to partition the iteration space.
  */
-template<class TIterator, int MaxThreads=Globals::MaxAllowedThreads>
+template<class TIterator, ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE>
 class BlockPartition
 {
 public:
     /** @param it_begin - iterator pointing at the beginning of the container
      *  @param it_end - iterator pointing to the end of the container
-     *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
+     *  @param N - number of chunks or chunk size, depending on the partitioning scheme
      */
     BlockPartition(TIterator it_begin,
                    TIterator it_end,
-                   int Nchunks = ParallelUtilities::GetNumThreads())
+                   int N = -1)
     {
+        // Determine the number of chunks based on the partitioning scheme and the input parameter N
+        if constexpr (TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE) {
+            N = N > 0 ? N : ParallelUtilities::GetMaxChunkSize();
+        } else if constexpr (TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS) {
+            N = N > 0 ? N : ParallelUtilities::GetMaxNumberOfChunks();
+        } else {
+            static_assert(TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE || TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, "Unsupported partitioning scheme");
+        }
+
+        // We need to check that N is positive, otherwise we would end up with a negative number of chunks which would lead to undefined behavior in the parallelization
+        N = std::max(1, N);
+
         static_assert(
             std::is_same_v<typename std::iterator_traits<TIterator>::iterator_category, std::random_access_iterator_tag>,
             "BlockPartition requires random access iterators to divide the input range into partitions"
         );
-        KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
 
+        // Determine the size of the container and the number of chunks, and create the partition
         const std::ptrdiff_t size_container = it_end-it_begin;
 
-        if (size_container == 0) {
-            mNchunks = Nchunks;
+        // We determine the number of chunks based on the chunk size or the number of chunks requested, but we also need to check that we do not create too many chunks which can lead to overhead in the parallelization
+        if constexpr (TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE) { // Determine the number of chunks based on the requested chunk size, but check that it is not larger than the maximum allowed number of chunks
+            mNchunks = static_cast<int>(std::ceil(static_cast<double>(size_container) / N));
+        } else if constexpr (TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS) { // If the number of chunks is specified, we need to check that it is not larger than the size of the container
+            if (size_container == 0) {
+                mNchunks = N;
+            } else {
+                // In case the container is smaller than the number of chunks
+                mNchunks = std::min(static_cast<int>(size_container), N);
+            }
         } else {
-            // in case the container is smaller than the number of chunks
-            mNchunks = std::min(static_cast<int>(size_container), Nchunks);
+            static_assert(TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE || TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, "Unsupported partitioning scheme");
         }
+
+        // We need to check that the number of chunks is positive, otherwise we would end up with a negative number of chunks which would lead to undefined behavior in the parallelization
+        mNchunks = std::max(1, mNchunks);
+
+        // We resize the partition vector to hold the partition indices. We need mNchunks+1 entries to store the start and end indices of each chunk.
+        mBlockPartition.resize(mNchunks + 1);
+
+        // Finally we create the partition based on the number of chunks determined
         const std::ptrdiff_t block_partition_size = size_container / mNchunks;
         mBlockPartition[0] = it_begin;
         mBlockPartition[mNchunks] = it_end;
@@ -183,7 +264,7 @@ public:
     {
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
@@ -206,7 +287,7 @@ public:
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
         TReducer global_reducer;
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             TReducer local_reducer;
@@ -238,7 +319,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(dynamic)
             for(int i=0; i<mNchunks; ++i){
                 KRATOS_TRY
                 for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it){
@@ -270,7 +351,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(dynamic)
             for (int i=0; i<mNchunks; ++i) {
                 KRATOS_TRY
                 TReducer local_reducer;
@@ -287,7 +368,7 @@ public:
 
 private:
     int mNchunks;
-    std::array<TIterator, MaxThreads> mBlockPartition;
+    std::vector<TIterator> mBlockPartition;
 };
 
 /** @brief Execute a functor on all items of a range in parallel.
@@ -296,13 +377,16 @@ private:
  *  @param itBegin: iterator to the first item in the container to loop on.
  *  @param itEnd: iterator past the last item in the container.
  *  @param rFunction: function to execute on each item.
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
+ *  @tparam TPartitioningScheme: scheme to partition the iteration space.
  */
 template <class TIterator,
           class TFunction,
+          ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE,
           std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
-void block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction)
+void block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction, int N = -1)
 {
-    BlockPartition<TIterator>(itBegin, itEnd).for_each(std::forward<TFunction>(rFunction));
+    BlockPartition<TIterator, TPartitioningScheme>(itBegin, itEnd, N).for_each(std::forward<TFunction>(rFunction));
 }
 
 /** @brief Execute a functor on all items of a range in parallel, and perform a reduction.
@@ -312,32 +396,38 @@ void block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction)
  *  @param itBegin: iterator to the first item in the container to loop on.
  *  @param itEnd: iterator past the last item in the container.
  *  @param rFunction: function to execute on each item.
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
+ *  @tparam TPartitioningScheme: scheme to partition the iteration space.
  */
 template <class TReduction,
           class TIterator,
           class TFunction,
+          ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE,
           std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
-[[nodiscard]] typename TReduction::return_type block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction)
+[[nodiscard]] typename TReduction::return_type block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction, int N = -1)
 {
-    return  BlockPartition<TIterator>(itBegin, itEnd).template for_each<TReduction>(std::forward<TFunction>(std::forward<TFunction>(rFunction)));
+    return  BlockPartition<TIterator, TPartitioningScheme>(itBegin, itEnd, N).template for_each<TReduction>(std::forward<TFunction>(std::forward<TFunction>(rFunction)));
 }
 
 /** @brief Execute a functor with thread local storage on all items of a range in parallel.
  *  @tparam TIterator:  random access iterator.
  *  @tparam TTLS: copy constructible thread-local type.
  *  @tparam TFunction: functor taking the dereferenced type of @a TIterator.
+ *  @tparam TPartitioningScheme: scheme to partition the iteration space.
  *  @param itBegin: iterator to the first item in the container to loop on.
  *  @param itEnd: iterator past the last item in the container.
  *  @param rTLS: thread local storage
  *  @param rFunction: function to execute on each item.
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
  */
 template <class TIterator,
           class TTLS,
-          class TFunction,
+          class TFunction, 
+          ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE,
           std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
-void block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& rTLS, TFunction &&rFunction)
+void block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& rTLS, TFunction &&rFunction, int N = -1)
 {
-     BlockPartition<TIterator>(itBegin, itEnd).for_each(rTLS, std::forward<TFunction>(rFunction));
+     BlockPartition<TIterator, TPartitioningScheme>(itBegin, itEnd, N).for_each(rTLS, std::forward<TFunction>(rFunction));
 }
 
 /** @brief Execute a functor with thread local storage on all items of a range in parallel, and perform a reduction.
@@ -345,19 +435,22 @@ void block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& rTLS, TFunct
  *  @tparam TIterator: random access iterator.
  *  @tparam TTLS: copy constructible thread-local type.
  *  @tparam TFunction: functor taking the dereferenced type of @a TIterator.
+ *  @tparam TPartitioningScheme: scheme to partition the iteration space.
  *  @param itBegin: iterator to the first item in the container to loop on.
  *  @param itEnd: iterator past the last item in the container.
  *  @param rTLS: thread local storage
  *  @param rFunction: function to execute on each item.
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
  */
 template <class TReduction,
           class TIterator,
           class TTLS,
-          class TFunction,
+          class TFunction, 
+          ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE,
           std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
-[[nodiscard]] typename TReduction::return_type block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& tls, TFunction&& rFunction)
+[[nodiscard]] typename TReduction::return_type block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& tls, TFunction&& rFunction, int N = -1)
 {
-    return BlockPartition<TIterator>(itBegin, itEnd).template for_each<TReduction>(tls, std::forward<TFunction>(std::forward<TFunction>(rFunction)));
+    return BlockPartition<TIterator, TPartitioningScheme>(itBegin, itEnd, N).template for_each<TReduction>(tls, std::forward<TFunction>(std::forward<TFunction>(rFunction)));
 }
 
 /** @brief simplified version of the basic loop (without reduction) to enable template type deduction
@@ -373,9 +466,9 @@ template <class TContainerType,
             void
           >, bool> = true
          >
-void block_for_each(TContainerType &&v, TFunctionType &&func)
+void block_for_each(TContainerType &&v, TFunctionType &&func, int N = -1)
 {
-    block_for_each(v.begin(), v.end(), std::forward<TFunctionType>(func));
+    block_for_each(v.begin(), v.end(), std::forward<TFunctionType>(func), N);
 }
 
 /** @brief simplified version of the basic loop with reduction to enable template type deduction
@@ -384,6 +477,7 @@ void block_for_each(TContainerType &&v, TFunctionType &&func)
  *  @tparam TFunctionType Functor operating on @a TContainerType::value_type.
  *  @param v - containers to be looped upon
  *  @param func - must be a unary function accepting as input TContainerType::value_type&
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
  */
 template <class TReducer,
           class TContainerType,
@@ -393,9 +487,9 @@ template <class TReducer,
             void
           >, bool> = true
          >
-[[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, TFunctionType &&func)
+[[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, TFunctionType &&func, int N = -1)
 {
-    return block_for_each<TReducer>(v.begin(), v.end(), std::forward<TFunctionType>(func));
+    return block_for_each<TReducer>(v.begin(), v.end(), std::forward<TFunctionType>(func), N);
 }
 
 /** @brief simplified version of the basic loop with thread local storage (TLS) to enable template type deduction
@@ -405,6 +499,7 @@ template <class TReducer,
  *  @param v - containers to be looped upon
  *  @param tls - thread local storage
  *  @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
  */
 template <class TContainerType,
           class TThreadLocalStorage,
@@ -414,9 +509,9 @@ template <class TContainerType,
             void
           >, bool> = true
          >
-void block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
+void block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func, int N = -1)
 {
-    block_for_each(v.begin(), v.end(), tls, std::forward<TFunctionType>(func));
+    block_for_each(v.begin(), v.end(), tls, std::forward<TFunctionType>(func), N);
 }
 
 /** @brief simplified version of the basic loop with reduction and thread local storage (TLS) to enable template type deduction
@@ -427,6 +522,7 @@ void block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctio
  *  @param v - containers to be looped upon
  *  @param tls - thread local storage
  *  @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
  */
 template <class TReducer,
           class TContainerType,
@@ -437,40 +533,63 @@ template <class TReducer,
             void
           >, bool> = true
          >
-[[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
+[[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func, int N = -1)
 {
-    return block_for_each<TReducer>(v.begin(), v.end(), tls, std::forward<TFunctionType>(func));
+    return block_for_each<TReducer>(v.begin(), v.end(), tls, std::forward<TFunctionType>(func), N);
 }
 
 //***********************************************************************************
 //***********************************************************************************
 //***********************************************************************************
 /** @brief This class is useful for index iteration over containers
- *  @param TIndexType type of index to be used in the loop
- *  @param TMaxThreads - maximum number of threads allowed in the partitioning.
- *                       must be known at compile time to avoid heap allocations in the partitioning
+ *  @tparam TIndexType type of index to be used in the loop
+ *  @tparam TPartitioningScheme scheme to partition the iteration space.
  */
-template<class TIndexType=std::size_t, int TMaxThreads=Globals::MaxAllowedThreads>
+template<class TIndexType=std::size_t, ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE>
 class IndexPartition
 {
 public:
 
 /** @brief constructor using the size of the partition to be used
  *  @param Size - the size of the partition
- *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme
  */
     IndexPartition(TIndexType Size,
-                   int Nchunks = ParallelUtilities::GetNumThreads())
+                   int N = -1)
     {
-        KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
-
-        if (Size == 0) {
-            mNchunks = Nchunks;
+        // Determine the number of chunks based on the partitioning scheme and the input parameter N
+        if constexpr (TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE) {
+            N = N > 0 ? N : ParallelUtilities::GetMaxChunkSize();
+        } else if constexpr (TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS) {
+            N = N > 0 ? N : ParallelUtilities::GetMaxNumberOfChunks();
         } else {
-            // in case the container is smaller than the number of chunks
-            mNchunks = std::min(static_cast<int>(Size), Nchunks);
+            static_assert(TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE || TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, "Unsupported partitioning scheme");
+        }        
+        
+        // We need to check that N is positive, otherwise we would end up with a negative number of chunks which would lead to undefined behavior in the parallelization
+        N = std::max(1, N);
+
+        // We determine the number of chunks based on the chunk size or the number of chunks requested, but we also need to check that we do not create too many chunks which can lead to overhead in the parallelization
+        if constexpr (TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE) { // Determine the number of chunks based on the requested chunk size, but check that it is not larger than the maximum allowed number of chunks
+            mNchunks = static_cast<int>(std::ceil(static_cast<double>(Size) / N));
+        } else if constexpr (TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS) { // If the number of chunks is specified, we need to check that it is not larger than the size of the container
+            if (Size == 0) {
+                mNchunks = N;
+            } else {
+                // In case the container is smaller than the number of chunks
+                mNchunks = std::min(static_cast<int>(Size), N);
+            }
+        } else {
+            static_assert(TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE || TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, "Unsupported partitioning scheme");
         }
 
+        // We need to check that the number of chunks is positive, otherwise we would end up with a negative number of chunks which would lead to undefined behavior in the parallelization
+        mNchunks = std::max(1, mNchunks);
+
+        // We resize the partition vector to hold the partition indices. We need mNchunks+1 entries to store the start and end indices of each chunk.
+        mBlockPartition.resize(mNchunks + 1);
+
+        // Finally we create the partition based on the number of chunks determined
         const int block_partition_size = Size / mNchunks;
         mBlockPartition[0] = 0;
         mBlockPartition[mNchunks] = Size;
@@ -519,7 +638,7 @@ public:
     {
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
@@ -541,7 +660,7 @@ public:
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
         TReducer global_reducer;
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             TReducer local_reducer;
@@ -572,7 +691,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(dynamic)
             for (int i=0; i<mNchunks; ++i) {
                 KRATOS_TRY
                 for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
@@ -604,7 +723,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(dynamic)
             for (int i=0; i<mNchunks; ++i) {
                 KRATOS_TRY
                 TReducer local_reducer;
@@ -622,7 +741,7 @@ public:
 
 private:
     int mNchunks;
-    std::array<TIndexType, TMaxThreads> mBlockPartition;
+    std::vector<TIndexType> mBlockPartition;
 };
 
 } // namespace Kratos.
