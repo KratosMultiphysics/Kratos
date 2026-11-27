@@ -454,8 +454,8 @@ public:
         //TODO: This can be parallel
         const array_1d<double,3> ZeroNormal(3,0.0);
         for(ModelPart::NodesContainerType::iterator it =  rModelPart.NodesBegin(); it !=rModelPart.NodesEnd(); it++) {
-            noalias(it->GetValue(rNormalVariable)) = ZeroNormal;
-            it->GetValue(NODAL_PAUX) = 0.0;
+            noalias(it->FastGetSolutionStepValue(rNormalVariable)) = ZeroNormal;
+            it->FastGetSolutionStepValue(NODAL_PAUX) = 0.0;
         }
 
         // Calculate new condition normals, using only conditions with rVariable == rValue
@@ -525,6 +525,7 @@ public:
             }
 
             noalias( it->FastGetSolutionStepValue(rNormalVariable) ) = sum_Normal;
+            
             it->FastGetSolutionStepValue(NODAL_PAUX) = nodal_area;
             //assign IS_SLIP = 0 for vertices
             if(N_Mat.size() == 2){
