@@ -1,0 +1,17 @@
+{
+    "dummy_settings": {
+        "alpha": 1.0,
+        "number_of_nodes": 5
+    },
+    "dataset_export": {
+        "model_part_name": "Main",
+        "list_of_fields": [
+            {
+                "variable_name": "PRESSURE",
+                "data_location": "node_historical"
+            }
+        ],
+        "output_path": "physics_nemo_dataset",
+        "output_interval": 1
+    }
+}

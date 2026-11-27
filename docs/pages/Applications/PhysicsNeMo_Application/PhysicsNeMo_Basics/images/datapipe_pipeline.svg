@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="500" viewBox="0 0 1100 500" font-family="Helvetica, Arial, sans-serif">
+  <title>physicsnemo.datapipes, and where Kratos data enters it</title>
+  <desc>Top row: readers turn files into TensorDict samples, transforms modify them, datasets hold them, the collator and DataLoader batch them onto the device. Bottom: the two Kratos entry routes, through files and through a live queue.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
+    </marker>
+  </defs>
+  <rect width="1100" height="500" fill="#ffffff"/>
+  <text x="550" y="30" text-anchor="middle" font-size="17" font-weight="bold" fill="#2e6b2e">physicsnemo.datapipes: file to batch</text>
+  <g font-size="12.5" fill="#333">
+    <rect x="20" y="50" width="200" height="118" rx="8" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="120" y="72" text-anchor="middle" font-size="14" font-weight="bold" fill="#2e6b2e">Readers</text>
+    <text x="120" y="92" text-anchor="middle">NumpyReader (.npz)</text>
+    <text x="120" y="108" text-anchor="middle">HDF5Reader, ZarrReader,</text>
+    <text x="120" y="124" text-anchor="middle" font-size="11">TensorStoreZarrReader, VTKReader</text>
+    <text x="120" y="140" text-anchor="middle">MeshReader, DomainMeshReader</text>
+    <text x="120" y="156" text-anchor="middle" fill="#666">one sample = one TensorDict</text>
+    <rect x="245" y="50" width="200" height="118" rx="8" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="345" y="72" text-anchor="middle" font-size="14" font-weight="bold" fill="#2e6b2e">Transforms</text>
+    <text x="345" y="92" text-anchor="middle">Compose, Normalize, Scale</text>
+    <text x="345" y="108" text-anchor="middle" font-size="11">SubsamplePoints, BoundingBoxFilter</text>
+    <text x="345" y="124" text-anchor="middle">ComputeSDF, ComputeNormals</text>
+    <text x="345" y="140" text-anchor="middle">RandomRotateMesh, ConcatFields</text>
+    <text x="345" y="156" text-anchor="middle" fill="#666">sample in, modified sample out</text>
+    <rect x="470" y="50" width="200" height="118" rx="8" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="570" y="72" text-anchor="middle" font-size="14" font-weight="bold" fill="#2e6b2e">Datasets</text>
+    <text x="570" y="92" text-anchor="middle">Dataset (map style)</text>
+    <text x="570" y="108" text-anchor="middle">IterableDatasetBase (stream)</text>
+    <text x="570" y="124" text-anchor="middle">MeshDataset, MultiDataset</text>
+    <text x="570" y="140" text-anchor="middle" font-size="11">CAEDataset, DoMINO/Transolver pipes</text>
+    <text x="570" y="156" text-anchor="middle" fill="#666">reader + transforms + device</text>
+    <rect x="695" y="50" width="185" height="118" rx="8" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="787" y="72" text-anchor="middle" font-size="14" font-weight="bold" fill="#2e6b2e">Collator, DataLoader</text>
+    <text x="787" y="92" text-anchor="middle">stack or pad samples</text>
+    <text x="787" y="108" text-anchor="middle">prefetch, pin memory,</text>
+    <text x="787" y="124" text-anchor="middle">IOPump for I/O-bound sets</text>
+    <text x="787" y="156" text-anchor="middle" fill="#666">yields (data, metadata)</text>
+    <rect x="905" y="50" width="175" height="118" rx="8" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="992" y="72" text-anchor="middle" font-size="14" font-weight="bold" fill="#7a4d00">Batches on device</text>
+    <text x="992" y="96" text-anchor="middle">TensorDict or tensors</text>
+    <text x="992" y="112" text-anchor="middle">(B, N, C) points</text>
+    <text x="992" y="128" text-anchor="middle">(B, C, D, H, W) grids</text>
+    <text x="992" y="144" text-anchor="middle">a Mesh per sample</text>
+    <g stroke="#555" stroke-width="1.8">
+      <line x1="220" y1="109" x2="243" y2="109" marker-end="url(#arrow)"/>
+      <line x1="445" y1="109" x2="468" y2="109" marker-end="url(#arrow)"/>
+      <line x1="670" y1="109" x2="693" y2="109" marker-end="url(#arrow)"/>
+      <line x1="880" y1="109" x2="903" y2="109" marker-end="url(#arrow)"/>
+    </g>
+  </g>
+  <!-- Kratos routes -->
+  <text x="550" y="215" text-anchor="middle" font-size="17" font-weight="bold" fill="#1f4e79">Where Kratos data enters</text>
+  <g font-size="12.5" fill="#333">
+    <!-- files route -->
+    <rect x="20" y="235" width="1060" height="118" rx="8" fill="#f6f6f6" stroke="#666"/>
+    <text x="32" y="255" font-size="13" font-weight="bold">Through files (the default: reusable, shuffleable, inspectable)</text>
+    <rect x="35" y="268" width="150" height="70" rx="6" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="110" y="292" text-anchor="middle" font-weight="bold" fill="#1f4e79">a running solve</text>
+    <text x="110" y="310" text-anchor="middle">AnalysisStage with an</text>
+    <text x="110" y="326" text-anchor="middle">export process attached</text>
+    <rect x="225" y="268" width="270" height="70" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="360" y="288" text-anchor="middle" font-family="monospace" font-size="11.5">dataset_export_process  -> *.npz</text>
+    <text x="360" y="305" text-anchor="middle" font-family="monospace" font-size="11.5">mesh_export_process     -> *.pmsh</text>
+    <text x="360" y="322" text-anchor="middle" font-family="monospace" font-size="11.5">cae_dataset_export_process -> CAE .npz</text>
+    <rect x="535" y="268" width="290" height="70" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="680" y="288" text-anchor="middle" font-family="monospace" font-size="11.5">torch_dataset.CreateNpzDataset</text>
+    <text x="680" y="305" text-anchor="middle" font-family="monospace" font-size="11.5">torch_dataset.CreateMeshDataset</text>
+    <text x="680" y="322" text-anchor="middle" font-family="monospace" font-size="11.5">torch_dataset.CreateDoMINODataPipe</text>
+    <rect x="865" y="268" width="200" height="70" rx="6" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="965" y="292" text-anchor="middle" font-weight="bold" fill="#2e6b2e">DataLoader, TrainModel</text>
+    <text x="965" y="310" text-anchor="middle">the same (n_entities, width)</text>
+    <text x="965" y="326" text-anchor="middle">layout inference feeds later</text>
+    <g stroke="#555" stroke-width="1.8">
+      <line x1="185" y1="303" x2="223" y2="303" marker-end="url(#arrow)"/>
+      <line x1="495" y1="303" x2="533" y2="303" marker-end="url(#arrow)"/>
+      <line x1="825" y1="303" x2="863" y2="303" marker-end="url(#arrow)"/>
+    </g>
+    <!-- streaming route -->
+    <rect x="20" y="368" width="1060" height="118" rx="8" fill="#f6f6f6" stroke="#666"/>
+    <text x="32" y="388" font-size="13" font-weight="bold">Streaming (train before the solve ends; samples byte-identical to the file route)</text>
+    <rect x="35" y="401" width="150" height="70" rx="6" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="110" y="425" text-anchor="middle" font-weight="bold" fill="#1f4e79">a running solve</text>
+    <text x="110" y="443" text-anchor="middle">streaming_dataset_</text>
+    <text x="110" y="459" text-anchor="middle">export_process</text>
+    <rect x="225" y="401" width="270" height="70" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="360" y="425" text-anchor="middle" font-family="monospace" font-size="11.5">LiveSampleQueue</text>
+    <text x="360" y="443" text-anchor="middle">bounded; Close() is the only way</text>
+    <text x="360" y="459" text-anchor="middle">a consumer learns the solve ended</text>
+    <rect x="535" y="401" width="290" height="70" rx="6" fill="#ffffff" stroke="#666"/>
+    <text x="680" y="425" text-anchor="middle" font-family="monospace" font-size="11.5">streaming_dataset.CreateStreamingDataset</text>
+    <text x="680" y="443" text-anchor="middle">an IterableDataset that is both</text>
+    <text x="680" y="459" text-anchor="middle">physicsnemo's and torch's</text>
+    <rect x="865" y="401" width="200" height="70" rx="6" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="965" y="425" text-anchor="middle" font-weight="bold" fill="#2e6b2e">TrainModel "streaming"</text>
+    <text x="965" y="443" text-anchor="middle">epochs pinned to 1,</text>
+    <text x="965" y="459" text-anchor="middle">no shuffle, explicit buffer</text>
+    <g stroke="#555" stroke-width="1.8">
+      <line x1="185" y1="436" x2="223" y2="436" marker-end="url(#arrow)"/>
+      <line x1="495" y1="436" x2="533" y2="436" marker-end="url(#arrow)"/>
+      <line x1="825" y1="436" x2="863" y2="436" marker-end="url(#arrow)"/>
+    </g>
+  </g>
+</svg>

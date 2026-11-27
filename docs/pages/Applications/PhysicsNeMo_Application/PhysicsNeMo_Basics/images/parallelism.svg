@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520" font-family="Helvetica, Arial, sans-serif">
+  <title>Data parallelism versus domain parallelism</title>
+  <desc>Left: data parallelism, every rank holds the whole model and a different batch slice, gradients are all-reduced. Right: domain parallelism, one tensor is split across ranks as a ShardTensor, neighbouring ranks exchange halos so local operators match the serial result, and the backward already leaves the serial gradient on every rank.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
+    </marker>
+  </defs>
+  <rect width="1100" height="520" fill="#ffffff"/>
+  <!-- data parallel -->
+  <rect x="20" y="20" width="520" height="400" rx="10" fill="#eaf2fb" stroke="#1f4e79" stroke-width="1.5"/>
+  <text x="280" y="48" text-anchor="middle" font-size="17" font-weight="bold" fill="#1f4e79">Data parallelism  (physicsnemo.distributed, DDP, FSDP2)</text>
+  <text x="280" y="70" text-anchor="middle" font-size="13" fill="#333">every rank: the whole model, a different slice of the data</text>
+  <g font-size="12.5" fill="#333">
+    <rect x="45" y="90" width="140" height="140" rx="8" fill="#ffffff" stroke="#1f4e79"/>
+    <text x="115" y="112" text-anchor="middle" font-weight="bold" fill="#1f4e79">rank 0</text>
+    <rect x="60" y="122" width="110" height="34" rx="4" fill="#eef7ee" stroke="#2e6b2e"/><text x="115" y="144" text-anchor="middle">model (full copy)</text>
+    <rect x="60" y="164" width="110" height="34" rx="4" fill="#fff4e0" stroke="#c27c0e"/><text x="115" y="186" text-anchor="middle">samples 0..k</text>
+    <text x="115" y="220" text-anchor="middle" font-size="11.5" fill="#666">grad_0</text>
+    <rect x="210" y="90" width="140" height="140" rx="8" fill="#ffffff" stroke="#1f4e79"/>
+    <text x="280" y="112" text-anchor="middle" font-weight="bold" fill="#1f4e79">rank 1</text>
+    <rect x="225" y="122" width="110" height="34" rx="4" fill="#eef7ee" stroke="#2e6b2e"/><text x="280" y="144" text-anchor="middle">model (full copy)</text>
+    <rect x="225" y="164" width="110" height="34" rx="4" fill="#fff4e0" stroke="#c27c0e"/><text x="280" y="186" text-anchor="middle">samples k..2k</text>
+    <text x="280" y="220" text-anchor="middle" font-size="11.5" fill="#666">grad_1</text>
+    <rect x="375" y="90" width="140" height="140" rx="8" fill="#ffffff" stroke="#1f4e79"/>
+    <text x="445" y="112" text-anchor="middle" font-weight="bold" fill="#1f4e79">rank 2</text>
+    <rect x="390" y="122" width="110" height="34" rx="4" fill="#eef7ee" stroke="#2e6b2e"/><text x="445" y="144" text-anchor="middle">model (full copy)</text>
+    <rect x="390" y="164" width="110" height="34" rx="4" fill="#fff4e0" stroke="#c27c0e"/><text x="445" y="186" text-anchor="middle">samples 2k..3k</text>
+    <text x="445" y="220" text-anchor="middle" font-size="11.5" fill="#666">grad_2</text>
+    <rect x="130" y="250" width="300" height="34" rx="6" fill="#ffffff" stroke="#1f4e79"/>
+    <text x="280" y="272" text-anchor="middle" font-weight="bold">all-reduce: mean of the gradients</text>
+    <g stroke="#555" stroke-width="1.6"><line x1="115" y1="228" x2="200" y2="250"/><line x1="280" y1="228" x2="280" y2="250"/><line x1="445" y1="228" x2="360" y2="250"/></g>
+    <text x="45" y="315" font-weight="bold">Kratos side of it</text>
+    <text x="45" y="335">a mesh graph split across ranks truncates interface neighbourhoods;</text>
+    <text x="45" y="352">graph_partition_utils rebuilds each rank's subgraph with a halo of</text>
+    <text x="45" y="369">elements so one-hop aggregation matches the serial run everywhere.</text>
+    <text x="45" y="393">FSDP2 shards the parameters instead; SaveTrainedModel gathers the</text>
+    <text x="45" y="410">DTensors back into one ordinary .mdlus on rank 0.</text>
+  </g>
+  <!-- domain parallel -->
+  <rect x="560" y="20" width="520" height="400" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+  <text x="820" y="48" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">Domain parallelism  (physicsnemo.domain_parallel, ShardTensor)</text>
+  <text x="820" y="70" text-anchor="middle" font-size="13" fill="#333">every rank: part of ONE tensor; the sample itself is split</text>
+  <g font-size="12.5" fill="#333">
+    <!-- one field split in three uneven shards -->
+    <rect x="590" y="95" width="150" height="70" rx="4" fill="#fff4e0" stroke="#c27c0e"/>
+    <rect x="740" y="95" width="200" height="70" rx="4" fill="#ffe3b3" stroke="#c27c0e"/>
+    <rect x="940" y="95" width="110" height="70" rx="4" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="665" y="122" text-anchor="middle" font-weight="bold">rank 0</text><text x="665" y="142" text-anchor="middle">owned rows 0..n0</text>
+    <text x="840" y="122" text-anchor="middle" font-weight="bold">rank 1</text><text x="840" y="142" text-anchor="middle">owned rows n0..n1</text>
+    <text x="995" y="122" text-anchor="middle" font-weight="bold">rank 2</text><text x="995" y="142" text-anchor="middle">rows n1..N</text>
+    <text x="820" y="185" text-anchor="middle" font-size="12" fill="#666">uneven shards are allowed - a Kratos partition is never even</text>
+    <!-- halo exchange -->
+    <rect x="720" y="200" width="40" height="40" fill="#fdf0f5" stroke="#a03060"/>
+    <rect x="920" y="200" width="40" height="40" fill="#fdf0f5" stroke="#a03060"/>
+    <line x1="700" y1="220" x2="780" y2="220" stroke="#a03060" stroke-width="1.8" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+    <line x1="900" y1="220" x2="980" y2="220" stroke="#a03060" stroke-width="1.8" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+    <text x="820" y="262" text-anchor="middle">halo exchange: a convolution or a stencil at a shard boundary needs the</text>
+    <text x="820" y="279" text-anchor="middle">neighbour's edge cells; ShardTensor's op handlers fetch them, so the</text>
+    <text x="820" y="296" text-anchor="middle">operator gives the serial answer without any change to the model</text>
+    <text x="585" y="330" font-weight="bold">Kratos side of it</text>
+    <text x="585" y="350">domain_parallel_utils: owned rows of a field as one ShardTensor over</text>
+    <text x="585" y="367">a CPU or CUDA DeviceMesh, write-back to owners then ghost refresh.</text>
+    <text x="585" y="391" fill="#a03060">Trap: the backward of a mean over a ShardTensor already leaves the</text>
+    <text x="585" y="408" fill="#a03060">serial gradient on every rank - a DDP-style all-reduce on top is wrong.</text>
+  </g>
+  <g font-size="12.5" fill="#444">
+    <text x="20" y="450" font-weight="bold">Which one:</text>
+    <text x="110" y="450">if one sample fits in memory, data parallelism (DDP) is simpler and faster.  Domain parallelism is for the sample that does not fit - a high-resolution</text>
+    <text x="110" y="470">field or a huge mesh - because in scientific ML memory is dominated by activations, not by parameters.  Both need the Kratos ranks and torch's ranks</text>
+    <text x="110" y="490">to agree on who is who: distributed_utils aligns DistributedManager with the DataCommunicator and fails loudly when they disagree.</text>
+  </g>
+</svg>

@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="470" viewBox="0 0 1100 470" font-family="Helvetica, Arial, sans-serif">
+  <title>What a checkpoint contains, and what the model card adds</title>
+  <desc>A .mdlus archive holds weights, constructor arguments and the class name; a TorchScript file holds a traced computation; the model card sidecar records what the tensors mean. The bottom row shows how a deployment process uses all three.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
+    </marker>
+  </defs>
+  <rect width="1100" height="470" fill="#ffffff"/>
+  <g font-size="13" fill="#333">
+    <!-- mdlus -->
+    <rect x="20" y="20" width="330" height="230" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+    <text x="185" y="46" text-anchor="middle" font-size="16" font-weight="bold" fill="#2e6b2e">surrogate.mdlus  (a zip archive)</text>
+    <rect x="35" y="60" width="300" height="40" rx="5" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="45" y="77" font-weight="bold">state_dict</text><text x="45" y="93">the weights</text>
+    <rect x="35" y="108" width="300" height="40" rx="5" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="45" y="125" font-weight="bold">constructor arguments</text><text x="45" y="141">the architecture, as the Module recorded it</text>
+    <rect x="35" y="156" width="300" height="40" rx="5" fill="#ffffff" stroke="#2e6b2e"/>
+    <text x="45" y="173" font-weight="bold">registry name + physicsnemo version</text><text x="45" y="189">so from_checkpoint can find the class</text>
+    <text x="185" y="220" text-anchor="middle" font-size="12" fill="#2e6b2e">loads with:  physicsnemo.Module.from_checkpoint(path)</text>
+    <text x="185" y="238" text-anchor="middle" font-size="12" fill="#666">needs physicsnemo installed; no training script needed</text>
+    <!-- torchscript -->
+    <rect x="385" y="20" width="330" height="230" rx="10" fill="#f6f6f6" stroke="#666" stroke-width="1.5"/>
+    <text x="550" y="46" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">surrogate.pt  (TorchScript)</text>
+    <rect x="400" y="60" width="300" height="40" rx="5" fill="#ffffff" stroke="#666"/>
+    <text x="410" y="77" font-weight="bold">traced or scripted computation</text><text x="410" y="93">the forward pass frozen into a graph</text>
+    <rect x="400" y="108" width="300" height="40" rx="5" fill="#ffffff" stroke="#666"/>
+    <text x="410" y="125" font-weight="bold">the weights, baked in</text><text x="410" y="141">no constructor, no class name</text>
+    <rect x="400" y="156" width="300" height="40" rx="5" fill="#ffffff" stroke="#666"/>
+    <text x="410" y="173" font-weight="bold">.onnx is the same idea one step further</text><text x="410" y="189">runs with ONNX Runtime, no torch at all</text>
+    <text x="550" y="220" text-anchor="middle" font-size="12" fill="#333">loads with:  torch.jit.load(path)</text>
+    <text x="550" y="238" text-anchor="middle" font-size="12" fill="#666">needs only torch; no torch.compile, no surgery</text>
+    <!-- card -->
+    <rect x="750" y="20" width="330" height="230" rx="10" fill="#fff4e0" stroke="#c27c0e" stroke-width="1.5"/>
+    <text x="915" y="46" text-anchor="middle" font-size="16" font-weight="bold" fill="#7a4d00">surrogate.mdlus.card.json  (sidecar)</text>
+    <g font-family="monospace" font-size="11">
+      <text x="765" y="72">"input_fields" : [{"variable_name": "HEAT_FLUX",</text>
+      <text x="765" y="88">                   "data_location": "node_historical"}]</text>
+      <text x="765" y="108">"output_fields": [{"variable_name": "TEMPERATURE"}]</text>
+      <text x="765" y="128">"input_normalization" : {"type": "mean_std", ..}</text>
+      <text x="765" y="144">"output_normalization": {"type": "mean_std",</text>
+      <text x="765" y="160">                         "mean": [..], "std": [..]}</text>
+      <text x="765" y="180">"notes": "swept HEAT_FLUX over [0, 1e4]"</text>
+    </g>
+    <text x="915" y="210" text-anchor="middle" font-size="12" fill="#7a4d00">what the channels mean, in which order, in which scale</text>
+    <text x="915" y="228" text-anchor="middle" font-size="12" fill="#666">other sidecars: .ood_guard (calibrated guard), .gp_head.pt</text>
+    <text x="915" y="244" text-anchor="middle" font-size="12" fill="#666">an absent key is the identity; a wrong channel count raises</text>
+  </g>
+  <!-- deployment flow -->
+  <text x="550" y="290" text-anchor="middle" font-size="15" font-weight="bold" fill="#333">What a deployment process does with them, every step</text>
+  <g font-size="12.5" fill="#333">
+    <rect x="20" y="310" width="150" height="70" rx="6" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="95" y="334" text-anchor="middle" font-weight="bold" fill="#1f4e79">gather</text>
+    <text x="95" y="352" text-anchor="middle">input_fields from</text>
+    <text x="95" y="368" text-anchor="middle">the ModelPart</text>
+    <rect x="200" y="310" width="150" height="70" rx="6" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="275" y="334" text-anchor="middle" font-weight="bold" fill="#7a4d00">normalize inputs</text>
+    <text x="275" y="352" text-anchor="middle">per the card, then</text>
+    <text x="275" y="368" text-anchor="middle">the OOD guard checks</text>
+    <rect x="380" y="310" width="150" height="70" rx="6" fill="#eef7ee" stroke="#2e6b2e"/>
+    <text x="455" y="334" text-anchor="middle" font-weight="bold" fill="#2e6b2e">forward</text>
+    <text x="455" y="352" text-anchor="middle">.mdlus, TorchScript,</text>
+    <text x="455" y="368" text-anchor="middle">ONNX or Triton</text>
+    <rect x="560" y="310" width="150" height="70" rx="6" fill="#fff4e0" stroke="#c27c0e"/>
+    <text x="635" y="334" text-anchor="middle" font-weight="bold" fill="#7a4d00">de-normalize</text>
+    <text x="635" y="352" text-anchor="middle">outputs; a spread is</text>
+    <text x="635" y="368" text-anchor="middle">scaled, never shifted</text>
+    <rect x="740" y="310" width="150" height="70" rx="6" fill="#eaf2fb" stroke="#1f4e79"/>
+    <text x="815" y="334" text-anchor="middle" font-weight="bold" fill="#1f4e79">scatter</text>
+    <text x="815" y="352" text-anchor="middle">onto output_fields,</text>
+    <text x="815" y="368" text-anchor="middle">real Kratos variables</text>
+    <rect x="920" y="310" width="160" height="70" rx="6" fill="#fdf0f5" stroke="#a03060"/>
+    <text x="1000" y="334" text-anchor="middle" font-weight="bold" fill="#a03060">card policy</text>
+    <text x="1000" y="352" text-anchor="middle">advisory warns, strict</text>
+    <text x="1000" y="368" text-anchor="middle">raises, ignore skips fields</text>
+    <g stroke="#555" stroke-width="1.8">
+      <line x1="170" y1="345" x2="198" y2="345" marker-end="url(#arrow)"/>
+      <line x1="350" y1="345" x2="378" y2="345" marker-end="url(#arrow)"/>
+      <line x1="530" y1="345" x2="558" y2="345" marker-end="url(#arrow)"/>
+      <line x1="710" y1="345" x2="738" y2="345" marker-end="url(#arrow)"/>
+    </g>
+    <text x="550" y="415" text-anchor="middle" fill="#444">The card is read regardless of the policy - "ignore" skips the field-list validation, never the de-normalization.</text>
+    <text x="550" y="435" text-anchor="middle" fill="#444">Rule of thumb: .mdlus while you are still training, TorchScript or ONNX when you ship. Always with a card.</text>
+  </g>
+</svg>

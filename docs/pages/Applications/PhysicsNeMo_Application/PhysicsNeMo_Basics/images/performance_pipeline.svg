@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="420" viewBox="0 0 1100 420" font-family="Helvetica, Arial, sans-serif">
+  <title>Where the time goes in a physics-ML pipeline</title>
+  <desc>Four stages - data loading, preprocessing, the model, scaling - each with the upstream tools that address it and what this application does about it today.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
+    </marker>
+  </defs>
+  <rect width="1100" height="420" fill="#ffffff"/>
+  <text x="550" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">Amdahl's law applies: speeding up the model is bounded by the fraction of time the model actually takes</text>
+  <g font-size="12.5" fill="#333">
+    <rect x="20"  y="55" width="250" height="100" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+    <text x="145" y="80" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">1. Data loading</text>
+    <text x="145" y="102" text-anchor="middle">TB-scale datasets: HDF5, Zarr,</text>
+    <text x="145" y="118" text-anchor="middle">TensorStore, DALI, IOPump prefetch,</text>
+    <text x="145" y="134" text-anchor="middle">memory-mapped .pmsh (up to 600x VTK)</text>
+    <rect x="290" y="55" width="250" height="100" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+    <text x="415" y="80" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">2. Preprocessing</text>
+    <text x="415" y="102" text-anchor="middle">GPU transforms can starve the model;</text>
+    <text x="415" y="118" text-anchor="middle">do deterministic work (normalize, pad)</text>
+    <text x="415" y="134" text-anchor="middle">once, stochastic work (augment) per epoch</text>
+    <rect x="560" y="55" width="250" height="100" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+    <text x="685" y="80" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">3. The model</text>
+    <text x="685" y="102" text-anchor="middle" font-size="11.5">torch.compile, CUDA graphs (StaticCapture),</text>
+    <text x="685" y="118" text-anchor="middle">AMP bf16/fp16, TransformerEngine fp8,</text>
+    <text x="685" y="134" text-anchor="middle">Warp / cuML kernels, fused layers</text>
+    <rect x="830" y="55" width="250" height="100" rx="10" fill="#eef7ee" stroke="#2e6b2e" stroke-width="1.5"/>
+    <text x="955" y="80" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e6b2e">4. Scaling out</text>
+    <text x="955" y="102" text-anchor="middle">DDP, FSDP2, ShardTensor over NCCL;</text>
+    <text x="955" y="118" text-anchor="middle">parallel I/O, checkpoint gathering,</text>
+    <text x="955" y="134" text-anchor="middle">metric aggregation across ranks</text>
+    <g stroke="#555" stroke-width="1.8">
+      <line x1="270" y1="105" x2="288" y2="105" marker-end="url(#arrow)"/>
+      <line x1="540" y1="105" x2="558" y2="105" marker-end="url(#arrow)"/>
+      <line x1="810" y1="105" x2="828" y2="105" marker-end="url(#arrow)"/>
+    </g>
+    <text x="550" y="185" text-anchor="middle" font-size="14" font-weight="bold" fill="#1f4e79">and the stage upstream does not list, because it is ours:</text>
+    <rect x="20" y="200" width="1060" height="70" rx="10" fill="#eaf2fb" stroke="#1f4e79" stroke-width="1.5"/>
+    <text x="550" y="224" text-anchor="middle" font-size="15" font-weight="bold" fill="#1f4e79">0. The bridge  -  moving data between Kratos entities and tensors, every step</text>
+    <text x="550" y="246" text-anchor="middle">gather 0.03 us/node after vectorization; element scatter 2.1, grid sampling 3.3, provenance 4.2 (tets) to 39 (hexes) us/entity -</text>
+    <text x="550" y="262" text-anchor="middle">so topology is built once and cached, and only values move per step. Rebuilding provenance each step cost 241 ms on a 28k-triangle surface.</text>
+    <text x="20" y="300" font-weight="bold">Tools in physicsnemo.utils and physicsnemo.optim</text>
+    <text x="20" y="320" font-family="monospace" font-size="11.5">StaticCaptureTraining / StaticCaptureEvaluateNoGrad   CUDA-graph capture + AMP as a decorator (physicsnemo.Module only)</text>
+    <text x="20" y="338" font-family="monospace" font-size="11.5">Profiler                                               torch profiler, NVTX and line-profiler behind one context manager</text>
+    <text x="20" y="356" font-family="monospace" font-size="11.5">LaunchLogger, PythonLogger, mlflow, wandb              epoch/minibatch logging with experiment trackers</text>
+    <text x="20" y="374" font-family="monospace" font-size="11.5">save_checkpoint / load_checkpoint                      model + optimizer + scheduler + scaler + epoch, resumable</text>
+    <text x="20" y="392" font-family="monospace" font-size="11.5">optim.Muon, optim.CombinedOptimizer                    orthogonalized updates for 2-D weights; one optimizer per parameter group</text>
+    <text x="20" y="412" fill="#444">Used here today: torch.compile and NVTX ranges at deployment, opt-in CuPy on the array-heavy bridge paths. The rest is on the roadmap.</text>
+  </g>
+</svg>
