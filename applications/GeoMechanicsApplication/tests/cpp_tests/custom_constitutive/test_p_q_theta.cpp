@@ -85,10 +85,10 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQTheta_RaisesADebugErrorWhenAt
 
     // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(Geo::PQTheta{vector_with_wrong_q},
-                                      "Invalid Q value: -2. Q must be non-negative.");
+                                      "Invalid PQTheta: Q = -2 is negative.");
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         Geo::PQTheta{vector_with_wrong_theta},
-        "Invalid Theta value: -1. Theta must be in the range [-pi/6, pi/6] (radians).");
+        "Invalid PQTheta: Theta = -1 is out of the range [-pi/6, pi/6].");
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQTheta_CanBeConstructedFromAVectorExpression)

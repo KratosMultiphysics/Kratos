@@ -19,6 +19,7 @@
 #include "includes/kratos_export_api.h"
 
 #include <algorithm>
+#include <cstddef> // for std::size_t
 #include <iterator>
 
 namespace Kratos::Geo
@@ -33,19 +34,11 @@ public:
     PQTheta() = default;
     PQTheta(double P, double Q, double Theta); // Pressure, deviatoric stress, Lode angle in radians
 
+    explicit PQTheta(const InternalVectorType& rValues);
+
     template <typename VectorType>
-    explicit PQTheta(const VectorType& rValues)
+    explicit PQTheta(const VectorType& rValues) : PQTheta{SizeCheckedCopy(rValues)}
     {
-        // For some reason, the `std::ranges` versions of the below algorithms don't play nicely
-        // with UBlas vector expressions. Therefore, we're using the iterator-style algorithms.
-        auto first = std::begin(rValues);
-        auto last  = std::end(rValues);
-        KRATOS_DEBUG_ERROR_IF(std::distance(first, last) != msVectorSize)
-            << "Cannot construct a PQTheta instance: expected " << msVectorSize
-            << " values, but got " << std::distance(first, last) << " value(s)\n";
-        CheckQ(*(first + 1));
-        CheckTheta(*(first + 2));
-        std::copy(first, last, mValues.begin());
     }
 
     [[nodiscard]] const InternalVectorType& Values() const noexcept;
@@ -54,7 +47,7 @@ public:
     [[nodiscard]] double                    Theta() const noexcept;
 
     template <typename VectorType>
-    VectorType CopyTo() const
+    [[nodiscard]] VectorType CopyTo() const
     {
         auto result = VectorType(msVectorSize);
         std::ranges::copy(mValues, result.begin());
@@ -68,18 +61,25 @@ public:
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};
 
-    static void CheckQ(double Q)
-    {
-        KRATOS_ERROR_IF(Q < 0.0) << "Invalid Q value: " << Q << ". Q must be non-negative." << std::endl;
-    }
+    static InternalVectorType MakeVector(double P, double Q, double Theta);
+    void                      CheckValues() const;
 
-    static void CheckTheta(double Theta)
+    template <typename VectorType>
+    static InternalVectorType SizeCheckedCopy(const VectorType& rValues)
     {
-        constexpr double max_abs_theta = Globals::Pi / 6.0;
-        KRATOS_ERROR_IF(std::abs(Theta) > max_abs_theta)
-            << "Invalid Theta value: " << Theta
-            << ". Theta must be in the range [-pi/6, pi/6] (radians)." << std::endl;
+        // For some reason, the `std::ranges` versions of the below algorithms don't play nicely
+        // with UBlas vector expressions. Therefore, we're using the iterator-style algorithms.
+        auto       first = std::begin(rValues);
+        const auto size  = std::distance(first, std::end(rValues));
+        KRATOS_ERROR_IF(size != static_cast<std::ptrdiff_t>(msVectorSize))
+            << "Cannot construct a PQTheta instance: expected " << msVectorSize
+            << " values, but got " << size << " value(s)\n";
+
+        return MakeVector(*first, *std::next(first, 1), *std::next(first, 2));
     }
 };
+
+KRATOS_API(GEO_MECHANICS_APPLICATION)
+PQTheta operator+(PQTheta Lhs, const PQTheta& rRhs);
 
 } // namespace Kratos::Geo
