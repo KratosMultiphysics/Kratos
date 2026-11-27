@@ -107,7 +107,18 @@ namespace Kratos::MaterialPointGeneratorUtility
                     if (IsMixedFormulation) {
                         if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 ||
                             background_geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) {
-                            element_type_name = "MPMUpdatedLagrangianUP";
+                            const ProcessInfo& r_current_process_info = rBackgroundGridModelPart.GetProcessInfo();
+                            if ((r_current_process_info.GetValue(STABILIZATION_TYPE) == 0) || (r_current_process_info.GetValue(STABILIZATION_TYPE) == 1)) {
+                                element_type_name = "MPMUpdatedLagrangianUP";
+                            }
+                            else if (r_current_process_info.GetValue(STABILIZATION_TYPE) == 2) {
+                                element_type_name = "MPMUpdatedLagrangianUPVMS";
+                            }
+                            else {
+                                KRATOS_ERROR << "Unsupported stabilization type "
+                                             << r_current_process_info.GetValue(STABILIZATION_TYPE)
+                                             << " for mixed U-P formulation." << std::endl;
+                            }
                         } else {
                             KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle and Quadrilateral Elements." << std::endl;
                         }

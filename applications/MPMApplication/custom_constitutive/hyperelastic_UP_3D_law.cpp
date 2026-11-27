@@ -13,6 +13,7 @@
 
 
 // System includes
+#include <cmath>
 
 // External includes
 
@@ -106,8 +107,12 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
     //1.- Lame constants
     const double& YoungModulus        = MaterialProperties[YOUNG_MODULUS];
     const double& PoissonCoefficient  = MaterialProperties[POISSON_RATIO];
+    const double denominator = 1.0 - 2.0 * PoissonCoefficient;
+    const double tolerance = 1.0e-12;
 
-    ElasticVariables.LameLambda      = (YoungModulus*PoissonCoefficient)/((1+PoissonCoefficient)*(1-2*PoissonCoefficient));
+    ElasticVariables.LameLambda      = std::abs(denominator) > tolerance
+        ? (YoungModulus*PoissonCoefficient)/((1+PoissonCoefficient)*denominator)
+        : 0.0;
     ElasticVariables.LameMu          =  YoungModulus/(2*(1+PoissonCoefficient));
 
     //2.- Thermal constants
@@ -251,6 +256,33 @@ Vector&  HyperElasticUP3DLaw::CalculateVolumetricPressureFactors (const Material
     rFactors[2] =  Pressure*rElasticVariables.DeterminantF;
 
     return rFactors;
+}
+
+//***********************************CHECK********************************************
+//************************************************************************************
+
+int HyperElasticUP3DLaw::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    (void)rElementGeometry;
+    (void)rCurrentProcessInfo;
+
+    KRATOS_ERROR_IF(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.0)
+        << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
+
+    const double& r_poisson_ratio = rMaterialProperties[POISSON_RATIO];
+    const double tolerance = 1.0e-7;
+    const bool invalid_poisson_ratio = (r_poisson_ratio > 0.5 + tolerance)
+        || (r_poisson_ratio < -1.0 + tolerance);
+
+    KRATOS_ERROR_IF(POISSON_RATIO.Key() == 0 || invalid_poisson_ratio)
+        << "POISSON_RATIO has Key zero invalid value " << std::endl;
+    KRATOS_ERROR_IF(DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.0)
+        << "DENSITY has Key zero or invalid value " << std::endl;
+
+    return 0;
 }
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
