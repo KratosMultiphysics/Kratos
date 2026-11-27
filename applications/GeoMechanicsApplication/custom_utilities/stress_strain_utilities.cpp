@@ -271,11 +271,8 @@ Geo::PrincipalStresses StressStrainUtilities::TransformSigmaTauToPrincipalStress
 
 Geo::PQTheta StressStrainUtilities::TransformPrincipalStressesToPQTheta(const Geo::PrincipalStresses& rPrincipalStresses)
 {
-    auto stress_vector = Vector(6, 0.0);
-    std::ranges::copy(rPrincipalStresses.Values(), stress_vector.begin());
-    // this does principal computation again ( at least twice again ) maybe reformulate
-    return Geo::PQTheta{CalculateMeanStress(rPrincipalStresses),
-                        CalculateVonMisesStress(stress_vector), CalculateLodeAngle(stress_vector)};
+    return Geo::PQTheta{CalculateMeanStress(rPrincipalStresses), CalculateVonMisesStress(rPrincipalStresses),
+                        CalculateLodeAngle(rPrincipalStresses)};
 }
 
 Geo::PrincipalStresses StressStrainUtilities::TransformPQThetaToPrincipalStresses(const Geo::PQTheta& rPQTheta)
