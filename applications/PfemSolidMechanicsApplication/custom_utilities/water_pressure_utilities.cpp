@@ -436,7 +436,7 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
-   // ****** Tanget To Mass conservation, part of the solid skeleton deformation for displ form *********
+   // ****** Tangent To Mass conservation, part of the solid skeleton deformation for displ form ********
    // ***************************************************************************************************
    Matrix & WaterPressureUtilities::ComputeSolidSkeletonDeformationMatrix( HydroMechanicalVariables & rVariables, MatrixType & rLocalLHS, const double & rIntegrationWeight)
    {
@@ -1053,7 +1053,7 @@ namespace Kratos
    {
       GetPermeabilityTensor( rProperties, rF, rPermeabilityTensor, rInitialPorosity , rVolumeChange);
 
-      // manual resize. Something wierd in Axisym.
+      // manual resize. Something weird in Axisym.
       if (  rPermeabilityTensor.size1() != rDimension )
       {
          Matrix Aux = rPermeabilityTensor;

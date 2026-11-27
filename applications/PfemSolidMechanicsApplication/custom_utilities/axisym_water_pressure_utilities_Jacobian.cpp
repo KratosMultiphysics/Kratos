@@ -58,7 +58,7 @@ namespace Kratos
    }
 
 
-   // ****** Tanget To Mass conservation, part of the solid skeleton deformation for displ form *********
+   // ****** Tangent To Mass conservation, part of the solid skeleton deformation for displ form ********
    // ***************************************************************************************************
    Matrix & AxisymWaterPressureJacobianUtilities::ComputeSolidSkeletonDeformationMatrix( HydroMechanicalVariables & rVariables, Matrix & rLocalLHS, const double & rIntegrationWeight)
    {

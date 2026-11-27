@@ -41,7 +41,7 @@ J2YieldCriterion::J2YieldCriterion(HardeningLawPointer pHardeningLaw)
    
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 J2YieldCriterion& J2YieldCriterion::operator=(J2YieldCriterion const& rOther)
