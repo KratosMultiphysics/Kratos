@@ -16,8 +16,10 @@
 // System includes
 
 // External includes
-#include <algorithm>
-#include <execution>
+#if defined(KRATOS_USE_TBB)
+    #include <algorithm>
+    #include <execution>
+#endif
 
 // Project includes
 #include "includes/kratos_parameters.h"
