@@ -49,12 +49,25 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateVonMisesStressHydrostatic, KratosGeoMech
 {
     const auto stress_vector = UblasUtilities::CreateVector({-2.0, -2.0, -2.0, 0.0});
     KRATOS_EXPECT_DOUBLE_EQ(0.0, StressStrainUtilities::CalculateVonMisesStress(stress_vector));
+    Vector principal_stress_vector{};
+    Matrix principal_direction_matrix{};
+    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, principal_stress_vector,
+                                                      principal_direction_matrix);
+    const Geo::PrincipalStresses principal_stresses{principal_stress_vector};
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, StressStrainUtilities::CalculateVonMisesStress(principal_stresses));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateVonMisesStressPureShear, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto stress_vector = UblasUtilities::CreateVector({0.0, 0.0, 0.0, 2.0});
     KRATOS_EXPECT_DOUBLE_EQ(2.0 * std::sqrt(3.0), StressStrainUtilities::CalculateVonMisesStress(stress_vector));
+    Vector principal_stress_vector{};
+    Matrix principal_direction_matrix{};
+    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, principal_stress_vector,
+                                                      principal_direction_matrix);
+    const Geo::PrincipalStresses principal_stresses{principal_stress_vector};
+    KRATOS_EXPECT_DOUBLE_EQ(2.0 * std::sqrt(3.0),
+                            StressStrainUtilities::CalculateVonMisesStress(principal_stresses));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateLodeAngle, KratosGeoMechanicsFastSuiteWithoutKernel)

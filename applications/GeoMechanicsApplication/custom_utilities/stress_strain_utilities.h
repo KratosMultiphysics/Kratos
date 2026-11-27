@@ -33,6 +33,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) StressStrainUtilities
 {
 public:
     static double CalculateVonMisesStress(const Vector& rStressVector);
+    static double CalculateVonMisesStress(const Geo::PrincipalStresses& rPrincipalStresses);
     static double CalculateTrace(const Vector& rStressVector);
     static double CalculateMeanStress(const Vector& rStressVector);
     static double CalculateMeanStress(const Geo::PrincipalStresses& rPrincipalStresses);

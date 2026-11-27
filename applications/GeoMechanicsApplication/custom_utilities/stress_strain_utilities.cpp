@@ -46,6 +46,16 @@ double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVecto
     return std::sqrt(std::max(SigmaEquivalent, 0.));
 }
 
+double StressStrainUtilities::CalculateVonMisesStress(const Geo::PrincipalStresses& rPrincipalStresses)
+{
+    const auto& r_principal_stress_values = rPrincipalStresses.Values();
+    const auto  sigma_equivalent =
+        0.5 * (std::pow(r_principal_stress_values[0] - r_principal_stress_values[1], 2) +
+               std::pow(r_principal_stress_values[1] - r_principal_stress_values[2], 2) +
+               std::pow(r_principal_stress_values[2] - r_principal_stress_values[0], 2));
+    return std::sqrt(std::max(sigma_equivalent, 0.));
+}
+
 double StressStrainUtilities::CalculateTrace(const Vector& rStressVector)
 {
     const Matrix StressTensor =
