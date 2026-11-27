@@ -936,7 +936,6 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeOriginForcesAndMoments(con
 
             const std::vector<std::string> var_comps{"_X", "_Y", "_Z"};
 
-            IndexType c = 0;
             for (const auto& var_ext : var_comps)
             {
                 const auto& var_origin_force = KratosComponents<ComponentVariableType>::Get(rOriginVariablesForces.Name() + var_ext);
@@ -946,7 +945,6 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeOriginForcesAndMoments(con
                 r_geom[0].FastGetSolutionStepValue(var_origin_moment) =  0.0;
                 r_geom[1].FastGetSolutionStepValue(var_origin_force) =  0.0;
                 r_geom[1].FastGetSolutionStepValue(var_origin_moment) =  0.0; 
-                c++;
             }
         }
     }
