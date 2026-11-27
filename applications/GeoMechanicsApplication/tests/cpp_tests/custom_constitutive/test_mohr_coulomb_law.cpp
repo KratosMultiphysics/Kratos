@@ -379,7 +379,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               Defaults::absolute_tolerance * 1.0e3);
     KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_APEX));
 
-    // Act, sligthly different start stress, projecting to tension cut-off ending in same point.
+    // Act, slightly different start stress, projecting to tension cut-off ending in same point.
     cauchy_stress_vector = UblasUtilities::CreateVector({11.5, 10.0, 10.5, 0.0});
     resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
     law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
@@ -1050,11 +1050,10 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     expected_result = UblasUtilities::CreateVector({7.3387091532328732, 0.0, -11.338709153232873, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(calculated_result, expected_result, Defaults::absolute_tolerance);
 
-    // Arrange
-    constexpr auto psi_res = 0.0;
-    constexpr auto a_psi   = 10.0;
+    // Arrange, associated plasticity ( psi == phi )
+    properties.SetValue(GEO_DILATANCY_ANGLE, 35.0);
     properties.SetValue(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS,
-                        UblasUtilities::CreateVector({psi_res, a_psi}));
+                        UblasUtilities::CreateVector({phi_res, a_phi}));
     parameters.SetMaterialProperties(properties);
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
@@ -1062,8 +1061,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     cauchy_stress_vector = UblasUtilities::CreateVector({8.0, 0.0, -12.0, 0.0});
     calculated_result    = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
 
-    // Assert ( the mapping is the same as its based on the same kappa value, so the result is the same as the previous test )
-    KRATOS_EXPECT_VECTOR_NEAR(calculated_result, expected_result, Defaults::absolute_tolerance);
+    // Assert
+    expected_result = UblasUtilities::CreateVector({7.14358, -0.22878, -12.05869, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(calculated_result, expected_result, 1.0e-4);
 }
 
 Vector ComputeStressVectorUsingCPhiReductionTestData(double  Cohesion,
