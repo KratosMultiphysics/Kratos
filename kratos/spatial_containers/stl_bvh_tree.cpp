@@ -14,9 +14,9 @@
 #include <cstring>    // memset
 #include <cfloat>     // FLT_MAX
 
-#if defined(KRATOS_USE_TBB) || !defined(__GNUC__)
-#include <execution>  // std::execution::par for parallel sorting (GCC needs TBB to use parallel execution policy)
-#endif
+// #if defined(KRATOS_USE_TBB) || !defined(__GNUC__)
+// #include <execution>  // std::execution::par for parallel sorting (GCC needs TBB to use parallel execution policy)
+// #endif
 
 // Project includes
 #include "includes/geometrical_object.h"
@@ -316,11 +316,12 @@ void StlBvhTree::Build(std::vector<TriangleData>& rRawTris)
     };
 
     // If using GCC, to use parallel execution policy we need to compile with TBB
-#if defined(KRATOS_USE_TBB) || !defined(__GNUC__)
-    std::sort(std::execution::par, rRawTris.begin(), rRawTris.end(), morton_less);
-#else
+    // DEBUG: Avoiding conflicting use of TBB
+// #if defined(KRATOS_USE_TBB) || !defined(__GNUC__)
+//     std::sort(std::execution::par, rRawTris.begin(), rRawTris.end(), morton_less);
+// #else
     std::sort(rRawTris.begin(), rRawTris.end(), morton_less);
-#endif
+// #endif
 
     // --- 3. Pack triangles into groups of 4 (SOA layout) ---
     const int n_tris  = static_cast<int>(rRawTris.size());
