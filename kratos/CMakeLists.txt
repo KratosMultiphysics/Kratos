@@ -55,7 +55,7 @@ set( KRATOS_VERSION_SOURCES
 ## Kratos testing engine sources
 file(GLOB_RECURSE KRATOS_CORE_TESTING_ENGINE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp)
 
-## Kratos I/o sources
+## Kratos I/O sources
 file(GLOB_RECURSE KRATOS_CORE_INPUT_OUTPUT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/input_output/*.cpp)
 file(GLOB KRATOS_EXPRESSION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/expression/*.cpp)
 file(GLOB KRATOS_TENSOR_ADAPTOR_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tensor_adaptors/*.cpp)
@@ -191,7 +191,10 @@ if(CMAKE_UNITY_BUILD MATCHES ON)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/testing/distributed_test_case.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 
-    ## this cannot be compiled with unity build because calculate_discontinuous_distance_to_skin_process.cpp does implicit instantiation before specialization
+    ## This is giving issues in Windows Unity build
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/system_information.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+
+    ## This cannot be compiled with unity build because calculate_discontinuous_distance_to_skin_process.cpp does implicit instantiation before specialization
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_entity_neighbours_process.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers/linear_solver_ublas.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 
