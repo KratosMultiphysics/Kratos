@@ -36,7 +36,7 @@ public:
 private:
 
     void CreateTetrahedraInCell(
-        ModelPart::ElementsContainerType& rElements,
+        std::vector<ModelPart::ElementType::Pointer>& rElements,
         Element::NodesArrayType& rCellNodes,
         const std::size_t StartId,
         Properties::Pointer& pProperties,
