@@ -31,8 +31,14 @@ class SensorModelPartController(ModelPartController):
         self.debug_output_filename = parameters["debug_output_filename"].GetString()
 
         if model.HasModelPart(self.sensor_group_name):
-            raise RuntimeError(f"The sensor model part name \"{self.sensor_group_name}\" already exists. Please provide a different \"sensor_group_name\".")
-        self.sensor_model_part = model.CreateModelPart(self.sensor_group_name)
+            if not self.optimization_problem.IsRestarted():
+                raise RuntimeError(f"The sensor model part name \"{self.sensor_group_name}\" already exists. Please provide a different \"sensor_group_name\".")
+            # restored model part: Sensor objects are not checkpointed, so empty it (same object, so
+            # restored references stay valid) and re-derive the sensors in ImportModelPart().
+            self.sensor_model_part = model.GetModelPart(self.sensor_group_name)
+            self.sensor_model_part.Clear()
+        else:
+            self.sensor_model_part = model.CreateModelPart(self.sensor_group_name)
 
         # this dummy component data view is used to create the proper sensor group within the optimization problem.
         ComponentDataView(self.sensor_group_name, self.optimization_problem)

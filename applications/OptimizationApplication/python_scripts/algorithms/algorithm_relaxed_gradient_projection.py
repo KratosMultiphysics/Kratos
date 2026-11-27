@@ -257,6 +257,8 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
                 self.UpdateControl()
 
+                self.SaveRestartFile()
+
                 ListLogger("Convergence info", self._convergence_criteria.GetInfo())
 
                 if not self.converged:

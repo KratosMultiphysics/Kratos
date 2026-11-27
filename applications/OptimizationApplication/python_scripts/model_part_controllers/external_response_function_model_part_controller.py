@@ -1,11 +1,12 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
-def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ModelPartController:
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ModelPartController:
     if not parameters.Has("settings"):
         raise RuntimeError(f"ExternalResponseFunctionModelPartController instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return ExternalResponseFunctionModelPartController(model, parameters["settings"])
+    return ExternalResponseFunctionModelPartController(model, parameters["settings"], optimization_problem)
 
 class LocationAgnosticDesignPoints:
     def __init__(self, model_part: Kratos.ModelPart, parameters: Kratos.Parameters):
@@ -77,7 +78,7 @@ class CSVBasedDesignPoints:
             node.SetValue(KratosOA.CUSTOM_DESIGN_VARIABLE, data[location_column_indices[3]] if location_column_indices[3] != -1 else 0.0)
 
 class ExternalResponseFunctionModelPartController(ModelPartController):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         default_settings = Kratos.Parameters("""{
             "model_part_name"       : "",
             "design_point_settings" : {}
@@ -90,6 +91,7 @@ class ExternalResponseFunctionModelPartController(ModelPartController):
             raise RuntimeError("Empty \"model_part_name\" is not allowed which is given with following parameters:\n" + str(parameters))
 
         self.model_part = model.CreateModelPart(model_part_name)
+        self.optimization_problem = optimization_problem
 
         design_point_settings = parameters["design_point_settings"]
         if not design_point_settings.Has("type"):
@@ -104,6 +106,11 @@ class ExternalResponseFunctionModelPartController(ModelPartController):
             raise RuntimeError(f"Unsupported design point creation method type = \"{design_point_type}\". Followings are supported:\n\tlocation_agnostic_design_points\n\tcsv_based_design_points")
 
     def ImportModelPart(self) -> None:
+        if self.optimization_problem.IsRestarted():
+            # design points come back populated from the whole-Model restore; both creation
+            # methods below create nodes with fixed IDs, so re-running would collide.
+            return
+
         self.design_point_creation_method.Execute()
 
     def GetModelPart(self) -> Kratos.ModelPart:
