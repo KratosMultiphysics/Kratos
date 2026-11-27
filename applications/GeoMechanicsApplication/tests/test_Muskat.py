@@ -27,21 +27,26 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
     """
 
     def _assert_muskat_results(
-        self, parent_name, test_name, expected_results_for_variable
+        self,
+        parent_name,
+        test_name,
+        expected_results_for_variable,
+        output_name="Muskat_Dirichlet",
+        plot_x=1.52,
     ):
         file_path = test_helper.get_file_path(os.path.join(parent_name, test_name))
         simulation = test_helper.run_kratos(file_path)
 
         reader = GiDOutputFileReader()
         output_data = reader.read_output_from(
-            os.path.join(file_path, "Muskat_Dirichlet.post.res")
+            os.path.join(file_path, f"{output_name}.post.res")
         )
         if test_helper.want_test_plots():
             self._create_effective_saturation_plot(
-                expected_results_for_variable, file_path, output_data, simulation
+                expected_results_for_variable, file_path, output_data, simulation, plot_x
             )
             self._create_phreatic_line_plot(file_path, output_data, simulation)
-            self._create_fluid_flux_plot(file_path, output_data, simulation)
+            self._create_fluid_flux_plot(file_path, output_data, simulation, plot_x)
 
         for variable_name, expected_results in expected_results_for_variable.items():
             actual_results = GiDOutputFileReader.nodal_values_at_time(
@@ -58,15 +63,19 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
                 1.0,
             )
 
+    @staticmethod
+    def _x_suffix(plot_x):
+        return f"{plot_x:.2f}".replace(".", "_")
+
     def _create_effective_saturation_plot(
-        self, expected_results_for_variable, file_path, output_data, simulation
+        self, expected_results_for_variable, file_path, output_data, simulation, plot_x
     ):
         data_series_collection = []
         y_coord_by_id_for_right_boundary_nodes = {}
         for node in simulation.model.GetModelPart(
             "PorousDomain.porous_computational_model_part"
         ).Nodes:
-            if abs(node.X - 1.52) < 0.01:
+            if abs(node.X - plot_x) < 0.01:
                 y_coord_by_id_for_right_boundary_nodes[node.Id] = node.Y
         saturations = GiDOutputFileReader.nodal_values_at_time(
             "EFFECTIVE_SATURATION",
@@ -90,7 +99,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
 
         data_points = []
         with open(
-            os.path.join(file_path, "expected_saturation_at_x_1_52.csv"),
+            os.path.join(file_path, f"expected_saturation_at_x_{self._x_suffix(plot_x)}.csv"),
             newline="",
         ) as csv_file:
             reader = csv.DictReader(csv_file, skipinitialspace=True)
@@ -124,19 +133,19 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
         )
         plot_utils._make_plot(
             data_series_collection,
-            os.path.join(file_path, "saturation_for_x_1_52.svg"),
+            os.path.join(file_path, f"saturation_for_x_{self._x_suffix(plot_x)}.svg"),
             xlabel="Effective Saturation [%]",
             ylabel="Y [m]",
             yaxis_inverted=False,
         )
 
-    def _create_fluid_flux_plot(self, file_path, output_data, simulation):
+    def _create_fluid_flux_plot(self, file_path, output_data, simulation, plot_x):
         data_series_collection = []
         y_coord_by_id_for_right_boundary_nodes = {}
         for node in simulation.model.GetModelPart(
             "PorousDomain.porous_computational_model_part"
         ).Nodes:
-            if abs(node.X - 1.52) < 0.01:
+            if abs(node.X - plot_x) < 0.01:
                 y_coord_by_id_for_right_boundary_nodes[node.Id] = node.Y
         fluxes = GiDOutputFileReader.nodal_values_at_time(
             "FLUID_FLUX_VECTOR",
@@ -164,7 +173,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
 
         data_points = []
         with open(
-            os.path.join(file_path, "expected_flux_at_x_1_52.csv"),
+            os.path.join(file_path, f"expected_flux_at_x_{self._x_suffix(plot_x)}.csv"),
             newline="",
         ) as csv_file:
             reader = csv.DictReader(csv_file, skipinitialspace=True)
@@ -178,7 +187,7 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
 
         plot_utils._make_plot(
             data_series_collection,
-            os.path.join(file_path, "fluxes_for_x_1_52.svg"),
+            os.path.join(file_path, f"fluxes_for_x_{self._x_suffix(plot_x)}.svg"),
             xlabel="|Flux| [m/d]",
             ylabel="Y [m]",
             yaxis_inverted=False,
@@ -304,6 +313,34 @@ class KratosGeoMechanicsMuskatTests(KratosGeoUnittest.TestCase):
         }
         self._assert_muskat_results(
             "Muskat", "saturated_hydrostatic", expected_results_for_variables
+        )
+
+    def test_muskat_van_genuchten_with_seepage(self):
+        expected_results_for_variables = {
+            "WATER_PRESSURE": [
+                self.ExpectedResult(node_id=37, value=0.0),
+                self.ExpectedResult(node_id=72, value=0.0),
+                self.ExpectedResult(node_id=97, value=3662.58),
+            ],
+            "EFFECTIVE_SATURATION": [
+                self.ExpectedResult(node_id=37, value=1.0),
+                self.ExpectedResult(node_id=72, value=1.0),
+                self.ExpectedResult(node_id=97, value=0.770311),
+            ],
+            "FLUID_FLUX_VECTOR": [
+                self.ExpectedResult(node_id=37, value=[2.494e-05, -1.11181e-05, 0.0]),
+                self.ExpectedResult(node_id=72, value=[5.97723e-06, -1.13053e-05, 0.0]),
+                self.ExpectedResult(
+                    node_id=97, value=[2.83612e-09, -6.74659e-08, 0.0]
+                ),
+            ],
+        }
+        self._assert_muskat_results(
+            "Muskat",
+            "van_genuchten_with_seepage",
+            expected_results_for_variables,
+            output_name="Muskat_Seepage",
+            plot_x=1.62,
         )
 
 
