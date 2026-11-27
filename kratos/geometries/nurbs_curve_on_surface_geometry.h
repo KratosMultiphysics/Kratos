@@ -62,6 +62,7 @@ public:
     using BaseType::CreateQuadraturePointGeometries;
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
+    using BaseType::SpansLocalSpace;
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);

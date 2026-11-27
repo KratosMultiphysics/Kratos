@@ -153,6 +153,8 @@ namespace Testing {
           return "Kratos_Brep_Curve_On_Surface";
         case GeometryData::KratosGeometryType::Kratos_Brep_Surface_On_Volume:
           return "Kratos_Brep_Surface_On_Volume";
+        case GeometryData::KratosGeometryType::Kratos_Local_Refined_Brep_Surface:
+          return "Kratos_Local_Refined_Brep_Surface";
         case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry:
           return "Kratos_Quadrature_Point_Geometry";
         case GeometryData::KratosGeometryType::Kratos_Coupling_Geometry:
