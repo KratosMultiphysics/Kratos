@@ -271,7 +271,7 @@ namespace Kratos {
             SetUniqueTriangleModelPart(main_model_part);
 
             // Set ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED to test Ausas incised element
-            array_1d<double,3> elem_edge_dist_extra(3,-1.0);
+            array_1d<double,3> elem_edge_dist_extra = CreateFilled<array_1d<double, 3>>(-1.0);
             elem_edge_dist_extra[1] = 0.55;
             for (unsigned int i_elem = 0; i_elem < main_model_part.NumberOfElements(); ++i_elem){
                 auto it_elem = main_model_part.ElementsBegin() + i_elem;
@@ -435,7 +435,7 @@ namespace Kratos {
             SetUniqueTetrahedronModelPart(main_model_part);
 
             // Set ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED to test Ausas incised element
-            array_1d<double,6> elem_edge_dist_extra(6,-1.0);
+            array_1d<double,6> elem_edge_dist_extra = CreateFilled<array_1d<double, 6>>(-1.0);
             elem_edge_dist_extra[3] = 0.45;
             for (unsigned int i_elem = 0; i_elem < main_model_part.NumberOfElements(); ++i_elem){
                 auto it_elem = main_model_part.ElementsBegin() + i_elem;

@@ -258,7 +258,7 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorCurrentConfigurationTriangleElem
 
     // Set current configuration of the element (degenerate)
     for ( Node& r_node : p_element->GetGeometry() )
-        r_node.Coordinates() = array_1d<double, 3>( 3, 0.0 );
+        r_node.Coordinates() = CreateFilled<array_1d<double, 3>>(0.0);
 
     BruteForcePointLocator point_locator(model_part);
 

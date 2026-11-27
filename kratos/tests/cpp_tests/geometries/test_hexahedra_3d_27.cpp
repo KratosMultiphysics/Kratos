@@ -86,7 +86,7 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27Jacobian, KratosCoreGeometriesFastSuite)
 {
     auto geom = GenerateCanonicalHexahedra3D27();
     Matrix J = ZeroMatrix(3,3), expected_J = 0.5*IdentityMatrix(3, 3);
-    geom->Jacobian(J, array_1d<double, 3>(3, 0.0));
+    geom->Jacobian(J, CreateFilled<array_1d<double, 3>>(0.0));
 
     KRATOS_EXPECT_MATRIX_NEAR(J, expected_J, TOLERANCE);
 
@@ -172,8 +172,8 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27PointsLocalCoordinates, KratosCoreGeometr
     auto hexahedron = GenerateCanonicalHexahedra3D27();
     Matrix points_local_coordinates = ZeroMatrix(27, 3);
     hexahedron->PointsLocalCoordinates(points_local_coordinates);
-    array_1d<double, 3> local_coordinates(3, 0.0);
-    array_1d<double, 3> global_coordinates(3, 0.0);
+    array_1d<double, 3> local_coordinates = CreateFilled<array_1d<double, 3>>(0.0);
+    array_1d<double, 3> global_coordinates = CreateFilled<array_1d<double, 3>>(0.0);
 
     const auto& r_points = hexahedron->Points();
 

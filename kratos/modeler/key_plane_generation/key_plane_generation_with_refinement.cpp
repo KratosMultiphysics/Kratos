@@ -78,7 +78,7 @@ Parameters KeyPlaneGenerationWithRefinement::GetDefaultRefinementZoneParameters(
 BoundingBoxType KeyPlaneGenerationWithRefinement::GetBoundingBox(const ModelPart& rMyModelPart)
 {
     // Now we find the min and max value for the node coordinates
-    array_1d<double,3> min_v(3,std::numeric_limits<double>::max()), max_v(3, -std::numeric_limits<double>::max());
+    array_1d<double,3> min_v = CreateFilled<array_1d<double, 3>>(std::numeric_limits<double>::max()), max_v = CreateFilled<array_1d<double, 3>>(-std::numeric_limits<double>::max());
     // Find Bounding box
     for(auto& r_node : rMyModelPart.Nodes()){
         double x = r_node.X(), y = r_node.Y(), z = r_node.Z();

@@ -423,7 +423,7 @@ namespace Kratos {
             Element::Pointer p_element = model_part.pGetElement(1);
 
             // Set Nodal Values
-            const array_1d<double,3> velocity (3, 0.2);
+            const array_1d<double,3> velocity = CreateFilled<array_1d<double, 3>>(0.2);
             Geometry<Node>& geom = p_element->GetGeometry();
             geom[0].GetSolutionStepValue(DISTANCE) = -1.0;
             geom[1].GetSolutionStepValue(DISTANCE) = -1.0;

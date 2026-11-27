@@ -1009,7 +1009,7 @@ KRATOS_TEST_CASE_IN_SUITE(MathUtilsMatrixOperations, KratosCoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(MathUtilsVectorOperations, KratosCoreFastSuite)
 {
     array_1d<double,3> a = ZeroVector(3);
-    array_1d<double,2> b (2, 1.0);
+    array_1d<double,2> b = CreateFilled<array_1d<double, 2>>(1.0);
 
     MathUtils<double>::AddVector(a, b, 0);
 

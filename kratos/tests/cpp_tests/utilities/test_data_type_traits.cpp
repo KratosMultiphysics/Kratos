@@ -76,7 +76,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dDouble, KratosCoreFastSuite)
     type_trait::CopyToContiguousData(type_trait::GetContiguousData(dummy), test);
     KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
-    dummy = array_1d<double, 5>(5, -2);
+    dummy = CreateFilled<array_1d<double, 5>>(-2);
     type_trait::CopyFromContiguousData(dummy, type_trait::GetContiguousData(test));
     KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
@@ -98,7 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
     static_assert(type_trait::IsDynamic);
     static_assert(type_trait::IsDimensionDynamic<0>());
 
-    Vector test(7, 1);
+    Vector test = CreateFilled<Vector>(7, 1);
 
     KRATOS_EXPECT_EQ(type_trait::Size(test), 7);
     KRATOS_EXPECT_EQ(type_trait::Shape(test).size(), type_trait::Dimension);
@@ -110,7 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
 
     test = Vector(9, 2);
 
-    Vector dummy(9, -1);
+    Vector dummy = CreateFilled<Vector>(9, -1);
     type_trait::CopyToContiguousData(dummy.data().begin(), test);
     KRATOS_EXPECT_VECTOR_EQ(dummy, test);
 
@@ -137,7 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
     static_assert(type_trait::IsDimensionDynamic<0>());
     static_assert(type_trait::IsDimensionDynamic<1>());
 
-    Matrix test(3, 4, 1);
+    Matrix test = CreateFilled<Matrix>(3, 4, 1);
 
     KRATOS_EXPECT_EQ(type_trait::Size(test), 12);
 
@@ -494,8 +494,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested1, KratosCoreFastSuite)
             test[i][j] = DenseMatrix<array_1d<std::string, 6>>(5, 6);
             result[i][j] = DenseMatrix<array_1d<std::string, 6>>(5, 6);
             for (unsigned int k = 0; k < 30; ++k) {
-                test[i][j].data()[k] = array_1d<std::string, 6>(6, std::to_string(k % 10));
-                result[i][j].data()[k] = array_1d<std::string ,6>(6, "a");
+                test[i][j].data()[k] = CreateFilled<array_1d<std::string, 6>>(std::to_string(k % 10));
+                result[i][j].data()[k] = CreateFilled<array_1d<std::string, 6>>("a");
                 std::fill(ref_values.begin() + i * 720 + j * 180 + k * 6, ref_values.begin() + i * 720 + j * 180 + k * 6 + 6, test[i][j].data()[k][0][0]);
             }
         }
@@ -575,7 +575,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested2, KratosCoreFastSuite)
             result[i][j] = DenseMatrix<array_1d<double, 6>>(5, 6);
             for (unsigned int k = 0; k < 30; ++k) {
                 test[i][j].data()[k] = array_1d<double, 6>(6);
-                result[i][j].data()[k] = array_1d<double ,6>(6, -1);
+                result[i][j].data()[k] = CreateFilled<array_1d<double, 6>>(-1);
                 for (unsigned int l = 0; l < 6; ++l) {
                     test[i][j].data()[k][l] = (i+1) * (j+1) * (k+1) * (l+1);
                     ref_values[i * 720 + j * 180 + k * 6 + l] = test[i][j].data()[k][l];

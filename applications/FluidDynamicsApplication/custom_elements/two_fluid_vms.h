@@ -283,7 +283,7 @@ public:
         Matrix enrichment_terms_horizontal = ZeroMatrix(nenrichments,LocalSize);
 
         Matrix enrichment_diagonal = ScalarMatrix(nenrichments,nenrichments,0.0);
-        Vector enriched_rhs(nenrichments,0.0);
+        Vector enriched_rhs = CreateFilled<Vector>(nenrichments, 0.0);
         array_1d<double,3> bf = ZeroVector(3);
 
         double positive_volume = 0.0;

@@ -552,7 +552,7 @@ public:
             const SizeType num_int_points = mIntegrationPoints.size();
 
             // generate the weights (composite simpson rule)
-            Vector ip_w(num_int_points, 1.0);
+            Vector ip_w = CreateFilled<Vector>(num_int_points, 1.0);
             if (num_int_points >= 3) {
                 for (IndexType i=1; i<num_int_points-1; ++i) {
                     double iw = (i % 2 == 0) ? 2.0 : 4.0;
@@ -565,7 +565,7 @@ public:
             const double location = GetLocation(rProps);
             const double thickness = GetThickness(rProps);
 
-            Vector ip_loc(num_int_points, 0.0);
+            Vector ip_loc = CreateFilled<Vector>(num_int_points, 0.0);
             if (num_int_points >= 3) {
                 double loc_start = location + 0.5 * thickness;
                 double loc_incr = thickness / double(num_int_points-1);

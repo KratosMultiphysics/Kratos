@@ -131,7 +131,7 @@ void StructuredMeshGeneratorProcess::ValidateTheDefaultParameters(Parameters The
         if(TheParameters["number_of_divisions"].IsInt()) {
             default_parameters.AddInt("number_of_divisions", 1);
         } else if(TheParameters["number_of_divisions"].IsVector() && TheParameters["number_of_divisions"].GetVector().size()==3) {
-            Vector my_tmp_vector(3, 1.0);
+            Vector my_tmp_vector = CreateFilled<Vector>(3, 1.0);
             default_parameters.AddVector("number_of_divisions", my_tmp_vector);
         } else {
             KRATOS_THROW_ERROR(std::invalid_argument, "Please specify number_of_divisions as an int or the component of each direction","")

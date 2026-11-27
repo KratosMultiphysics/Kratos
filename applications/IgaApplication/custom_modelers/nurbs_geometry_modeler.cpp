@@ -191,7 +191,7 @@ namespace Kratos
         }
 
         // Set up weights. Required in case no refinement is performed.
-        Vector WeightsRefined(points.size(),1.0);
+        Vector WeightsRefined = CreateFilled<Vector>(points.size(), 1.0);
         
         // In some cases there is no need of add the surface geometry, AddSurfaceToModelPart is true by default
         if (AddSurfaceToModelPart) {

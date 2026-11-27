@@ -854,7 +854,7 @@ public:
 
             // Centroid of points. This will be used to identify knot span.
             // Single point might be located on the boundary of two knot spans.
-            array_1d<double, 3> centroid(3, 0.0);
+            array_1d<double, 3> centroid = CreateFilled<array_1d<double, 3>>(0.0);
 
             // Fill containers
             for (IndexType i_point = 0; i_point < num_points; ++i_point)

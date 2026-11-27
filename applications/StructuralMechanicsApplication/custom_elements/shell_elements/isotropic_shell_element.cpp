@@ -1000,7 +1000,7 @@ void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<Matrix >
         if(rVariable == CAUCHY_STRESS_TENSOR)
         {
             // rotate the local system to the material one for output purposes
-            Matrix LocalStressTensor(3, 3, 0.0);
+            Matrix LocalStressTensor = CreateFilled<Matrix>(3, 3, 0.0);
             LocalStressTensor(0,0) = local_stress(0);
             LocalStressTensor(1,1) = local_stress(1);
             LocalStressTensor(0,1) = local_stress(2);
@@ -1008,7 +1008,7 @@ void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<Matrix >
 
             double cc = std::cos(mOrientationAngle);
             double ss = std::sin(mOrientationAngle);
-            Matrix R(3, 3, 0.0);
+            Matrix R = CreateFilled<Matrix>(3, 3, 0.0);
             R(2,2) = 1.0;
             R(0,0) =  cc;
             R(0,1) = -ss;

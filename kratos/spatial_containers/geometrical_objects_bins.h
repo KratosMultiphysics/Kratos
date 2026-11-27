@@ -425,8 +425,8 @@ protected:
         )
     {
         for(auto i_geometrical_object = GeometricalObjectsBegin ; i_geometrical_object != GeometricalObjectsEnd ; i_geometrical_object++){
-            array_1d<std::size_t, 3> min_position(3,0);
-            array_1d<std::size_t, 3> max_position(3,0);
+            array_1d<std::size_t, 3> min_position = CreateFilled<array_1d<std::size_t, 3>>(0);
+            array_1d<std::size_t, 3> max_position = CreateFilled<array_1d<std::size_t, 3>>(0);
             CalculateMinMaxPositions(i_geometrical_object->GetGeometry(), min_position, max_position);
             for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
                 for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){

@@ -126,8 +126,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
     int counter = 0;
 
     // Test Uncut element
-    array_1d<double,3> elem_dist(3, 1.0);
-    array_1d<double,3> elem_edge_dist(3,-1.0);
+    array_1d<double,3> elem_dist = CreateFilled<array_1d<double, 3>>(1.0);
+    array_1d<double,3> elem_edge_dist = CreateFilled<array_1d<double, 3>>(-1.0);
     for (auto it_elem = model_part.ElementsBegin(); it_elem != model_part.ElementsEnd(); ++it_elem) {
         it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
         it_elem->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);

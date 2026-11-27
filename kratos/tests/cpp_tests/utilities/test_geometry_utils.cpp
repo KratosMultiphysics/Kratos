@@ -402,10 +402,10 @@ namespace Testing {
         GeometryUtils::CalculateGeometryData(tetrahedra, DN_DX, N, volume);
 
         // testing for current step
-        array_1d<double, 3> n0(3, 1.0);
-        array_1d<double, 3> n1(3, 2.0);
-        array_1d<double, 3> n2(3, 3.0);
-        array_1d<double, 3> n3(3, 4.0);
+        array_1d<double, 3> n0 = CreateFilled<array_1d<double, 3>>(1.0);
+        array_1d<double, 3> n1 = CreateFilled<array_1d<double, 3>>(2.0);
+        array_1d<double, 3> n2 = CreateFilled<array_1d<double, 3>>(3.0);
+        array_1d<double, 3> n3 = CreateFilled<array_1d<double, 3>>(4.0);
         tetrahedra[0].FastGetSolutionStepValue(VELOCITY) = n0;
         tetrahedra[1].FastGetSolutionStepValue(VELOCITY) = n1;
         tetrahedra[2].FastGetSolutionStepValue(VELOCITY) = n2;
@@ -417,10 +417,10 @@ namespace Testing {
         KRATOS_EXPECT_VECTOR_NEAR(check_velocity, velocity, 1e-15);
 
         // testing for previous step
-        array_1d<double, 3> n0_old(3, 10.0);
-        array_1d<double, 3> n1_old(3, 20.0);
-        array_1d<double, 3> n2_old(3, 30.0);
-        array_1d<double, 3> n3_old(3, 40.0);
+        array_1d<double, 3> n0_old = CreateFilled<array_1d<double, 3>>(10.0);
+        array_1d<double, 3> n1_old = CreateFilled<array_1d<double, 3>>(20.0);
+        array_1d<double, 3> n2_old = CreateFilled<array_1d<double, 3>>(30.0);
+        array_1d<double, 3> n3_old = CreateFilled<array_1d<double, 3>>(40.0);
         tetrahedra[0].FastGetSolutionStepValue(VELOCITY, 1) = n0_old;
         tetrahedra[1].FastGetSolutionStepValue(VELOCITY, 1) = n1_old;
         tetrahedra[2].FastGetSolutionStepValue(VELOCITY, 1) = n2_old;
@@ -511,10 +511,10 @@ namespace Testing {
         GeometryUtils::CalculateGeometryData(tetrahedra, DN_DX, N, volume);
 
         // testing for current step
-        array_1d<double, 3> n0(3, 1.0);
-        array_1d<double, 3> n1(3, 2.0);
-        array_1d<double, 3> n2(3, 3.0);
-        array_1d<double, 3> n3(3, 4.0);
+        array_1d<double, 3> n0 = CreateFilled<array_1d<double, 3>>(1.0);
+        array_1d<double, 3> n1 = CreateFilled<array_1d<double, 3>>(2.0);
+        array_1d<double, 3> n2 = CreateFilled<array_1d<double, 3>>(3.0);
+        array_1d<double, 3> n3 = CreateFilled<array_1d<double, 3>>(4.0);
         tetrahedra[0].FastGetSolutionStepValue(VELOCITY) = n0;
         tetrahedra[1].FastGetSolutionStepValue(VELOCITY) = n1;
         tetrahedra[2].FastGetSolutionStepValue(VELOCITY) = n2;
@@ -538,10 +538,10 @@ namespace Testing {
         KRATOS_EXPECT_MATRIX_NEAR(check_velocity_gradient, velocity_gradient, 1e-15);
 
         // testing for previous step
-        array_1d<double, 3> n0_old(3, 1.0);
-        array_1d<double, 3> n1_old(3, 2.0);
-        array_1d<double, 3> n2_old(3, 3.0);
-        array_1d<double, 3> n3_old(3, 4.0);
+        array_1d<double, 3> n0_old = CreateFilled<array_1d<double, 3>>(1.0);
+        array_1d<double, 3> n1_old = CreateFilled<array_1d<double, 3>>(2.0);
+        array_1d<double, 3> n2_old = CreateFilled<array_1d<double, 3>>(3.0);
+        array_1d<double, 3> n3_old = CreateFilled<array_1d<double, 3>>(4.0);
         tetrahedra[0].FastGetSolutionStepValue(VELOCITY, 1) = n0_old;
         tetrahedra[1].FastGetSolutionStepValue(VELOCITY, 1) = n1_old;
         tetrahedra[2].FastGetSolutionStepValue(VELOCITY, 1) = n2_old;
