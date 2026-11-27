@@ -14,6 +14,7 @@
 #pragma once
 
 // System includes
+#include <algorithm>
 #include <string>
 #include <iostream>
 #include <cstddef>
@@ -414,6 +415,7 @@ public:
             free(mpData);
 
         mpData = 0;
+        mpCurrentPosition = 0;
     }
 
 
@@ -813,13 +815,13 @@ private:
 
     inline void Allocate()
     {
-        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
+        KRATOS_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         mpData = (BlockType*)malloc(mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
     }
 
     inline void Reallocate()
     {
-        KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
+        KRATOS_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         mpData = (BlockType*)realloc(mpData, mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
     }
 
@@ -927,16 +929,33 @@ private:
 
     void load(Serializer& rSerializer)
     {
-        rSerializer.load("Variables List", mpVariablesList);
-        rSerializer.load("QueueSize", mQueueSize);
+        // Load the list through a second pointer, so that a rejected load leaves this container unchanged. The extra
+        // reference also makes VariablesList::load validate (never fill) the current list while the old block uses it.
+        VariablesList::Pointer p_loaded_list = mpVariablesList;
+        rSerializer.load("Variables List", p_loaded_list);
+        if (mpData != 0 && mpVariablesList && p_loaded_list != mpVariablesList) {
+            // The pointer tracking gave another list loaded from this archive: adopting it must keep this layout
+            const auto is_same = [](const VariableData* pA, const VariableData* pB) { return *pA == *pB; };
+            KRATOS_ERROR_IF_NOT(std::equal(mpVariablesList->ptr_begin(), mpVariablesList->ptr_end(),
+                                           p_loaded_list->ptr_begin(), p_loaded_list->ptr_end(), is_same))
+                << "An in-place load cannot change the historical variables of a container holding data [ current "
+                << "variables = " << mpVariablesList->size() << ", loaded variables = " << p_loaded_list->size()
+                << " ].\n";
+        }
+        SizeType queue_size;
+        rSerializer.load("QueueSize", queue_size);
         SizeType queue_index;
         rSerializer.load("QueueIndex", queue_index);
+        KRATOS_ERROR_IF(queue_index >= queue_size && !(queue_size == 0 && queue_index == 0)) << "Invalid Queue index loaded : " << queue_index << std::endl;
+
+        // Only now destruct and free the old block, with its list (which the load above did not change)
+        Clear();
+        mpVariablesList = p_loaded_list;
+        mQueueSize = queue_size;
         Allocate();
 
         // Setting the current position at the begining of data
-        if(queue_index > mQueueSize)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Invalid Queue index loaded : ", queue_index)
-            mpCurrentPosition = mpData + queue_index * mpVariablesList->DataSize();
+        mpCurrentPosition = mpData + queue_index * mpVariablesList->DataSize();
 
         std::string name;
         for(SizeType i = 0 ; i < mQueueSize ; i++)

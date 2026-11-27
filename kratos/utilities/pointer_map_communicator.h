@@ -85,7 +85,9 @@ class GlobalPointerMapCommunicator;
  *
  * @tparam TPointerDataType
  * @tparam TValueDataType
- * @tparam TApplyFunctor
+ * @tparam TApplyFunctor    Functor type deduced by the forwarding reference of GlobalPointerMapCommunicator::GetApplyProxy:
+ *                          a value type for a temporary functor (moved into the proxy, so move-only functors work),
+ *                          a reference type for an lvalue functor (the proxy refers to it, so it must outlive the proxy).
  */
 template<class TPointerDataType, class TValueDataType, class TApplyFunctor>
 class ApplyProxy
@@ -109,14 +111,14 @@ public:
     /**
      * @brief Construct a new Apply Proxy object
      *
-     * @param rApplyFunctor                         Thread safe update lambda method
+     * @param rApplyFunctor                         Thread safe update lambda method, forwarded from GetApplyProxy
      * @param rPointerCommunicator                  Map communicator
      */
     ApplyProxy(
-        const TApplyFunctor& rApplyFunctor,
+        TApplyFunctor&& rApplyFunctor,
         TGPMapCommunicator& rPointerCommunicator)
         : mCurrentRank(rPointerCommunicator.GetMyPID()),
-          mrApplyFunctor(rApplyFunctor),
+          mApplyFunctor(std::forward<TApplyFunctor>(rApplyFunctor)),
           mrPointerCommunicator(rPointerCommunicator)
     {
         KRATOS_TRY
@@ -142,7 +144,7 @@ public:
     /**
      * @brief Assigns value of the GlobalPointer
      *
-     * This method assigns gp value by rValue using mrApplyFunctor in the case if
+     * This method assigns gp value by rValue using mApplyFunctor in the case if
      * given rGlobalPointer is a local gp, otherwise mrNonLocalGlobalPointerMapsVector and
      * mrNonLocalDataValueMapsVector are used to store new gp and value,
      * which will be used in mpi communication.
@@ -151,7 +153,7 @@ public:
      * to ensure gps are local because all gps are local.
      *
      * In case of distributed job, this method calls AssignLocalAndRemoteData where checks are
-     * performed to identify gps are local or non-local, based on that mrApplyFunctor
+     * performed to identify gps are local or non-local, based on that mApplyFunctor
      * methods are called or values corresponding to remote gps are stored.
      *
      * This does not have additional cost in serial run (except for function pointer call)
@@ -190,7 +192,8 @@ private:
     ///@{
 
     const int mCurrentRank;
-    const TApplyFunctor& mrApplyFunctor;
+    // GetApplyProxy's forwarding reference makes this a value (temporary functor, moved in) or a reference (lvalue)
+    TApplyFunctor mApplyFunctor;
 
     void (ProxyType::*mUpdateMethod)(GlobalPointerType&, const TValueDataType&);
 
@@ -205,7 +208,7 @@ private:
     /**
      * @brief Assign local values
      *
-     * This method assigns local gp values using mrApplyFunctor.
+     * This method assigns local gp values using mApplyFunctor.
      * It assumes rGlobalPointer is a local gp always, therefore
      * no checks are performed.
      *
@@ -216,14 +219,14 @@ private:
         GlobalPointerType& rGlobalPointer,
         const TValueDataType& rValue)
     {
-        mrApplyFunctor(*rGlobalPointer, rValue);
+        mApplyFunctor(*rGlobalPointer, rValue);
     }
 
 
     /**
      * @brief Assign local and non-local values
      *
-     * This method assigns local gp values instantly using mrApplyFunctor.
+     * This method assigns local gp values instantly using mApplyFunctor.
      * As for the non-local gps, they are stored to be used for future
      * communication
      *
@@ -237,7 +240,7 @@ private:
         const int data_rank = rGlobalPointer.GetRank();
 
         if (data_rank == mCurrentRank) {
-            mrApplyFunctor(*rGlobalPointer, rValue);
+            mApplyFunctor(*rGlobalPointer, rValue);
         } else {
             mNonLocalGlobalPointerValueConcurrentQueue.enqueue(
                 std::make_pair(std::move(rGlobalPointer), rValue));
@@ -386,13 +389,13 @@ public:
                         gp_value_pair_list.push_back(std::move(r_pair));
                     }
 
-                    // running this in parallel assuming rApplyProxy.mrApplyFunctor is thread safe
+                    // running this in parallel assuming rApplyProxy.mApplyFunctor is thread safe
                     block_for_each(gp_value_pair_list, [&](GlobalPointerValueVectorPair& rItem) {
                         auto& r_pointer_data_type_entity = *(rItem.first);
                         for (IndexType i = 0; i < rItem.second.size(); ++i) {
                             // it is safer to call the serial update method here
                             // because we should only get process's local gps when communication is done
-                            rApplyProxy.mrApplyFunctor(r_pointer_data_type_entity, rItem.second[i]);
+                            rApplyProxy.mApplyFunctor(r_pointer_data_type_entity, rItem.second[i]);
                         }
                     });
                 }
@@ -413,7 +416,8 @@ public:
      * Returns the Apply proxy.
      *
      * @tparam TApplyFunctor
-     * @param rApplyFunctor                Thread safe functor
+     * @param rApplyFunctor                Thread safe functor; a temporary is moved into the proxy, an lvalue is
+     *                                     referenced and must outlive the proxy
      * @return ApplyProxy<TPointerDataType, TValueDataType, TApplyFunctor>
      */
     template <class TApplyFunctor>
