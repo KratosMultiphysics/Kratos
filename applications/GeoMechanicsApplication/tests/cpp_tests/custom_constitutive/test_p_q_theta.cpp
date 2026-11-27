@@ -77,7 +77,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
         "Cannot construct a PQTheta instance: expected 3 values, but got 4 value(s)");
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQTheta_RaisesADebugErrorWhenAttemptingToConstructFromAVectorWithWrongValues)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQTheta_RaisesAnErrorWhenAttemptingToConstructFromAVectorWithWrongValues)
 {
     // Arrange
     const auto vector_with_wrong_q     = UblasUtilities::CreateVector({1.0, -2.0, 0.3});

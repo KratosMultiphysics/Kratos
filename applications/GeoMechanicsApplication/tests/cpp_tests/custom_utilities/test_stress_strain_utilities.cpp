@@ -273,6 +273,13 @@ KRATOS_TEST_CASE_IN_SUITE(CheckTransformPrincipalStressesToPQTheta, KratosGeoMec
     const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPQTheta(principal_stresses);
     const auto expected_solution_pq = Geo::PQTheta{20.0, std::sqrt(300.0), 0.0};
     KRATOS_EXPECT_VECTOR_NEAR(p_q.Values(), expected_solution_pq.Values(), Defaults::absolute_tolerance)
+
+    // the inverse transformation should yield the original principal stresses
+    const auto back_computed_principal_stresses =
+        StressStrainUtilities::TransformPQThetaToPrincipalStresses(p_q);
+    KRATOS_EXPECT_VECTOR_NEAR(p_q.Values(), expected_solution_pq.Values(), Defaults::absolute_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(back_computed_principal_stresses.Values(),
+                              principal_stresses.Values(), Defaults::absolute_tolerance)
 }
 
 } // namespace Kratos::Testing
