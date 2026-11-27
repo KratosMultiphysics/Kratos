@@ -1,0 +1,20 @@
+{
+    "properties": [{
+        "model_part_name": "Structure",
+        "properties_id": 1,
+        "Material": {
+            "constitutive_law": {
+                "name": "SmallStrainSwiftJ2Plasticity3DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 210000.0,
+                "POISSON_RATIO": 0.3,
+                "SWIFT_COEFFICIENT": 1000.0,
+                "SWIFT_INITIAL_STRAIN": 0.01,
+                "SWIFT_HARDENING_EXPONENT": 0.2,
+                "DENSITY": 0.0
+            },
+            "Tables": {}
+        }
+    }]
+}
