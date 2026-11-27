@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Thomas Oberbichler
+//  Main authors:    Riccardo Rossi
 //
 
 #pragma once
@@ -40,7 +40,7 @@ namespace Kratos::Future
  *          (e.g. for multiple right-hand sides) without refactoring. A singular
  *          LHS matrix raises a Kratos error.
  * @tparam TLinearAlgebra The version of the linear algebra to be used
- * @author Thomas Oberbichler
+ * @author Riccardo Rossi
  */
 template<class TLinearAlgebra>
 class EigenSparseLUSolver
@@ -133,6 +133,7 @@ public:
     void InitializeSolutionStep(LinearSystemType& rLinearSystem) override
     {
         if (!rLinearSystem.IsConsistent(SparseMatrixTag::LHS, DenseVectorTag::RHS, DenseVectorTag::Dx)) {
+            KRATOS_WARNING("EigenSparseLUSolver") << "Linear system is not consistent. PerformSolutionStep cannot be performed." << std::endl;
             return;
         }
 
@@ -158,6 +159,7 @@ public:
     bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
     {
         if (!rLinearSystem.IsConsistent(SparseMatrixTag::LHS, DenseVectorTag::RHS, DenseVectorTag::Dx)) {
+            KRATOS_WARNING("EigenSparseLUSolver") << "Linear system is not consistent. PerformSolutionStep cannot be performed." << std::endl;
             return false;
         }
 
@@ -222,16 +224,23 @@ private:
     ///@{
 
     Eigen::SparseLU<EigenSparseMatrixType> mEigenSparseLUSolver; /// The Eigen factorization
-    bool mFactorized = false;                                    /// True once the LHS matrix has been factorized
+
+    bool mFactorized = false; /// True once the LHS matrix has been factorized
+
     std::vector<EigenIndexType> mIndex1; /// Copy of the CsrMatrix row pointers, in the Eigen index type
+
     std::vector<EigenIndexType> mIndex2; /// Copy of the CsrMatrix column indices, in the Eigen index type
 
     ///@}
     ///@name Private Operations
     ///@{
 
-    /// Exposes a CsrMatrix as a read-only Eigen map: the values are mapped in place and only
-    /// the index arrays are copied (the CsrMatrix index type is unsigned, Eigen requires signed)
+    /**
+     * @brief Exposes a CsrMatrix as a read-only Eigen map: the values are mapped in place and only
+     * the index arrays are copied (the CsrMatrix index type is unsigned, Eigen requires signed)
+     * @param rA The CsrMatrix to be exposed
+     * @return EigenSparseMapType Eigen view of the CsrMatrix
+     */
     EigenSparseMapType ToEigenSparseMap(const MatrixType& rA)
     {
         mIndex1.assign(rA.index1_data().begin(), rA.index1_data().end());
@@ -240,8 +249,12 @@ private:
                                   mIndex1.data(), mIndex2.data(), rA.value_data().data());
     }
 
-    /// Converts a SystemVector to an Eigen dense vector
-    static EigenVectorType ToEigenVector(const VectorType& rV)
+    /**
+     * @brief Converts a SystemVector to an Eigen dense vector
+     * @param rV The SystemVector to be converted
+     * @return EigenVectorType The converted Eigen vector
+     */
+    EigenVectorType ToEigenVector(const VectorType& rV)
     {
         EigenVectorType result(rV.size());
         for (std::size_t i = 0; i < rV.size(); ++i) {

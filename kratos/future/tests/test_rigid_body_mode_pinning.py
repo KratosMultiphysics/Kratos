@@ -141,6 +141,9 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
         A, b, n_dofs = self._build_system(mp, process_info, scheme, dof_set)
         x_pinned = KratosMultiphysics.SystemVector(n_dofs)
 
+        # set the linear system with the additional data (model part and dof set) needed by the pinning solver
+        linear_system = KratosMultiphysics.Future.LinearSystem(A, b, x_pinned, mp, dof_set, "rigid_body_pinning_linear_system")
+
         # keep a copy of the original system: the solver modifies A and b in place
         A_ref = A.copy()
         b_ref = b.copy()
@@ -148,18 +151,15 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
         # right hand side b = K u_ref belongs to the range of K, so the system is consistent
         self.assertGreater(max(abs(b_ref[i]) for i in range(n_dofs)), 0.0)
 
-        linear_solver = KratosMultiphysics.Future.RigidBodyModePinningSolver(
-            KratosMultiphysics.Parameters("""{
+        linear_solver_settings = KratosMultiphysics.Parameters("""{
                 "solver_type": "rigid_body_mode_pinning",
-                "inner_solver_settings": {
+                "inner_solver_settings" : {
                     "solver_type": "skyline_lu_factorization"
                 },
-                "tolerance": 1.0e-6,
-                "echo_level": 1
-            }"""))
-        linear_system = KratosMultiphysics.Future.LinearSystem(A, b, x_pinned, "rigid_body_pinning")
-        linear_system.SetAdditionalData(mp, dof_set)
-
+                "rigid_body_tolerance": 1.0e-6,
+                "echo_level": 0
+            }""")
+        linear_solver = KratosMultiphysics.Future.RigidBodyModePinningSolver(linear_solver_settings)
         linear_solver.Initialize(linear_system)
         linear_solver.PrepareAdditionalData(linear_system)
         linear_solver.InitializeSolutionStep(linear_system)
@@ -254,7 +254,7 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
                     "solver_type": "skyline_lu_factorization"
                 },
                 "tolerance": 1.0e-6,
-                "echo_level": 1
+                "echo_level": 0
             }"""))
         linear_solver.Initialize(A, x_pinned, b)
         linear_solver.ProvideAdditionalData(A, x_pinned, b, dof_set, mp)
@@ -309,7 +309,7 @@ class TestRigidBodyModePinning(KratosUnittest.TestCase):
         # the default constructor builds the default inner solver (skyline LU)
         self.assertIsNotNone(KratosMultiphysics.Future.RigidBodyModePinningSolver())
         self.assertIsNotNone(KratosMultiphysics.Future.RigidBodyModePinningSolver(
-            KratosMultiphysics.Parameters('{"inner_solver_settings": {"solver_type": "eigen_sparse_lu"}, "tolerance": 1.0e-4}')))
+            KratosMultiphysics.Parameters('{"inner_solver_settings": {"solver_type": "eigen_sparse_lu"}, "rigid_body_tolerance": 1.0e-4}')))
         # an unknown inner solver type must raise an error
         with self.assertRaisesRegex(RuntimeError, "unknown"):
             KratosMultiphysics.Future.RigidBodyModePinningSolver(
