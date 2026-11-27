@@ -66,9 +66,16 @@ ParallelRuleOfMixturesLaw<TDim>::ParallelRuleOfMixturesLaw(const std::vector<dou
 template<unsigned int TDim>
 ParallelRuleOfMixturesLaw<TDim>::ParallelRuleOfMixturesLaw(const ParallelRuleOfMixturesLaw<TDim>& rOther)
     : ConstitutiveLaw(rOther),
-      mConstitutiveLaws(rOther.mConstitutiveLaws),
       mCombinationFactors(rOther.mCombinationFactors)
 {
+    KRATOS_TRY
+
+    mConstitutiveLaws.reserve(rOther.mConstitutiveLaws.size());
+    for (const auto& p_law : rOther.mConstitutiveLaws) {
+        mConstitutiveLaws.push_back(p_law->Clone());
+    }
+
+    KRATOS_CATCH("")
 }
 
 /********************************CLONE**********************************************/

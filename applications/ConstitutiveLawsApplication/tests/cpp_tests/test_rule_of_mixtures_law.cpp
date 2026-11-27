@@ -23,6 +23,7 @@
 #include "includes/mat_variables.h"
 
 // Application includes
+#include "constitutive_laws_application_variables.h"
 #include "custom_constitutive/composites/rule_of_mixtures_law.h"
 #include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
@@ -402,6 +403,94 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronThreeLayers, K
             KRATOS_EXPECT_LE((sol[0] - 2.32156e+12)/2.32156e+12, tolerance);
         }
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ParallelRuleOfMixturesClonePreservesIndependentLayerHistory, KratosConstitutiveLawsFastSuite)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("Main");
+    const Tetrahedra3D4<Node> geometry(
+        r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0),
+        r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0),
+        r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0),
+        r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0));
+
+    Properties mixture_properties(1);
+    const auto& r_damage_law = KratosComponents<ConstitutiveLaw>::Get("SmallStrainIsotropicDamage3DVonMises");
+    const auto make_layer_properties = [&](ModelPart::IndexType Id, double YieldStress) {
+        auto p_properties = Kratos::make_shared<Properties>(Id);
+        p_properties->SetValue(CONSTITUTIVE_LAW, r_damage_law.Clone());
+        p_properties->SetValue(YOUNG_MODULUS, 210e9);
+        p_properties->SetValue(POISSON_RATIO, 0.22);
+        p_properties->SetValue(YIELD_STRESS_COMPRESSION, YieldStress);
+        p_properties->SetValue(YIELD_STRESS_TENSION, YieldStress);
+        p_properties->SetValue(FRACTURE_ENERGY, 1000.0);
+        p_properties->SetValue(SOFTENING_TYPE, 0);
+        mixture_properties.AddSubProperties(p_properties);
+        return p_properties;
+    };
+    const auto p_first_layer = make_layer_properties(11, 3e6);
+    make_layer_properties(12, 5e6);
+
+    const auto& r_registered_mixture = KratosComponents<ConstitutiveLaw>::Get("ParallelRuleOfMixturesLaw3D");
+    const auto p_source = r_registered_mixture.Create(Parameters(R"({"combination_factors": [1.0, 3.0]})"));
+    p_source->InitializeMaterial(mixture_properties, geometry, ScalarVector(4, 0.25));
+    KRATOS_EXPECT_EQ(p_source->Check(mixture_properties, geometry, r_model_part.GetProcessInfo()), 0);
+    ConstitutiveLaw::Parameters values(geometry, mixture_properties, r_model_part.GetProcessInfo());
+    Vector strain = ZeroVector(6);
+    Vector stress = ZeroVector(6);
+    Matrix tangent = ZeroMatrix(6, 6);
+    values.SetStrainVector(strain);
+    values.SetStressVector(stress);
+    values.SetConstitutiveMatrix(tangent);
+    values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    strain[0] = 8e-5;
+    p_source->InitializeMaterialResponseCauchy(values);
+    p_source->FinalizeMaterialResponseCauchy(values);
+
+    const auto p_clone = p_source->Clone();
+    auto* p_source_mixture = dynamic_cast<ParallelRuleOfMixturesLaw<3>*>(p_source.get());
+    auto* p_clone_mixture = dynamic_cast<ParallelRuleOfMixturesLaw<3>*>(p_clone.get());
+    ASSERT_NE(p_source_mixture, nullptr);
+    ASSERT_NE(p_clone_mixture, nullptr);
+    const auto& r_source_layers = p_source_mixture->GetConstitutiveLaws();
+    const auto& r_cloned_layers = p_clone_mixture->GetConstitutiveLaws();
+    ASSERT_EQ(r_source_layers.size(), 2);
+    ASSERT_EQ(r_cloned_layers.size(), 2);
+    const auto get_history = [](ConstitutiveLaw& rLaw) {
+        Vector history;
+        rLaw.GetValue(INTERNAL_VARIABLES, history);
+        return history;
+    };
+    const Vector first_history = get_history(*r_source_layers[0]);
+    const Vector second_history = get_history(*r_source_layers[1]);
+    ASSERT_EQ(first_history.size(), 2);
+    ASSERT_EQ(second_history.size(), 2);
+    KRATOS_EXPECT_GT(first_history[0], second_history[0]);
+    KRATOS_EXPECT_GT(second_history[0], 0.0);
+    KRATOS_EXPECT_VECTOR_NEAR(get_history(*r_cloned_layers[0]), first_history, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(get_history(*r_cloned_layers[1]), second_history, 1e-12);
+    double damage = 0.0;
+    p_clone->GetValue(DAMAGE, damage);
+    KRATOS_EXPECT_NEAR(damage, 0.25 * first_history[0] + 0.75 * second_history[0], 1e-12);
+
+    // Compare both mixtures under identical unloading before changing only one cloned layer.
+    strain[0] = 4e-5;
+    p_source->CalculateMaterialResponsePK2(values);
+    const Vector source_stress = stress;
+    p_clone->CalculateMaterialResponsePK2(values);
+    KRATOS_EXPECT_VECTOR_NEAR(stress, source_stress, 1e-8);
+
+    values.SetMaterialProperties(*p_first_layer);
+    strain[0] = 1.6e-4;
+    r_cloned_layers[0]->FinalizeMaterialResponsePK2(values);
+    const Vector advanced_history = get_history(*r_cloned_layers[0]);
+    KRATOS_EXPECT_GT(advanced_history[0], first_history[0]);
+    KRATOS_EXPECT_VECTOR_NEAR(get_history(*r_cloned_layers[1]), second_history, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(get_history(*r_source_layers[0]), first_history, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(get_history(*r_source_layers[1]), second_history, 1e-12);
 }
 
 } // namespace Kratos::Testing
