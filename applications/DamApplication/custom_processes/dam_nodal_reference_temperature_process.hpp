@@ -23,6 +23,7 @@
 
 // Application include
 #include "dam_application_variables.h"
+#include "custom_utilities/dam_nodal_field_utilities.h"
 
 namespace Kratos
 {
@@ -69,6 +70,13 @@ public:
         mInitialValue = rParameters["initial_value"].GetDouble();
         mInputFile = rParameters["input_file_name"].GetString();
 
+        // The GiD interface writes "- No file" / "- Add new file" when no
+        // per-node input file is selected. The substring test is the historical
+        // behavior of this process and is kept as is.
+        mbUseTable = !(mInputFile.empty() ||
+                       mInputFile.find("- No file") != std::string::npos ||
+                       mInputFile.find("- Add new file") != std::string::npos);
+
         KRATOS_CATCH("");
     }
 
@@ -91,39 +99,7 @@ public:
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-
-        if(nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
-
-            std::string no_file_str = "- No file";
-            std::string add_file_str = "- Add new file";
-
-            if ((mInputFile == "") || strstr(mInputFile.c_str(),no_file_str.c_str()) || strstr(mInputFile.c_str(),add_file_str.c_str()))
-            {
-                #pragma omp parallel for
-                for(int i = 0; i<nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                    it->FastGetSolutionStepValue(var) = mInitialValue;
-
-                }
-            }
-            else
-            {
-                #pragma omp parallel for
-                for(int i = 0; i<nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                    it->FastGetSolutionStepValue(var) = mrTable.GetValue(it->Id());
-
-                }
-            }
-        }
+        AssignReferenceTemperature();
 
         KRATOS_CATCH("");
     }
@@ -135,40 +111,7 @@ public:
 
         KRATOS_TRY;
 
-        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-
-
-        if(nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
-
-            std::string no_file_str = "- No file";
-            std::string add_file_str = "- Add new file";
-
-            if ((mInputFile == "") || strstr(mInputFile.c_str(),no_file_str.c_str()) || strstr(mInputFile.c_str(),add_file_str.c_str()))
-            {
-                #pragma omp parallel for
-                for(int i = 0; i<nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                    it->FastGetSolutionStepValue(var) = mInitialValue;
-
-                }
-            }
-            else
-            {
-                #pragma omp parallel for
-                for(int i = 0; i<nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                    it->FastGetSolutionStepValue(var) = mrTable.GetValue(it->Id());
-
-                }
-            }
-        }
+        AssignReferenceTemperature();
 
         KRATOS_CATCH("");
     }
@@ -203,10 +146,18 @@ protected:
     std::string mVariableName;
     double mInitialValue;
     std::string mInputFile;
+    bool mbUseTable = false;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
+
+    void AssignReferenceTemperature()
+    {
+        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mVariableName);
+        DamNodalFieldUtilities::SetHistoricalValuesFromTableOrConstant(
+            mrModelPart, var, mInitialValue, mrTable, mbUseTable);
+    }
 
     /// Assignment operator.
     DamNodalReferenceTemperatureProcess& operator=(DamNodalReferenceTemperatureProcess const& rOther);

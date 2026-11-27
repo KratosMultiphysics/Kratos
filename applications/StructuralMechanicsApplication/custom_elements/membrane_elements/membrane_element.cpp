@@ -175,7 +175,7 @@ void MembraneElement::CalculateRightHandSide(
 
     Vector internal_forces = ZeroVector(system_size);
     InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod(),rCurrentProcessInfo);
-    rRightHandSideVector.resize(system_size);
+    rRightHandSideVector.resize(system_size, false);
     noalias(rRightHandSideVector) = ZeroVector(system_size);
     noalias(rRightHandSideVector) -= internal_forces;
     CalculateAndAddBodyForce(rRightHandSideVector,rCurrentProcessInfo);
@@ -770,7 +770,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
 
             if (rOutput[point_number].size() != 3) {
-                rOutput[point_number].resize(3);
+                rOutput[point_number].resize(3, false);
             }
 
             // getting information for integration
@@ -807,7 +807,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
                     Vector principal_stresses = ZeroVector(2);
 
                     if (rOutput[point_number].size() != 2) {
-                        rOutput[point_number].resize(2);
+                        rOutput[point_number].resize(2, false);
                     }
 
 
@@ -843,7 +843,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
 
             if (rOutput[point_number].size() != 3) {
-                rOutput[point_number].resize(3);
+                rOutput[point_number].resize(3, false);
             }
 
             // getting information for integration
@@ -906,7 +906,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
                 Vector principal_stresses = ZeroVector(2);
 
                 if (rOutput[point_number].size() != 2) {
-                    rOutput[point_number].resize(2);
+                    rOutput[point_number].resize(2, false);
                 }
 
                 PrincipalVector(principal_stresses,stress);

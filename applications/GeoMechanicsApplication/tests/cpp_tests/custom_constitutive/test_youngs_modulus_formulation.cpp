@@ -14,6 +14,9 @@
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
+#include "utilities/math_utils.h"
+
+#include <cmath>
 
 namespace Kratos::Testing
 {
@@ -116,7 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusSch
     Properties properties;
     properties.SetValue(GEO_PRESSURE_REFERENCE, 100.0);
     properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, 0.5);
-    properties.SetValue(GEO_COHESION, 1.0);
+    properties.SetValue(GEO_COHESION, 0.0);
     properties.SetValue(GEO_FRICTION_ANGLE, 5.0);
     constexpr auto reference_youngs_modulus = 20000.0;
     const auto stress_vector_finalized = UblasUtilities::CreateVector({500.0, 200.0, 500.0, 0.0, 0.0, 0.0});
@@ -202,13 +205,72 @@ KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CheckInputData_FailsMissi
         GeoYoungsModulusFormulations::CheckInputData(properties),
         "GEO_COHESION does not exist in the parameters of material with Id 0.")
 
-    properties.SetValue(GEO_COHESION, 20.0);
+    properties.SetValue(GEO_COHESION, -1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoYoungsModulusFormulations::CheckInputData(properties),
+                                      "GEO_COHESION in the parameters of material with Id 0 has an "
+                                      "invalid value: -1 is out of the range [0, -).")
+
+    properties.SetValue(GEO_COHESION, 0.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         GeoYoungsModulusFormulations::CheckInputData(properties),
         "GEO_FRICTION_ANGLE does not exist in the parameters of material with Id 0.")
 
     properties.SetValue(GEO_FRICTION_ANGLE, 45.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoYoungsModulusFormulations::CheckInputData(properties),
+                                      "GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS does not exist in the "
+                                      "parameters of material with Id 0.")
+
+    properties.SetValue(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, 0.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeoYoungsModulusFormulations::CheckInputData(properties),
+        "GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS in the parameters of material with Id 0 has an "
+        "invalid value: 0 is out of the range (-, 0).")
+
+    properties.SetValue(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, -1.0);
     EXPECT_NO_THROW(GeoYoungsModulusFormulations::CheckInputData(properties));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusSchanzVermeer_ZeroCohesion,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Properties properties;
+    properties.SetValue(GEO_PRESSURE_REFERENCE, 100.0);
+    properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, 0.5);
+    properties.SetValue(GEO_COHESION, 0.0);
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    properties.SetValue(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, -1.0);
+
+    constexpr auto reference_youngs_modulus = 20000.0;
+    const auto     stress_vector_finalized =
+        UblasUtilities::CreateVector({-300.0, -300.0, -300.0, 0.0, 0.0, 0.0});
+
+    const auto result = GeoYoungsModulusFormulations::CalculateYoungsModulusSchanzVermeer(
+        properties, reference_youngs_modulus, stress_vector_finalized);
+    // base = 300 / 100 = 3
+    KRATOS_EXPECT_RELATIVE_NEAR(result, reference_youngs_modulus * std::sqrt(3.0), Defaults::relative_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoYoungsModulusFormulations_CalculateYoungsModulusSchanzVermeer_TensileApexIsRegularized,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Properties properties;
+    properties.SetValue(GEO_PRESSURE_REFERENCE, 100.0);
+    properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, 0.5);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    properties.SetValue(GEO_MAXIMUM_MINOR_PRINCIPAL_STRESS, -1.0);
+
+    // All principal stresses equal c / tan(phi): the unregularized base would be zero
+    const auto apex = 10.0 / std::tan(MathUtils<>::DegreesToRadians(30.0));
+    const auto stress_vector_finalized = UblasUtilities::CreateVector({apex, apex, apex, 0.0, 0.0, 0.0});
+
+    constexpr auto reference_youngs_modulus = 20000.0;
+    const auto     result = GeoYoungsModulusFormulations::CalculateYoungsModulusSchanzVermeer(
+        properties, reference_youngs_modulus, stress_vector_finalized);
+
+    const auto shift    = apex;
+    const auto expected = reference_youngs_modulus * std::sqrt((shift + 1.0) / (shift + 100.0));
+    KRATOS_EXPECT_RELATIVE_NEAR(result, expected, Defaults::relative_tolerance);
 }
 
 } // namespace Kratos::Testing

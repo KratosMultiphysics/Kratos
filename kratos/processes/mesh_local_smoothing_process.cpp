@@ -141,7 +141,7 @@ namespace Kratos
 		// A laplacian smoothing is provided by this base class
 		const std::size_t size = r_neighbours.size();
 		rOptimumPoints.resize(size, Point{ZeroVector(3)});
-		rWeights.resize(size);
+		rWeights.resize(size, false);
 		for (std::size_t i = 0; i < size; i++)
 		{
 			rOptimumPoints[i] = r_neighbours[i];

@@ -200,7 +200,7 @@ int GeoExtrapolateIntegrationPointValuesToNodesProcess::Check()
 {
     for (const auto& r_model_part : mrModelParts) {
         const auto& r_process_info = r_model_part.get().GetProcessInfo();
-        for (auto& r_element : r_model_part.get().Elements()) {
+        for (const auto& r_element : r_model_part.get().Elements()) {
             CheckElement(r_element, r_model_part.get().Name(), r_process_info);
         }
     }

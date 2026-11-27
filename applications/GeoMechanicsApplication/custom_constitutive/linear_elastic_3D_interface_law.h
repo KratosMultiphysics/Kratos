@@ -17,6 +17,9 @@
 
 namespace Kratos
 {
+
+class Serializer;
+
 ///@name Kratos Globals
 ///@{
 
@@ -182,7 +185,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-    friend class Serializer;
+    friend Serializer;
 
     void save(Serializer& rSerializer) const override;
 

@@ -424,14 +424,14 @@ void ResizeOutput(
     Matrix& rOutput,
     const unsigned int Size)
 {
-    rOutput.resize(Size, 9);
+    rOutput.resize(Size, 9, false);
 }
 
 void ResizeOutput(
     Vector& rOutput,
     const unsigned int Size)
 {
-    rOutput.resize(Size);
+    rOutput.resize(Size, false);
 }
 
 template<class TOutputType, class TResponseFunctor>

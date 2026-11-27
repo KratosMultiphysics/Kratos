@@ -1,9 +1,11 @@
 import importlib
 
+import numpy as np
+
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication.rom_analysis
 
-def SetUpSimulationInstance(model, parameters, nn_rom_interface=None, rom_basis_output_folder=None, rom_basis_output_name=None):
+def SetUpSimulationInstance(model, parameters, nn_rom_interface=None, rbf_rom_interface=None, rom_basis_output_folder=None, rom_basis_output_name=None):
     """ Creates and returns a ROM simulation instance """
 
     # Get the parent simulation class
@@ -23,6 +25,7 @@ def SetUpSimulationInstance(model, parameters, nn_rom_interface=None, rom_basis_
         model,
         parameters,
         nn_rom_interface=nn_rom_interface,
+        rbf_rom_interface=rbf_rom_interface,
         rom_basis_output_folder=rom_basis_output_folder,
         rom_basis_output_name=rom_basis_output_name)
 
@@ -69,3 +72,11 @@ def GetNodalAreaVector(model_part):
         nodal_area_array.append(node.GetValue(KratosMultiphysics.NODAL_AREA))
 
     return nodal_area_array
+
+def GetRelativeL2Error(expected_output, obtained_output, nodal_area):
+    # Relative error in the l2 norm weighted with the nodal area. A norm-based measure, so that the nodes with values
+    # close to zero do not amplify the round-off (as a nodal ratio obtained/expected would)
+    expected_output = np.ravel(expected_output)
+    obtained_output = np.ravel(obtained_output)
+    nodal_area = np.ravel(nodal_area)
+    return np.sqrt(np.sum(nodal_area*(obtained_output - expected_output)**2)/np.sum(nodal_area*expected_output**2))

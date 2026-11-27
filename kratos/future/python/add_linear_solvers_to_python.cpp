@@ -25,8 +25,10 @@
 #include "future/python/add_linear_solvers_to_python.h"
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/cg_solver.h"
+#include "future/linear_solvers/eigen_sparse_lu_solver.h"
 #include "future/linear_solvers/linear_solver.h"
 #include "future/linear_solvers/iterative_solver.h"
+#include "future/linear_solvers/rigid_body_mode_pinning_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 
 namespace Kratos::Future::Python
@@ -47,6 +49,8 @@ void AddLinearSolversToPython(py::module& m)
         .def("FinalizeSolutionStep", &LinearSolverType::FinalizeSolutionStep)
         .def("Clear", &LinearSolverType::Clear)
         // .def("__str__", PrintObject<LinearSolverType>)
+        .def("PrepareAdditionalData", &LinearSolverType::PrepareAdditionalData)
+        .def("RequiresAdditionalData", &LinearSolverType::RequiresAdditionalData)
         .def("GetTolerance", &LinearSolverType::GetTolerance)
         .def("GetIterationsNumber", &LinearSolverType::GetIterationsNumber)
     ;
@@ -75,6 +79,21 @@ void AddLinearSolversToPython(py::module& m)
         .def(py::init<>())
         .def(py::init<Parameters>())
         // .def("__str__", PrintObject<CGSolverType>)
+    ;
+
+    using EigenSparseLUSolverType = Future::EigenSparseLUSolver<SerialLinearAlgebraTraits>;
+    py::class_<EigenSparseLUSolverType, EigenSparseLUSolverType::Pointer, DirectSolverType>(m, "EigenSparseLUSolver")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        // .def("__str__", PrintObject<EigenSparseLUSolverType>)
+    ;
+
+    using RigidBodyModePinningSolverType = Future::RigidBodyModePinningSolver<SerialLinearAlgebraTraits>;
+    py::class_<RigidBodyModePinningSolverType, RigidBodyModePinningSolverType::Pointer, LinearSolverType>(m, "RigidBodyModePinningSolver")
+        .def(py::init<typename LinearSolverType::Pointer, double>(), py::arg("p_linear_solver"), py::arg("tolerance") = 1.0e-6)
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        // .def("__str__", PrintObject<RigidBodyModePinningSolverType>)
     ;
 
     py::enum_<Future::AMGCLSmoother>(m, "AMGCLSmoother")

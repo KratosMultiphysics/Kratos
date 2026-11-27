@@ -137,7 +137,7 @@ public:
 
     /// Constructor with linear operator and additional data
     LinearSystem(
-        typename LinearOperatorType::Pointer pLinearOperator,
+        typename LinearOperatorType::UniquePointer&& pLinearOperator,
         typename VectorType::Pointer pRhs,
         typename VectorType::Pointer pSol,
         ModelPart& rModelPart,

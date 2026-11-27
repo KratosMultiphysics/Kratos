@@ -43,11 +43,11 @@ void SbmLaplacianConditionDirichlet::CalculateLocalSystem(
     const SizeType mat_size = GetGeometry().size() * 1;
 
     if (rRightHandSideVector.size() != mat_size)
-        rRightHandSideVector.resize(mat_size);
+        rRightHandSideVector.resize(mat_size, false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
-        rLeftHandSideMatrix.resize(mat_size, mat_size);
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
@@ -105,7 +105,7 @@ void SbmLaplacianConditionDirichlet::InitializeSbmMemberVariables()
         KRATOS_ERROR_IF(r_projection_nodes.size() != 1)
             << "Expected one projection node in condition #" << Id() << std::endl;
         mpProjectionNode = &r_projection_nodes[0];
-        mDistanceVector.resize(3);
+        mDistanceVector.resize(3, false);
         noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
         return;
     }
@@ -128,7 +128,7 @@ void SbmLaplacianConditionDirichlet::InitializeSbmMemberVariables()
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
-    mDistanceVector.resize(3);
+    mDistanceVector.resize(3, false);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
 }
 

@@ -447,10 +447,17 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeRHSOutletIn
     const double rho = r_neighbours[0].GetProperties().GetValue(DENSITY);
 
     // Compute Gauss pt. density, velocity norm and velocity projection
+    // Note that the explicit treatment takes the velocity of the previous step
+    IndexType step = 0;
+    if (rProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_EXPLICIT)) {
+        if (rProcessInfo[OUTLET_INFLOW_CONTRIBUTION_EXPLICIT]) {
+            step = 1;
+        }
+    }
     array_1d<double, 3> vGauss = ZeroVector(3);
     for (unsigned int i=0; i<TNumNodes; ++i)
     {
-        const array_1d<double, 3>& rVelNode = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double, 3>& rVelNode = rGeom[i].FastGetSolutionStepValue(VELOCITY, step);
         vGauss += data.N[i]*rVelNode;
     }
 

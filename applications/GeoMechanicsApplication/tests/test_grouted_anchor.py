@@ -1,0 +1,37 @@
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+import test_helper
+
+import helper_utilities
+import os
+
+import KratosMultiphysics as Kratos
+
+
+class KratosGeoMechanicsGroutedAnchorTests(KratosUnittest.TestCase):
+    def test_run(self):
+        file_path = test_helper.get_file_path("grouted_anchor")
+
+        with KratosUnittest.WorkFolderScope(
+            rel_path_work_folder=file_path, file_path=__file__
+        ):
+            with open("ProjectParameters.json") as parameter_file:
+                project_parameters = Kratos.Parameters(parameter_file.read())
+
+            helper_utilities.run_orchestrator(project_parameters)
+            run_stage_1_path = os.path.join(file_path, "Sheetpile_with_anchor.post.res")
+            displacement_result = test_helper.get_nodal_variable_from_ascii(
+                run_stage_1_path, "DISPLACEMENT"
+            )
+        regression_displacements = {
+            1: [-0.00076362, -0.104623, 0],
+            2: [-2.55326e-05, -0.104993, 0],
+            3: [0.000950976, -0.105002, 0],
+            4: [-0.00256835, -0.108894, 0],
+            5: [-0.000377458, -0.102321, 0],
+        }
+        for node_id, expected in regression_displacements.items():
+            self.assertVectorAlmostEqual(displacement_result[1][node_id], expected)
+
+
+if __name__ == "__main__":
+    KratosUnittest.main()

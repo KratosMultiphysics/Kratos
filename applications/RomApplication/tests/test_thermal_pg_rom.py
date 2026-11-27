@@ -35,7 +35,7 @@ class TestThermalPGRom(KratosUnittest.TestCase):
             obtained_output = rom_testing_utilities.GetScalarNodalResults(self.simulation._GetSolver().GetComputingModelPart(), KratosMultiphysics.TEMPERATURE)
             nodal_area = rom_testing_utilities.GetNodalAreaVector(self.simulation._GetSolver().GetComputingModelPart())
 
-            l2 = np.sqrt((sum(nodal_area*((1 - obtained_output/expected_output )**2)))/(sum(nodal_area)))*100
+            l2 = rom_testing_utilities.GetRelativeL2Error(expected_output, obtained_output, nodal_area)
             self.assertLess(l2, self.relative_tolerance)
 
     def testConvDiffDynamicPGRom2D(self):
@@ -83,7 +83,7 @@ class TestThermalPGRom(KratosUnittest.TestCase):
             nodal_area = rom_testing_utilities.GetNodalAreaVector(self.simulation._GetSolver().GetComputingModelPart())
 
             for i in range (n_snapshots):
-                l2 = np.sqrt((sum(nodal_area*((1 - obtained_snapshot_matrix[:,i]/expected_output[:,i] )**2)))/(sum(nodal_area)))*100
+                l2 = rom_testing_utilities.GetRelativeL2Error(expected_output[:,i], obtained_snapshot_matrix[:,i], nodal_area)
                 self.assertLess(l2, self.relative_tolerance)
 
     def tearDown(self):

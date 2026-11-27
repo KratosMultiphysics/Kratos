@@ -16,6 +16,7 @@
 
 // Project includes
 #include "custom_utilities/mortar_explicit_contribution_utilities.h"
+#include "contact_structural_mechanics_application_variables.h"
 #include "utilities/atomic_utilities.h"
 
 namespace Kratos
@@ -70,7 +71,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     bool dual_LM = false;
 
     const double geometry_area = r_slave_geometry.Area();
-    if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {
+    if (is_inside && ((integration_area/geometry_area) > 1.0e-12)) {
         IntegrationMethod this_integration_method = pCondition->GetIntegrationMethod();
 
         // Initialize general variables for the current master element
@@ -113,7 +114,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
                     r_slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
 
                     // Calculate the kinematic variables
-                    ExplicitCalculateKinematics(pCondition, kinematic_variables, Ae, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
+                    ExplicitCalculateKinematics(pCondition, kinematic_variables, Ae, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM, rCurrentProcessInfo);
 
                     const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
                     const double integration_weight = integration_points_slave[point_number].Weight() * axisymmetric_coefficient;
@@ -266,7 +267,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
                     r_slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
 
                     // Calculate the kinematic variables
-                    ExplicitCalculateKinematics(pCondition, kinematic_variables, Ae, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
+                    ExplicitCalculateKinematics(pCondition, kinematic_variables, Ae, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM, rCurrentProcessInfo);
 
                     const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
                     const double integration_weight = integration_points_slave[point_number].Weight() * axisymmetric_coefficient;
@@ -469,7 +470,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
                     r_slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
 
                     // Calculate the kinematic variables
-                    ExplicitCalculateKinematics(pCondition, kinematic_variables, Ae, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
+                    ExplicitCalculateKinematics(pCondition, kinematic_variables, Ae, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM, rCurrentProcessInfo);
 
                     const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliaryOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
                     const double integration_weight = integration_points_slave[point_number].Weight() * axisymmetric_coefficient;
@@ -566,9 +567,12 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     const PointType& rLocalPointDecomp,
     const PointType& rLocalPointParent,
     const GeometryPointType& rGeometryDecomp,
-    const bool DualLM
+    const bool DualLM,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
+    const double reference_length = rCurrentProcessInfo.Has(PROBLEM_REFERENCE_LENGTH) ? rCurrentProcessInfo[PROBLEM_REFERENCE_LENGTH] : 1.0;
+
     /// SLAVE CONDITION ///
     /* SHAPE FUNCTIONS */
     const auto& r_geometry = pCondition->GetParentGeometry();
@@ -582,7 +586,8 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     rVariables.jSlave = rGeometryDecomp.Jacobian( rVariables.jSlave, rLocalPointDecomp.Coordinates());
     rVariables.DetjSlave = rGeometryDecomp.DeterminantOfJacobian( rLocalPointDecomp );
 
-    KRATOS_ERROR_IF(rVariables.DetjSlave < 0.0) << "ERROR:: CONDITION ID: " << pCondition->Id() << " INVERTED. DETJ: " << rVariables.DetjSlave << std::endl;
+    KRATOS_ERROR_IF(rVariables.DetjSlave < reference_length * 1.0e-18) << "ERROR:: CONDITION ID: " << pCondition->Id() << " INVERTED. DETJ: " << rVariables.DetjSlave << 
+    ",  tolerance of: " << reference_length * 1.0e-18 << std::endl;
 
     /// MASTER CONDITION ///
     MasterShapeFunctionValue(pCondition, rVariables, rNormalMaster, rLocalPointParent);
@@ -600,9 +605,12 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     const PointType& rLocalPointDecomp,
     const PointType& rLocalPointParent,
     const GeometryPointType& rGeometryDecomp,
-    const bool DualLM
+    const bool DualLM,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
+    const double reference_length = rCurrentProcessInfo.Has(PROBLEM_REFERENCE_LENGTH) ? rCurrentProcessInfo[PROBLEM_REFERENCE_LENGTH] : 1.0;
+
     /// SLAVE CONDITION ///
     /* SHAPE FUNCTIONS */
     const auto& r_geometry = pCondition->GetParentGeometry();
@@ -616,7 +624,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     rVariables.jSlave = rGeometryDecomp.Jacobian( rVariables.jSlave, rLocalPointDecomp.Coordinates());
     rVariables.DetjSlave = rGeometryDecomp.DeterminantOfJacobian( rLocalPointDecomp );
 
-    KRATOS_ERROR_IF(rVariables.DetjSlave < 0.0) << "ERROR:: CONDITION ID: " << pCondition->Id() << " INVERTED. DETJ: " << rVariables.DetjSlave << std::endl;
+    KRATOS_ERROR_IF(rVariables.DetjSlave < reference_length * 1.0e-18) << "ERROR:: CONDITION ID: " << pCondition->Id() << " INVERTED. DETJ: " << rVariables.DetjSlave << ", tolerance of: " << reference_length * 1.0e-18 << std::endl;
 
     /// MASTER CONDITION ///
     MasterShapeFunctionValue(pCondition, rVariables, rNormalMaster, rLocalPointParent);
@@ -642,7 +650,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     GeometryType::CoordinatesArrayType slave_gp_global;
     r_slave_geometry.GlobalCoordinates( slave_gp_global, rLocalPoint );
     const PointType slave_gp_global_point = PointType(slave_gp_global);
-    GeometricalProjectionUtilities::FastProjectDirection( r_master_geometry, slave_gp_global_point, projected_gp_global, rNormalMaster, -gp_normal ); // The opposite direction
+    GeometricalProjectionUtilities::FastProjectDirection( r_master_geometry, slave_gp_global_point, projected_gp_global, gp_normal, rNormalMaster ); // The opposite direction
 
     GeometryType::CoordinatesArrayType projected_gp_local;
 

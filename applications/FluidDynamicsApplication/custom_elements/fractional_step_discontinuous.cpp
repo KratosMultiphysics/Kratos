@@ -569,7 +569,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateGeometryData(ShapeFunctionDeriv
                 rGaussWeights.resize(ndivisions, false);
             if (rNContainer.size1() != ndivisions || rNContainer.size2() != TDim + 1)
                 rNContainer.resize(ndivisions, TDim + 1, false);
-            rDN_DX.resize(ndivisions);
+            rDN_DX.resize(ndivisions, false);
 
             //KRATOS_WATCH(this->Id())
             for (unsigned int g = 0; g < ndivisions; g++)

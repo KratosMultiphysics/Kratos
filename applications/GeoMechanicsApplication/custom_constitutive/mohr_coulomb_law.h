@@ -15,11 +15,14 @@
 #pragma once
 
 #include "custom_constitutive/principal_stresses.hpp"
+#include "custom_constitutive/youngs_modulus_formulations.h"
 #include "includes/constitutive_law.h"
 #include <memory>
 
 namespace Kratos
 {
+
+class Serializer;
 
 class ConstitutiveLawDimension;
 class CoulombImpl;
@@ -65,19 +68,21 @@ public:
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
 private:
-    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
-    Vector                                    mStressVector;
-    Vector                                    mStressVectorFinalized;
-    Vector                                    mStrainVectorFinalized;
-    std::unique_ptr<CoulombImpl>              mpCoulombImpl;
-    bool                                      mIsModelInitialized = false;
+    std::unique_ptr<ConstitutiveLawDimension>          mpConstitutiveDimension;
+    Vector                                             mStressVector;
+    Vector                                             mStressVectorFinalized;
+    Vector                                             mStrainVectorFinalized;
+    std::unique_ptr<CoulombImpl>                       mpCoulombImpl;
+    GeoYoungsModulusFormulations::YoungsModulusVariant mYoungsModulusFormulation;
+    bool                                               mIsModelInitialized = false;
     // Each sub-step's elastic predictor is allowed to overshoot the yield surface by at most
     // this fraction of the stress magnitude
     double      mMaxRelativeOvershoot       = 1.0;
     int         mMaxNumberOfSubSteps        = 1;
     std::size_t mCalculatedNumberOfSubSteps = 0;
 
-    [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;
+    [[nodiscard]] Matrix CalculateElasticConstitutiveTensor(const Properties& rProperties);
+    [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties);
 
     /// <summary>
     /// Estimates how many strain sub-steps are needed to integrate the constitutive law
@@ -87,7 +92,7 @@ private:
     std::size_t CalculateAdaptiveNumberOfSubSteps(const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                                   const Matrix& rElasticMatrix) const;
 
-    friend class Serializer;
+    friend Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 }; // Class MohrCoulombLaw

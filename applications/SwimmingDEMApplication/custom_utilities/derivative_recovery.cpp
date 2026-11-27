@@ -879,7 +879,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
             }
         }
         Vector& nodal_weights = p_node->FastGetSolutionStepValue(NODAL_WEIGHTS);
-        nodal_weights.resize(n_relevant_terms * n_nodal_neighs);
+        nodal_weights.resize(n_relevant_terms * n_nodal_neighs, false);
         const DenseMatrix<double> AtransAinv = mMyCustomFunctions.Inverse(AtransA);
 //        for (unsigned i = 0; i < n_poly_terms; i++){
 //            for (unsigned j = 0; j < n_poly_terms; j++){

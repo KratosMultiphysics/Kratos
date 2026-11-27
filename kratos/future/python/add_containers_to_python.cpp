@@ -56,12 +56,15 @@ void AddContainersToPython(py::module& m)
         .value("NumberOfTags", Future::LinearSystemTags::DenseMatrixTag::NumberOfTags)
     ;
 
+    using DofsArrayType = typename ModelPart::DofsArrayType;
     using LinearSystemType = Future::LinearSystem<Future::SerialLinearAlgebraTraits>;
     py::class_<LinearSystemType, typename LinearSystemType::Pointer>(m, "LinearSystem")
         .def(py::init<>())
         .def(py::init<std::string>(), py::arg("Name"))
         .def(py::init<typename LinearSystemType::MatrixType::Pointer, typename LinearSystemType::VectorType::Pointer, typename LinearSystemType::VectorType::Pointer, std::string>(), py::arg("pLhs"), py::arg("pRhs"), py::arg("pSol"), py::arg("Name"))
         .def(py::init<typename LinearSystemType::LinearOperatorType::UniquePointer, typename LinearSystemType::VectorType::Pointer, typename LinearSystemType::VectorType::Pointer, std::string>(), py::arg("pLinearOperator"), py::arg("pRhs"), py::arg("pSol"), py::arg("Name"))
+        .def(py::init<typename LinearSystemType::MatrixType::Pointer, typename LinearSystemType::VectorType::Pointer, typename LinearSystemType::VectorType::Pointer, ModelPart&, DofsArrayType&, std::string>(), py::arg("pLhs"), py::arg("pRhs"), py::arg("pSol"), py::arg("ModelPart"), py::arg("DofsArray"), py::arg("Name"))
+        .def(py::init<typename LinearSystemType::LinearOperatorType::UniquePointer, typename LinearSystemType::VectorType::Pointer, typename LinearSystemType::VectorType::Pointer, ModelPart&, DofsArrayType&, std::string>(), py::arg("pLinearOperator"), py::arg("pRhs"), py::arg("pSol"), py::arg("ModelPart"), py::arg("DofsArray"), py::arg("Name"))
         .def("SetMatrix", [](LinearSystemType& rLinearSystem, typename Future::SerialLinearAlgebraTraits::MatrixType::Pointer pMatrix, Future::LinearSystemTags::SparseMatrixTag Tag) {
             rLinearSystem.pSetMatrix(pMatrix, Tag); }, py::arg("Matrix"), py::arg("Tag"))
         .def("SetMatrix", [](LinearSystemType& rLinearSystem, typename Kratos::shared_ptr<Future::SerialLinearAlgebraTraits::DenseMatrixType> pMatrix, Future::LinearSystemTags::DenseMatrixTag Tag) {

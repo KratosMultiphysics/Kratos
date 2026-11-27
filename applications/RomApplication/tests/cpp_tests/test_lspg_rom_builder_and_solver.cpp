@@ -205,9 +205,9 @@ KRATOS_TEST_CASE_IN_SUITE(LeastSquaresPetrovGalerkinROMBuilderAndSolver, RomAppl
 
     const auto dx = BuildAndSolve(model_part, p_scheme, romBnS);
     const auto& dq = model_part.GetValue(ROM_SOLUTION_INCREMENT);
-    const int mActiveHromSet = parameters["weight_vector_index"].GetInt();
 
-    KRATOS_EXPECT_NEAR(model_part.ElementsBegin()->GetValue(HROM_WEIGHT)[mActiveHromSet], 1, 1e-8);
+    // The elements without HROM weights are not modified (their data is shared by the solvers of a coupled problem)
+    KRATOS_EXPECT_FALSE(model_part.ElementsBegin()->Has(HROM_WEIGHT));
     KRATOS_EXPECT_EQ(romBnS.GetEquationSystemSize(), 3);
 
     KRATOS_EXPECT_NEAR(dq(0), 1.0 , 1e-8);
