@@ -19,12 +19,14 @@ namespace Kratos
 
 class KratosGeoSettlement;
 class KratosExecute;
+class KratosGeneric;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) CustomWorkflowFactory
 {
 public:
     static KratosGeoSettlement* CreateKratosGeoSettlement();
     static KratosExecute*       CreateKratosGeoFlow();
+    static KratosGeneric*       CreateKratosGeneric();
 };
 
 } // namespace Kratos

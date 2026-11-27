@@ -24,7 +24,10 @@
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
+#include "custom_processes/apply_constant_hydrostatic_pressure_process.h"
+#include "custom_processes/apply_seepage_boundary_process.h"
 #include "custom_processes/fix_water_pressures_above_phreatic_line.h"
+#include "custom_processes/geo_apply_constant_scalar_value_process.h"
 #include "custom_processes/set_parameter_field_process.hpp"
 
 #include "adaptive_time_incrementor.h"
@@ -36,6 +39,8 @@
 #include "custom_utilities/process_info_parser.h"
 #include "custom_utilities/process_utilities.h"
 #include "custom_utilities/solving_strategy_factory.hpp"
+#include "processes/apply_constant_scalarvalue_process.h"
+#include "processes/apply_constant_vectorvalue_process.h"
 #include "solving_strategy_wrapper.hpp"
 #include "spaces/default_spaces.h"
 #include "spaces/ublas_space.h"
@@ -170,6 +175,35 @@ void KratosGeoSettlement::InitializeProcessFactory()
                                 MakeCreatorWithModelFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
     mProcessFactory->AddCreator("FixWaterPressuresAbovePhreaticLineProcess",
                                 MakeCreatorFor<FixWaterPressuresAbovePhreaticLineProcess>());
+    mProcessFactory->AddCreator("ApplySeepageBoundaryProcess",
+                                MakeCreatorWithModelFor<ApplySeepageBoundaryProcess>());
+    mProcessFactory->AddCreator("GeoApplyConstantScalarValueProcess",
+                                MakeCreatorFor<GeoApplyConstantScalarValueProcess>());
+    mProcessFactory->AddCreator("ApplyConstantScalarValueProcess",
+                                MakeCreatorWithModelFor<ApplyConstantScalarValueProcess>());
+    mProcessFactory->AddCreator("ApplyConstantVectorValueProcess",
+                                MakeCreatorWithModelFor<ApplyConstantVectorValueProcess>());
+    mProcessFactory->AddCreator(
+        "ApplyConstantHydrostaticPressureProcess",
+        [this](const Parameters& rProcessSettings) -> ProcessFactory::ProductType {
+            auto settings = rProcessSettings.Clone();
+            if (settings.Has("fluid_pressure_type")) {
+                const auto fluid_pressure_type = settings["fluid_pressure_type"].GetString();
+                settings.RemoveValue("fluid_pressure_type");
+
+                if (fluid_pressure_type == "Uniform") {
+                    auto scalar_settings = Parameters{R"({"variable_name":"WATER_PRESSURE","is_fixed":true})"};
+                    scalar_settings.AddValue("value", settings["value"]);
+                    auto& model_part = mModel.GetModelPart(settings["model_part_name"].GetString());
+                    return std::make_unique<GeoApplyConstantScalarValueProcess>(model_part, scalar_settings);
+                }
+
+                KRATOS_ERROR_IF(fluid_pressure_type != "Hydrostatic")
+                    << "Unsupported fluid_pressure_type: " << fluid_pressure_type;
+            }
+            auto& model_part = mModel.GetModelPart(settings["model_part_name"].GetString());
+            return std::make_unique<ApplyConstantHydrostaticPressureProcess>(model_part, settings);
+        });
     mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName) {
         KRATOS_ERROR << "Unexpected process (" << rProcessName << "), calculation is aborted";
     });
@@ -292,6 +326,7 @@ void KratosGeoSettlement::AddNodalSolutionStepVariablesTo(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     rModelPart.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
     rModelPart.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+    rModelPart.AddNodalSolutionStepVariable(NODAL_WATER_FLOW_RATE);
 
     // Variables that can be extrapolated from integration points to nodes
     rModelPart.AddNodalSolutionStepVariable(TOTAL_STRESS_TENSOR);

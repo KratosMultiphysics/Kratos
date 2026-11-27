@@ -31,9 +31,11 @@
 
 namespace Kratos
 {
-template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class GeoMechanicsNewtonRaphsonErosionProcessStrategy
-    : public GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+template <class TSparseSpace,
+          class TDenseSpace,
+          class TLinearSolver,
+          class TNewtonRaphsonStrategy = GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>
+class GeoMechanicsNewtonRaphsonErosionProcessStrategy : public TNewtonRaphsonStrategy
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GeoMechanicsNewtonRaphsonErosionProcessStrategy);
@@ -59,7 +61,7 @@ public:
                                                     bool        CalculateReactions     = false,
                                                     bool        ReformDofSetAtEachStep = false,
                                                     bool        MoveMeshFlag           = false)
-        : GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
+        : TNewtonRaphsonStrategy(
               model_part,
               pScheme,
               pNewConvergenceCriteria,
@@ -259,22 +261,24 @@ private:
         return MaxPipeHeight / (static_cast<double>(NumberOfSteps) - 1.);
     }
 
+protected:
     virtual bool Recalculate()
     {
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0 && rank == 0)
             << "Recalculating" << std::endl;
 
-        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Predict();
-        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeSolutionStep();
-        return GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::SolveSolutionStep();
+        TNewtonRaphsonStrategy::Predict();
+        TNewtonRaphsonStrategy::InitializeSolutionStep();
+        return TNewtonRaphsonStrategy::SolveSolutionStep();
     }
 
     virtual void BaseClassFinalizeSolutionStep()
     {
         // to override in a unit test
-        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
+        TNewtonRaphsonStrategy::FinalizeSolutionStep();
     }
 
+private:
     template <typename FilteredElementsType>
     bool CheckPipeEquilibrium(const FilteredElementsType& rOpenPipeElements, double MaxPipeHeight, unsigned int MaxNumberOfPipingIterations)
     {
