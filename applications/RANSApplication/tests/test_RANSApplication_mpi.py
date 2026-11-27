@@ -48,14 +48,12 @@ def AssembleTestSuites():
     smallMPISuite = suites['mpi_small']
 
     # adding custom process tests
-    # smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
 
     # add symbolic mpi small tests for mpi small suite
-    # smallMPISuite.addTest(FractionalStepKOmegaSSTTest("testRfcVelocityTransient"))
-    # smallMPISuite.addTest(MonolithicKOmegaSSTTest("testRfcVelocityTransient"))
-    # smallMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcVelocityTransient"))
+    smallMPISuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcVelocityTransient"))
     # smallMPISuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocityTransient"))
-    # smallMPISuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocityTransient"))
+    smallMPISuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocityTransient"))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
