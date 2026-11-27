@@ -18,6 +18,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_solvers/eigen_sparse_cg_solver.h"
 #include "custom_solvers/eigen_sparse_lu_solver.h"
+#include "custom_solvers/eigen_sparse_ldlt_solver.h"
 #include "custom_solvers/eigen_sparse_qr_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
 #include "custom_solvers/eigen_dense_col_piv_householder_qr_solver.h"
@@ -220,10 +221,12 @@ void AddCustomSolversToPython(pybind11::module& m)
     // --- direct solvers
 
     register_solver<EigenSparseLUSolver<double>>(m, "SparseLUSolver");
+    register_solver<EigenSparseLDLTSolver<double>>(m, "SparseLDLTSolver");
     register_solver<EigenSparseCGSolver<double>>(m, "SparseCGSolver");
     register_solver<EigenSparseQRSolver<double>>(m, "SparseQRSolver");
 
     register_solver<EigenSparseLUSolver<complex>>(m, "ComplexSparseLUSolver");
+    register_solver<EigenSparseLDLTSolver<complex>>(m, "ComplexSparseLDLTSolver");
 
 #if defined USE_EIGEN_MKL
     register_solver<EigenPardisoLUSolver<double>>(m, "PardisoLUSolver");
