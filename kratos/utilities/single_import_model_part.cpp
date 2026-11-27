@@ -42,7 +42,7 @@ void SingleImportModelPart::Import(
         // Cannot validate as this might contain other settings too
         ModelPartImportParameters.AddMissingParameters(default_settings);
 
-        const auto& input_filename = ModelPartImportParameters["input_filename"].GetString();
+        const auto& input_filename = ModelPartImportParameters["input_filename"].GetPath();
 
         // Setting some mdpa-import-related flags
         auto import_flags = ModelPartIO::READ;

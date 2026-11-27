@@ -519,6 +519,12 @@ public:
     bool IsString() const;
 
     /**
+     * @brief This method checks if the parameter is a std::filesystem::path
+     * @return True if it is a string, false otherwise
+     */
+    bool IsPath() const;
+
+    /**
      * @brief This method checks if the parameter is an array
      * @return True if it is an array, false otherwise
      */
@@ -529,6 +535,12 @@ public:
      * @return True if it is a string array, false otherwise
      */
     bool IsStringArray() const;
+
+    /**
+     * @brief This method checks if the parameter is an array of std::filesystem::path
+     * @return True if it is a string array, false otherwise
+     */
+    bool IsPathArray() const;
 
     /**
      * @brief This method checks if the parameter is a vector
@@ -581,10 +593,22 @@ public:
     std::string GetString() const;
 
     /**
+     * @brief This method returns the filesystem::path contained in the current Parameter
+     * @return The string value
+     */
+    std::filesystem::path GetPath() const;
+
+    /**
      * @brief This method returns the array of strings in the current Parameter
      * @return The array of strings
      */
     std::vector<std::string> GetStringArray() const;
+
+    /**
+     * @brief This method returns the array of filesystem::path in the current Parameter
+     * @return The array of strings
+     */
+    std::vector<std::filesystem::path> GetPathArray() const;
 
     /**
      * @brief This method returns the vector contained in the current Parameter
@@ -637,10 +661,22 @@ public:
     void SetString(const std::string& rValue);
 
     /**
+     * @brief This method sets the filesistem::path contained in the current Parameter
+     * @param rValue The string value
+     */
+    void SetPath(const std::filesystem::path& rValue);
+
+    /**
      * @brief This method sets the string array contained in the current Parameter
      * @param Value The string array
      */
     void SetStringArray(const std::vector<std::string>& rValue);
+
+    /**
+     * @brief This method sets the filesystem::path array contained in the current Parameter
+     * @param Value The string array
+     */
+    void SetPathArray(const std::vector<std::filesystem::path>& rValue);
 
     /**
      * @brief This method sets the vector contained in the current Parameter

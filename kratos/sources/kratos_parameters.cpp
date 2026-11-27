@@ -573,6 +573,14 @@ bool Parameters::IsString() const
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool Parameters::IsPath() const
+{
+    return IsString();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool Parameters::IsArray() const
 {
     return mpValue->is_array();
@@ -594,6 +602,15 @@ bool Parameters::IsStringArray() const
         }
         return true; // All entries are strings or Vector is empty
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+bool Parameters::IsPathArray() const
+{
+    return IsStringArray();
 }
 
 /***********************************************************************************/
@@ -687,6 +704,14 @@ std::string Parameters::GetString() const
     return mpValue->get<std::string>();
 }
 
+/********************************************************************************* */
+/********************************************************************************* */
+
+std::filesystem::path Parameters::GetPath() const
+{
+    return std::filesystem::u8path(GetString());
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -697,6 +722,20 @@ std::vector<std::string> Parameters::GetStringArray() const
     for (std::size_t i = 0; i < result.size(); ++i)
     {
         result[i] = this->GetArrayItem(i).GetString();
+    }
+    return result;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<std::filesystem::path> Parameters::GetPathArray() const
+{
+    KRATOS_ERROR_IF_NOT(this->IsStringArray()) << "Argument must be a string array" << std::endl;
+    std::vector<std::filesystem::path> result(this->size());
+    for (std::size_t i = 0; i < result.size(); ++i)
+    {
+        result[i] = this->GetArrayItem(i).GetPath();
     }
     return result;
 }
@@ -855,6 +894,15 @@ void Parameters::SetString(const std::string& rValue)
 /***********************************************************************************/
 /***********************************************************************************/
 
+void Parameters::SetPath(const std::filesystem::path& rValue)
+{
+    const auto utf8 = rValue.u8string();
+    SetString(std::string(utf8.begin(), utf8.end()));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Parameters::SetStringArray(const std::vector<std::string>& rValue)
 {
     const SizeType size = rValue.size();
@@ -864,6 +912,22 @@ void Parameters::SetStringArray(const std::vector<std::string>& rValue)
 
     for (IndexType i = 0; i < size; ++i) {
         (*mpValue)[i] = rValue[i];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::SetPathArray(const std::vector<std::filesystem::path>& rValue)
+{
+    const SizeType size = rValue.size();
+
+    nlohmann::json j_array(0.0, size);
+    (*mpValue) = j_array;
+
+    for (IndexType i = 0; i < size; ++i) {
+        const auto utf8 = rValue[i].u8string();
+        (*mpValue)[i] = std::string(utf8.begin(), utf8.end());
     }
 }
 
