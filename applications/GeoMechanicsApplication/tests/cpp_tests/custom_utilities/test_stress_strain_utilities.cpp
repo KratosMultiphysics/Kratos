@@ -76,21 +76,46 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateLodeAngle, KratosGeoMechanicsFastSuiteWi
     auto stress_vector = UblasUtilities::CreateVector({0.5, -1.0, 0.5, 0.0});
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(30.0),
                             StressStrainUtilities::CalculateLodeAngle(stress_vector));
+    Vector principal_stresses;
+    Matrix rotation_matrix;
+    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, principal_stresses, rotation_matrix);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        MathUtils<>::DegreesToRadians(30.0),
+        StressStrainUtilities::CalculateLodeAngle(Geo::PrincipalStresses(principal_stresses)));
+
     // Validate Triaxial Compression (TXC)
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(-30.0),
                             StressStrainUtilities::CalculateLodeAngle(-1.0 * stress_vector));
+    StressStrainUtilities::CalculatePrincipalStresses(-1.0 * stress_vector, principal_stresses, rotation_matrix);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        MathUtils<>::DegreesToRadians(-30.0),
+        StressStrainUtilities::CalculateLodeAngle(Geo::PrincipalStresses(principal_stresses)));
+
     // Validate Shear (SHR)
     stress_vector = UblasUtilities::CreateVector({-1.0, 0.0, 1.0, 0.0});
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(0.0),
                             StressStrainUtilities::CalculateLodeAngle(stress_vector));
+    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, principal_stresses, rotation_matrix);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        MathUtils<>::DegreesToRadians(0.0),
+        StressStrainUtilities::CalculateLodeAngle(Geo::PrincipalStresses(principal_stresses)));
 
     // Regression tests with a small perturbation
     constexpr auto perturbation = 1.0e-8;
     stress_vector = UblasUtilities::CreateVector({0.5 + perturbation, -1.0, 0.5 + perturbation, 0.0});
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(30.0),
                             StressStrainUtilities::CalculateLodeAngle(stress_vector));
+    StressStrainUtilities::CalculatePrincipalStresses(stress_vector, principal_stresses, rotation_matrix);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        MathUtils<>::DegreesToRadians(30.0),
+        StressStrainUtilities::CalculateLodeAngle(Geo::PrincipalStresses(principal_stresses)));
+
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(-30.0),
                             StressStrainUtilities::CalculateLodeAngle(-1.0 * stress_vector));
+    StressStrainUtilities::CalculatePrincipalStresses(-1.0 * stress_vector, principal_stresses, rotation_matrix);
+    KRATOS_EXPECT_DOUBLE_EQ(
+        MathUtils<>::DegreesToRadians(-30.0),
+        StressStrainUtilities::CalculateLodeAngle(Geo::PrincipalStresses(principal_stresses)));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityZeroStress, KratosGeoMechanicsFastSuiteWithoutKernel)

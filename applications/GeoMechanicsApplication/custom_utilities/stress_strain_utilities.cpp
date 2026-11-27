@@ -101,6 +101,21 @@ double StressStrainUtilities::CalculateLodeAngle(const Vector& rStressVector)
     return 0.0;
 }
 
+double StressStrainUtilities::CalculateLodeAngle(const Geo::PrincipalStresses& rPrincipalStresses)
+{
+    const auto q = CalculateVonMisesStress(rPrincipalStresses);
+    if (q > 0.0) {
+        const auto p         = CalculateMeanStress(rPrincipalStresses);
+        const auto numerator = (rPrincipalStresses.Values()[0] - p) *
+                               (rPrincipalStresses.Values()[1] - p) * (rPrincipalStresses.Values()[2] - p);
+        // Avoid a domain error when computing the arc sine (which results in a NaN value)
+        const auto arg_to_asin = std::clamp((-27. / 2.) * numerator / std::pow(q, 3), -1.0, 1.0);
+
+        return std::asin(arg_to_asin) / 3.0;
+    }
+    return 0.0;
+}
+
 double StressStrainUtilities::CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double PhiInRadians)
 {
     KRATOS_ERROR_IF(rStressVector.size() < 4);
