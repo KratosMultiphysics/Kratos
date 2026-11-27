@@ -173,29 +173,29 @@ namespace Kratos
                 // Complete residual
                 const double residual = dphi_dt + convection + reaction - source;
     
-                //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                // Peclet's projected formulation was commented after some testing due to 
-                // residual radial instabilities in 3D cases. 
-                // It was decided to use a complete approach with 'crosswind_constant' without 
-                // considering the projection.
-                //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                // Velocity projected in the direction of the solution gradient
-                u_proj = (convection/std::pow(norm_grad,2)) * grad_phi_halfstep;
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                // // Peclet's projected formulation was commented after some testing due to 
+                // // residual radial instabilities in 3D cases. 
+                // // It was decided to use a complete approach with 'crosswind_constant' without 
+                // // considering the projection.
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                // // Velocity projected in the direction of the solution gradient
+                // u_proj = (convection/std::pow(norm_grad,2)) * grad_phi_halfstep;
 
-                // Peclet number projected in the direction of the solution gradient
-                const double Pe_proj = norm_2(u_proj) * h / (2.0 * Variables.conductivity + 1e-12);
+                // // Peclet number projected in the direction of the solution gradient
+                // const double Pe_proj = norm_2(u_proj) * h / (2.0 * Variables.conductivity + 1e-12);
 
-                // Limiter
-                const double alpha_c = std::max( 0.0, Variables.crosswind_constant - 1.0/(Pe_proj + 1e-12));
+                // // Limiter
+                // const double alpha_c = std::max( 0.0, Variables.crosswind_constant - 1.0/(Pe_proj + 1e-12));
 
-                // Discontinuity capturing coefficient
-                double k_c = 0.5 * alpha_c * h * std::abs(residual / norm_grad);
-                //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-                //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                // // Discontinuity capturing coefficient
+                // double k_c = 0.5 * alpha_c * h * std::abs(residual / norm_grad);
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
                 
                 // // Discontinuity capturing coefficient
-                // double k_c = Variables.crosswind_constant * h * std::abs(residual / norm_grad);
+                double k_c = Variables.crosswind_constant * h * std::abs(residual / norm_grad);
                 
                 // Crosswind diffusion tensor
                 Dcw = k_c * IdentityMatrix(TDim);
