@@ -1,0 +1,133 @@
+{
+  "problem_data": {
+    "parallel_type": "OpenMP",
+    "echo_level": 0
+  },
+  "model_parts": [
+    {
+      "settings": {
+        "model_part_name": "Structure",
+        "domain_size": 3,
+        "input_filename": "shell_thin"
+      }
+    }
+  ],
+  "analyses": [
+    {
+      "name": "Structure_static",
+      "type": "kratos_analysis_execution_policy",
+      "settings": {
+        "model_part_names": [
+          "Structure"
+        ],
+        "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
+        "analysis_type": "StructuralMechanicsAnalysis",
+        "analysis_settings": {
+          "@include_json": "primal_parameters.json"
+        },
+        "analysis_output_settings": {
+          "nodal_solution_step_data_variables": [
+            "DISPLACEMENT"
+          ],
+          "nodal_data_value_variables": [],
+          "element_data_value_variables": [],
+          "condition_data_value_variables": []
+        }
+      }
+    }
+  ],
+  "responses": [
+    {
+      "name": "mass",
+      "type": "mass_response_function",
+      "settings": {
+        "evaluated_model_part_names": [
+          "Structure"
+        ]
+      }
+    },
+    {
+      "name": "strain_energy",
+      "type": "linear_strain_energy_response_function",
+      "settings": {
+        "evaluated_model_part_names": [
+          "Structure"
+        ],
+        "primal_analysis_name": "Structure_static",
+        "perturbation_size": 1e-08
+      }
+    }
+  ],
+  "controls": [
+    {
+      "name": "thickness_control",
+      "type": "material.material_properties_control",
+      "settings": {
+        "model_part_names": [
+          "Structure.Parts_Shell_structure"
+        ],
+        "control_variable_name": "THICKNESS"
+      }
+    }
+  ],
+  "algorithm_settings": {
+    "type": "algorithm_mma",
+    "settings": {
+      "control_bounds": [
+        {
+          "control": "thickness_control",
+          "lower": 0.05,
+          "upper": 0.5
+        }
+      ],
+      "conv_settings": {
+        "max_iter": 10
+      },
+      "variant": "gcmma"
+    },
+    "controls": [
+      "thickness_control"
+    ],
+    "objective": {
+      "response_expression": "mass",
+      "type": "minimization",
+      "scaling": 1.0
+    },
+    "constraints": [
+      {
+        "response_expression": "strain_energy",
+        "type": "<=",
+        "scaling": 1.0,
+        "scaled_ref_value": 40000.0
+      }
+    ]
+  },
+  "processes": {
+    "kratos_processes": {},
+    "optimization_data_processes": {
+      "output_processes": [
+        {
+          "type": "optimization_problem_ascii_output_process",
+          "module": "KratosMultiphysics.OptimizationApplication.processes",
+          "settings": {
+            "output_file_name": "summary_gcmma.csv",
+            "write_kratos_version": false,
+            "write_time_stamp": false,
+            "list_of_output_components": [
+              "all"
+            ],
+            "format_info": {
+              "int_length": 7,
+              "float_precision": 6,
+              "bool_values": [
+                "no",
+                "yes"
+              ],
+              "string_length": 10
+            }
+          }
+        }
+      ]
+    }
+  }
+}
