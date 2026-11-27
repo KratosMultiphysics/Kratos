@@ -669,7 +669,9 @@ void GapSbmSolidCondition::CalculateRightHandSide(
         ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
         ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
 
-        mpConstitutiveLaw->FinalizeMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy);
+        if (mpConstitutiveLaw->RequiresFinalizeMaterialResponse()) {
+            mpConstitutiveLaw->FinalizeMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
 
         #ifdef ANALYTICAL_TANGENT
         Vector sigma = ZeroVector(3);
@@ -752,7 +754,9 @@ void GapSbmSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentPro
     #else
     mDBOld = prod(values.GetConstitutiveMatrix(), B_sum);
     #endif
-    mpConstitutiveLaw->InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+    if (mpConstitutiveLaw->RequiresInitializeMaterialResponse()) {
+        mpConstitutiveLaw->InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+    }
 
 }
 

@@ -18,10 +18,6 @@
 
 // Project includes
 #include "custom_conditions/support_solid_condition.h"
-// #define SWITCH_OFF_NISCHE  
-
-// Use the tangent returned by the selected constitutive law.
-// #define ANALYTICAL_TANGENT
 
 namespace Kratos
 {
@@ -684,7 +680,9 @@ void SupportSolidCondition::CalculateRightHandSide(
         Values.SetStressVector(this_constitutive_variables.StressVector);
         Values.SetConstitutiveMatrix(this_constitutive_variables.D);
         // update internal variables before requesting stresses
-        mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        if (mpConstitutiveLaw->RequiresFinalizeMaterialResponse()) {
+            mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
         mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
         
 
@@ -783,7 +781,9 @@ void SupportSolidCondition::CalculateRightHandSide(
         noalias(mDBOld) = prod(r_D, B);
 
         // update internal variables before requesting stresses
-        mpConstitutiveLaw->InitializeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        if (mpConstitutiveLaw->RequiresInitializeMaterialResponse()) {
+            mpConstitutiveLaw->InitializeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
     }
 
 } // Namespace Kratos

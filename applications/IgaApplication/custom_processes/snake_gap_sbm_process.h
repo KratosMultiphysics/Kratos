@@ -55,6 +55,8 @@ class KRATOS_API(IGA_APPLICATION) SnakeGapSbmProcess
 {
 public:
 
+    static constexpr double GeometricTolerance = 1.0e-12;
+
     class Gap3DData;
 
     using NodeType = Node;
@@ -551,6 +553,7 @@ private:
     std::string mGapSbmType; // "default" (uses ordered points of the curve) or
                              // "interpolation" (interpolates the points on the curve -- no assumption on their order)
                              // "sbm" (uses SBM on top of the "interpolation" approach to further optimize the gap geometry)
+    double mMinSpanSize = 0.0;
     bool mUseForMultipatch = false;
     bool mUseForLocalRefinement = false;
 
@@ -1126,31 +1129,7 @@ std::vector<array_1d<double,3>> CollectSkinUVBetween(
  * @param UV Collection of UV points describing the sampled curve.
  * @return Normalized cumulative arc-length parameters.
  */
-std::vector<double> ChordLengthParams01_UV(const std::vector<array_1d<double,3>>& UV) const
-{
-    const std::size_t n = UV.size();
-    std::vector<double> t(n,0.0);
-    if (n <= 1) return t;
-
-    double L = 0.0;
-    std::vector<double> d(n,0.0);
-    for (std::size_t i=1; i<n; ++i) {
-        const double du = UV[i][0]-UV[i-1][0];
-        const double dv = UV[i][1]-UV[i-1][1];
-        d[i] = std::sqrt(du*du+dv*dv);
-        L += d[i];
-    }
-    if (L <= 1e-16) return t;
-
-    double acc = 0.0;
-    for (std::size_t i=1; i<n; ++i) {
-        acc += d[i];
-        t[i] = acc / L;
-    }
-    t.front() = 0.0;
-    t.back()  = 1.0;
-    return t;
-}
+std::vector<double> ChordLengthParams01_UV(const std::vector<array_1d<double,3>>& UV) const;
 
 
 
@@ -1182,38 +1161,14 @@ std::vector<double> ChordLengthParams01_UV(const std::vector<array_1d<double,3>>
  * @param t Parametric value where the basis is evaluated.
  * @param B Vector storing the evaluated basis functions.
  */
-void BernsteinBasis(const int p, const double t, std::vector<double>& B) const
-{
-    const double s = std::min(1.0, std::max(0.0, t));
-    B.assign(p+1, 0.0);
-
-    // De Casteljau-like stable evaluation for Bernstein basis
-    // Start with B[0]=1 and build iteratively.
-    B[0] = 1.0;
-    const double om = 1.0 - s;
-    for (int j = 1; j <= p; ++j) {
-        double saved = 0.0;
-        for (int k = 0; k < j; ++k) {
-            const double tmp = B[k];
-            B[k] = saved + om * tmp;
-            saved = s * tmp;
-        }
-        B[j] = saved;
-    }
-}
+void BernsteinBasis(const int p, const double t, std::vector<double>& B) const;
 
 /**
  * @brief Builds a Bézier knot vector with multiplicity p+1 at the boundaries.
  * @param p Polynomial degree of the Bézier curve.
  * @param rKnots Vector receiving the generated knot values.
  */
-void BuildBezierKnots(const int p, Vector& rKnots) const
-{
-    const int nkn = 2*(p+1);
-    if ((int)rKnots.size() != nkn) rKnots.resize(nkn);
-    for (int i=0; i<=p;   ++i) rKnots[i]      = 0.0;
-    for (int i=p+1;i<nkn;++i) rKnots[i]      = 1.0;
-}
+void BuildBezierKnots(const int p, Vector& rKnots) const;
 
 /**
  * @brief Solves a symmetric positive definite linear system using a simple Cholesky factorization.
@@ -1221,40 +1176,7 @@ void BuildBezierKnots(const int p, Vector& rKnots) const
  * @param b Right-hand side vector, overwritten with the solution.
  * @return True when the system is successfully solved.
  */
-bool SolveSPD(std::vector<std::vector<double>>& A, std::vector<double>& b) const
-{
-    // Cholesky (naive) with simple pivot guard
-    const int n = (int)A.size();
-    for (int i=0; i<n; ++i) {
-        // Diagonal
-        double sum = A[i][i];
-        for (int k=0; k<i; ++k) sum -= A[i][k]*A[i][k];
-        if (sum <= 1e-20) return false;
-        const double Lii = std::sqrt(sum);
-        A[i][i] = Lii;
-
-        // Off-diagonals
-        for (int j=i+1; j<n; ++j) {
-            double s = A[j][i];
-            for (int k=0; k<i; ++k) s -= A[j][k]*A[i][k];
-            A[j][i] = s / Lii;
-        }
-    }
-
-    // Solve L y = b
-    for (int i=0; i<n; ++i) {
-        double s = b[i];
-        for (int k=0; k<i; ++k) s -= A[i][k]*b[k];
-        b[i] = s / A[i][i];
-    }
-    // Solve L^T x = y
-    for (int i=n-1; i>=0; --i) {
-        double s = b[i];
-        for (int k=i+1; k<n; ++k) s -= A[k][i]*b[k];
-        b[i] = s / A[i][i];
-    }
-    return true;
-}
+bool SolveSPD(std::vector<std::vector<double>>& A, std::vector<double>& b) const;
 
 /**
  * @brief Creates a UV Bézier curve of degree p from a set of control points.
@@ -1263,27 +1185,7 @@ bool SolveSPD(std::vector<std::vector<double>>& A, std::vector<double>& b) const
  * @return Pointer to the constructed Bézier curve geometry.
  */
 typename NurbsCurveGeometryType::Pointer MakeBezierUV_FromControls(
-    const std::vector<array_1d<double,3>>& CtrlsUV, const int p) const
-{
-    const int ncp = p + 1;
-    KRATOS_ERROR_IF((int)CtrlsUV.size() != ncp)
-        << "MakeBezierUV_FromControls: expected " << ncp << " control points.\n";
-
-    PointerVector<Node> ctrl;
-    ctrl.reserve(ncp);
-    for (int i=0; i<ncp; ++i) {
-        array_1d<double,3> P = CtrlsUV[i];
-        P[2] = 0.0; // UV is 2D
-        // Virtual node (not stored in a ModelPart)
-        ctrl.push_back( Node::Pointer(new Node(1, P)) );
-    }
-
-    Vector knots; BuildBezierKnots(p, knots);
-    Vector w(ncp); for (int i=0;i<ncp;++i) w[i]=1.0;
-
-    return typename NurbsCurveGeometryType::Pointer(
-        new NurbsCurveGeometryType(ctrl, p, knots, w));
-}
+    const std::vector<array_1d<double,3>>& CtrlsUV, const int p) const;
 
 /**
  * @brief Performs a least-squares Bézier fit of degree p for UV samples with fixed endpoints.
@@ -1295,66 +1197,7 @@ typename NurbsCurveGeometryType::Pointer MakeBezierUV_FromControls(
 typename NurbsCurveGeometryType::Pointer FitBezierUV_LS_Generic(
     const std::vector<array_1d<double,3>>& UVsamples, // ordered, inclusive
     const int p,
-    const double ridge = 1e-12) const
-{
-    KRATOS_ERROR_IF(p < 2) << "FitBezierUV_LS_Generic: degree p must be >= 2.\n";
-    const std::size_t N = UVsamples.size();
-    KRATOS_ERROR_IF(N < (std::size_t)(p+1))
-        << "FitBezierUV_LS_Generic: need at least p+1 samples.\n";
-
-    // Endpoints fixed
-    const array_1d<double,3> P0 = UVsamples.front();
-    const array_1d<double,3> Pp = UVsamples.back();
-
-    // Parameterization
-    auto t = ChordLengthParams01_UV(UVsamples);
-
-    // Assemble normal equations for interior controls P1..P_{p-1}
-    const int m  = p - 1;              // number of unknown control points
-    std::vector<std::vector<double>> M(m, std::vector<double>(m, 0.0)); // A^T A
-    std::vector<double> bu(m, 0.0), bv(m, 0.0);                         // A^T R (for U and V)
-
-    std::vector<double> B; B.reserve(p+1);
-
-    for (std::size_t i=0; i<N; ++i) {
-        BernsteinBasis(p, t[i], B);
-
-        // Residual after removing endpoint contributions
-        const double Ru = UVsamples[i][0] - (B[0]*P0[0] + B[p]*Pp[0]);
-        const double Rv = UVsamples[i][1] - (B[0]*P0[1] + B[p]*Pp[1]);
-
-        // Fill (A^T A) and (A^T R)
-        for (int a=1; a<=p-1; ++a) {
-            const double Ba = B[a];
-            bu[a-1] += Ba * Ru;
-            bv[a-1] += Ba * Rv;
-            for (int b=1; b<=p-1; ++b) {
-                M[a-1][b-1] += Ba * B[b];
-            }
-        }
-    }
-
-    // Ridge regularization
-    for (int d=0; d<m; ++d) M[d][d] += ridge;
-
-    // Solve for U and V components
-    auto Mu = M; auto Mv = M; // same matrix for both
-    bool ok_u = SolveSPD(Mu, bu);
-    bool ok_v = SolveSPD(Mv, bv);
-    KRATOS_ERROR_IF(!(ok_u && ok_v)) << "FitBezierUV_LS_Generic: SPD solve failed.\n";
-
-    // Collect control points: P0, P1..P_{p-1}, Pp
-    std::vector<array_1d<double,3>> Ctrls(p+1, ZeroVector(3));
-    Ctrls[0]     = P0;
-    Ctrls[p]     = Pp;
-    for (int k=1; k<=p-1; ++k) {
-        Ctrls[k][0] = bu[k-1];
-        Ctrls[k][1] = bv[k-1];
-        Ctrls[k][2] = 0.0;
-    }
-
-    return MakeBezierUV_FromControls(Ctrls, p);
-}
+    const double ridge = 1e-12) const;
 
 /**
  * @brief Reverses the orientation of a UV Bézier curve.
@@ -1362,23 +1205,7 @@ typename NurbsCurveGeometryType::Pointer FitBezierUV_LS_Generic(
  * @return Pointer to a curve geometry with inverted control point order.
  */
 typename NurbsCurveGeometryType::Pointer ReverseBezierUV_Generic(
-    const typename NurbsCurveGeometryType::Pointer& p_forward) const
-{
-    KRATOS_ERROR_IF(!p_forward) << "ReverseBezierUV_Generic: null input.\n";
-
-    const int p = (int)p_forward->PolynomialDegree(0);
-    const int n = (int)p_forward->size();
-    KRATOS_ERROR_IF(n != p+1) << "ReverseBezierUV_Generic: unexpected control count.\n";
-
-    PointerVector<Node> ctrl_rev; ctrl_rev.reserve(n);
-    for (int i=n-1; i>=0; --i) ctrl_rev.push_back(p_forward->pGetPoint(i));
-
-    Vector knots; BuildBezierKnots(p, knots);
-    Vector w(n); for (int i=0;i<n;++i) w[i]=1.0;
-
-    return typename NurbsCurveGeometryType::Pointer(
-        new NurbsCurveGeometryType(ctrl_rev, p, knots, w));
-}
+    const typename NurbsCurveGeometryType::Pointer& p_forward) const;
 
 /**
  * @brief Fits a UV Bézier curve between two skin nodes with the requested degree.
@@ -1417,123 +1244,6 @@ typename NurbsCurveGeometryType::Pointer FitUV_BetweenSkinNodes_Generic(
     UV.back()  = UV.back();
 
     return FitBezierUV_LS_Generic(UV, p, ridge);
-}
-
-/**
- * @brief Computes the orientation sign of the triangle (p, q, r).
- * @param p Pointer to the first point.
- * @param q Pointer to the second point.
- * @param r Pointer to the third point.
- * @return Signed area representing the orientation.
- */
- static double Orientation(
-    const Node::Pointer& p, const Node::Pointer& q, const Node::Pointer& r)
-{
-    return (q->X() - p->X()) * (r->Y() - p->Y()) -
-           (q->Y() - p->Y()) * (r->X() - p->X());
-}
-
-/**
- * @brief Checks whether a point lies on the segment joining two other points.
- * @param p Pointer to the first endpoint.
- * @param q Pointer to the point to be tested.
- * @param r Pointer to the second endpoint.
- * @return True when q lies within the bounding box of segment pr.
- */
- static bool OnSegment(
-    const Node::Pointer& p, const Node::Pointer& q, const Node::Pointer& r)
-{
-    return (std::min(p->X(), r->X()) <= q->X() && q->X() <= std::max(p->X(), r->X()) &&
-            std::min(p->Y(), r->Y()) <= q->Y() && q->Y() <= std::max(p->Y(), r->Y()));
-}
-
-/**
- * @brief Determines if two segments intersect in the plane.
- * @param A Pointer to the first endpoint of the first segment.
- * @param B Pointer to the second endpoint of the first segment.
- * @param C Pointer to the first endpoint of the second segment.
- * @param D Pointer to the second endpoint of the second segment.
- * @return True when the segments intersect.
- */
- static bool SegmentsIntersect(
-    const Node::Pointer& A, const Node::Pointer& B, const Node::Pointer& C, const Node::Pointer& D)
-{
-    double o1 = Orientation(A, B, C);
-    double o2 = Orientation(A, B, D);
-    double o3 = Orientation(C, D, A);
-    double o4 = Orientation(C, D, B);
-
-    // General case
-    if (o1 * o2 < 0.0 && o3 * o4 < 0.0)
-        return true;
-
-    // Collinearity (with bounding box check)
-    if (std::abs(o1) < 1e-14 && OnSegment(A, C, B)) return true;
-    if (std::abs(o2) < 1e-14 && OnSegment(A, D, B)) return true;
-    if (std::abs(o3) < 1e-14 && OnSegment(C, A, D)) return true;
-    if (std::abs(o4) < 1e-14 && OnSegment(C, B, D)) return true;
-
-    return false;
-}
-
-/**
- * @brief Determines if two segments intersect in the plane and returns the intersection point.
- * @param A Pointer to the first endpoint of the first segment.
- * @param B Pointer to the second endpoint of the first segment.
- * @param C Pointer to the first endpoint of the second segment.
- * @param D Pointer to the second endpoint of the second segment.
- * @param rIntersection Output: intersection coordinates (valid only if function returns true).
- * @return True when the segments intersect.
- */
- static bool SegmentsIntersect(
-    const Node::Pointer& A, const Node::Pointer& B,
-    const Node::Pointer& C, const Node::Pointer& D,
-    array_1d<double,3>& rIntersection)
-{
-    // Vector representation in 2D
-    const double x1 = A->X(), y1 = A->Y();
-    const double x2 = B->X(), y2 = B->Y();
-    const double x3 = C->X(), y3 = C->Y();
-    const double x4 = D->X(), y4 = D->Y();
-
-    const double dx12 = x2 - x1;
-    const double dy12 = y2 - y1;
-    const double dx34 = x4 - x3;
-    const double dy34 = y4 - y3;
-
-    const double denom = dx12 * dy34 - dy12 * dx34;
-    const double eps = 1.0e-14;
-
-    // Parallel (including collinear) case
-    if (std::abs(denom) < eps) {
-        // Collinear check via orientation
-        const Node::Pointer pA = A, pB = B, pC = C, pD = D;
-        const double o1 = Orientation(pA, pB, pC);
-        const double o2 = Orientation(pA, pB, pD);
-        if (std::abs(o1) < eps || std::abs(o2) < eps) {
-            // Overlapping or touching: return a shared endpoint if any
-            if (OnSegment(pA, pC, pB)) { rIntersection[0]=x3; rIntersection[1]=y3; rIntersection[2]=0.0; return true; }
-            if (OnSegment(pA, pD, pB)) { rIntersection[0]=x4; rIntersection[1]=y4; rIntersection[2]=0.0; return true; }
-            if (OnSegment(pC, pA, pD)) { rIntersection[0]=x1; rIntersection[1]=y1; rIntersection[2]=0.0; return true; }
-            if (OnSegment(pC, pB, pD)) { rIntersection[0]=x2; rIntersection[1]=y2; rIntersection[2]=0.0; return true; }
-        }
-        return false;
-    }
-
-    // Proper intersection: solve for t and u in A + t*(B-A) = C + u*(D-C)
-    const double t = ((x3 - x1) * dy34 - (y3 - y1) * dx34) / denom;
-    const double u = ((x3 - x1) * dy12 - (y3 - y1) * dx12) / denom;
-
-    if (t >= -eps && t <= 1.0 + eps && u >= -eps && u <= 1.0 + eps) {
-        rIntersection[0] = x1 + t * dx12;
-        rIntersection[1] = y1 + t * dy12;
-        // Preserve planar assumption; set Z from linear interpolation if available
-        const double z1 = A->Z();
-        const double z2 = B->Z();
-        rIntersection[2] = z1 + t * (z2 - z1);
-        return true;
-    }
-    return false;
 }
 
 /**

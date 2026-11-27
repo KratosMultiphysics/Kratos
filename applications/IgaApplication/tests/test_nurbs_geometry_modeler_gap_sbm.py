@@ -19,6 +19,55 @@ def run_modelers(current_model, modelers_list):
 
 
 class TestNurbsGeometryModelerGapSbm(KratosUnittest.TestCase):
+    def test_outer_projection_when_nearby_spans_are_empty(self):
+        current_model = KM.Model()
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 2)
+        modelers = KM.Parameters("""[
+            {
+                "modeler_name": "ImportNurbsSbmModeler",
+                "Parameters": {
+                    "input_filename": "import_nurbs_test/circle_gap_projection.json",
+                    "model_part_name": "initial_skin_outer",
+                    "link_layer_to_condition_name": [{
+                        "layer_name": "Layer0",
+                        "condition_name": "SupportLaplacianCondition"
+                    }]
+                }
+            },
+            {
+                "modeler_name": "NurbsGeometryModelerGapSbm",
+                "Parameters": {
+                    "echo_level": 0,
+                    "lower_point_xyz": [-0.55, -0.55, 0.0],
+                    "upper_point_xyz": [0.55, 0.55, 0.0],
+                    "polynomial_order": [1, 1],
+                    "number_of_knot_spans": [20, 20],
+                    "number_initial_points_if_importing_nurbs": 1000,
+                    "skin_model_part_outer_initial_name": "initial_skin_outer",
+                    "skin_model_part_name": "skin_model_part",
+                    "number_internal_divisions": 0,
+                    "gap_approximation_order": 1,
+                    "gap_sbm_type": "interpolation",
+                    "gap_element_name": "LaplacianElement",
+                    "gap_interface_condition_name": "SupportLaplacianCondition"
+                }
+            }
+        ]""")
+        run_modelers(current_model, modelers)
+
+        surrogate = current_model["IgaModelPart.surrogate_outer"]
+        skin = current_model["skin_model_part.outer"]
+        nodes = {node.Id: node for condition in surrogate.Conditions for node in condition.GetGeometry()}
+        self.assertTrue(nodes)
+        for node in nodes.values():
+            self.assertTrue(node.Has(IGA.PROJECTION_NODE_ID))
+            projection_id = node.GetValue(IGA.PROJECTION_NODE_ID)
+            self.assertTrue(skin.HasNode(projection_id))
+            projection = skin.GetNode(projection_id)
+            distance = ((projection.X - node.X)**2 + (projection.Y - node.Y)**2)**0.5
+            self.assertLess(distance, 0.12, f"Surrogate node {node.Id} projects {distance} away")
+
     def test_inner_circle_projection_with_empty_probe_spans(self):
         current_model = KM.Model()
         iga_model_part = current_model.CreateModelPart("IgaModelPart")

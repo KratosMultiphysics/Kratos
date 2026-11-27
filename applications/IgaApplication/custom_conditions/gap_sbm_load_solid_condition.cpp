@@ -175,13 +175,6 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
 
 
     // //PLASTICITY AT THE BOUNDARY
-    double t = rCurrentProcessInfo[TIME];
-    double nu = this->GetProperties().GetValue(POISSON_RATIO);
-    double E = this->GetProperties().GetValue(YOUNG_MODULUS);
-
-    const auto& r_true_geometry = GetGeometry();
-    const double x = r_true_geometry.Center().X();
-    const double y = r_true_geometry.Center().Y();
     // Vector g_N = ZeroVector(3); 
 
     // Vector rStressVector = ZeroVector(3);
@@ -219,8 +212,6 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
     // g_N[1] = rStressVector[2]*mNormalPhysicalSpace[0] + rStressVector[1]*mNormalPhysicalSpace[1];
 
     // // // // // cosinusoidal
-    g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
-    g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
 
     // // // g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
     // // // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
@@ -398,7 +389,9 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
         ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
         ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
 
-        mpConstitutiveLaw->FinalizeMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy);
+        if (mpConstitutiveLaw->RequiresFinalizeMaterialResponse()) {
+            mpConstitutiveLaw->FinalizeMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
 
         const Vector sigma = values_true.GetStressVector();
         Vector sigma_n = ZeroVector(mDim);
@@ -454,7 +447,9 @@ void GapSbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurren
         GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
     constitutive_law_parameters.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
 
-    mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    if (mpConstitutiveLaw->RequiresInitializeMaterialResponse()) {
+        mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    }
 }
 
 

@@ -867,14 +867,18 @@ void GapSbmSolidInterfaceCondition::UpdateMaterialResponse(
         values.SetStressVector(constitutive_variables.StressVector);
         values.SetConstitutiveMatrix(constitutive_variables.D);
         if (Finalize) {
-            r_law.FinalizeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+            if (r_law.RequiresFinalizeMaterialResponse()) {
+                r_law.FinalizeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+            }
         } else {
             // Freeze only the adjoint operator. Flux stresses and tangents are
             // still evaluated from each side's trial strain during assembly.
             ApplyConstitutiveLaw(mat_size, strain, values, constitutive_variables, is_minus_side);
             auto& r_db_old = is_minus_side ? mDBOldMinus : mDBOldPlus;
             r_db_old = prod(values.GetConstitutiveMatrix(), B);
-            r_law.InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+            if (r_law.RequiresInitializeMaterialResponse()) {
+                r_law.InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+            }
         }
     }
     KRATOS_CATCH("")
@@ -1773,10 +1777,12 @@ void GapSbmSolidInterfaceConditionBatched::InitializeSolutionStep(
             GetQuadraturePointGeometry(point_index),
             GetProperties(),
             rCurrentProcessInfo);
-        mConstitutiveLawVector[point_index]
-            ->InitializeMaterialResponse(
-                constitutive_parameters,
-                ConstitutiveLaw::StressMeasure_Cauchy);
+        if (mConstitutiveLawVector[point_index]->RequiresInitializeMaterialResponse()) {
+            mConstitutiveLawVector[point_index]
+                ->InitializeMaterialResponse(
+                    constitutive_parameters,
+                    ConstitutiveLaw::StressMeasure_Cauchy);
+        }
     }
 }
 
@@ -1790,10 +1796,12 @@ void GapSbmSolidInterfaceConditionBatched::FinalizeSolutionStep(
             GetQuadraturePointGeometry(point_index),
             GetProperties(),
             rCurrentProcessInfo);
-        mConstitutiveLawVector[point_index]
-            ->FinalizeMaterialResponse(
-                constitutive_parameters,
-                ConstitutiveLaw::StressMeasure_Cauchy);
+        if (mConstitutiveLawVector[point_index]->RequiresFinalizeMaterialResponse()) {
+            mConstitutiveLawVector[point_index]
+                ->FinalizeMaterialResponse(
+                    constitutive_parameters,
+                    ConstitutiveLaw::StressMeasure_Cauchy);
+        }
     }
 }
 

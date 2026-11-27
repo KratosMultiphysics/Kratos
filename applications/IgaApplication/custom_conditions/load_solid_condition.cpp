@@ -468,7 +468,9 @@ void LoadSolidCondition::CalculateRightHandSide(
         Values.SetStressVector(this_constitutive_variables.StressVector);
         Values.SetConstitutiveMatrix(this_constitutive_variables.D);
         // update internal variables before requesting stresses
-        mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        if (mpConstitutiveLaw->RequiresFinalizeMaterialResponse()) {
+            mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
         mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
 
         const Vector sigma = Values.GetStressVector();
@@ -544,7 +546,9 @@ void LoadSolidCondition::CalculateRightHandSide(
         Values.SetCharacteristicGeometryLength(mCharacteristicGeometryLength);
 
         // update internal variables before requesting stresses
-        mpConstitutiveLaw->InitializeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        if (mpConstitutiveLaw->RequiresInitializeMaterialResponse()) {
+            mpConstitutiveLaw->InitializeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
     }
 
 } // Namespace Kratos

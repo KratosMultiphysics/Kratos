@@ -35,6 +35,7 @@
 
 // Gap-SBM solid element
 #include "custom_elements/gap_sbm_solid_element.h"
+#include "custom_elements/gap_sbm_solid_green_lagrange_element.h"
 
 
 //conditions
@@ -62,9 +63,13 @@
 #include "custom_conditions/support_solid_condition.h"
 #include "custom_conditions/load_solid_condition.h"
 #include "custom_conditions/sbm_solid_condition.h"
+#include "custom_conditions/sbm_solid_green_lagrange_condition.h"
+#include "custom_conditions/sbm_load_solid_green_lagrange_condition.h"
 #include "custom_conditions/sbm_load_solid_condition.h"
 #include "custom_conditions/gap_sbm_solid_condition.h"
+#include "custom_conditions/gap_sbm_solid_green_lagrange_condition.h"
 #include "custom_conditions/gap_sbm_load_solid_condition.h"
+#include "custom_conditions/gap_sbm_load_solid_green_lagrange_condition.h"
 #include "custom_conditions/gap_sbm_enhanced_solid_condition.h"
 #include "custom_conditions/gap_sbm_enhanced_load_solid_condition.h"
 // SBM contact condition
@@ -74,6 +79,7 @@
 #include "custom_conditions/gap_sbm_load_solid_condition.h"
 // Gap-SBM solid interface condition
 #include "custom_conditions/gap_sbm_solid_interface_condition.h"
+#include "custom_conditions/gap_sbm_solid_interface_green_lagrange_condition.h"
 #include "custom_conditions/gap_sbm_laplacian_interface_condition.h"
 
 
@@ -177,6 +183,7 @@ private:
     const StokesElement mStokesElement;
     const NavierStokesElement mNavierStokesElement;
     const GapSbmSolidElement mGapSbmSolidElement;
+    const GapSbmSolidGreenLagrangeElement mGapSbmSolidGreenLagrangeElement;
     const GapSbmSolidElementVolumetric mGapSbmSolidElementVolumetric;
 
     //Conditions
@@ -203,9 +210,13 @@ private:
     const SupportSolidCondition mSupportSolidCondition;
     const LoadSolidCondition mLoadSolidCondition;
     const SbmSolidCondition mSbmSolidCondition;
+    const SbmSolidGreenLagrangeCondition mSbmSolidGreenLagrangeCondition;
     const SbmLoadSolidCondition mSbmLoadSolidCondition;
+    const SbmLoadSolidGreenLagrangeCondition mSbmLoadSolidGreenLagrangeCondition;
     const GapSbmSolidCondition mGapSbmSolidCondition;
+    const GapSbmSolidGreenLagrangeCondition mGapSbmSolidGreenLagrangeCondition;
     const GapSbmLoadSolidCondition mGapSbmLoadSolidCondition;
+    const GapSbmLoadSolidGreenLagrangeCondition mGapSbmLoadSolidGreenLagrangeCondition;
     const GapSbmLoadSolidConditionBatched
         mGapSbmLoadSolidConditionBatched;
     const GapSbmEnhancedSolidCondition mGapSbmEnhancedSolidCondition;
@@ -215,6 +226,7 @@ private:
     const GapSbmEnhancedLoadSolidConditionBatched
         mGapSbmEnhancedLoadSolidConditionBatched;
     const GapSbmSolidInterfaceCondition mGapSbmSolidInterfaceCondition;
+    const GapSbmSolidInterfaceGreenLagrangeCondition mGapSbmSolidInterfaceGreenLagrangeCondition;
     const GapSbmLaplacianInterfaceCondition mGapSbmLaplacianInterfaceCondition;
     const GapSbmSolidInterfaceConditionBatched
         mGapSbmSolidInterfaceConditionBatched;

@@ -7,15 +7,6 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-
-// Select the multipatch outer-surrogate generation path:
-// 0: use the implementation from GECKO/KratosPR, branch_ssh_con_multipatch
-// 1: generate an outer initial skin from the inner surrogate when requested
-#define KRATOS_SNAKE_SBM_MULTIPATCH_METHOD 0
-#if KRATOS_SNAKE_SBM_MULTIPATCH_METHOD != 0 && KRATOS_SNAKE_SBM_MULTIPATCH_METHOD != 1
-#error "KRATOS_SNAKE_SBM_MULTIPATCH_METHOD must be 0 or 1"
-#endif
-
 // System includes
 
 // External includes
@@ -23,17 +14,6 @@
 // Project includes
 #include "snake_sbm_process.h"
 #include "iga_application_variables.h"
-#include <limits>
-#include <unordered_map>
-#include <unordered_set>
-#include <fstream>
-#include <cstdio>
-#include <algorithm>
-#include <cmath>
-#include <array>
-#include <queue>
-#include <iomanip>
-#include <sstream>
 
 namespace Kratos
 {
@@ -205,7 +185,7 @@ SnakeSbmProcess::SnakeSbmProcess(
 
 }
 
-
+    
 void SnakeSbmProcess::CreateTheSnakeCoordinates(bool RemoveIslands)
 {   
     // Vector know_w = mpIgaModelPart->GetValue(KNOT_VECTOR_W);
@@ -235,10 +215,9 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates2D(bool RemoveIslands)
         if (!mpSkinModelPart->RecursivelyHasProperties(0)) {
             mpSkinModelPart->CreateNewProperties(0);
         }
-        const bool create_outer_from_inner_grid =
-            KRATOS_SNAKE_SBM_MULTIPATCH_METHOD == 0 && mCreateSurrOuterFromSurrInner;
+
         CreateTheSnakeCoordinates<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs,
-                                         mOffsetForRefinementInPhysicalCoord, RemoveIslands, create_outer_from_inner_grid, false);
+                                         mOffsetForRefinementInPhysicalCoord, RemoveIslands, mCreateSurrOuterFromSurrInner, false);
     }
 
     if (!mCreateSurrOuterFromSurrInner) {
@@ -254,216 +233,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates2D(bool RemoveIslands)
                                              mNumberInitialPointsIfImportingNurbs, mOffsetForRefinementInPhysicalCoord, false, false, mCreateSurrInnerFromSurrOuter);
         }
     }
-#if KRATOS_SNAKE_SBM_MULTIPATCH_METHOD == 1
-    if (has_inner_initial && mCreateSurrOuterFromSurrInner) {
-        GenerateOuterInitialFromSurrogateInner();
-    }
-#endif
 }    
-
-
-
-void SnakeSbmProcess::GenerateOuterInitialFromSurrogateInner()
-{
-    ModelPart* pSkinModelPartOuterInitialFromOuter = nullptr;
-
-    const std::string base_outer_name = mThisParameters["skin_model_part_outer_initial_name"].GetString();
-    const std::string generated_outer_name = base_outer_name + std::string("_from_surrogate");
-
-    if (mpModel->HasModelPart(generated_outer_name)) {
-        pSkinModelPartOuterInitialFromOuter = &mpModel->GetModelPart(generated_outer_name);
-        pSkinModelPartOuterInitialFromOuter->Clear();
-    } else {
-        pSkinModelPartOuterInitialFromOuter = &mpModel->CreateModelPart(generated_outer_name);
-    }
-
-    auto& r_root = mpIgaModelPart->GetRootModelPart();
-    auto& r_inner = mpSkinModelPart->GetSubModelPart("inner");
-    auto& r_out = *pSkinModelPartOuterInitialFromOuter;
-
-    r_out.Clear();
-    auto p_props = r_out.pGetProperties(0);
-
-    double cx = 0.0, cy = 0.0; std::size_t n_nodes = 0;
-    for (const auto& r_node : r_inner.Nodes()) { cx += r_node.X(); cy += r_node.Y(); ++n_nodes; }
-    if (n_nodes > 0) { cx /= static_cast<double>(n_nodes); cy /= static_cast<double>(n_nodes); }
-
-    IndexType next_node_id = r_root.NumberOfNodes() + 1;
-    IndexType next_cond_id = r_root.NumberOfConditions() + 1;
-
-    const auto& knot_u = mpIgaModelPart->GetValue(KNOT_VECTOR_U);
-    const auto& knot_v = mpIgaModelPart->GetValue(KNOT_VECTOR_V);
-    double step_u = 1.0, step_v = 1.0;
-    if (knot_u.size() >= 2) {
-        const std::size_t iu = static_cast<std::size_t>(std::ceil(knot_u.size() / 2.0));
-        if (iu + 1 < knot_u.size()) step_u = std::abs(knot_u[iu + 1] - knot_u[iu]);
-        else step_u = std::abs(knot_u[iu] - knot_u[iu - 1]);
-    }
-    if (knot_v.size() >= 2) {
-        const std::size_t iv = static_cast<std::size_t>(std::ceil(knot_v.size() / 2.0));
-        if (iv + 1 < knot_v.size()) step_v = std::abs(knot_v[iv + 1] - knot_v[iv]);
-        else step_v = std::abs(knot_v[iv] - knot_v[iv - 1]);
-    }
-
-    const double s = 3.0 * std::max(step_u, step_v);
-    const double generated_outer_tolerance = 1.0e-12 * std::max(step_u, step_v);
-
-    std::vector<std::array<double,4>> segs;
-    segs.reserve(r_inner.NumberOfConditions());
-    for (const auto& r_cond : r_inner.Conditions()) {
-        const auto& g = r_cond.GetGeometry();
-        if (g.size() != 2) continue;
-        segs.push_back({g[0].X(), g[0].Y(), g[1].X(), g[1].Y()});
-    }
-
-    if (!segs.empty()) {
-        struct Point2D {
-            double x;
-            double y;
-        };
-
-        std::vector<Point2D> candidate_points;
-        candidate_points.reserve(segs.size());
-
-        // First, compute the offset points without creating entities in the model part
-        for (std::size_t i = 0; i < segs.size(); ++i) {
-            const double x0 = segs[i][0];
-            const double y0 = segs[i][1];
-            const double x1 = segs[i][2];
-            const double y1 = segs[i][3];
-
-            double tx = x1 - x0; double ty = y1 - y0;
-            const double tlen = std::hypot(tx, ty);
-            if (tlen <= generated_outer_tolerance) continue;
-            tx /= tlen; ty /= tlen;
-
-            double nx = -ty, ny = tx;
-            const double mx = 0.5 * (x0 + x1);
-            const double my = 0.5 * (y0 + y1);
-            const double wx = mx - cx;
-            const double wy = my - cy;
-            if (nx * wx + ny * wy < 0.0) { nx = -nx; ny = -ny; }
-
-            const double ax = x0 + s * nx;
-            const double ay = y0 + s * ny;
-            const double bx = x1 + s * nx;
-            const double by = y1 + s * ny;
-
-            if (i == 0) {
-                candidate_points.push_back({ax, ay});
-                candidate_points.push_back({bx, by});
-            } else if (i + 1 < segs.size()) {
-                candidate_points.push_back({bx, by});
-            } else {
-                // last segment: closing will be handled below
-            }
-        }
-
-        if (!candidate_points.empty()) {
-
-            auto polygon_area = [](const std::vector<Point2D>& r_points) {
-                const std::size_t n = r_points.size();
-                if (n < 3) {
-                    return 0.0;
-                }
-                double area = 0.0;
-                for (std::size_t i = 0; i < n; ++i) {
-                    const auto& p = r_points[i];
-                    const auto& q = r_points[(i + 1) % n];
-                    area += p.x * q.y - q.x * p.y;
-                }
-                return 0.5 * area;
-            };
-
-            std::vector<Point2D> polygon_points = candidate_points;
-
-            // Build a convex hull of the offset polyline to remove possible
-            // self-intersections that can appear for concave shapes.
-            if (candidate_points.size() >= 3) {
-                std::vector<Point2D> pts = candidate_points;
-                std::sort(pts.begin(), pts.end(), [](const Point2D& a, const Point2D& b) {
-                    if (a.x < b.x) return true;
-                    if (a.x > b.x) return false;
-                    return a.y < b.y;
-                });
-                pts.erase(std::unique(pts.begin(), pts.end(),
-                    [generated_outer_tolerance](const Point2D& a, const Point2D& b) {
-                        return std::abs(a.x - b.x) < generated_outer_tolerance &&
-                               std::abs(a.y - b.y) < generated_outer_tolerance;
-                    }), pts.end());
-
-                if (pts.size() >= 3) {
-                    auto cross = [](const Point2D& O, const Point2D& A, const Point2D& B) {
-                        return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
-                    };
-
-                    std::vector<Point2D> hull;
-                    hull.reserve(pts.size() * 2);
-
-                    // Lower hull
-                    for (const auto& p : pts) {
-                        while (hull.size() >= 2 &&
-                               cross(hull[hull.size() - 2], hull[hull.size() - 1], p) <= 0.0) {
-                            hull.pop_back();
-                        }
-                        hull.push_back(p);
-                    }
-
-                    // Upper hull
-                    const std::size_t lower_size = hull.size();
-                    for (std::size_t i = pts.size(); i-- > 0;) {
-                        const auto& p = pts[i];
-                        while (hull.size() > lower_size &&
-                               cross(hull[hull.size() - 2], hull[hull.size() - 1], p) <= 0.0) {
-                            hull.pop_back();
-                        }
-                        hull.push_back(p);
-                    }
-
-                    if (!hull.empty()) {
-                        // Last point is equal to the first one
-                        hull.pop_back();
-                    }
-
-                    if (hull.size() >= 3) {
-                        polygon_points = hull;
-
-                        // Preserve the original orientation (clockwise/anticlockwise)
-                        const double area_candidate = polygon_area(candidate_points);
-                        const double area_hull = polygon_area(polygon_points);
-                        if (area_candidate * area_hull < 0.0) {
-                            std::reverse(polygon_points.begin(), polygon_points.end());
-                        }
-                    }
-                }
-            }
-
-            if (polygon_points.size() >= 2) {
-                const IndexType first_start_id = next_node_id++;
-                r_out.CreateNewNode(first_start_id, polygon_points[0].x, polygon_points[0].y, 0.0);
-                IndexType last_id = first_start_id;
-
-                for (std::size_t i = 1; i < polygon_points.size(); ++i) {
-                    const IndexType node_id = next_node_id++;
-                    r_out.CreateNewNode(node_id, polygon_points[i].x, polygon_points[i].y, 0.0);
-                    r_out.CreateNewCondition("LineCondition2D2N", next_cond_id++, {{last_id, node_id}}, p_props);
-                    last_id = node_id;
-                }
-
-                if (polygon_points.size() > 2) {
-                    r_out.CreateNewCondition("LineCondition2D2N", next_cond_id++, {{last_id, first_start_id}}, p_props);
-                }
-            }
-        }
-    }
-
-    if (pSkinModelPartOuterInitialFromOuter->NumberOfNodes()>0 || pSkinModelPartOuterInitialFromOuter->NumberOfGeometries()>0) {
-        pSkinModelPartOuterInitialFromOuter->pGetProperties(0);
-        mpSkinModelPart->pGetProperties(0);
-        CreateTheSnakeCoordinates<false>(*pSkinModelPartOuterInitialFromOuter, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs,
-                                         mOffsetForRefinementInPhysicalCoord, false);
-    }
-}
 
 
 template <bool TIsInnerLoop>
@@ -506,14 +276,10 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
                         minimum_knot_span_size_u < std::numeric_limits<double>::max() &&
                         minimum_knot_span_size_v < std::numeric_limits<double>::max())
         << "::[SnakeSbmProcess]:: Invalid knot spans or refinement offset." << std::endl;
-    const int refinement_patch_size_u = static_cast<int>(std::ceil(
-        OffsetForRefinementInPhysicalCoord / minimum_knot_span_size_u)) ?
-        OffsetForRefinementInPhysicalCoord > 0.0:
-        3;
-    const int refinement_patch_size_v = static_cast<int>(std::ceil(
-        OffsetForRefinementInPhysicalCoord / minimum_knot_span_size_v)) ?
-        OffsetForRefinementInPhysicalCoord > 0.0:
-        3;
+    const int refinement_patch_size_u = OffsetForRefinementInPhysicalCoord > 0.0 ?
+        static_cast<int>(std::ceil(OffsetForRefinementInPhysicalCoord / minimum_knot_span_size_u)) : 3;
+    const int refinement_patch_size_v = OffsetForRefinementInPhysicalCoord > 0.0 ?
+        static_cast<int>(std::ceil(OffsetForRefinementInPhysicalCoord / minimum_knot_span_size_v)) : 3;
     
     const bool is_inner = TIsInnerLoop;
 
@@ -543,7 +309,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         }
     }
 
-    // TODO: uniform the notation (avoid using two separate variables)
     ModelPart& r_surrogate_sub_model_part_inner = rIgaModelPart.GetSubModelPart("surrogate_inner");
     ModelPart& r_surrogate_sub_model_part_outer = rIgaModelPart.GetSubModelPart("surrogate_outer");
 
@@ -771,7 +536,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
 
                 // Create two nodes and two conditions for each skin condition
 
-                //needed for the call to the assign_vector_variable_to_nodes_process
+                // needed for the call to the assign_vector_variable_to_nodes_process
                 // compute normal at the node coords
                 std::vector<CoordinatesArrayType> global_space_derivatives;
                 std::size_t derivative_order = 2;
@@ -1042,7 +807,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             else
                 CreateSurrogateBuondaryFromSnakeInner(id_inner_loop, *p_skin_sub_model_part_loop, points_bin, n_knot_spans_uv, 
                                                         knot_vector_u, knot_vector_v, starting_pos_uv, knot_spans_available, r_surrogate_sub_model_part);
-
+            
             if (EchoLevel >  0)
                 KRATOS_INFO("::[SnakeSbmProcess]::") << "Inner :: Snake process has finished" << std::endl;
         }
@@ -1098,6 +863,8 @@ void SnakeSbmProcess::SnakeStep(
     bool is_splitted = false;
     constexpr int edge_touch_state = 3;
     const double edge_tolerance = 1.0e-12 * std::min(rKnotStepUV[0], rKnotStepUV[1]);
+    
+    // verify if the condition lies on a knot edge in the u or v direction
     auto get_edge_index = [&](const std::size_t Direction) {
         const double coord_0 = rConditionCoordinates[Direction][0];
         const double coord_1 = rConditionCoordinates[Direction][1];
@@ -1117,6 +884,8 @@ void SnakeSbmProcess::SnakeStep(
     const int v_edge = get_edge_index(1);
     const bool lies_on_knot_edge = (u_edge >= 0 && rConditionCoordinates[1][0] != rConditionCoordinates[1][1]) ||
                                    (v_edge >= 0 && rConditionCoordinates[0][0] != rConditionCoordinates[0][1]);
+
+    // Mark with index 3(=edge_touch_state) the knot spans that are touched by the condition if it lies on a knot edge
     auto mark_edge_spans = [&](const int EdgeIndex, const bool IsUEdge) {
         const std::size_t tangent_direction = IsUEdge ? 1 : 0;
         const double relative_0 = (rConditionCoordinates[tangent_direction][0] - rStartingPosition[tangent_direction]) /
@@ -1252,6 +1021,8 @@ void SnakeSbmProcess::SnakeStepNurbs(
         r_layer_name == "COUPLING_SIDE_OUTER" || r_layer_name == "COUPLING_SIDE_INNER";
     constexpr int edge_touch_state = 3;
     const double edge_tolerance = 1.0e-12 * std::min(rKnotStepUV[0], rKnotStepUV[1]);
+
+    // verify if the condition lies on a knot edge in the u or v direction
     auto get_edge_index = [&](const std::size_t Direction) {
         const double coord_0 = rConditionCoordinates[Direction][0];
         const double coord_1 = rConditionCoordinates[Direction][1];
@@ -1271,6 +1042,8 @@ void SnakeSbmProcess::SnakeStepNurbs(
     const int v_edge = get_edge_index(1);
     const bool lies_on_knot_edge = (u_edge >= 0 && rConditionCoordinates[1][0] != rConditionCoordinates[1][1]) ||
                                    (v_edge >= 0 && rConditionCoordinates[0][0] != rConditionCoordinates[0][1]);
+    
+    // Mark with index 3(=edge_touch_state) the knot spans that are touched by the condition if it lies on a knot edge
     auto mark_edge_spans = [&](const int EdgeIndex, const bool IsUEdge) {
         const std::size_t tangent_direction = IsUEdge ? 1 : 0;
         const double relative_0 = (rConditionCoordinates[tangent_direction][0] - rStartingPosition[tangent_direction]) /
@@ -1326,7 +1099,7 @@ void SnakeSbmProcess::SnakeStepNurbs(
                                                          std::pow((xy_true_boundary_split[1] - rConditionCoordinates[1][0]),2)); 
                 
                 // exactly passing trough a diagonal vertex 
-                const double minumum_length = std::min(rKnotStepUV[0]/50000, rKnotStepUV[1]/50000); //FIXME:::::
+                const double minumum_length = std::min(rKnotStepUV[0]/100, rKnotStepUV[1]/100); 
                 if (split_segment_length <= minumum_length)
                 {
                     KRATOS_WARNING("[SnakeSbmProcess] :: one skin segment is exactly passing trough a diagonal vertex");
@@ -2882,13 +2655,10 @@ void SnakeSbmProcess::SetSurrogateNormals2D(
 
 void SnakeSbmProcess::SetSurrogateNormals3D(
     ModelPart& rSurrogateModelPart)
-{
-    //FIXME: maybe remove
+{ 
     for (auto& r_node : rSurrogateModelPart.Nodes()) {
         r_node.SetValue(NORMAL, ZeroVector(3));
     }
-
-    //TODO: handle opposite vertices and resolve zero normal case
 
     std::unordered_set<IndexType> initialized_node_ids;
     initialized_node_ids.reserve(rSurrogateModelPart.NumberOfNodes());
@@ -3171,7 +2941,7 @@ void SnakeSbmProcess::KeepLargestZeroIsland(
 
 void SnakeSbmProcess::CreateTheSnakeCoordinates3D()
 {   
-    // Initilize the property of skin_model_part_in and out
+    // Initialize the property of skin_model_part_in and out
     if (mpSkinModelPartInnerInitial->NumberOfNodes()>0 || mpSkinModelPartInnerInitial->NumberOfGeometries()>0) {
         mpSkinModelPartInnerInitial->pGetProperties(0);
         mpSkinModelPart->pGetProperties(0);
@@ -3650,99 +3420,6 @@ void SnakeSbmProcess::RemoveIslands3D(
         }
     }
 }
-
-// TODO: choose which implementation to keep, the one above or the one below. The one above is more efficient, but the one below is easier to read and understand.
-
-// void SnakeSbmProcess::RemoveIslands3D(
-//     std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable)
-// {
-//     const std::array<std::array<int, 3>, 6> directions{{
-//         {{1, 0, 0}},
-//         {{-1, 0, 0}},
-//         {{0, 1, 0}},
-//         {{0, -1, 0}},
-//         {{0, 0, 1}},
-//         {{0, 0, -1}}
-//     }};
-
-//     for (std::size_t loop = 0; loop < rKnotSpansAvailable.size(); ++loop) {
-//         auto& r_grid = rKnotSpansAvailable[loop];
-//         if (r_grid.empty()) {
-//             continue;
-//         }
-
-//         std::vector<std::vector<std::vector<int>>> labels(r_grid.size());
-//         for (std::size_t k = 0; k < r_grid.size(); ++k) {
-//             labels[k].resize(r_grid[k].size());
-//             for (std::size_t j = 0; j < r_grid[k].size(); ++j) {
-//                 labels[k][j].assign(r_grid[k][j].size(), -1);
-//             }
-//         }
-
-//         int component_id = 0;
-//         int largest_component_id = -1;
-//         int largest_component_size = 0;
-
-//         for (std::size_t k = 0; k < r_grid.size(); ++k) {
-//             for (std::size_t j = 0; j < r_grid[k].size(); ++j) {
-//                 for (std::size_t i = 0; i < r_grid[k][j].size(); ++i) {
-//                     if (r_grid[k][j][i] != 1 || labels[k][j][i] != -1) {
-//                         continue;
-//                     }
-
-//                     std::queue<std::array<int, 3>> active_cells;
-//                     active_cells.push({{
-//                         static_cast<int>(i),
-//                         static_cast<int>(j),
-//                         static_cast<int>(k)}});
-//                     labels[k][j][i] = component_id;
-//                     int current_component_size = 0;
-
-//                     while (!active_cells.empty()) {
-//                         const auto current_cell = active_cells.front();
-//                         active_cells.pop();
-//                         ++current_component_size;
-
-//                         for (const auto& r_direction : directions) {
-//                             const int ni = current_cell[0] + r_direction[0];
-//                             const int nj = current_cell[1] + r_direction[1];
-//                             const int nk = current_cell[2] + r_direction[2];
-
-//                             if (nk >= 0 && nk < static_cast<int>(r_grid.size()) &&
-//                                 nj >= 0 && nj < static_cast<int>(r_grid[nk].size()) &&
-//                                 ni >= 0 && ni < static_cast<int>(r_grid[nk][nj].size()) &&
-//                                 r_grid[nk][nj][ni] == 1 &&
-//                                 labels[nk][nj][ni] == -1) {
-//                                 labels[nk][nj][ni] = component_id;
-//                                 active_cells.push({{ni, nj, nk}});
-//                             }
-//                         }
-//                     }
-
-//                     if (current_component_size > largest_component_size) {
-//                         largest_component_size = current_component_size;
-//                         largest_component_id = component_id;
-//                     }
-//                     ++component_id;
-//                 }
-//             }
-//         }
-
-//         if (largest_component_id == -1) {
-//             continue;
-//         }
-
-//         for (std::size_t k = 0; k < r_grid.size(); ++k) {
-//             for (std::size_t j = 0; j < r_grid[k].size(); ++j) {
-//                 for (std::size_t i = 0; i < r_grid[k][j].size(); ++i) {
-//                     if (r_grid[k][j][i] == 1 && labels[k][j][i] != largest_component_id) {
-//                         r_grid[k][j][i] = 0;
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
 
 
 void SnakeSbmProcess::SnakeStep3D(
@@ -4499,6 +4176,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
 
 
         // TODO: Additional debug check on SBM internal/Gap-SBM
+            // not needed in principle, but useful for debugging purposes
+
         // auto check_surrogate_node_inside = [&](const IndexType NodeId) {
         //     const auto& r_node = rSurrogateModelPartOuter.GetNode(NodeId);
         
@@ -4688,7 +4367,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
         }
     }
 
-    //FIXME: is it necessary?
     SetSurrogateNormals3D(rSurrogateModelPartOuter);
 
     for (const auto& r_condition : rSurrogateModelPartOuter.Conditions()) {
@@ -4700,6 +4378,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
             Point point(r_node.X(), r_node.Y(), r_node.Z());
             
             // TODO: additional debug for inner SBM/ Gap-SBM
+            // Not needed in principle, but useful for debugging purposes
+
             // if (!IsPointInsideSkinBoundary3D(
             //         point,
             //         rPointsBinOuter,
@@ -4721,7 +4401,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
 }
 
 
-// FIXME: decide whether to keep it
 bool SnakeSbmProcess::IsKnotSpanFullyInsideSkinBoundary3D(
     const int I,
     const int J,

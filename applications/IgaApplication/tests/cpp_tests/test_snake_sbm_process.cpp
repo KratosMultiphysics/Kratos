@@ -21,10 +21,62 @@
 namespace Kratos::Testing
 {
 
+KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessNurbsCurveIds, KratosIgaFastSuite)
+{
+    Model model;
+    auto& r_iga = model.CreateModelPart("iga");
+    auto& r_surrogate = r_iga.CreateSubModelPart("surrogate_inner");
+    r_iga.CreateSubModelPart("surrogate_outer");
+    auto& r_initial = model.CreateModelPart("initial_inner");
+    model.CreateModelPart("initial_outer");
+    r_initial.CreateNewProperties(0);
+    auto& r_skin = model.CreateModelPart("skin");
+    r_skin.CreateSubModelPart("inner");
+    r_skin.CreateSubModelPart("outer");
+
+    const std::vector<std::array<double, 2>> vertices = {
+        {0.8, 0.8}, {2.2, 0.8}, {2.2, 2.2}, {0.8, 2.2}};
+    Vector curve_knots(2);
+    curve_knots[0] = 0.0;
+    curve_knots[1] = 1.0;
+    for (std::size_t i = 0; i < vertices.size(); ++i) {
+        PointerVector<Node> points;
+        for (const std::size_t index : {i, (i + 1) % vertices.size()}) {
+            points.push_back(Kratos::make_intrusive<Node>(index + 1, vertices[index][0], vertices[index][1], 0.0));
+        }
+        auto p_curve = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Node>>>(points, 1, curve_knots);
+        p_curve->SetId(10 + 7 * i);
+        p_curve->SetValue(CONDITION_NAME, "SupportSolidCondition");
+        p_curve->SetValue(IDENTIFIER, "boundary");
+        r_initial.AddGeometry(p_curve);
+    }
+
+    Vector knots(31);
+    for (std::size_t i = 0; i < knots.size(); ++i) {
+        knots[i] = 0.1 * i;
+    }
+    r_iga.SetValue(KNOT_VECTOR_U, knots);
+    r_iga.SetValue(KNOT_VECTOR_V, knots);
+    Parameters parameters(R"({
+        "model_part_name": "iga",
+        "skin_model_part_name": "skin",
+        "skin_model_part_inner_initial_name": "initial_inner",
+        "skin_model_part_outer_initial_name": "initial_outer",
+        "number_of_inner_loops": 1,
+        "number_initial_points_if_importing_nurbs": 20,
+        "offset_for_refinement_in_physical_coord": 0.0,
+        "create_surr_outer_from_surr_inner": false,
+        "create_surr_inner_from_surr_outer": false
+    })");
+    SnakeSbmProcess(model, parameters).Execute();
+    KRATOS_EXPECT_GT(r_surrogate.NumberOfConditions(), 0);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessOuterFromInnerSingleCellLayer, KratosIgaFastSuite)
 {
     // An L-shaped hole must retain its concave corner after adding one cell layer.
-    for (const double scale_v : {1.0, 1.5}) {
+    for (const auto& [scale_v, offset] : std::vector<std::pair<double, double>>{
+             {1.0, 0.05}, {1.0, 0.12}, {1.5, 0.05}, {1.5, 0.12}}) {
         Model model;
         auto& r_iga = model.CreateModelPart("iga");
         auto& r_inner = r_iga.CreateSubModelPart("surrogate_inner");
@@ -61,8 +113,10 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessOuterFromInnerSingleCellLayer, KratosIg
             "skin_model_part_inner_initial_name": "initial_inner",
             "skin_model_part_outer_initial_name": "initial_outer",
             "number_of_inner_loops": 1,
-            "create_surr_outer_from_surr_inner": true
+            "create_surr_outer_from_surr_inner": true,
+            "create_surr_inner_from_surr_outer": false
         })");
+        parameters.AddEmptyValue("offset_for_refinement_in_physical_coord").SetDouble(offset);
         SnakeSbmProcess(model, parameters).Execute();
 
         const auto is_inside = [](const ModelPart& rBoundary, const double X, const double Y) {
@@ -78,15 +132,18 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessOuterFromInnerSingleCellLayer, KratosIg
         };
 
         KRATOS_EXPECT_EQ(r_inner.NumberOfConditions(), 56);
-        KRATOS_EXPECT_EQ(r_outer.NumberOfConditions(), 64);
+        const int offset_u = offset < 0.1 ? 1 : 2;
+        const int offset_v = offset < 0.1 || scale_v > 1.0 ? 1 : 2;
+        KRATOS_EXPECT_EQ(r_outer.NumberOfConditions(), 56 + 4 * (offset_u + offset_v));
         for (int j = 0; j < 30; ++j) {
             for (int i = 0; i < 30; ++i) {
                 const double x = (i + 0.5) * 0.1;
                 const double y = (j + 0.5) * 0.1 * scale_v;
                 const bool expected_inner = i >= 8 && i <= 21 && j >= 8 && j <= 21 &&
                     (i < 14 || j < 14);
-                const bool expected_outer = i >= 7 && i <= 22 && j >= 7 && j <= 22 &&
-                    (i < 15 || j < 15);
+                const bool expected_outer = i >= 8 - offset_u && i <= 21 + offset_u &&
+                    j >= 8 - offset_v && j <= 21 + offset_v &&
+                    (i < 14 + offset_u || j < 14 + offset_v);
                 KRATOS_EXPECT_EQ(is_inside(r_inner, x, y), expected_inner);
                 KRATOS_EXPECT_EQ(is_inside(r_outer, x, y), expected_outer);
             }

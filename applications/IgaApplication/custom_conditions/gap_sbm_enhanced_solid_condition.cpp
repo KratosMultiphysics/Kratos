@@ -539,7 +539,9 @@ void GapSbmEnhancedSolidCondition::CalculateRightHandSide(
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+        if (mpConstitutiveLaw->RequiresFinalizeMaterialResponse()) {
+            mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
 
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         //TODO: build a CalculateOnIntegrationPoints method
@@ -594,7 +596,9 @@ void GapSbmEnhancedSolidCondition::InitializeSolutionStep(const ProcessInfo& rCu
     ConstitutiveLaw::Parameters constitutive_law_parameters(
         GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-    mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    if (mpConstitutiveLaw->RequiresInitializeMaterialResponse()) {
+        mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    }
 }
 
 void GapSbmEnhancedSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)

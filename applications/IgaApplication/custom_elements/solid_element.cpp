@@ -478,7 +478,9 @@ void SolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
         SetValue(CAUCHY_STRESS_TENSOR, stress_tensor);
     }
     // update internal variables before requesting stresses
-    mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+    if (mpConstitutiveLaw->RequiresFinalizeMaterialResponse()) {
+        mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+    }
 }
 
 void SolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
@@ -537,7 +539,9 @@ void SolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo
     Values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
     // update internal variables before requesting stresses
-    mpConstitutiveLaw->InitializeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+    if (mpConstitutiveLaw->RequiresInitializeMaterialResponse()) {
+        mpConstitutiveLaw->InitializeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+    }
 }
 
 
@@ -666,7 +670,7 @@ void SolidElement::GetSolutionCoefficientVector(
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            const array_1d<double, 3>& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3>& displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
             IndexType index = i * mDim;
 
             for (IndexType j = 0; j < mDim; ++j) {

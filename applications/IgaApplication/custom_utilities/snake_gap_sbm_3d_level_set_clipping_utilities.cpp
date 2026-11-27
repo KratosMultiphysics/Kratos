@@ -427,12 +427,12 @@ void SetCommonConditionData(
 
 SnakeGapSbm3DLevelSetClippingUtilities::Counters
 SnakeGapSbm3DLevelSetClippingUtilities::Create(
-    SnakeGapSbm3DUtilities& rGapUtilities,
+    SnakeGapSbmProcess::Gap3DData& rGapUtilities,
     ModelPart& rRootModelPart,
     ModelPart& rSkinSubModelPart,
     const ModelPart& rSurrogateSubModelPart,
-    const SnakeGapSbm3DUtilities::KnotSpanGridInfo& rGridInfo,
-    const std::set<SnakeGapSbm3DUtilities::SpanKey3D>& rActiveBackgroundSpans,
+    const SnakeGapSbmProcess::Gap3DData::KnotSpanGridInfo& rGridInfo,
+    const std::set<SnakeGapSbmProcess::Gap3DData::SpanKey3D>& rActiveBackgroundSpans,
     const Vector& rKnotSpanSizes,
     ModelPart& rGapElementsModelPart,
     ModelPart& rGapConditionsModelPart,

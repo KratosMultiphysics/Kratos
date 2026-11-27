@@ -74,8 +74,10 @@ void SolidCouplingCondition::InitializeSolutionStep(const ProcessInfo& rCurrentP
     ConstitutiveLaw::Parameters constitutive_law_parameters(
         GetTrueGeometry(), GetProperties(), rCurrentProcessInfo);
 
-    mpConstitutiveLaw->InitializeMaterialResponse(
-        constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    if (mpConstitutiveLaw->RequiresInitializeMaterialResponse()) {
+        mpConstitutiveLaw->InitializeMaterialResponse(
+            constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    }
 }
 
 void SolidCouplingCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
@@ -83,8 +85,10 @@ void SolidCouplingCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentPro
     ConstitutiveLaw::Parameters constitutive_law_parameters(
         GetTrueGeometry(), GetProperties(), rCurrentProcessInfo);
 
-    mpConstitutiveLaw->FinalizeMaterialResponse(
-        constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    if (mpConstitutiveLaw->RequiresFinalizeMaterialResponse()) {
+        mpConstitutiveLaw->FinalizeMaterialResponse(
+            constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    }
 }
 
 void SolidCouplingCondition::InitializeMemberVariables()

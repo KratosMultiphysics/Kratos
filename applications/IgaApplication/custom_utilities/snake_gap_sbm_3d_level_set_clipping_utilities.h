@@ -15,7 +15,7 @@
 #include <string>
 
 // Project includes
-#include "custom_utilities/snake_gap_sbm_3D_utilities.h"
+#include "custom_processes/snake_gap_sbm_process.h"
 
 namespace Kratos
 {
@@ -69,12 +69,12 @@ public:
     };
 
     Counters Create(
-        SnakeGapSbm3DUtilities& rGapUtilities,
+        SnakeGapSbmProcess::Gap3DData& rGapUtilities,
         ModelPart& rRootModelPart,
         ModelPart& rSkinSubModelPart,
         const ModelPart& rSurrogateSubModelPart,
-        const SnakeGapSbm3DUtilities::KnotSpanGridInfo& rGridInfo,
-        const std::set<SnakeGapSbm3DUtilities::SpanKey3D>& rActiveBackgroundSpans,
+        const SnakeGapSbmProcess::Gap3DData::KnotSpanGridInfo& rGridInfo,
+        const std::set<SnakeGapSbmProcess::Gap3DData::SpanKey3D>& rActiveBackgroundSpans,
         const Vector& rKnotSpanSizes,
         ModelPart& rGapElementsModelPart,
         ModelPart& rGapConditionsModelPart,

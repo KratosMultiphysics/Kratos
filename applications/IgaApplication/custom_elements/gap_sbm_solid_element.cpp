@@ -392,7 +392,9 @@ void GapSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
         ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
         ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
 
-        mpConstitutiveLaw->FinalizeMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy);
+        if (mpConstitutiveLaw->RequiresFinalizeMaterialResponse()) {
+            mpConstitutiveLaw->FinalizeMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
 
         const Vector sigma = values_true.GetStressVector();
     
@@ -424,7 +426,9 @@ void GapSbmSolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProce
     ConstitutiveLaw::Parameters constitutive_law_parameters(
         GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
 
-    mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    if (mpConstitutiveLaw->RequiresInitializeMaterialResponse()) {
+        mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    }
 }
 
 
@@ -1342,9 +1346,11 @@ void GapSbmSolidElementVolumetric::InitializeSolutionStep(
             GetSurrogateGeometry(),
             GetProperties(),
             rCurrentProcessInfo);
-        p_constitutive_law->InitializeMaterialResponse(
-            constitutive_law_parameters,
-            ConstitutiveLaw::StressMeasure_Cauchy);
+        if (p_constitutive_law->RequiresInitializeMaterialResponse()) {
+            p_constitutive_law->InitializeMaterialResponse(
+                constitutive_law_parameters,
+                ConstitutiveLaw::StressMeasure_Cauchy);
+        }
     }
 }
 
@@ -1437,9 +1443,11 @@ void GapSbmSolidElementVolumetric::FinalizeSolutionStep(
             integration_weight * point_displacement;
         total_weight += integration_weight;
 
-        p_constitutive_law->FinalizeMaterialResponse(
-            constitutive_parameters,
-            ConstitutiveLaw::StressMeasure_Cauchy);
+        if (p_constitutive_law->RequiresFinalizeMaterialResponse()) {
+            p_constitutive_law->FinalizeMaterialResponse(
+                constitutive_parameters,
+                ConstitutiveLaw::StressMeasure_Cauchy);
+        }
     }
 
     if (total_weight > 0.0) {

@@ -20,6 +20,35 @@
 namespace Kratos::Testing
 {
 
+KRATOS_TEST_CASE_IN_SUITE(AssignIgaConditionProcessAllPatches, KratosIgaFastSuite)
+{
+    Model model;
+    auto& r_root = model.CreateModelPart("IgaModelPart");
+    r_root.CreateNewProperties(0);
+    r_root.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_root.CreateNewNode(2, 1.0, 0.0, 0.0);
+    auto& r_first = r_root.CreateSubModelPart("Patch1").CreateSubModelPart("Domain");
+    auto& r_second = r_root.CreateSubModelPart("Patch2").CreateSubModelPart("Domain");
+    r_root.CreateSubModelPart("Patch3"); // The target need not exist on every patch.
+    r_root.CreateSubModelPart("Patch4").CreateSubModelPart("Domain");
+    r_root.CreateSubModelPart("Other");
+    r_first.CreateNewElement("LaplacianElement", 1, {{1, 2}}, 0);
+    r_second.CreateNewElement("LaplacianElement", 2, {{1, 2}}, 0);
+
+    Parameters parameters(R"({
+        "model_part_name": "IgaModelPart",
+        "element_condition_list": [{
+            "apply_to_all_patches": true,
+            "iga_model_part_suffix": "Domain",
+            "variables": [{"variable_name": "HEAT_FLUX", "value": "3"}]
+        }]
+    })");
+    AssignIgaExternalConditionsProcess process(model, parameters);
+    process.ExecuteInitialize();
+    KRATOS_EXPECT_NEAR(r_first.GetElement(1).GetValue(HEAT_FLUX), 3.0, 1e-12);
+    KRATOS_EXPECT_NEAR(r_second.GetElement(2).GetValue(HEAT_FLUX), 3.0, 1e-12);
+}
+
 // Tests the SnakeSbmUProcess with a square outer geometry
 KRATOS_TEST_CASE_IN_SUITE(AssignIgaConditionProcessTest, KratosIgaFastSuite)
 {

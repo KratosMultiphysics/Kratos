@@ -20,9 +20,6 @@
 #include "custom_conditions/sbm_load_solid_condition.h"
 #include "custom_utilities/analytical_j2_response_utility.h"
 
-// Match the analytical total-strain response of the manufactured benchmark.
-// #define ANALYTICAL_TANGENT
-
 // Comment out to reuse the surrogate history and D_s in the projected Neumann term.
 #define SBM_USE_PROJECTION_POINT_CONSTITUTIVE_LAW
 #include "includes/global_pointer_variables.h"
@@ -425,7 +422,7 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
 
     Vector old_strain_on_true = prod(B_sum,old_displacement_coefficient_vector);
 
-    const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
+    const SizeType strain_size_true = mpConstitutiveLawAtProjectionPoint->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
     ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true, true);
 
@@ -698,7 +695,9 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         values_surrogate.SetStressVector(this_constitutive_variables.StressVector);
         values_surrogate.SetConstitutiveMatrix(this_constitutive_variables.D);
         ApplyConstitutiveLaw(mat_size, old_strain, values_surrogate, this_constitutive_variables);
-        mpConstitutiveLaw->FinalizeMaterialResponse(values_surrogate, ConstitutiveLaw::StressMeasure_Cauchy);
+        if (mpConstitutiveLaw->RequiresFinalizeMaterialResponse()) {
+            mpConstitutiveLaw->FinalizeMaterialResponse(values_surrogate, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
         UpdateMaterialResponseAtProjectionPoint(rCurrentProcessInfo, true);
 
         const Vector sigma = values_surrogate.GetStressVector();
@@ -741,7 +740,9 @@ void SbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentPr
     Vector strain = prod(B, displacement);
     ConstitutiveLaw::Parameters values(r_geometry, GetProperties(), rCurrentProcessInfo);
     values.SetStrainVector(strain);
-    mpConstitutiveLaw->InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+    if (mpConstitutiveLaw->RequiresInitializeMaterialResponse()) {
+        mpConstitutiveLaw->InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+    }
     InitializeMaterialResponseAtProjectionPoint(rCurrentProcessInfo);
     KRATOS_CATCH("")
 }
@@ -766,7 +767,9 @@ void SbmLoadSolidCondition::UpdateMaterialResponseAtProjectionPoint(
     ConstitutiveVariables variables(strain_size);
     ApplyConstitutiveLaw(mat_size, strain, values, variables, true);
     if (Finalize) {
-        mpConstitutiveLawAtProjectionPoint->FinalizeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+        if (mpConstitutiveLawAtProjectionPoint->RequiresFinalizeMaterialResponse()) {
+            mpConstitutiveLawAtProjectionPoint->FinalizeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
     }
     KRATOS_CATCH("")
 #endif
@@ -790,7 +793,9 @@ void SbmLoadSolidCondition::InitializeMaterialResponseAtProjectionPoint(
     Vector strain = prod(B_extended, displacement);
     ConstitutiveLaw::Parameters values(r_geometry, GetProperties(), rCurrentProcessInfo);
     values.SetStrainVector(strain);
-    mpConstitutiveLawAtProjectionPoint->InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+    if (mpConstitutiveLawAtProjectionPoint->RequiresInitializeMaterialResponse()) {
+        mpConstitutiveLawAtProjectionPoint->InitializeMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
+    }
     KRATOS_CATCH("")
 #endif
 }

@@ -759,7 +759,9 @@ void SbmSolidCondition::CalculateRightHandSide(
         Values.SetStressVector(this_constitutive_variables.StressVector);
         Values.SetConstitutiveMatrix(this_constitutive_variables.D);
         ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
-        mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        if (mpConstitutiveLaw->RequiresFinalizeMaterialResponse()) {
+            mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
 
         const Vector sigma = Values.GetStressVector();
         Vector sigma_n;
@@ -823,7 +825,9 @@ void SbmSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProces
     mDBOld = prod(Values.GetConstitutiveMatrix(), B);
 
     // Keep the adjoint Nitsche operator fixed throughout this solution step.
-    mpConstitutiveLaw->InitializeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+    if (mpConstitutiveLaw->RequiresInitializeMaterialResponse()) {
+        mpConstitutiveLaw->InitializeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+    }
     KRATOS_CATCH("")
 }
 
