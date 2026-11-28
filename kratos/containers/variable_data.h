@@ -68,7 +68,9 @@ public:
           mKey(rOtherVariable.mKey),
           mSize(rOtherVariable.mSize),
           mpSourceVariable(rOtherVariable.mpSourceVariable) ,
-          mIsComponent(rOtherVariable.mIsComponent)
+          mIsComponent(rOtherVariable.mIsComponent),
+          mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable),
+          mpAdjointVariable(rOtherVariable.mpAdjointVariable)
     {}
 
 
@@ -227,6 +229,16 @@ public:
         return !mIsComponent;
     }
 
+    constexpr bool HasTimeDerivative() const noexcept
+    {
+        return mpTimeDerivativeVariable != nullptr;
+    }
+
+    constexpr bool HasAdjointVariable() const noexcept
+    {
+        return mpAdjointVariable != nullptr;
+    }
+
     /// Returns the component index.
     /** Please note that this method don't check if it is a component or not.
      * It uses the key to reterive the compenent index from its first 7 bits.
@@ -238,10 +250,22 @@ public:
         return (mKey & first_7_bits);
     }
 
-    const VariableData& GetSourceVariable() const
+    constexpr const VariableData& GetSourceVariable() const
     {
         KRATOS_DEBUG_ERROR_IF(mpSourceVariable == nullptr) << "No source variable is defined for the component" << std::endl;
         return *mpSourceVariable;
+    }
+
+    constexpr const VariableData& GetAdjointVariable() const
+    {
+        KRATOS_ERROR_IF(mpAdjointVariable == nullptr) << "Adjoint variable for Variable \"" << Name() << "\" was not assigned" << std::endl;
+        return *mpAdjointVariable;
+    }
+
+    constexpr const VariableData& GetTimeDerivative() const
+    {
+        KRATOS_DEBUG_ERROR_IF(mpTimeDerivativeVariable == nullptr) << "Time derivative for Variable \"" << Name() << "\" was not assigned" << std::endl;
+        return *mpTimeDerivativeVariable;
     }
 
     virtual const void* pZero() const {
@@ -327,6 +351,8 @@ protected:
         mSize = rOtherVariable.mSize;
         mpSourceVariable = rOtherVariable.mpSourceVariable;
         mIsComponent = rOtherVariable.mIsComponent;
+        mpAdjointVariable = rOtherVariable.mpAdjointVariable;
+        mpTimeDerivativeVariable = rOtherVariable.mpTimeDerivativeVariable;
 
         return *this;
     }
@@ -338,12 +364,16 @@ protected:
     /// Constructor for variables.
     constexpr VariableData(
         const std::string_view& NewName,
-        const std::size_t NewSize)
+        const std::size_t NewSize,
+        const VariableData* pTimeDerivativeVariable = nullptr,
+        const VariableData* pAdjointVariable = nullptr)
         : mName(NewName),
           mKey(GenerateKey(mName, NewSize, false, 0)),
           mSize(NewSize),
           mpSourceVariable(this),
-          mIsComponent(false)
+          mIsComponent(false),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable),
+          mpAdjointVariable(pAdjointVariable)
     {}
 
     /// Constructor for variables components.
@@ -351,12 +381,16 @@ protected:
         const std::string_view& NewName,
         const std::size_t NewSize,
         const VariableData* pSourceVariable,
-        const char ComponentIndex)
+        const char ComponentIndex,
+        const VariableData* pTimeDerivativeVariable = nullptr,
+        const VariableData* pAdjointVariable = nullptr)
         : mName(NewName),
           mKey(GenerateKey(pSourceVariable->mName, NewSize, true, ComponentIndex)),
           mSize(NewSize),
           mpSourceVariable(pSourceVariable),
-          mIsComponent(true)
+          mIsComponent(true),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable),
+          mpAdjointVariable(pAdjointVariable)
     {}
 
     /** default constructor is to be used only with serialization due to the fact that
@@ -380,6 +414,10 @@ private:
     const VariableData* mpSourceVariable;
 
     bool mIsComponent;
+
+    const VariableData* mpTimeDerivativeVariable = nullptr; /// Definition of the pointer to the variable for the time derivative
+
+    const VariableData* mpAdjointVariable = nullptr; /// Definition of the pointer to the adjoint variable (primal to adjoint link only)
 
     ///@}
 
