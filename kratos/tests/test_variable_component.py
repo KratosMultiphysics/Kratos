@@ -12,18 +12,18 @@ class TestVariableComponent(KratosUnittest.TestCase):
     def test_AdjointVariable(self):
         KM = KratosMultiphysics
         self.assertTrue(KM.PRESSURE.HasAdjointVariable())
+        self.assertTrue(KM.ACCELERATION.HasAdjointVariable())
         self.assertEqual(KM.PRESSURE.GetAdjointVariable(), KM.ADJOINT_PRESSURE)
         self.assertEqual(KM.DISPLACEMENT.GetAdjointVariable(), KM.ADJOINT_DISPLACEMENT)
         self.assertEqual(KM.DISPLACEMENT_X.GetAdjointVariable(), KM.ADJOINT_DISPLACEMENT_X)
         self.assertEqual(KM.VELOCITY_Z.GetAdjointVariable(), KM.ADJOINT_VELOCITY_Z)
         self.assertEqual(KM.ROTATION.GetAdjointVariable(), KM.ADJOINT_ROTATION)
 
-        # no adjoint to primal link and no adjoint for ACCELERATION
+        # no adjoint to primal link and no adjoint for DENSITY
         self.assertFalse(KM.ADJOINT_DISPLACEMENT.HasAdjointVariable())
-        self.assertFalse(KM.ACCELERATION.HasAdjointVariable())
         self.assertFalse(KM.DENSITY.HasAdjointVariable())
-        with self.assertRaisesRegex(RuntimeError, "Adjoint variable for Variable \"ACCELERATION\" was not assigned"):
-            KM.ACCELERATION.GetAdjointVariable()
+        with self.assertRaisesRegex(RuntimeError, "Adjoint variable for Variable \"DENSITY\" was not assigned"):
+            KM.DENSITY.GetAdjointVariable()
 
 if __name__ == '__main__':
     KratosUnittest.main()
